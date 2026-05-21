@@ -3,4336 +3,749 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lengua Viva · Taller de Traducción · Est. Buenos Aires</title>
-<meta name="description" content="A translation atelier for English → Spanish. Run by a published author in Buenos Aires.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,200..900,0..100;1,9..144,200..900,0..100&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:ital,wght@0,300..700;1,300..700&family=Caveat:wght@400..700&family=Homemade+Apple&display=swap" rel="stylesheet">
-
+<title>Hand Particle Field</title>
 <style>
-/* =======================================================
-   LENGUA VIVA · EL TALLER
-   A translation atelier. Editorial, tactile, obsessive.
-   ======================================================= */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  /* Paper & ink */
-  --paper: #efe4c9;
-  --paper-warm: #ead7b2;
-  --paper-deep: #e2cfa3;
-  --paper-bright: #f7efd8;
-  --bone: #f3e9d0;
-  --ink: #14100a;
-  --ink-soft: #2a231a;
-  --ink-faint: #6b5f4a;
-  --muted: #8a7c65;
-  --faint: #b8a880;
-
-  /* Accent inks */
-  --red: #a63428;
-  --red-bright: #c9432f;
-  --red-deep: #7e2218;
-  --red-pen: #d03520;
-  --gold: #a88226;
-  --gold-bright: #d4a72c;
-  --blue: #2a4c78;
-  --green: #35613a;
-  --green-mark: #2d6b3c;
-
-  /* Borders */
-  --rule: #c9b685;
-  --rule-soft: #dfce9f;
-  --rule-faint: #e8dab5;
-
-  /* Highlights */
-  --mark: #f5dd72;
-  --mark-peach: #ffc88c;
-  --wash: rgba(166, 52, 40, 0.08);
-
-  /* Engine */
-  --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-html { scroll-behavior: smooth; }
-html.ready, html.ready * { cursor: none; }
-
-body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 17px;
-  line-height: 1.65;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  position: relative;
-}
-
-/* -----------  Paper grain + vignette ----------- */
-.grain {
-  position: fixed;
-  inset: -10%;
-  pointer-events: none;
-  z-index: 9996;
-  opacity: 0.55;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 320 320' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.06  0 0 0 0 0.04  0 0 0 0.85 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
-}
-.vignette {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9995;
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(20,16,10,0.15) 100%);
-}
-
-/* -----------  Selection ----------- */
-::selection {
-  background: var(--mark);
-  color: var(--ink);
-}
-
-/* -----------  Custom cursor ----------- */
-.cursor {
-  position: fixed;
-  top: 0; left: 0;
-  width: 8px; height: 8px;
-  background: var(--ink);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 10000;
-  transform: translate3d(-50%, -50%, 0);
-  transition: width .22s var(--ease), height .22s var(--ease),
-              background .22s var(--ease), border-radius .22s var(--ease),
-              opacity .25s;
-  mix-blend-mode: difference;
-  will-change: transform;
-}
-.cursor::after {
-  content: '';
-  position: absolute;
-  inset: -14px;
-  border: 1px solid transparent;
-  border-radius: 50%;
-  transition: inset .3s var(--ease), border-color .3s var(--ease);
-}
-.cursor.hover {
-  width: 42px; height: 42px;
-  background: transparent;
-  border: 1px solid var(--red);
-  mix-blend-mode: normal;
-}
-.cursor.text {
-  width: 2px; height: 24px;
-  border-radius: 0;
-  background: var(--red);
-  mix-blend-mode: normal;
-}
-.cursor.pen {
-  width: 0; height: 0;
-  background: transparent;
-  mix-blend-mode: normal;
-}
-.cursor.pen::before {
-  content: '✎';
-  position: absolute;
-  top: -2px; left: 4px;
-  font-size: 26px;
-  color: var(--red-pen);
-  transform: rotate(14deg);
-  text-shadow: 0 2px 6px rgba(166,52,40,0.3);
-}
-
-/* -----------  Progress rule ----------- */
-.progress {
-  position: fixed;
-  top: 0; left: 0;
-  height: 2px;
-  width: 0;
-  background: var(--red);
-  z-index: 9997;
-  transition: width .1s linear;
-}
-.progress::after {
-  content: '';
-  position: absolute;
-  right: -3px; top: -2px;
-  width: 6px; height: 6px;
-  background: var(--red);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--red);
-}
-
-/* -----------  Masthead navigation ----------- */
-.masthead {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 500;
-  padding: 0.9rem 2rem;
-  background: rgba(239, 228, 201, 0.82);
-  backdrop-filter: blur(18px) saturate(1.1);
-  -webkit-backdrop-filter: blur(18px) saturate(1.1);
-  border-bottom: 1px solid var(--rule-soft);
-  transform: translateY(-100%);
-  transition: transform .6s var(--ease), background .3s;
-}
-.masthead.show { transform: translateY(0); }
-
-.masthead-inner {
-  max-width: 1500px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 2rem;
-}
-.masthead-left, .masthead-right {
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.masthead-right { justify-content: flex-end; }
-.masthead-left span, .masthead-right span { white-space: nowrap; }
-.masthead-left .rule-v, .masthead-right .rule-v {
-  width: 1px; height: 12px; background: var(--rule);
-}
-.masthead-links {
-  display: flex;
-  gap: 1.4rem;
-  list-style: none;
-}
-.masthead-links a {
-  color: var(--ink-faint);
-  text-decoration: none;
-  transition: color .2s;
-  position: relative;
-}
-.masthead-links a:hover { color: var(--red); }
-.masthead-links a::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; bottom: -4px;
-  height: 1px;
-  background: var(--red);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform .25s var(--ease);
-}
-.masthead-links a:hover::after { transform: scaleX(1); }
-
-.masthead-logo {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-  font-size: 1.4rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--ink);
-  line-height: 1;
-  display: flex;
-  align-items: baseline;
-  gap: 0.25rem;
-}
-.masthead-logo .v {
-  font-style: italic;
-  color: var(--red);
-  font-weight: 400;
-}
-.masthead-logo .mark {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.5rem;
-  color: var(--gold);
-  letter-spacing: 0;
-  margin-left: 0.35rem;
-  vertical-align: super;
-}
-.masthead-cta {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  padding: 0.55rem 1rem;
-  background: var(--ink);
-  color: var(--paper);
-  text-decoration: none;
-  border: 1px solid var(--ink);
-  transition: all .25s var(--ease);
-}
-.masthead-cta:hover {
-  background: var(--red);
-  border-color: var(--red);
-}
-
-@media (max-width: 840px) {
-  .masthead { padding: 0.7rem 1rem; }
-  .masthead-left, .masthead-right { font-size: 0.5rem; gap: 0.6rem; }
-  .masthead-links { display: none; }
-  .masthead-logo { font-size: 1.1rem; }
-  .masthead-left span:not(:first-child), .masthead-left .rule-v { display: none; }
-}
-
-/* -----------  Utility: chapter mark ----------- */
-.chapter {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.9rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--red);
-  margin-bottom: 1.3rem;
-}
-.chapter .roman {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144;
-  font-style: italic;
-  font-size: 1.4rem;
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  color: var(--red);
-  line-height: 1;
-}
-.chapter .rule-h {
-  flex: 0 0 40px;
-  height: 1px;
-  background: var(--red);
-  opacity: 0.6;
-}
-
-/* -----------  Reveal utility ----------- */
-.reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity .9s var(--ease), transform .9s var(--ease);
-}
-.reveal.on { opacity: 1; transform: translateY(0); }
-.rd-1 { transition-delay: .08s; }
-.rd-2 { transition-delay: .18s; }
-.rd-3 { transition-delay: .32s; }
-.rd-4 { transition-delay: .46s; }
-.rd-5 { transition-delay: .6s; }
-
-/* -----------  Caret ----------- */
-.caret {
-  display: inline-block;
-  width: 2px;
-  height: 1em;
-  background: var(--red);
-  vertical-align: -2px;
-  margin-left: 2px;
-  animation: blink .85s step-end infinite;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-/* =======================================================
-   HERO · THE MASTHEAD
-   ======================================================= */
-#hero {
-  min-height: 100vh;
-  padding: 2.5rem 2rem 3rem;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-.hero-ornament-bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(16rem, 28vw, 32rem);
-  line-height: 0.85;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(20,16,10,0.06);
-  user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  animation: driftSlow 22s ease-in-out infinite;
-}
-@keyframes driftSlow {
-  0%,100% { transform: translateX(-2%) rotate(-0.3deg); }
-  50%     { transform: translateX(2%)  rotate(0.3deg); }
-}
-
-.hero-topbar {
-  position: relative;
-  z-index: 3;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 0.4rem 0;
-  border-bottom: 2px solid var(--ink);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-.hero-topbar::before {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; bottom: -6px;
-  height: 1px;
-  background: var(--ink);
-}
-.hero-topbar .left, .hero-topbar .right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-.hero-topbar .right { justify-content: flex-end; }
-.hero-topbar .middle {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 1rem;
-  letter-spacing: 0.01em;
-  text-transform: none;
-  color: var(--red);
-}
-.hero-topbar .dot {
-  width: 5px; height: 5px;
-  background: var(--red);
-  border-radius: 50%;
-  display: inline-block;
-  vertical-align: middle;
-  margin: 0 0.3rem;
-}
-
-.hero-masthead {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  padding: 3.5rem 0 2rem;
-  border-bottom: 1px solid var(--rule);
-}
-.hero-kicker {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1rem;
-  color: var(--ink-faint);
-  letter-spacing: 0.02em;
-  margin-bottom: 0.8rem;
-}
-.hero-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 30;
-  font-weight: 400;
-  font-size: clamp(3.8rem, 15vw, 14rem);
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  color: var(--ink);
-  display: inline-block;
-  position: relative;
-}
-.hero-title .amp {
-  font-style: italic;
-  color: var(--red);
-  font-weight: 400;
-  font-variation-settings: 'opsz' 144, 'SOFT' 80;
-  font-size: 0.92em;
-  display: inline-block;
-  transform: translateY(0.02em);
-  margin: 0 0.02em;
-}
-.hero-title .v {
-  font-style: italic;
-  color: var(--red);
-  font-weight: 400;
-  font-variation-settings: 'opsz' 144, 'SOFT' 80;
-}
-.hero-title .star {
-  font-size: 0.25em;
-  color: var(--gold);
-  vertical-align: super;
-  font-style: normal;
-  margin-left: 0.2em;
-}
-
-.hero-sub {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(1.1rem, 2vw, 1.5rem);
-  color: var(--ink-soft);
-  margin-top: 1.2rem;
-  letter-spacing: 0.005em;
-}
-.hero-sub em { color: var(--red); font-weight: 400; }
-
-.hero-credit-row {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.9rem 0;
-  border-bottom: 1px solid var(--ink);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.54rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.hero-credit-row .middle {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 0.95rem;
-  letter-spacing: 0.01em;
-  text-transform: none;
-  color: var(--ink);
-}
-.hero-credit-row .middle em { color: var(--red); }
-.hero-credit-row .right { text-align: right; }
-
-/* Dual-column live translation */
-.hero-columns {
-  position: relative;
-  z-index: 2;
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 0;
-  padding: 3rem 0 1rem;
-  align-items: start;
-}
-.hero-col {
-  padding: 0 2.5rem;
-  position: relative;
-}
-.hero-col-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.hero-col-label::before {
-  content: '';
-  width: 18px; height: 1px;
-  background: var(--red);
-}
-.hero-col-label .pill {
-  margin-left: auto;
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-size: 0.85rem;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--ink-faint);
-}
-.hero-col p {
-  font-family: 'Libre Baskerville', serif;
-  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
-  line-height: 1.75;
-  color: var(--ink-soft);
-  min-height: 7em;
-}
-.hero-col .dropcap {
-  float: left;
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144;
-  font-weight: 500;
-  font-size: 4em;
-  line-height: 0.82;
-  padding: 0.08em 0.12em 0 0;
-  color: var(--red);
-}
-.hero-col.es .dropcap { color: var(--red); }
-
-.hero-col-divider {
-  width: 1px;
-  align-self: stretch;
-  background: linear-gradient(180deg,
-    transparent 0%,
-    var(--rule) 15%,
-    var(--rule) 85%,
-    transparent 100%);
-  position: relative;
-}
-.hero-col-divider::before {
-  content: '→';
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-size: 1.6rem;
-  color: var(--red);
-  background: var(--paper);
-  padding: 0.3rem 0.5rem;
-  line-height: 1;
-}
-
-.hero-margin {
-  position: absolute;
-  z-index: 1;
-  font-family: 'Caveat', cursive;
-  font-size: 1.3rem;
-  color: var(--red);
-  transform: rotate(-4deg);
-  white-space: nowrap;
-  pointer-events: none;
-}
-.hero-margin.top-right {
-  top: 18%;
-  right: 3%;
-  transform: rotate(6deg);
-}
-.hero-margin.bottom-left {
-  bottom: 8%;
-  left: 3%;
-  transform: rotate(-5deg);
-}
-.hero-margin .arrow { font-size: 0.85em; margin-right: 0.3rem; }
-
-.hero-footer {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 1rem;
-  align-items: center;
-  padding: 1.2rem 0 0;
-  border-top: 2px solid var(--ink);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.54rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.hero-footer::before {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; top: 6px;
-  height: 1px;
-  background: var(--ink);
-}
-.hero-footer .middle {
-  display: flex;
-  gap: 0.8rem;
-  align-items: center;
-}
-.hero-footer .ornament {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  color: var(--red);
-  font-size: 1.2rem;
-  line-height: 1;
-}
-.hero-footer .scroll-hint {
-  text-align: right;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-.hero-footer .scroll-hint::after {
-  content: '↓';
-  animation: bounce 1.8s ease-in-out infinite;
-  font-size: 0.9rem;
-}
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(4px); }
-}
-
-.hero-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  padding: 1.05rem 2.5rem;
-  background: var(--ink);
-  color: var(--paper);
-  text-decoration: none;
-  border: 2px solid var(--ink);
-  position: relative;
-  overflow: hidden;
-  transition: color .3s var(--ease);
-  margin-top: 1rem;
-}
-.hero-cta::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--red);
-  transform: translateY(101%);
-  transition: transform .35s var(--ease);
-  z-index: 0;
-}
-.hero-cta:hover::before { transform: translateY(0); }
-.hero-cta:hover { border-color: var(--red); }
-.hero-cta span { position: relative; z-index: 1; }
-.hero-cta .arrow {
-  position: relative; z-index: 1;
-  transition: transform .3s var(--ease);
-}
-.hero-cta:hover .arrow { transform: translateX(4px); }
-
-.hero-cta-row {
-  text-align: center;
-  margin-top: 1.5rem;
-}
-
-@media (max-width: 900px) {
-  .hero-columns { grid-template-columns: 1fr; gap: 1rem; }
-  .hero-col { padding: 1rem 0; border-bottom: 1px dashed var(--rule); }
-  .hero-col-divider { display: none; }
-  .hero-margin { display: none; }
-}
-
-/* =======================================================
-   TICKER STRIP (between sections)
-   ======================================================= */
-.ticker {
-  padding: 1.1rem 0;
-  overflow: hidden;
-  position: relative;
-  background: var(--ink);
-  color: var(--paper);
-  border-top: 1px solid rgba(243,233,208,0.12);
-  border-bottom: 1px solid rgba(243,233,208,0.12);
-}
-.ticker.light {
-  background: var(--paper);
-  color: var(--ink);
-  border-color: var(--rule-soft);
-}
-.ticker::before, .ticker::after {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0;
-  width: 140px;
-  z-index: 2;
-  pointer-events: none;
-}
-.ticker::before { left: 0; background: linear-gradient(to right, var(--ink), transparent); }
-.ticker::after  { right: 0; background: linear-gradient(to left, var(--ink), transparent); }
-.ticker.light::before { background: linear-gradient(to right, var(--paper), transparent); }
-.ticker.light::after  { background: linear-gradient(to left, var(--paper), transparent); }
-
-.ticker-row {
-  display: flex;
-  white-space: nowrap;
-  animation: tkr 55s linear infinite;
-  will-change: transform;
-}
-.ticker:hover .ticker-row { animation-play-state: paused; }
-.ticker-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0 1.8rem;
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1.1rem;
-  flex-shrink: 0;
-}
-.ticker-item .en {
-  color: rgba(243,233,208,0.5);
-  text-decoration: line-through;
-  text-decoration-color: var(--red-bright);
-  text-decoration-thickness: 1px;
-}
-.ticker.light .ticker-item .en { color: var(--muted); }
-.ticker-item .arrow {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
-  color: var(--red-bright);
-  letter-spacing: 0;
-}
-.ticker-item .es { color: var(--paper); font-weight: 400; }
-.ticker.light .ticker-item .es { color: var(--ink); font-weight: 500; }
-.ticker-item::after {
-  content: '✦';
-  font-size: 0.6rem;
-  color: var(--red-bright);
-  margin-left: 1rem;
-  opacity: 0.6;
-}
-@keyframes tkr {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-/* =======================================================
-   RED PEN LAB · The Markup Demonstration
-   ======================================================= */
-#red-pen {
-  background: var(--paper);
-  padding: 8rem 2rem 9rem;
-  position: relative;
-  overflow: hidden;
-}
-#red-pen::before {
-  content: '';
-  position: absolute;
-  top: 8rem; right: 2rem;
-  width: 1px; height: calc(100% - 8rem);
-  background: linear-gradient(180deg, transparent, var(--rule) 20%, var(--rule) 80%, transparent);
-}
-.rp-wrap {
-  max-width: 1200px;
-  margin: 0 auto;
-  position: relative;
-}
-.rp-head {
-  margin-bottom: 3rem;
-  max-width: 780px;
-}
-.rp-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 40;
-  font-weight: 400;
-  font-size: clamp(2.2rem, 5.5vw, 4.6rem);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  margin-bottom: 1.3rem;
-}
-.rp-title em {
-  font-style: italic;
-  color: var(--red);
-  font-weight: 400;
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-}
-.rp-lede {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1.25rem;
-  line-height: 1.55;
-  color: var(--ink-faint);
-  max-width: 620px;
-}
-
-/* Manuscript paper */
-.rp-manuscript {
-  position: relative;
-  background: var(--bone);
-  border: 1px solid var(--rule);
-  padding: 3.5rem 4rem 4rem;
-  margin: 3rem 0;
-  box-shadow:
-    0 1px 0 rgba(255,255,255,0.5) inset,
-    0 30px 60px -30px rgba(20,16,10,0.25),
-    0 8px 24px -10px rgba(20,16,10,0.15);
-  transform: rotate(-0.4deg);
-}
-.rp-manuscript::before {
-  content: '';
-  position: absolute;
-  inset: 8px;
-  border: 1px solid rgba(201,182,133,0.4);
-  pointer-events: none;
-}
-/* Ruled line background */
-.rp-manuscript::after {
-  content: '';
-  position: absolute;
-  inset: 30px 40px;
-  background-image: repeating-linear-gradient(
-    transparent,
-    transparent 31px,
-    rgba(42,76,120,0.07) 31px,
-    rgba(42,76,120,0.07) 32px
-  );
-  pointer-events: none;
-  z-index: 0;
-}
-.rp-corner {
-  position: absolute;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--muted);
-  z-index: 2;
-}
-.rp-corner.tl { top: 12px; left: 16px; }
-.rp-corner.tr { top: 12px; right: 16px; color: var(--red); }
-
-.rp-stamp {
-  position: absolute;
-  top: 20px; right: 40px;
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 500;
-  font-size: 0.85rem;
-  color: var(--red);
-  border: 2px solid var(--red);
-  padding: 0.3rem 0.8rem;
-  transform: rotate(6deg);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  opacity: 0;
-  transition: opacity .5s var(--ease);
-  z-index: 3;
-  background: rgba(243,233,208,0.7);
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(166,52,40,0.2) inset;
-}
-.rp-manuscript.marked .rp-stamp { opacity: 1; }
-
-.rp-heading {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 0.9rem;
-  color: var(--ink-faint);
-  margin-bottom: 1.5rem;
-  position: relative;
-  z-index: 1;
-}
-
-.rp-paragraph {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-weight: 400;
-  font-size: clamp(1.15rem, 1.5vw, 1.38rem);
-  line-height: 1.95;
-  color: var(--ink);
-  position: relative;
-  z-index: 1;
-}
-.rp-paragraph .w {
-  position: relative;
-  display: inline-block;
-  transition: color .4s var(--ease);
-}
-.rp-paragraph .w.struck {
-  color: var(--ink-faint);
-}
-.rp-paragraph .w.struck::after {
-  content: '';
-  position: absolute;
-  left: -2%;
-  right: -2%;
-  top: 55%;
-  height: 2px;
-  background: var(--red-pen);
-  transform: scaleX(0) skewY(-2deg);
-  transform-origin: left center;
-  transition: transform .4s var(--ease);
-  border-radius: 2px;
-  box-shadow: 0 1px 0 rgba(208,53,32,0.3);
-}
-.rp-paragraph .w.struck.drawn::after { transform: scaleX(1) skewY(-2deg); }
-.rp-paragraph .w.circled::before {
-  content: '';
-  position: absolute;
-  inset: -6px -10px -2px -10px;
-  border: 2px solid var(--red-pen);
-  border-radius: 50%;
-  transform: scale(1.2) rotate(-3deg);
-  opacity: 0;
-  transition: opacity .5s var(--ease), transform .5s var(--ease);
-}
-.rp-paragraph .w.circled.drawn::before {
-  opacity: 1;
-  transform: scale(1) rotate(-3deg);
-}
-
-/* Margin notes (handwritten annotations) */
-.rp-note {
-  position: absolute;
-  font-family: 'Caveat', cursive;
-  font-weight: 500;
-  color: var(--red-pen);
-  font-size: 1.15rem;
-  line-height: 1.15;
-  pointer-events: none;
-  opacity: 0;
-  transform: translateY(8px) rotate(-3deg);
-  transition: opacity .6s var(--ease), transform .6s var(--ease);
-  z-index: 4;
-  max-width: 180px;
-}
-.rp-note.on {
-  opacity: 1;
-  transform: translateY(0) rotate(var(--rot, -3deg));
-}
-.rp-note .arr {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85em;
-  font-weight: 500;
-}
-
-.rp-side-note {
-  position: absolute;
-  right: -18px;
-  font-family: 'Homemade Apple', cursive;
-  font-size: 0.95rem;
-  color: var(--blue);
-  line-height: 1.3;
-  max-width: 160px;
-  opacity: 0;
-  transform: translateX(8px);
-  transition: opacity .7s var(--ease), transform .7s var(--ease);
-  z-index: 4;
-}
-.rp-side-note.on { opacity: 0.9; transform: translateX(0); }
-
-/* The re-written version */
-.rp-after {
-  margin-top: 3rem;
-  position: relative;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2rem;
-  align-items: start;
-}
-.rp-after-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--green);
-  padding-top: 0.5rem;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  align-self: stretch;
-  border-right: 1px solid var(--green);
-  padding-right: 0.4rem;
-  margin-right: 1rem;
-}
-.rp-after-card {
-  background: var(--paper-bright);
-  border: 1px solid var(--rule);
-  border-left: 3px solid var(--green);
-  padding: 2.3rem 2.5rem;
-  position: relative;
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity .9s var(--ease) .3s, transform .9s var(--ease) .3s;
-}
-.rp-after-card.on { opacity: 1; transform: translateY(0); }
-.rp-after-tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.52rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--green);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.rp-after-tag::before { content: '✓'; }
-.rp-after-text {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-weight: 400;
-  font-size: clamp(1.1rem, 1.4vw, 1.3rem);
-  line-height: 1.75;
-  color: var(--ink);
-}
-.rp-after-text .seal {
-  display: inline-block;
-  font-family: 'Caveat', cursive;
-  font-size: 1.25rem;
-  color: var(--red);
-  margin-left: 0.4rem;
-  transform: rotate(-4deg) translateY(-2px);
-  opacity: 0;
-  transition: opacity .5s var(--ease) 1.8s;
-}
-.rp-after-card.on .rp-after-text .seal { opacity: 1; }
-
-.rp-outro {
-  margin-top: 3rem;
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(1.4rem, 2.5vw, 2rem);
-  line-height: 1.4;
-  color: var(--ink-faint);
-  max-width: 700px;
-}
-.rp-outro em { color: var(--red); font-weight: 400; }
-
-@media (max-width: 760px) {
-  .rp-manuscript { padding: 2rem 1.5rem 2.5rem; transform: none; }
-  .rp-side-note { display: none; }
-  .rp-note { font-size: 0.95rem; }
-  .rp-after { grid-template-columns: 1fr; gap: 1rem; }
-  .rp-after-label {
-    writing-mode: horizontal-tb;
-    transform: none;
-    border-right: none;
-    border-bottom: 1px solid var(--green);
-    padding: 0 0 0.5rem 0;
-    margin: 0 0 1rem 0;
+  body {
+    background: #000;
+    overflow: hidden;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #fff;
+    user-select: none;
   }
-}
 
-/* =======================================================
-   GRAMMAR ANATOMY · The Sentence Dissector
-   ======================================================= */
-#anatomy {
-  background: var(--ink);
-  color: var(--paper);
-  padding: 8rem 2rem 9rem;
-  position: relative;
-  overflow: hidden;
-}
-#anatomy::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    radial-gradient(ellipse at top, rgba(166,52,40,0.08), transparent 60%),
-    radial-gradient(ellipse at bottom right, rgba(168,130,38,0.05), transparent 60%);
-}
-.ana-wrap {
-  max-width: 1300px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
-}
-.ana-head {
-  margin-bottom: 3rem;
-  max-width: 800px;
-}
-.ana-head .chapter { color: var(--gold-bright); }
-.ana-head .chapter .roman,
-.ana-head .chapter .rule-h { color: var(--gold-bright); background: var(--gold-bright); }
-.ana-head .chapter .roman { background: transparent; }
-.ana-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 40;
-  font-weight: 400;
-  font-size: clamp(2.2rem, 5vw, 4.4rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  margin-bottom: 1.3rem;
-}
-.ana-title em {
-  font-style: italic;
-  color: var(--gold-bright);
-  font-weight: 400;
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-}
-.ana-lede {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1.2rem;
-  line-height: 1.55;
-  color: rgba(243,233,208,0.6);
-  max-width: 620px;
-}
+  /* Hidden video used as MediaPipe input */
+  #videoEl {
+    position: absolute;
+    width: 1px; height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
 
-.ana-switcher {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-bottom: 2.5rem;
-  padding: 0.4rem;
-  background: rgba(243,233,208,0.04);
-  border: 1px solid rgba(243,233,208,0.08);
-  border-radius: 100px;
-}
-.ana-switch-btn {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  padding: 0.65rem 1.2rem;
-  border: none;
-  background: transparent;
-  color: rgba(243,233,208,0.55);
-  transition: all .25s var(--ease);
-  border-radius: 100px;
-}
-.ana-switch-btn:hover { color: var(--paper); }
-.ana-switch-btn.active {
-  background: var(--paper);
-  color: var(--ink);
-  font-weight: 500;
-}
+  /* Three.js canvas fills the screen */
+  #threeCanvas {
+    display: block;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+  }
 
-.ana-stage {
-  position: relative;
-  padding: 3.5rem 2rem 2.5rem;
-  background: rgba(243,233,208,0.02);
-  border: 1px solid rgba(243,233,208,0.08);
-  border-radius: 4px;
-  margin-bottom: 2rem;
-  min-height: 340px;
-}
-.ana-stage-label {
-  position: absolute;
-  top: 0.9rem; left: 1.2rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.5rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--gold-bright);
-}
-.ana-stage-meta {
-  position: absolute;
-  top: 0.9rem; right: 1.2rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.5rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(243,233,208,0.4);
-}
+  /* ── HUD overlay ── */
+  #hud {
+    position: fixed;
+    top: 16px; right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 10;
+  }
 
-.ana-sentence {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.3rem 0.5rem;
-  padding: 2.5rem 0;
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-weight: 400;
-  font-size: clamp(1.2rem, 2.2vw, 1.7rem);
-  line-height: 1.3;
-  position: relative;
-  z-index: 1;
-}
-.ana-sentence.en { color: var(--paper); }
-.ana-sentence.es { color: var(--paper); border-top: 1px dashed rgba(243,233,208,0.15); padding-top: 2.5rem; margin-top: 1.5rem; }
+  .hud-card {
+    background: rgba(0,0,0,.55);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px;
+    padding: 10px 14px;
+    backdrop-filter: blur(12px);
+    font-size: 12px;
+    line-height: 1.7;
+    min-width: 180px;
+  }
 
-.ana-w {
-  display: inline-block;
-  padding: 0.15rem 0.4rem;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background .25s var(--ease), color .25s var(--ease), transform .25s var(--ease);
-  position: relative;
-}
-.ana-w.hl {
-  background: rgba(212,167,44,0.18);
-  color: var(--gold-bright);
-}
-.ana-w.hl-pair {
-  background: rgba(201,67,47,0.18);
-  color: var(--red-bright);
-}
-.ana-w.dimmed { opacity: 0.35; }
-.ana-w.dropped {
-  color: rgba(243,233,208,0.25);
-  font-style: italic;
-  border: 1px dashed rgba(243,233,208,0.2);
-  position: relative;
-}
-.ana-w.dropped::after {
-  content: 'implicit';
-  position: absolute;
-  top: -1.2rem; left: 50%;
-  transform: translateX(-50%);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.5rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: rgba(243,233,208,0.3);
-}
-.ana-w .pos-tag {
-  position: absolute;
-  bottom: -1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.5rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--gold-bright);
-  opacity: 0;
-  white-space: nowrap;
-  transition: opacity .2s;
-}
-.ana-w.hl .pos-tag { opacity: 1; }
+  .hud-card label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #aaa;
+    margin-bottom: 2px;
+  }
 
-.ana-svg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-.ana-line {
-  stroke: var(--gold-bright);
-  stroke-width: 1.2;
-  stroke-dasharray: 3 4;
-  fill: none;
-  opacity: 0;
-  transition: opacity .3s;
-}
-.ana-line.visible { opacity: 0.85; }
-.ana-line.broken {
-  stroke: var(--red-bright);
-  stroke-dasharray: 2 6;
-}
+  .hud-card input[type=range] {
+    width: 100%;
+    accent-color: #7df;
+    cursor: pointer;
+  }
 
-.ana-readout {
-  margin-top: 2rem;
-  padding: 1.5rem 1.8rem;
-  background: rgba(243,233,208,0.03);
-  border-left: 2px solid var(--gold-bright);
-  font-family: 'Libre Baskerville', serif;
-  font-size: 0.95rem;
-  line-height: 1.7;
-  color: rgba(243,233,208,0.82);
-  min-height: 5em;
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-.ana-readout-pre {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold-bright);
-  flex-shrink: 0;
-  padding-top: 0.4rem;
-  width: 95px;
-}
-.ana-readout-text em {
-  font-style: italic;
-  color: var(--gold-bright);
-  font-family: 'Fraunces', serif;
-  font-weight: 500;
-}
-.ana-readout-text .accent {
-  color: var(--red-bright);
-  font-weight: 500;
-  font-style: italic;
-}
+  #fps {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    color: #7df;
+  }
 
-.ana-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem 2rem;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(243,233,208,0.08);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(243,233,208,0.5);
-}
-.ana-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.ana-legend-item .swatch {
-  width: 20px; height: 2px;
-}
-.ana-legend-item .swatch.g { background: var(--gold-bright); }
-.ana-legend-item .swatch.r {
-  background: linear-gradient(to right, var(--red-bright) 50%, transparent 50%);
-  background-size: 6px 100%;
-}
-.ana-legend-item .swatch.d {
-  border: 1px dashed rgba(243,233,208,0.4);
-  height: 12px; width: 20px; background: transparent;
-}
-
-@media (max-width: 760px) {
-  .ana-sentence { font-size: 1.1rem; padding: 2rem 0; }
-  .ana-svg { display: none; }
-  .ana-stage { padding: 3rem 0.8rem 1.5rem; }
-}
-
-/* =======================================================
-   VOICE LABORATORY · Pick a voice. Watch it change.
-   ======================================================= */
-#voice {
-  background: var(--paper-warm);
-  padding: 8rem 2rem 9rem;
-  position: relative;
-  border-bottom: 1px solid var(--rule);
-}
-.vl-wrap {
-  max-width: 1300px;
-  margin: 0 auto;
-  position: relative;
-}
-.vl-head {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 3rem;
-  align-items: end;
-  margin-bottom: 3rem;
-}
-.vl-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 40;
-  font-weight: 400;
-  font-size: clamp(2rem, 5vw, 4.2rem);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-}
-.vl-title em {
-  font-style: italic;
-  color: var(--red);
-  font-weight: 400;
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-}
-.vl-lede {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1.15rem;
-  line-height: 1.55;
-  color: var(--ink-faint);
-  max-width: 360px;
-  padding-bottom: 0.5rem;
-}
-
-.vl-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-  padding-bottom: 1.2rem;
-  border-bottom: 1px solid var(--rule);
-}
-.vl-btn {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  padding: 0.8rem 1.3rem;
-  border: 1px solid var(--rule);
-  background: var(--bone);
-  color: var(--ink-faint);
-  transition: all .25s var(--ease);
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-}
-.vl-btn:hover { border-color: var(--ink); color: var(--ink); }
-.vl-btn.active {
-  background: var(--ink);
-  color: var(--paper);
-  border-color: var(--ink);
-}
-.vl-btn .num {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 0.75rem;
-  letter-spacing: 0;
-  color: var(--red);
-}
-.vl-btn.active .num { color: var(--gold-bright); }
-
-.vl-stage {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 2rem;
-  min-height: 460px;
-}
-
-.vl-card {
-  background: var(--bone);
-  border: 1px solid var(--rule);
-  padding: 2.5rem 2.8rem;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-.vl-card.source {
-  background: transparent;
-  border: 1px dashed var(--rule);
-}
-.vl-card-tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid var(--rule);
-}
-.vl-card.source .vl-card-tag { color: var(--ink-faint); }
-.vl-card.output .vl-card-tag { color: var(--red); }
-.vl-card-tag .meta {
-  margin-left: auto;
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 0.8rem;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--red);
-}
-
-.vl-source-text {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-weight: 400;
-  font-size: clamp(1.05rem, 1.3vw, 1.2rem);
-  line-height: 1.7;
-  color: var(--ink-soft);
-  flex: 1;
-}
-
-.vl-output-text {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-weight: 400;
-  font-size: clamp(1.1rem, 1.35vw, 1.25rem);
-  line-height: 1.72;
-  color: var(--ink);
-  flex: 1;
-  min-height: 7em;
-}
-.vl-output-text.italic-pass {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 300;
-}
-
-.vl-footer-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px dashed var(--rule);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.52rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.vl-footer-row .swap {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--red);
-}
-
-.vl-hint {
-  position: absolute;
-  top: -1rem;
-  right: 1rem;
-  font-family: 'Caveat', cursive;
-  font-weight: 600;
-  font-size: 1.15rem;
-  color: var(--red);
-  transform: rotate(-3deg);
-  background: var(--mark);
-  padding: 0.1rem 0.7rem;
-  border-radius: 2px;
-  opacity: 0;
-  transition: opacity .4s var(--ease);
-  pointer-events: none;
-  z-index: 2;
-}
-.vl-card.output.changed .vl-hint { opacity: 1; }
-
-.vl-note {
-  margin-top: 2.5rem;
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1.3rem;
-  line-height: 1.55;
-  color: var(--ink-faint);
-  max-width: 760px;
-  padding-left: 2rem;
-  border-left: 2px solid var(--red);
-}
-.vl-note strong { color: var(--red); font-weight: 500; font-style: italic; }
-
-@media (max-width: 900px) {
-  .vl-head { grid-template-columns: 1fr; gap: 1.5rem; }
-  .vl-stage { grid-template-columns: 1fr; }
-  .vl-card { padding: 1.8rem 1.5rem; }
-}
-
-/* =======================================================
-   CATALOG · Services as a catalog index
-   ======================================================= */
-#catalog {
-  background: var(--paper);
-  padding: 8rem 2rem;
-  position: relative;
-}
-.cat-wrap { max-width: 1300px; margin: 0 auto; }
-.cat-head {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 4rem;
-  margin-bottom: 4rem;
-  align-items: end;
-  padding-bottom: 2rem;
-  border-bottom: 2px solid var(--ink);
-}
-.cat-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 40;
-  font-weight: 400;
-  font-size: clamp(2rem, 5vw, 4.2rem);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-}
-.cat-title em {
-  font-style: italic;
-  color: var(--red);
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-}
-.cat-meta {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  text-align: right;
-  padding-bottom: 0.6rem;
-}
-.cat-meta span { display: block; margin-bottom: 0.4rem; }
-.cat-meta .mrk {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-size: 0.95rem;
-  letter-spacing: 0.01em;
-  text-transform: none;
-  color: var(--red);
-}
-
-.cat-list {
-  display: grid;
-  gap: 0;
-}
-.cat-row {
-  display: grid;
-  grid-template-columns: 80px 1fr 1.5fr auto;
-  gap: 2rem;
-  padding: 2.2rem 0;
-  border-bottom: 1px solid var(--rule);
-  align-items: baseline;
-  transition: background .25s var(--ease);
-  position: relative;
-}
-.cat-row:hover { background: var(--paper-warm); }
-.cat-row::before {
-  content: '';
-  position: absolute;
-  left: -2rem;
-  top: 50%;
-  width: 1rem;
-  height: 1px;
-  background: var(--red);
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform .35s var(--ease);
-}
-.cat-row:hover::before { transform: scaleX(1); }
-.cat-num {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 2.5rem;
-  color: var(--red);
-  line-height: 1;
-}
-.cat-name {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-weight: 500;
-  font-size: 1.6rem;
-  line-height: 1.2;
-  color: var(--ink);
-}
-.cat-name em {
-  display: block;
-  font-size: 0.85rem;
-  font-style: italic;
-  font-weight: 400;
-  color: var(--ink-faint);
-  margin-top: 0.2rem;
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-}
-.cat-desc {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: var(--ink-soft);
-}
-.cat-arrow {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-size: 1.4rem;
-  color: var(--red);
-  transition: transform .25s var(--ease);
-  padding-right: 0.3rem;
-}
-.cat-row:hover .cat-arrow { transform: translateX(6px); }
-
-@media (max-width: 900px) {
-  .cat-head { grid-template-columns: 1fr; gap: 1.5rem; align-items: start; }
-  .cat-meta { text-align: left; }
-  .cat-row { grid-template-columns: 40px 1fr; gap: 1rem; padding: 1.5rem 0; }
-  .cat-num { font-size: 1.8rem; }
-  .cat-desc { grid-column: 2; }
-  .cat-arrow { display: none; }
-}
-
-/* =======================================================
-   CRAFTSMAN · About / Why Me
-   ======================================================= */
-#craftsman {
-  background: var(--ink);
-  color: var(--paper);
-  padding: 8rem 2rem 9rem;
-  position: relative;
-  overflow: hidden;
-}
-.cr-wrap {
-  max-width: 1300px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  gap: 5rem;
-  align-items: start;
-  position: relative;
-  z-index: 1;
-}
-.cr-head .chapter { color: var(--gold-bright); }
-.cr-head .chapter .rule-h { background: var(--gold-bright); }
-.cr-head .chapter .roman { color: var(--gold-bright); }
-
-.cr-portrait {
-  position: relative;
-  aspect-ratio: 4/5;
-  background: linear-gradient(135deg,
-    #3a2f20 0%,
-    #241c12 45%,
-    #1a140d 100%);
-  border: 1px solid rgba(212,167,44,0.2);
-  overflow: hidden;
-}
-.cr-portrait::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    repeating-linear-gradient(90deg, transparent 0 20px, rgba(168,130,38,0.04) 20px 21px);
-}
-.cr-portrait-initial {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 80;
-  font-style: italic;
-  font-weight: 400;
-  font-size: clamp(10rem, 22vw, 20rem);
-  line-height: 1;
-  color: rgba(212,167,44,0.16);
-  user-select: none;
-}
-.cr-portrait-badge {
-  position: absolute;
-  bottom: 1.5rem; left: 1.5rem;
-  right: 1.5rem;
-  border-top: 1px solid rgba(212,167,44,0.25);
-  padding-top: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-}
-.cr-portrait-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.52rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(243,233,208,0.5);
-  line-height: 1.7;
-}
-.cr-portrait-label strong {
-  color: var(--gold-bright);
-  font-weight: 500;
-  display: block;
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-size: 1rem;
-  letter-spacing: 0;
-  text-transform: none;
-}
-.cr-portrait-seal {
-  width: 56px; height: 56px;
-  border: 1.5px solid var(--gold-bright);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--gold-bright);
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-size: 1.2rem;
-  flex-shrink: 0;
-}
-
-.cr-body {
-  position: relative;
-}
-.cr-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 40;
-  font-weight: 400;
-  font-size: clamp(2rem, 5vw, 4rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  margin-bottom: 2rem;
-}
-.cr-title em {
-  font-style: italic;
-  color: var(--gold-bright);
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-}
-.cr-body > p {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 1.05rem;
-  line-height: 1.85;
-  color: rgba(243,233,208,0.75);
-  margin-bottom: 1.3rem;
-}
-.cr-body > p em {
-  font-style: italic;
-  color: var(--gold-bright);
-}
-.cr-body > p strong {
-  color: var(--paper);
-  font-weight: 600;
-}
-
-.cr-facts {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: rgba(243,233,208,0.12);
-  border: 1px solid rgba(243,233,208,0.12);
-  margin-top: 2rem;
-}
-.cr-fact {
-  padding: 1.6rem 1.8rem;
-  background: var(--ink);
-}
-.cr-fact-num {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144;
-  font-weight: 300;
-  font-size: 2.6rem;
-  color: var(--gold-bright);
-  line-height: 1;
-  margin-bottom: 0.4rem;
-}
-.cr-fact-num .sign {
-  font-size: 0.6em;
-  vertical-align: top;
-  color: var(--gold-bright);
-  opacity: 0.7;
-}
-.cr-fact-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.52rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(243,233,208,0.6);
-  line-height: 1.5;
-}
-
-.cr-quote {
-  margin-top: 2.5rem;
-  padding: 1.5rem 1.8rem;
-  background: rgba(212,167,44,0.06);
-  border-left: 3px solid var(--gold-bright);
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1.1rem;
-  line-height: 1.55;
-  color: rgba(243,233,208,0.9);
-}
-.cr-quote::before {
-  content: '"';
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-size: 2.5rem;
-  color: var(--gold-bright);
-  line-height: 0;
-  vertical-align: -0.4em;
-  margin-right: 0.15em;
-}
-
-@media (max-width: 900px) {
-  .cr-wrap { grid-template-columns: 1fr; gap: 3rem; }
-  .cr-facts { grid-template-columns: 1fr; }
-}
-
-/* =======================================================
-   PROCESS · Three Acts
-   ======================================================= */
-#process {
-  background: var(--paper);
-  padding: 8rem 2rem;
-  position: relative;
-  border-top: 1px solid var(--rule);
-}
-.pr-wrap { max-width: 1300px; margin: 0 auto; }
-.pr-head {
-  text-align: center;
-  margin-bottom: 5rem;
-  max-width: 700px;
-  margin-left: auto;
-  margin-right: auto;
-}
-.pr-head .chapter { justify-content: center; }
-.pr-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 40;
-  font-weight: 400;
-  font-size: clamp(2rem, 5vw, 4rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-}
-.pr-title em {
-  font-style: italic;
-  color: var(--red);
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-}
-
-.pr-acts {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 3rem;
-  position: relative;
-  counter-reset: act;
-}
-.pr-acts::before {
-  content: '';
-  position: absolute;
-  top: 4.5rem;
-  left: 16%;
-  right: 16%;
-  height: 1px;
-  background: repeating-linear-gradient(to right,
-    var(--rule) 0, var(--rule) 6px,
-    transparent 6px, transparent 12px);
-}
-.pr-act {
-  text-align: center;
-  position: relative;
-}
-.pr-act-num {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1.8rem;
-  color: var(--red);
-  letter-spacing: 0.1em;
-  margin-bottom: 1rem;
-  padding: 0 1.5rem;
-  background: var(--paper);
-  display: inline-block;
-  position: relative;
-  z-index: 1;
-}
-.pr-act-circle {
-  width: 90px; height: 90px;
-  margin: 0 auto 1.8rem;
-  border: 1px solid var(--rule);
-  background: var(--bone);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 3rem;
-  color: var(--red);
-  position: relative;
-  z-index: 1;
-  transition: all .3s var(--ease);
-}
-.pr-act:hover .pr-act-circle {
-  background: var(--ink);
-  color: var(--gold-bright);
-  border-color: var(--ink);
-  transform: scale(1.05);
-}
-.pr-act-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-weight: 500;
-  font-size: 1.4rem;
-  margin-bottom: 0.7rem;
-  line-height: 1.2;
-}
-.pr-act-title em {
-  font-style: italic;
-  color: var(--red);
-}
-.pr-act-desc {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 0.95rem;
-  line-height: 1.7;
-  color: var(--ink-faint);
-  max-width: 280px;
-  margin: 0 auto;
-}
-.pr-act-meta {
-  margin-top: 1rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.52rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.pr-act-meta strong { color: var(--red); }
-
-.pr-footer {
-  margin-top: 5rem;
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-.pr-spec {
-  padding: 1rem 1.5rem;
-  background: var(--bone);
-  border: 1px solid var(--rule);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-.pr-spec strong {
-  color: var(--red);
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 500;
-  font-size: 0.95rem;
-  letter-spacing: 0.01em;
-  text-transform: none;
-}
-
-@media (max-width: 760px) {
-  .pr-acts { grid-template-columns: 1fr; gap: 2.5rem; }
-  .pr-acts::before { display: none; }
-}
-
-/* =======================================================
-   TESTIMONIALS · Pull quotes
-   ======================================================= */
-#testimonials {
-  background: var(--paper-warm);
-  padding: 8rem 2rem 9rem;
-  position: relative;
-}
-.ts-wrap { max-width: 1300px; margin: 0 auto; }
-.ts-head {
-  margin-bottom: 4rem;
-  max-width: 780px;
-}
-.ts-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 40;
-  font-weight: 400;
-  font-size: clamp(2rem, 5vw, 4rem);
-  line-height: 1.04;
-  letter-spacing: -0.02em;
-}
-.ts-title em {
-  font-style: italic;
-  color: var(--red);
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-}
-
-.ts-grid {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 1.5rem;
-}
-.ts-card {
-  background: var(--bone);
-  border: 1px solid var(--rule);
-  padding: 2.4rem 2.3rem 2rem;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-.ts-card.large {
-  grid-row: span 2;
-  background: var(--ink);
-  color: var(--paper);
-  border-color: var(--ink);
-}
-.ts-card.large .ts-quote { color: var(--paper); }
-.ts-card.large .ts-byline-name { color: var(--gold-bright); }
-.ts-card.large .ts-byline-role { color: rgba(243,233,208,0.6); }
-.ts-card.large .ts-rule { background: rgba(243,233,208,0.15); }
-.ts-card.large::before {
-  content: '"';
-  position: absolute;
-  top: 1.2rem; left: 1.5rem;
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 6rem;
-  line-height: 0.6;
-  color: var(--gold-bright);
-  opacity: 0.6;
-}
-
-.ts-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 28px; height: 28px;
-  border-top: 1px solid var(--red);
-  border-left: 1px solid var(--red);
-}
-.ts-quote {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 400;
-  font-size: clamp(1.05rem, 1.3vw, 1.2rem);
-  line-height: 1.5;
-  color: var(--ink);
-  margin-bottom: 1.5rem;
-  flex: 1;
-}
-.ts-card.large .ts-quote {
-  font-size: clamp(1.3rem, 2vw, 1.8rem);
-  line-height: 1.4;
-  font-weight: 300;
-  margin-top: 3rem;
-}
-.ts-quote strong {
-  font-style: normal;
-  background: var(--mark);
-  color: var(--ink);
-  padding: 0 0.25rem;
-  font-weight: 400;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-}
-.ts-card.large .ts-quote strong {
-  background: rgba(212,167,44,0.25);
-  color: var(--gold-bright);
-}
-.ts-rule {
-  height: 1px;
-  background: var(--rule);
-  margin-bottom: 1.2rem;
-}
-.ts-byline {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 1rem;
-}
-.ts-byline-left {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  line-height: 1.6;
-}
-.ts-byline-name {
-  color: var(--red);
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-size: 1rem;
-  letter-spacing: 0.01em;
-  text-transform: none;
-  display: block;
-  font-weight: 500;
-}
-.ts-byline-role {
-  display: block;
-  color: var(--muted);
-}
-.ts-byline-right {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.5rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--muted);
-  text-align: right;
-  line-height: 1.6;
-}
-
-@media (max-width: 900px) {
-  .ts-grid { grid-template-columns: 1fr; }
-  .ts-card.large { grid-row: auto; }
-}
-
-/* =======================================================
-   PROSPECTUS · Pricing
-   ======================================================= */
-#prospectus {
-  background: var(--ink);
-  color: var(--paper);
-  padding: 8rem 2rem 9rem;
-  position: relative;
-  overflow: hidden;
-}
-#prospectus::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse at top right, rgba(212,167,44,0.06), transparent 60%);
-}
-.ps-wrap { max-width: 1300px; margin: 0 auto; position: relative; z-index: 1; }
-.ps-head {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  align-items: end;
-  margin-bottom: 4rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(243,233,208,0.12);
-}
-.ps-head .chapter { color: var(--gold-bright); }
-.ps-head .chapter .roman { color: var(--gold-bright); }
-.ps-head .chapter .rule-h { background: var(--gold-bright); }
-
-.ps-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 40;
-  font-weight: 400;
-  font-size: clamp(2rem, 5vw, 4rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-}
-.ps-title em {
-  font-style: italic;
-  color: var(--gold-bright);
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-}
-.ps-intro {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1.15rem;
-  line-height: 1.6;
-  color: rgba(243,233,208,0.6);
-  padding-bottom: 0.5rem;
-  max-width: 460px;
-}
-
-.ps-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-}
-.ps-card {
-  padding: 2.8rem 2.4rem 2.4rem;
-  background: rgba(243,233,208,0.03);
-  border: 1px solid rgba(243,233,208,0.12);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  transition: all .3s var(--ease);
-}
-.ps-card:hover {
-  background: rgba(243,233,208,0.05);
-  transform: translateY(-4px);
-}
-.ps-card.featured {
-  border-color: var(--gold-bright);
-  background: rgba(212,167,44,0.06);
-}
-.ps-card.featured:hover { background: rgba(212,167,44,0.1); }
-
-.ps-badge {
-  position: absolute;
-  top: -0.7rem;
-  left: 1.8rem;
-  background: var(--gold-bright);
-  color: var(--ink);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.5rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  padding: 0.35rem 0.9rem;
-  font-weight: 500;
-}
-
-.ps-tier {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.52rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--gold-bright);
-  margin-bottom: 0.8rem;
-}
-.ps-name {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 2.2rem;
-  line-height: 1;
-  letter-spacing: -0.01em;
-  margin-bottom: 1rem;
-}
-.ps-price {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144;
-  font-weight: 400;
-  font-size: 3rem;
-  line-height: 1;
-  color: var(--paper);
-  margin-bottom: 0.2rem;
-}
-.ps-price .sign {
-  font-size: 0.55em;
-  vertical-align: top;
-  color: var(--gold-bright);
-}
-.ps-price .unit {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
-  color: rgba(243,233,208,0.5);
-  margin-left: 0.2rem;
-  vertical-align: middle;
-}
-.ps-desc {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 0.95rem;
-  color: rgba(243,233,208,0.55);
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(243,233,208,0.1);
-}
-
-.ps-feats {
-  list-style: none;
-  margin-bottom: 2.5rem;
-  flex: 1;
-}
-.ps-feats li {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 0.9rem;
-  line-height: 1.55;
-  color: rgba(243,233,208,0.8);
-  padding: 0.55rem 0 0.55rem 1.5rem;
-  position: relative;
-  border-bottom: 1px solid rgba(243,233,208,0.05);
-}
-.ps-feats li:last-child { border-bottom: none; }
-.ps-feats li::before {
-  content: '✦';
-  position: absolute;
-  left: 0;
-  top: 0.55rem;
-  color: var(--gold-bright);
-  font-size: 0.8rem;
-}
-
-.ps-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  text-decoration: none;
-  padding: 1rem 1.3rem;
-  border: 1px solid rgba(243,233,208,0.2);
-  color: var(--paper);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  transition: all .25s var(--ease);
-}
-.ps-btn:hover {
-  border-color: var(--gold-bright);
-  color: var(--gold-bright);
-}
-.ps-btn .arr { transition: transform .25s var(--ease); font-size: 0.9rem; }
-.ps-btn:hover .arr { transform: translateX(4px); }
-
-.ps-card.featured .ps-btn {
-  background: var(--gold-bright);
-  border-color: var(--gold-bright);
-  color: var(--ink);
-  font-weight: 500;
-}
-.ps-card.featured .ps-btn:hover {
-  background: var(--paper);
-  border-color: var(--paper);
-}
-
-.ps-footer {
-  margin-top: 3rem;
-  text-align: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(243,233,208,0.4);
-}
-
-@media (max-width: 900px) {
-  .ps-head { grid-template-columns: 1fr; gap: 1.5rem; }
-  .ps-grid { grid-template-columns: 1fr; }
-}
-
-/* =======================================================
-   LETTER · Contact as a personal letter
-   ======================================================= */
-#letter {
-  background: var(--paper);
-  padding: 8rem 2rem 9rem;
-  position: relative;
-}
-.lt-wrap { max-width: 1200px; margin: 0 auto; }
-.lt-head {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-.lt-head .chapter { justify-content: center; }
-.lt-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 60;
-  font-style: italic;
-  font-weight: 400;
-  font-size: clamp(2.2rem, 5.5vw, 4.6rem);
-  line-height: 1.04;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-}
-.lt-title em {
-  color: var(--red);
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-}
-.lt-sub {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1.2rem;
-  line-height: 1.6;
-  color: var(--ink-faint);
-  max-width: 540px;
-  margin: 1.5rem auto 0;
-}
-
-.lt-paper {
-  position: relative;
-  background: var(--bone);
-  border: 1px solid var(--rule);
-  padding: 3.5rem 4rem 3.5rem;
-  box-shadow:
-    0 1px 0 rgba(255,255,255,0.6) inset,
-    0 40px 80px -40px rgba(20,16,10,0.3),
-    0 15px 40px -15px rgba(20,16,10,0.18);
-  max-width: 920px;
-  margin: 0 auto;
-  transform: rotate(-0.2deg);
-}
-.lt-paper::before {
-  content: '';
-  position: absolute;
-  inset: 8px;
-  border: 1px solid rgba(201,182,133,0.3);
-  pointer-events: none;
-}
-.lt-paper::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: repeating-linear-gradient(
-    transparent 0 31px,
-    rgba(42,76,120,0.05) 31px 32px);
-  pointer-events: none;
-}
-
-.lt-inside {
-  position: relative;
-  z-index: 1;
-}
-.lt-header-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2rem;
-  align-items: start;
-  margin-bottom: 2.5rem;
-  padding-bottom: 1.2rem;
-  border-bottom: 1px dashed var(--rule);
-}
-.lt-addr {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 0.9rem;
-  line-height: 1.65;
-  color: var(--ink-soft);
-}
-.lt-addr strong {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 500;
-  color: var(--ink);
-  font-size: 1.05rem;
-  letter-spacing: 0.005em;
-}
-.lt-date {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 1.05rem;
-  color: var(--ink);
-  text-align: right;
-}
-.lt-date .place {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.52rem;
-  font-style: normal;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--muted);
-  display: block;
-  margin-top: 0.25rem;
-}
-
-.lt-greeting {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 1.4rem;
-  color: var(--ink);
-  margin-bottom: 1.2rem;
-}
-.lt-intro {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 1rem;
-  line-height: 1.85;
-  color: var(--ink-soft);
-  margin-bottom: 2rem;
-}
-.lt-intro em { color: var(--red); font-style: italic; }
-
-.lt-form {
-  display: grid;
-  gap: 1.3rem;
-  margin-bottom: 2rem;
-}
-.lt-field {
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 1rem;
-  align-items: baseline;
-  border-bottom: 1px dashed var(--rule);
-  padding-bottom: 0.7rem;
-}
-.lt-field label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--red);
-}
-.lt-field input,
-.lt-field textarea {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-weight: 400;
-  font-size: 1.05rem;
-  line-height: 1.55;
-  color: var(--ink);
-  background: transparent;
-  border: none;
-  outline: none;
-  padding: 0.3rem 0;
-  width: 100%;
-}
-.lt-field input::placeholder,
-.lt-field textarea::placeholder {
-  color: var(--faint);
-  font-style: italic;
-}
-.lt-field textarea {
-  resize: vertical;
-  min-height: 100px;
-}
-.lt-field:focus-within {
-  border-bottom-color: var(--red);
-}
-.lt-field:focus-within label { color: var(--red-bright); }
-
-.lt-send-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-.lt-signature {
-  font-family: 'Homemade Apple', cursive;
-  font-size: 1.7rem;
-  color: var(--red);
-  line-height: 1;
-  letter-spacing: 0.02em;
-  padding-top: 0.5rem;
-}
-.lt-signature .stamp {
-  display: block;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.5rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-top: 0.5rem;
-}
-
-.lt-send {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  padding: 1.05rem 2.3rem;
-  background: var(--ink);
-  color: var(--paper);
-  border: 2px solid var(--ink);
-  transition: all .25s var(--ease);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-}
-.lt-send:hover {
-  background: var(--red);
-  border-color: var(--red);
-}
-.lt-send .arr { font-size: 0.9rem; }
-
-.lt-details-row {
-  margin-top: 3rem;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: var(--rule);
-  border: 1px solid var(--rule);
-  max-width: 920px;
-  margin-left: auto;
-  margin-right: auto;
-}
-.lt-d {
-  padding: 1.3rem 1.5rem;
-  background: var(--bone);
-}
-.lt-d-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.52rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--red);
-  margin-bottom: 0.35rem;
-}
-.lt-d-val {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 1rem;
-  color: var(--ink);
-  letter-spacing: 0;
-}
-
-@media (max-width: 760px) {
-  .lt-paper { padding: 2rem 1.5rem; transform: none; }
-  .lt-header-row { grid-template-columns: 1fr; }
-  .lt-date { text-align: left; }
-  .lt-field { grid-template-columns: 1fr; gap: 0.3rem; }
-  .lt-details-row { grid-template-columns: 1fr 1fr; }
-  .lt-send-row { flex-direction: column; align-items: stretch; }
-  .lt-send { justify-content: center; }
-}
-
-/* =======================================================
-   FINALE · The signature & seal
-   ======================================================= */
-#finale {
-  background: var(--ink);
-  color: var(--paper);
-  padding: 10rem 2rem;
-  position: relative;
-  overflow: hidden;
-  text-align: center;
-  min-height: 90vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-#finale::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at center, rgba(168,130,38,0.1), transparent 65%);
-}
-.fn-massive {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(10rem, 30vw, 34rem);
-  line-height: 0.85;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(212,167,44,0.12);
-  user-select: none;
-  pointer-events: none;
-  white-space: nowrap;
-  z-index: 0;
-}
-.fn-inner {
-  position: relative;
-  z-index: 1;
-  max-width: 860px;
-}
-.fn-ornament {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-size: 1.8rem;
-  color: var(--gold-bright);
-  margin-bottom: 1.5rem;
-  line-height: 1;
-}
-.fn-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 60;
-  font-weight: 400;
-  font-size: clamp(2.4rem, 6vw, 5rem);
-  line-height: 1.05;
-  letter-spacing: -0.025em;
-  margin-bottom: 2rem;
-}
-.fn-title em {
-  font-style: italic;
-  color: var(--gold-bright);
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-}
-.fn-line {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1.3rem;
-  color: rgba(243,233,208,0.6);
-  margin-bottom: 3rem;
-}
-
-.fn-seal {
-  width: 160px; height: 160px;
-  margin: 0 auto 3rem;
-  border: 1.5px solid var(--gold-bright);
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--gold-bright);
-  position: relative;
-  animation: slowSpin 80s linear infinite;
-}
-.fn-seal::before {
-  content: '';
-  position: absolute;
-  inset: 8px;
-  border: 1px solid rgba(212,167,44,0.35);
-  border-radius: 50%;
-}
-.fn-seal-ring {
-  position: absolute;
-  inset: -12px;
-  animation: slowSpin 120s linear infinite reverse;
-}
-.fn-seal-ring svg { width: 100%; height: 100%; }
-.fn-seal-center {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 2.4rem;
-  line-height: 1;
-}
-.fn-seal-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.5rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  margin-top: 0.3rem;
-  color: rgba(212,167,44,0.8);
-}
-@keyframes slowSpin {
-  from { transform: rotate(0); }
-  to { transform: rotate(360deg); }
-}
-
-.fn-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  padding: 1.2rem 2.6rem;
-  background: var(--gold-bright);
-  color: var(--ink);
-  text-decoration: none;
-  border: 2px solid var(--gold-bright);
-  transition: all .25s var(--ease);
-  font-weight: 500;
-}
-.fn-cta:hover {
-  background: var(--paper);
-  border-color: var(--paper);
-}
-
-/* =======================================================
-   COLOPHON · Footer
-   ======================================================= */
-.colophon {
-  background: #0c0907;
-  color: rgba(243,233,208,0.5);
-  padding: 4rem 2rem 2rem;
-  position: relative;
-  border-top: 1px solid rgba(243,233,208,0.1);
-}
-.colo-wrap {
-  max-width: 1300px;
-  margin: 0 auto;
-}
-.colo-head {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2rem;
-  align-items: start;
-  padding-bottom: 2.5rem;
-  border-bottom: 1px solid rgba(243,233,208,0.1);
-  margin-bottom: 2rem;
-}
-.colo-logo {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'SOFT' 100;
-  font-weight: 400;
-  font-size: 2.8rem;
-  letter-spacing: -0.01em;
-  color: var(--paper);
-  line-height: 1;
-}
-.colo-logo .v {
-  font-style: italic;
-  color: var(--red);
-}
-.colo-logo .star {
-  color: var(--gold-bright);
-  font-size: 0.35em;
-  vertical-align: super;
-  margin-left: 0.1em;
-}
-.colo-tagline {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 72;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1rem;
-  color: rgba(243,233,208,0.5);
-  margin-top: 0.5rem;
-}
-
-.colo-mini {
-  text-align: right;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(243,233,208,0.4);
-  line-height: 1.8;
-}
-
-.colo-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 3rem;
-  margin-bottom: 3rem;
-}
-.colo-col h5 {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.52rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--red-bright);
-  margin-bottom: 1rem;
-  font-weight: 500;
-}
-.colo-col p {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 0.88rem;
-  line-height: 1.75;
-  color: rgba(243,233,208,0.55);
-}
-.colo-col ul { list-style: none; }
-.colo-col li {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 0.88rem;
-  line-height: 1.9;
-}
-.colo-col a {
-  color: rgba(243,233,208,0.65);
-  text-decoration: none;
-  transition: color .2s;
-  position: relative;
-}
-.colo-col a:hover { color: var(--gold-bright); }
-
-.colo-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(243,233,208,0.08);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.52rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(243,233,208,0.35);
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-.colo-bar .italicized {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 0.95rem;
-  letter-spacing: 0;
-  text-transform: none;
-  color: rgba(243,233,208,0.5);
-}
-
-@media (max-width: 900px) {
-  .colo-head { grid-template-columns: 1fr; }
-  .colo-mini { text-align: left; }
-  .colo-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
-  .colo-logo { font-size: 2rem; }
-}
-@media (max-width: 520px) {
-  .colo-grid { grid-template-columns: 1fr; }
-}
+  #status {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13px;
+    color: rgba(255,255,255,.45);
+    letter-spacing: .06em;
+    pointer-events: none;
+    z-index: 10;
+    transition: opacity .5s;
+  }
 </style>
 </head>
 <body>
 
-<div class="grain"></div>
-<div class="vignette"></div>
-<div class="cursor" id="cursor"></div>
-<div class="progress" id="progress"></div>
+<!-- Hidden webcam feed -->
+<video id="videoEl" autoplay playsinline muted></video>
 
-<!-- ================================================================
-  MASTHEAD NAV
-  ================================================================ -->
-<header class="masthead" id="mast">
-  <div class="masthead-inner">
-    <div class="masthead-left">
-      <span>Vol. IV</span>
-      <span class="rule-v"></span>
-      <span>№ 07</span>
-      <span class="rule-v"></span>
-      <span>Est. Buenos Aires</span>
-    </div>
-    <a href="#hero" class="masthead-logo">
-      Lengua<span class="v">Viva</span><span class="mark">★ TALLER</span>
-    </a>
-    <div class="masthead-right">
-      <ul class="masthead-links">
-        <li><a href="#red-pen">The Markup</a></li>
-        <li><a href="#anatomy">Anatomy</a></li>
-        <li><a href="#voice">Voice Lab</a></li>
-        <li><a href="#catalog">Services</a></li>
-        <li><a href="#prospectus">Prospectus</a></li>
-      </ul>
-      <span class="rule-v"></span>
-      <a href="#letter" class="masthead-cta">Commission</a>
-    </div>
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-card">
+    <div id="fps">FPS: --</div>
   </div>
-</header>
-
-<!-- ================================================================
-  HERO · THE MASTHEAD
-  ================================================================ -->
-<section id="hero">
-  <div class="hero-ornament-bg" aria-hidden="true">traducir</div>
-
-  <div class="hero-topbar">
-    <div class="left">
-      <span>Vol. IV · № 07</span>
-      <span class="dot"></span>
-      <span>Abril MMXXVI</span>
-    </div>
-    <div class="middle">El Taller</div>
-    <div class="right">
-      <span>Buenos Aires</span>
-      <span class="dot"></span>
-      <span>34°36′S · 58°22′W</span>
-    </div>
-  </div>
-
-  <div class="hero-masthead">
-    <div class="hero-kicker">— A translation atelier, established 2018 —</div>
-    <h1 class="hero-title">
-      Lengua<span class="amp">&</span><span class="v">Viva</span><span class="star">✦</span>
-    </h1>
-    <p class="hero-sub">Spanish that doesn't merely <em>say</em> the right thing — it <em>sounds</em> like it was written that way from the first line.</p>
-  </div>
-
-  <div class="hero-credit-row">
-    <div class="left">English → Español</div>
-    <div class="middle">Translation is <em>rewriting</em>, word by word, until the rhythm returns.</div>
-    <div class="right">By appointment only</div>
-  </div>
-
-  <!-- Live side-by-side -->
-  <div class="hero-columns">
-    <div class="hero-col en">
-      <div class="hero-col-label">
-        <span>Source · EN</span>
-        <span class="pill">manuscript</span>
-      </div>
-      <p id="heroEnText"><span class="dropcap">W</span>e build software for small teams. Early customers ship projects about forty percent faster. That's the whole pitch.</p>
-    </div>
-    <div class="hero-col-divider" aria-hidden="true"></div>
-    <div class="hero-col es">
-      <div class="hero-col-label">
-        <span>Rewrite · ES</span>
-        <span class="pill">adaptación</span>
-      </div>
-      <p id="heroEsText"></p>
-    </div>
-
-    <div class="hero-margin top-right"><span class="arrow">↖︎</span> not translated — <em>rewritten</em></div>
-    <div class="hero-margin bottom-left">same meaning, different bones</div>
-  </div>
-
-  <div class="hero-cta-row">
-    <a href="#letter" class="hero-cta"><span>Commission a sample</span><span class="arrow">→</span></a>
-  </div>
-
-  <div class="hero-footer">
-    <div class="left">Handset in Fraunces · Libre Baskerville · JetBrains Mono</div>
-    <div class="middle">
-      <span>Printed on paper</span>
-      <span class="ornament">❦</span>
-      <span>Not on servers</span>
-    </div>
-    <div class="right scroll-hint">Continue reading</div>
-  </div>
-</section>
-
-<!-- Ticker -->
-<div class="ticker">
-  <div class="ticker-row">
-    <span class="ticker-item"><span class="en">Your brand sounds bland in Spanish.</span><span class="arrow">→</span><span class="es">Tu marca con voz propia.</span></span>
-    <span class="ticker-item"><span class="en">This translation feels off.</span><span class="arrow">→</span><span class="es">Suena como debe.</span></span>
-    <span class="ticker-item"><span class="en">AI wrote this.</span><span class="arrow">→</span><span class="es">Lo escribió una persona.</span></span>
-    <span class="ticker-item"><span class="en">Close enough.</span><span class="arrow">→</span><span class="es">Exactamente eso.</span></span>
-    <span class="ticker-item"><span class="en">Generic homepage copy.</span><span class="arrow">→</span><span class="es">Palabras que venden.</span></span>
-    <span class="ticker-item"><span class="en">Your brand sounds bland in Spanish.</span><span class="arrow">→</span><span class="es">Tu marca con voz propia.</span></span>
-    <span class="ticker-item"><span class="en">This translation feels off.</span><span class="arrow">→</span><span class="es">Suena como debe.</span></span>
-    <span class="ticker-item"><span class="en">AI wrote this.</span><span class="arrow">→</span><span class="es">Lo escribió una persona.</span></span>
-    <span class="ticker-item"><span class="en">Close enough.</span><span class="arrow">→</span><span class="es">Exactamente eso.</span></span>
-    <span class="ticker-item"><span class="en">Generic homepage copy.</span><span class="arrow">→</span><span class="es">Palabras que venden.</span></span>
+  <div class="hud-card">
+    <label>Particles <span id="pCountVal">2000</span></label>
+    <input id="pCount" type="range" min="500" max="5000" step="100" value="2000">
+    <label style="margin-top:6px">Glow <span id="glowVal">1.4</span></label>
+    <input id="glow" type="range" min="0.2" max="3" step="0.1" value="1.4">
+    <label style="margin-top:6px">String Reach <span id="reachVal">0.25</span></label>
+    <input id="reach" type="range" min="0.05" max="0.6" step="0.01" value="0.25">
   </div>
 </div>
 
-<!-- ================================================================
-  I · THE RED PEN LAB
-  ================================================================ -->
-<section id="red-pen">
-  <div class="rp-wrap">
-    <div class="rp-head reveal">
-      <div class="chapter">
-        <span class="roman">I.</span>
-        <span class="rule-h"></span>
-        <span>The Markup</span>
-      </div>
-      <h2 class="rp-title">What an editor does, that a <em>machine can't.</em></h2>
-      <p class="rp-lede">Below is a translation that's technically correct — the kind a machine produces. Scroll and watch an editor's pen do its work.</p>
-    </div>
+<div id="status">Allow camera access to begin · move your hands</div>
 
-    <div class="rp-manuscript reveal rd-1" id="manuscript">
-      <div class="rp-corner tl">MS / draft · 01</div>
-      <div class="rp-corner tr">for: internal review</div>
-      <div class="rp-stamp">Revisar</div>
-      <div class="rp-heading">Landing page, paragraph one. Auto-translated from English.</div>
+<!-- ───────────────────── CDN imports ───────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.162.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.162.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.162.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.162.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.162.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.162.0/examples/js/postprocessing/ShaderPass.js"></script>
 
-      <p class="rp-paragraph" id="rpPara">
-        <span class="w">Nuestra</span>
-        <span class="w" data-strike>innovadora</span>
-        <span class="w">plataforma</span>
-        <span class="w" data-strike>aprovecha</span>
-        <span class="w" data-strike>tecnología</span>
-        <span class="w" data-strike>de vanguardia</span>
-        <span class="w">para</span>
-        <span class="w" data-strike>proporcionar</span>
-        <span class="w" data-strike>valor</span>
-        <span class="w" data-strike>inigualable,</span>
-        <span class="w" data-strike>empoderando</span>
-        <span class="w">a las empresas</span>
-        <span class="w">a</span>
-        <span class="w" data-strike>alcanzar</span>
-        <span class="w" data-strike>su</span>
-        <span class="w" data-strike>máximo</span>
-        <span class="w" data-strike>potencial</span>
-        <span class="w" data-circle>a través de</span>
-        <span class="w" data-strike>una</span>
-        <span class="w" data-strike>transformación</span>
-        <span class="w" data-strike>digital</span>
-        <span class="w" data-strike>sin fisuras.</span>
-      </p>
+<!-- MediaPipe Hands via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
-      <div class="rp-note" data-note="1" style="top: 3rem; right: -20px; --rot: 5deg;">
-        ← <span class="arr">Anglicismo.</span><br>Nadie habla así.
-      </div>
-      <div class="rp-note" data-note="2" style="bottom: 30%; left: -40px; --rot: -4deg;">
-        <span class="arr">↗︎</span> too much filler —<br><em>say the thing.</em>
-      </div>
-      <div class="rp-side-note" data-note="3" style="bottom: 8%; right: -12px;">
-        The reader checked out<br>after "vanguardia."
-      </div>
-      <div class="rp-note" data-note="4" style="top: 42%; right: -14px; --rot: 3deg;">
-        <em>"sin fisuras"</em> — really?
-      </div>
-    </div>
-
-    <div class="rp-after">
-      <div class="rp-after-label">After</div>
-      <div class="rp-after-card" id="rpAfter">
-        <div class="rp-after-tag">Rewritten · ES</div>
-        <p class="rp-after-text" id="rpAfterText"></p>
-      </div>
-    </div>
-
-    <p class="rp-outro reveal">
-      The machine gave you <em>twenty-three words</em>. An editor replaces them with the four that actually land.
-    </p>
-  </div>
-</section>
-
-<!-- ================================================================
-  II · THE GRAMMAR ANATOMY
-  ================================================================ -->
-<section id="anatomy">
-  <div class="ana-wrap">
-    <div class="ana-head reveal">
-      <div class="chapter">
-        <span class="roman">II.</span>
-        <span class="rule-h"></span>
-        <span>The Anatomy</span>
-      </div>
-      <h2 class="ana-title">Two languages. <em>Different wiring.</em></h2>
-      <p class="ana-lede">English and Spanish don't line up word for word — they arrange thought differently. Hover any word to see how the sentence actually transfers.</p>
-    </div>
-
-    <div class="ana-switcher reveal rd-1" id="anaSwitcher">
-      <button class="ana-switch-btn active" data-case="a">Case 01 · Subject</button>
-      <button class="ana-switch-btn" data-case="b">Case 02 · Idiom</button>
-      <button class="ana-switch-btn" data-case="c">Case 03 · Order</button>
-    </div>
-
-    <div class="ana-stage reveal rd-2" id="anaStage">
-      <div class="ana-stage-label">Dissection table</div>
-      <div class="ana-stage-meta"><span id="anaCaseMeta">Case 01 · dropped subject</span></div>
-
-      <svg class="ana-svg" id="anaSvg" preserveAspectRatio="none"></svg>
-
-      <div class="ana-sentence en" id="anaEn"></div>
-      <div class="ana-sentence es" id="anaEs"></div>
-    </div>
-
-    <div class="ana-readout">
-      <div class="ana-readout-pre">Observation</div>
-      <div class="ana-readout-text" id="anaReadout">Hover a word on either row. The line shows how it maps — or where it doesn't. A machine translates words. A writer translates <em>intent</em>.</div>
-    </div>
-
-    <div class="ana-legend">
-      <div class="ana-legend-item"><span class="swatch g"></span>maps cleanly</div>
-      <div class="ana-legend-item"><span class="swatch r"></span>doesn't translate literally</div>
-      <div class="ana-legend-item"><span class="swatch d"></span>implicit — dropped in Spanish</div>
-    </div>
-  </div>
-</section>
-
-<!-- Ticker -->
-<div class="ticker light">
-  <div class="ticker-row">
-    <span class="ticker-item"><span class="en">Translation.</span><span class="arrow">→</span><span class="es">Adaptación.</span></span>
-    <span class="ticker-item"><span class="en">Literal.</span><span class="arrow">→</span><span class="es">Exacto — que es distinto.</span></span>
-    <span class="ticker-item"><span class="en">Word for word.</span><span class="arrow">→</span><span class="es">Voz por voz.</span></span>
-    <span class="ticker-item"><span class="en">Faithful.</span><span class="arrow">→</span><span class="es">Fiel — al sentido, no al diccionario.</span></span>
-    <span class="ticker-item"><span class="en">Translation.</span><span class="arrow">→</span><span class="es">Adaptación.</span></span>
-    <span class="ticker-item"><span class="en">Literal.</span><span class="arrow">→</span><span class="es">Exacto — que es distinto.</span></span>
-    <span class="ticker-item"><span class="en">Word for word.</span><span class="arrow">→</span><span class="es">Voz por voz.</span></span>
-    <span class="ticker-item"><span class="en">Faithful.</span><span class="arrow">→</span><span class="es">Fiel — al sentido, no al diccionario.</span></span>
-  </div>
-</div>
-
-<!-- ================================================================
-  III · THE VOICE LABORATORY
-  ================================================================ -->
-<section id="voice">
-  <div class="vl-wrap">
-    <div class="vl-head reveal">
-      <div>
-        <div class="chapter">
-          <span class="roman">III.</span>
-          <span class="rule-h"></span>
-          <span>The Voice Lab</span>
-        </div>
-        <h2 class="vl-title">One brief. Five voices. <em>Pick yours.</em></h2>
-      </div>
-      <p class="vl-lede">The same meaning, in the register your audience actually hears. Click a voice. Watch the Spanish re-write itself.</p>
-    </div>
-
-    <div class="vl-picker reveal rd-1" id="voicePicker">
-      <button class="vl-btn active" data-voice="luxury"><span class="num">01</span> Luxury</button>
-      <button class="vl-btn" data-voice="bold"><span class="num">02</span> Bold</button>
-      <button class="vl-btn" data-voice="technical"><span class="num">03</span> Technical</button>
-      <button class="vl-btn" data-voice="warm"><span class="num">04</span> Conversational</button>
-      <button class="vl-btn" data-voice="editorial"><span class="num">05</span> Editorial</button>
-    </div>
-
-    <div class="vl-stage reveal rd-2">
-      <div class="vl-card source">
-        <div class="vl-card-tag">
-          <span>Source brief</span>
-          <span class="meta">English</span>
-        </div>
-        <p class="vl-source-text">Our new serum helps your skin recover faster. Most customers see results in six weeks. Three drops before bed, every night.</p>
-        <div class="vl-footer-row">
-          <span>Cosmetics · product page · 30 words</span>
-          <span class="swap">fixed ↓</span>
-        </div>
-      </div>
-
-      <div class="vl-card output" id="voiceOutputCard">
-        <span class="vl-hint">new!</span>
-        <div class="vl-card-tag">
-          <span>Rewrite</span>
-          <span class="meta" id="voiceMeta">Voz lujosa · 01</span>
-        </div>
-        <p class="vl-output-text" id="voiceOutput"></p>
-        <div class="vl-footer-row">
-          <span>Spanish · adapted, not translated</span>
-          <span class="swap" id="voiceWords">— · —</span>
-        </div>
-      </div>
-    </div>
-
-    <p class="vl-note reveal">
-      <strong>The point.</strong> The meaning never moved — the <em>voice</em> did. An AI gives you one flat register. A writer gives you whichever one your brand actually needs.
-    </p>
-  </div>
-</section>
-
-<!-- Ticker -->
-<div class="ticker">
-  <div class="ticker-row">
-    <span class="ticker-item"><span class="en">Why not just use AI?</span><span class="arrow">→</span><span class="es">Porque un lector lo nota.</span></span>
-    <span class="ticker-item"><span class="en">It's cheaper.</span><span class="arrow">→</span><span class="es">Y te cuesta clientes.</span></span>
-    <span class="ticker-item"><span class="en">It's faster.</span><span class="arrow">→</span><span class="es">Y suena como todos.</span></span>
-    <span class="ticker-item"><span class="en">The reader will never know.</span><span class="arrow">→</span><span class="es">Se da cuenta en la primera línea.</span></span>
-    <span class="ticker-item"><span class="en">Why not just use AI?</span><span class="arrow">→</span><span class="es">Porque un lector lo nota.</span></span>
-    <span class="ticker-item"><span class="en">It's cheaper.</span><span class="arrow">→</span><span class="es">Y te cuesta clientes.</span></span>
-    <span class="ticker-item"><span class="en">It's faster.</span><span class="arrow">→</span><span class="es">Y suena como todos.</span></span>
-    <span class="ticker-item"><span class="en">The reader will never know.</span><span class="arrow">→</span><span class="es">Se da cuenta en la primera línea.</span></span>
-  </div>
-</div>
-
-<!-- ================================================================
-  IV · THE CATALOG
-  ================================================================ -->
-<section id="catalog">
-  <div class="cat-wrap">
-    <div class="cat-head reveal">
-      <div>
-        <div class="chapter">
-          <span class="roman">IV.</span>
-          <span class="rule-h"></span>
-          <span>The Catalog</span>
-        </div>
-        <h1 class="cat-title">If it's written in English,<br>I can <em>make it work</em> in Spanish.</h1>
-      </div>
-      <div class="cat-meta">
-        <span>Listed below</span>
-        <span class="mrk">five disciplines</span>
-        <span>one desk</span>
-      </div>
-    </div>
-
-    <div class="cat-list">
-      <div class="cat-row reveal">
-        <div class="cat-num">I</div>
-        <div class="cat-name">Website Translation <em>sitios web</em></div>
-        <div class="cat-desc">Landing pages, marketing pages, legal copy. Every page reads as if Spanish was the mother tongue. Your voice stays put.</div>
-        <div class="cat-arrow">→</div>
-      </div>
-      <div class="cat-row reveal">
-        <div class="cat-num">II</div>
-        <div class="cat-name">Product Descriptions <em>fichas de producto</em></div>
-        <div class="cat-desc">Copy that makes Spanish-speaking buyers click. Not a technical summary of a thing — an argument for owning it.</div>
-        <div class="cat-arrow">→</div>
-      </div>
-      <div class="cat-row reveal">
-        <div class="cat-num">III</div>
-        <div class="cat-name">Scripts &amp; Ads <em>guiones y campañas</em></div>
-        <div class="cat-desc">Video, radio, YouTube, TikTok. Scripts that sound like a person speaking, not someone reading. Rhythm matters more than grammar here.</div>
-        <div class="cat-arrow">→</div>
-      </div>
-      <div class="cat-row reveal">
-        <div class="cat-num">IV</div>
-        <div class="cat-name">Marketing Content <em>contenido de marca</em></div>
-        <div class="cat-desc">Newsletters, campaigns, social, brand messaging. The stuff that either carries your voice — or exposes that it was never there.</div>
-        <div class="cat-arrow">→</div>
-      </div>
-      <div class="cat-row reveal">
-        <div class="cat-num">V</div>
-        <div class="cat-name">General Text <em>contenido general</em></div>
-        <div class="cat-desc">Reports, articles, documentation, internal copy. If it needs to work in Spanish, I make it work — clean, careful, published-ready.</div>
-        <div class="cat-arrow">→</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================================================================
-  V · THE CRAFTSMAN
-  ================================================================ -->
-<section id="craftsman">
-  <div class="cr-wrap">
-    <div class="cr-portrait reveal">
-      <div class="cr-portrait-initial">L·V</div>
-      <div class="cr-portrait-badge">
-        <div class="cr-portrait-label">
-          <strong>Escritorio · Desk</strong>
-          Buenos Aires — since MMXVIII
-        </div>
-        <div class="cr-portrait-seal">✦</div>
-      </div>
-    </div>
-
-    <div class="cr-body reveal rd-1">
-      <div class="chapter">
-        <span class="roman">V.</span>
-        <span class="rule-h"></span>
-        <span>The Craftsman</span>
-      </div>
-      <h2 class="cr-title">A <em>published author</em> at your desk.</h2>
-      <p>Spanish is my first language — not a skill I trained, a tongue I think in. I don't translate <em>into</em> it. I write in it.</p>
-      <p>I've also published a book in English. That matters, strangely. It means I know what it takes for a sentence to <strong>earn its place</strong> — the rhythm, the weight, the one word that makes a paragraph land.</p>
-      <p>That's what I bring to every page I touch. Not an algorithm — an <em>ear</em>.</p>
-
-      <div class="cr-facts">
-        <div class="cr-fact">
-          <div class="cr-fact-num">1<span class="sign">st</span></div>
-          <div class="cr-fact-label">Language · native. Not learned.</div>
-        </div>
-        <div class="cr-fact">
-          <div class="cr-fact-num">6<span class="sign">yr</span></div>
-          <div class="cr-fact-label">Translating for brands at this desk.</div>
-        </div>
-        <div class="cr-fact">
-          <div class="cr-fact-num">1<span class="sign">bk</span></div>
-          <div class="cr-fact-label">Book published · "Somehow Competent"</div>
-        </div>
-        <div class="cr-fact">
-          <div class="cr-fact-num">0<span class="sign">ai</span></div>
-          <div class="cr-fact-label">Words drafted by a machine.</div>
-        </div>
-      </div>
-
-      <div class="cr-quote">
-        I read every line out loud before it leaves my desk. If it doesn't survive the read, it doesn't ship.
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================================================================
-  VI · THE PROCESS — Three Acts
-  ================================================================ -->
-<section id="process">
-  <div class="pr-wrap">
-    <div class="pr-head reveal">
-      <div class="chapter">
-        <span class="roman">VI.</span>
-        <span class="rule-h"></span>
-        <span>The Process</span>
-      </div>
-      <h2 class="pr-title">Three acts. <em>That's the entire play.</em></h2>
-    </div>
-
-    <div class="pr-acts">
-      <div class="pr-act reveal rd-1">
-        <div class="pr-act-num">— Act I —</div>
-        <div class="pr-act-circle">1</div>
-        <h3 class="pr-act-title">You send the <em>source</em></h3>
-        <p class="pr-act-desc">A document, a link, a paste. Brand notes if you have them. A tone reference if you don't. Either works.</p>
-        <div class="pr-act-meta"><strong>Day 0</strong> · within the hour, we confirm scope</div>
-      </div>
-      <div class="pr-act reveal rd-2">
-        <div class="pr-act-num">— Act II —</div>
-        <div class="pr-act-circle">2</div>
-        <h3 class="pr-act-title">I <em>rewrite</em> it in Spanish</h3>
-        <p class="pr-act-desc">Sentence by sentence until it reads like it was always Spanish. Your voice stays. The awkwardness leaves.</p>
-        <div class="pr-act-meta"><strong>Days 1–3</strong> · quiet desk, no shortcuts</div>
-      </div>
-      <div class="pr-act reveal rd-3">
-        <div class="pr-act-num">— Act III —</div>
-        <div class="pr-act-circle">3</div>
-        <h3 class="pr-act-title">You receive <em>published</em> copy</h3>
-        <p class="pr-act-desc">Clean, formatted, ready to publish. Two rounds of revisions included. No awkward phrasing to clean up later.</p>
-        <div class="pr-act-meta"><strong>Day 4–7</strong> · delivery · revision · done</div>
-      </div>
-    </div>
-
-    <div class="pr-footer reveal">
-      <div class="pr-spec">Turnaround <strong>under 7 days</strong></div>
-      <div class="pr-spec">Revisions <strong>two rounds</strong></div>
-      <div class="pr-spec">Files <strong>Docs · HTML · copy blocks</strong></div>
-      <div class="pr-spec">Meetings <strong>only if you want one</strong></div>
-    </div>
-  </div>
-</section>
-
-<!-- ================================================================
-  VII · TESTIMONIALS
-  ================================================================ -->
-<section id="testimonials">
-  <div class="ts-wrap">
-    <div class="ts-head reveal">
-      <div class="chapter">
-        <span class="roman">VII.</span>
-        <span class="rule-h"></span>
-        <span>The Reviews</span>
-      </div>
-      <h2 class="ts-title">What clients <em>actually say,</em><br>after the work ships.</h2>
-    </div>
-
-    <div class="ts-grid">
-      <div class="ts-card large reveal">
-        <p class="ts-quote">It was the first time our Spanish pages stopped reading like <strong>translations</strong> and started reading like our brand. Our conversion from Spanish-speaking markets nearly doubled in the quarter after we swapped the copy.</p>
-        <div class="ts-rule"></div>
-        <div class="ts-byline">
-          <div class="ts-byline-left">
-            <span class="ts-byline-name">Martina R.</span>
-            <span class="ts-byline-role">Head of Growth · SaaS, Madrid</span>
-          </div>
-          <div class="ts-byline-right">Website<br>2024 · Q3</div>
-        </div>
-      </div>
-
-      <div class="ts-card reveal rd-1">
-        <p class="ts-quote">We had tried three agencies before. This is the first one whose work we <strong>didn't have to re-edit</strong> before launch.</p>
-        <div class="ts-rule"></div>
-        <div class="ts-byline">
-          <div class="ts-byline-left">
-            <span class="ts-byline-name">J. Alcázar</span>
-            <span class="ts-byline-role">Creative Director · Ad agency</span>
-          </div>
-          <div class="ts-byline-right">Campaign<br>2024</div>
-        </div>
-      </div>
-
-      <div class="ts-card reveal rd-2">
-        <p class="ts-quote">Our Latin American customers <strong>emailed to ask</strong> who wrote the new pages. That had never happened before.</p>
-        <div class="ts-rule"></div>
-        <div class="ts-byline">
-          <div class="ts-byline-left">
-            <span class="ts-byline-name">Elena P.</span>
-            <span class="ts-byline-role">Founder · DTC skincare</span>
-          </div>
-          <div class="ts-byline-right">Product<br>2023</div>
-        </div>
-      </div>
-
-      <div class="ts-card reveal rd-2">
-        <p class="ts-quote">Most translators deliver correct Spanish. This one delivers <strong>our Spanish</strong>. That's a different category entirely.</p>
-        <div class="ts-rule"></div>
-        <div class="ts-byline">
-          <div class="ts-byline-left">
-            <span class="ts-byline-name">Daniel K.</span>
-            <span class="ts-byline-role">Brand Lead · fintech</span>
-          </div>
-          <div class="ts-byline-right">Brand<br>2025</div>
-        </div>
-      </div>
-
-      <div class="ts-card reveal rd-3">
-        <p class="ts-quote">The script he delivered <strong>sounded spoken</strong>, not translated. The voiceover artist thanked us.</p>
-        <div class="ts-rule"></div>
-        <div class="ts-byline">
-          <div class="ts-byline-left">
-            <span class="ts-byline-name">Paulo G.</span>
-            <span class="ts-byline-role">Producer · broadcast</span>
-          </div>
-          <div class="ts-byline-right">Script<br>2025</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================================================================
-  VIII · PROSPECTUS
-  ================================================================ -->
-<section id="prospectus">
-  <div class="ps-wrap">
-    <div class="ps-head reveal">
-      <div>
-        <div class="chapter">
-          <span class="roman">VIII.</span>
-          <span class="rule-h"></span>
-          <span>The Prospectus</span>
-        </div>
-        <h2 class="ps-title"><em>Simple</em> pricing,<br>transparent as paper.</h2>
-      </div>
-      <p class="ps-intro">Short work gets a per-word rate. Longer projects get a flat quote before we start. Ongoing relationships get their own arrangement, set in writing.</p>
-    </div>
-
-    <div class="ps-grid">
-      <div class="ps-card reveal rd-1">
-        <div class="ps-tier">Tier I · Essential</div>
-        <div class="ps-name">Short-form</div>
-        <div class="ps-price"><span class="sign">$</span>0.09<span class="unit">/word</span></div>
-        <div class="ps-desc">For concise content — posts, descriptions, short articles.</div>
-        <ul class="ps-feats">
-          <li>Product descriptions</li>
-          <li>Social posts, captions</li>
-          <li>Short articles, bios</li>
-          <li>Up to 1,000 words</li>
-          <li>One round of revisions</li>
-          <li>Delivery within 3 days</li>
-        </ul>
-        <a href="#letter" class="ps-btn"><span>Commission this</span><span class="arr">→</span></a>
-      </div>
-
-      <div class="ps-card featured reveal rd-2">
-        <div class="ps-badge">Most commissioned</div>
-        <div class="ps-tier">Tier II · Standard</div>
-        <div class="ps-name">Full-body</div>
-        <div class="ps-price"><span class="sign">$</span>0.12<span class="unit">/word</span></div>
-        <div class="ps-desc">For the pages that carry weight — homepages, campaigns, scripts.</div>
-        <ul class="ps-feats">
-          <li>Full website translations</li>
-          <li>Marketing campaigns</li>
-          <li>Video and radio scripts</li>
-          <li>1,000 to 5,000 words</li>
-          <li>Two rounds of revisions</li>
-          <li>Voice &amp; tone briefing</li>
-          <li>Delivery within 7 days</li>
-        </ul>
-        <a href="#letter" class="ps-btn"><span>Commission this</span><span class="arr">→</span></a>
-      </div>
-
-      <div class="ps-card reveal rd-3">
-        <div class="ps-tier">Tier III · Retained</div>
-        <div class="ps-name">Atelier</div>
-        <div class="ps-price">Por encargo<span class="unit">/quoted</span></div>
-        <div class="ps-desc">For ongoing relationships — your desk next to mine, on retainer.</div>
-        <ul class="ps-feats">
-          <li>Recurring content pipelines</li>
-          <li>Large-volume projects</li>
-          <li>Priority turnaround</li>
-          <li>Dedicated Slack/email line</li>
-          <li>Unlimited revisions</li>
-          <li>Monthly retainer available</li>
-          <li>Your voice, committed to memory</li>
-        </ul>
-        <a href="#letter" class="ps-btn"><span>Discuss a retainer</span><span class="arr">→</span></a>
-      </div>
-    </div>
-
-    <p class="ps-footer">All pricing in USD · invoiced via wire or Wise · no platform fees · long-term clients priced individually</p>
-  </div>
-</section>
-
-<!-- ================================================================
-  IX · THE LETTER (contact)
-  ================================================================ -->
-<section id="letter">
-  <div class="lt-wrap">
-    <div class="lt-head reveal">
-      <div class="chapter">
-        <span class="roman">IX.</span>
-        <span class="rule-h"></span>
-        <span>The Letter</span>
-      </div>
-      <h2 class="lt-title">Write me a <em>line</em>.</h2>
-      <p class="lt-sub">The quickest way to begin. I read every message myself and usually reply the same day.</p>
-    </div>
-
-    <div class="lt-paper reveal rd-1">
-      <div class="lt-inside">
-        <div class="lt-header-row">
-          <div class="lt-addr">
-            <strong>Lengua Viva · El Taller</strong><br>
-            Palermo, Buenos Aires<br>
-            C1425 · Argentina
-          </div>
-          <div class="lt-date">
-            <em>Today</em>
-            <span class="place">received here · replied within the day</span>
-          </div>
-        </div>
-
-        <p class="lt-greeting">— Hola,</p>
-        <p class="lt-intro">Tell me what you're working on. Paste a paragraph, send a link, describe the shape of it. If you'd like a <em>free sample</em> before committing, just say — I'll translate 100-200 words of your actual copy so you can judge the fit.</p>
-
-        <form class="lt-form" id="letterForm" onsubmit="return false">
-          <div class="lt-field">
-            <label for="lfName">Your name</label>
-            <input type="text" id="lfName" placeholder="— how should I address you —">
-          </div>
-          <div class="lt-field">
-            <label for="lfEmail">Writing from</label>
-            <input type="email" id="lfEmail" placeholder="— your email —">
-          </div>
-          <div class="lt-field">
-            <label for="lfCompany">For</label>
-            <input type="text" id="lfCompany" placeholder="— company or project (optional) —">
-          </div>
-          <div class="lt-field">
-            <label for="lfMessage">Message</label>
-            <textarea id="lfMessage" placeholder="— tell me about the work. A few lines is enough. —"></textarea>
-          </div>
-        </form>
-
-        <div class="lt-send-row">
-          <div class="lt-signature">
-            — Lengua Viva
-            <span class="stamp">Signed in Buenos Aires</span>
-          </div>
-          <button class="lt-send" id="letterSend"><span>Send the letter</span><span class="arr">→</span></button>
-        </div>
-      </div>
-    </div>
-
-    <div class="lt-details-row reveal rd-2">
-      <div class="lt-d">
-        <div class="lt-d-label">Email</div>
-        <div class="lt-d-val">hola@lenguaviva.co</div>
-      </div>
-      <div class="lt-d">
-        <div class="lt-d-label">Signal</div>
-        <div class="lt-d-val">+54 11 2345-6789</div>
-      </div>
-      <div class="lt-d">
-        <div class="lt-d-label">Based in</div>
-        <div class="lt-d-val">Buenos Aires · AR</div>
-      </div>
-      <div class="lt-d">
-        <div class="lt-d-label">Reply</div>
-        <div class="lt-d-val">Within the day</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================================================================
-  X · FINALE
-  ================================================================ -->
-<section id="finale">
-  <div class="fn-massive" aria-hidden="true">fin.</div>
-
-  <div class="fn-inner">
-    <div class="fn-ornament">❦ ❦ ❦</div>
-
-    <div class="fn-seal">
-      <div class="fn-seal-ring">
-        <svg viewBox="0 0 200 200">
-          <defs>
-            <path id="sealPath" d="M100,100 m-85,0 a85,85 0 1,1 170,0 a85,85 0 1,1 -170,0"/>
-          </defs>
-          <text font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="6" fill="rgba(212,167,44,0.75)">
-            <textPath href="#sealPath" startOffset="0">LENGUA VIVA · EL TALLER · BUENOS AIRES · ESTABLISHED MMXVIII · </textPath>
-          </text>
-        </svg>
-      </div>
-      <div class="fn-seal-center">LV</div>
-      <div class="fn-seal-label">✦ sigillum ✦</div>
-    </div>
-
-    <h2 class="fn-title">Your Spanish deserves <em>a person at the desk</em>.</h2>
-    <p class="fn-line">Not a model. Not a template. An editor, a writer, a reader-out-loud.</p>
-
-    <a href="#letter" class="fn-cta"><span>Begin the commission</span><span class="arr">→</span></a>
-  </div>
-</section>
-
-<!-- ================================================================
-  COLOPHON · FOOTER
-  ================================================================ -->
-<footer class="colophon">
-  <div class="colo-wrap">
-    <div class="colo-head">
-      <div>
-        <div class="colo-logo">Lengua<span class="v">Viva</span><span class="star">✦</span></div>
-        <p class="colo-tagline">— a translation atelier — English into Spanish, by hand</p>
-      </div>
-      <div class="colo-mini">
-        <span>Vol. IV · № 07</span>
-        <span>Buenos Aires, AR</span>
-        <span>MMXXVI</span>
-      </div>
-    </div>
-
-    <div class="colo-grid">
-      <div class="colo-col">
-        <h5>The practice</h5>
-        <p>A one-desk atelier for English-to-Spanish rewriting. Not translation in the conveyor-belt sense — the obsessive, line-by-line kind, done for brands that understand the difference between language that <em>works</em> and language that simply <em>fills space</em>.</p>
-      </div>
-      <div class="colo-col">
-        <h5>Pages</h5>
-        <ul>
-          <li><a href="#red-pen">The Markup</a></li>
-          <li><a href="#anatomy">The Anatomy</a></li>
-          <li><a href="#voice">The Voice Lab</a></li>
-          <li><a href="#catalog">The Catalog</a></li>
-          <li><a href="#craftsman">The Craftsman</a></li>
-        </ul>
-      </div>
-      <div class="colo-col">
-        <h5>Terms</h5>
-        <ul>
-          <li><a href="#prospectus">Rates</a></li>
-          <li><a href="#process">Process</a></li>
-          <li><a href="#testimonials">Reviews</a></li>
-          <li><a href="#letter">Commission</a></li>
-        </ul>
-      </div>
-      <div class="colo-col">
-        <h5>Lines</h5>
-        <ul>
-          <li><a href="mailto:hola@lenguaviva.co">hola@lenguaviva.co</a></li>
-          <li><a href="#letter">+54 11 2345-6789</a></li>
-          <li><a href="#letter">Signal · WhatsApp</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="colo-bar">
-      <span>© MMXXVI · Lengua Viva · All rights reserved</span>
-      <span class="italicized">Set in Fraunces &amp; Libre Baskerville. Handmade.</span>
-      <span>Buenos Aires · 34°36′S</span>
-    </div>
-  </div>
-</footer>
+<canvas id="threeCanvas"></canvas>
 
 <script>
-/* ==========================================================
-   LENGUA VIVA · Interactions
-   ========================================================== */
+// ═══════════════════════════════════════════════════════════════
+//  HAND PARTICLE FIELD  —  single-file, no build tools
+//  Architecture:
+//    1. Three.js scene + UnrealBloom post-processing
+//    2. Particle system (BufferGeometry, custom shader)
+//    3. MediaPipe Hands → fingertip 3-D positions
+//    4. Physics: attraction / repulsion / pinch collapse-explode
+//    5. Background fog noise (fullscreen quad shader)
+// ═══════════════════════════════════════════════════════════════
 
-document.documentElement.classList.add('ready');
+// ── Config (sliders write here live) ──────────────────────────
+const CFG = {
+  particleCount : 2000,
+  bloomStrength : 1.4,
+  reachRadius   : 0.25,   // normalised NDC radius that fingertips affect
+};
 
-/* ----- CUSTOM CURSOR --------------------------------- */
-const cursor = document.getElementById('cursor');
-let mx = 0, my = 0, cx = 0, cy = 0;
-document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-function loop() {
-  cx += (mx - cx) * 0.22;
-  cy += (my - cy) * 0.22;
-  cursor.style.transform = `translate3d(${cx}px, ${cy}px, 0) translate(-50%, -50%)`;
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-document.addEventListener('mouseleave', () => cursor.style.opacity = '0');
-document.addEventListener('mouseenter', () => cursor.style.opacity = '1');
+// ── Utility ────────────────────────────────────────────────────
+const lerp = (a, b, t) => a + (b - a) * t;
 
-const hoverSel = 'a, button, .cat-row, .ps-card, .ana-w, .ts-card, .pr-act, .vl-btn, .masthead-logo';
-document.querySelectorAll(hoverSel).forEach(el => {
-  el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
-  el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
-});
-document.querySelectorAll('input, textarea').forEach(el => {
-  el.addEventListener('mouseenter', () => cursor.classList.add('text'));
-  el.addEventListener('mouseleave', () => cursor.classList.remove('text'));
-});
-const penZones = document.querySelectorAll('#red-pen .rp-manuscript');
-penZones.forEach(el => {
-  el.addEventListener('mouseenter', () => cursor.classList.add('pen'));
-  el.addEventListener('mouseleave', () => cursor.classList.remove('pen'));
-});
+// ══════════════════════════════════════════════════════════════
+//  1. THREE.JS SETUP
+// ══════════════════════════════════════════════════════════════
+const canvas   = document.getElementById('threeCanvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
 
-/* ----- PROGRESS BAR --------------------------------- */
-const prog = document.getElementById('progress');
-window.addEventListener('scroll', () => {
-  const pct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight) * 100;
-  prog.style.width = pct + '%';
-}, { passive: true });
+const scene  = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
 
-/* ----- MASTHEAD NAV show/hide --------------------------------- */
-const mast = document.getElementById('mast');
-const hero = document.getElementById('hero');
-let lastY = 0;
-window.addEventListener('scroll', () => {
-  const y = window.scrollY;
-  const heroEnd = hero.offsetHeight - 120;
-  if (y > heroEnd) {
-    mast.classList.add('show');
-  } else {
-    mast.classList.remove('show');
-  }
-  lastY = y;
-}, { passive: true });
+// Orthographic camera so NDC coords map cleanly to screen
+const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+camera.position.z = 1;
 
-/* ----- GENERIC REVEALS --------------------------------- */
-const revealObs = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.classList.add('on');
-      revealObs.unobserve(e.target);
+// ── Post-processing: Bloom ─────────────────────────────────────
+const composer = new THREE.EffectComposer(renderer);
+composer.addPass(new THREE.RenderPass(scene, camera));
+
+const bloomPass = new THREE.UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  CFG.bloomStrength,  // strength
+  0.5,                // radius
+  0.1                 // threshold
+);
+composer.addPass(bloomPass);
+
+// ══════════════════════════════════════════════════════════════
+//  2. BACKGROUND — subtle animated noise quad
+// ══════════════════════════════════════════════════════════════
+const bgMat = new THREE.ShaderMaterial({
+  depthWrite: false,
+  uniforms: { uTime: { value: 0 } },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = vec4(position.xy, 1.0, 1.0);
     }
-  });
-}, { threshold: 0.18, rootMargin: '0px 0px -50px 0px' });
-document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+  `,
+  fragmentShader: `
+    varying vec2 vUv;
+    uniform float uTime;
 
-/* ----- TYPEWRITER helper --------------------------------- */
-function typewrite(el, text, speed = 22) {
-  return new Promise(resolve => {
-    el.textContent = '';
-    const caret = document.createElement('span');
-    caret.className = 'caret';
-    el.appendChild(caret);
-    let i = 0;
-    const iv = setInterval(() => {
-      i++;
-      el.textContent = text.slice(0, i);
-      el.appendChild(caret);
-      if (i >= text.length) {
-        clearInterval(iv);
-        setTimeout(() => { caret.remove(); resolve(); }, 400);
+    // simple hash noise
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    }
+    float noise(vec2 p) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      f = f*f*(3.0-2.0*f);
+      return mix(mix(hash(i),         hash(i+vec2(1,0)), f.x),
+                 mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)), f.x), f.y);
+    }
+
+    void main() {
+      vec2 uv = vUv * 3.5 + uTime * 0.012;
+      float n = noise(uv) * noise(uv * 2.1 + 1.7) * 0.06;
+      gl_FragColor = vec4(vec3(n * 0.18, n * 0.25, n * 0.4), 1.0);
+    }
+  `,
+});
+const bgMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), bgMat);
+bgMesh.renderOrder = -1;
+scene.add(bgMesh);
+
+// ══════════════════════════════════════════════════════════════
+//  3. PARTICLE SYSTEM
+// ══════════════════════════════════════════════════════════════
+
+/*  Each particle lives in NDC space: x∈[-1,1], y∈[-1,1], z=0
+    We store position, velocity, home (rest) position, and a
+    colour seed for hue variation.                              */
+
+let PCOUNT = CFG.particleCount;
+
+// Typed arrays — rebuilt when slider changes count
+let positions, velocities, homes, colorSeeds, sizes;
+let particleGeo, particleMat, particleMesh;
+
+function buildParticles(count) {
+  // Cleanup previous mesh
+  if (particleMesh) {
+    scene.remove(particleMesh);
+    particleGeo.dispose();
+    particleMat.dispose();
+  }
+
+  PCOUNT = count;
+  positions  = new Float32Array(PCOUNT * 3);
+  velocities = new Float32Array(PCOUNT * 3);  // vx, vy (vz unused)
+  homes      = new Float32Array(PCOUNT * 2);  // rest positions
+  colorSeeds = new Float32Array(PCOUNT);
+  sizes      = new Float32Array(PCOUNT);
+
+  // Distribute rest positions in a loose grid with randomness
+  const cols = Math.ceil(Math.sqrt(PCOUNT * (window.innerWidth / window.innerHeight)));
+  const rows = Math.ceil(PCOUNT / cols);
+
+  for (let i = 0; i < PCOUNT; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+
+    const hx = lerp(-0.95, 0.95, col / (cols - 1)) + (Math.random() - 0.5) * 0.08;
+    const hy = lerp(-0.95, 0.95, row / (rows - 1)) + (Math.random() - 0.5) * 0.08;
+
+    homes[i * 2]     = hx;
+    homes[i * 2 + 1] = hy;
+
+    positions[i * 3]     = hx + (Math.random() - 0.5) * 0.3;
+    positions[i * 3 + 1] = hy + (Math.random() - 0.5) * 0.3;
+    positions[i * 3 + 2] = 0;
+
+    colorSeeds[i] = Math.random();
+    sizes[i]      = 1.5 + Math.random() * 3.0;
+  }
+
+  particleGeo = new THREE.BufferGeometry();
+  particleGeo.setAttribute('position',  new THREE.BufferAttribute(positions,  3));
+  particleGeo.setAttribute('colorSeed', new THREE.BufferAttribute(colorSeeds, 1));
+  particleGeo.setAttribute('aSize',     new THREE.BufferAttribute(sizes,      1));
+
+  // Custom shader: round sprite with per-particle hue + glow core
+  particleMat = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite:  false,
+    blending:    THREE.AdditiveBlending,
+    uniforms: {
+      uTime:      { value: 0 },
+      uPixelRatio:{ value: renderer.getPixelRatio() },
+    },
+    vertexShader: `
+      attribute float colorSeed;
+      attribute float aSize;
+      varying   float vSeed;
+      varying   float vDist;
+      uniform   float uPixelRatio;
+
+      void main() {
+        vSeed = colorSeed;
+        vec4 mvp = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        vDist = length(position.xy);
+        gl_Position  = mvp;
+        gl_PointSize = aSize * uPixelRatio * (1.0 + vDist * 0.3);
       }
-    }, speed);
+    `,
+    fragmentShader: `
+      varying float vSeed;
+      varying float vDist;
+      uniform float uTime;
+
+      // HSL → RGB conversion
+      vec3 hsl2rgb(float h, float s, float l) {
+        vec3 rgb = clamp(abs(mod(h*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0);
+        return l + s * (rgb - 0.5) * (1.0 - abs(2.0*l-1.0));
+      }
+
+      void main() {
+        // Circular soft sprite
+        vec2  uv   = gl_PointCoord - 0.5;
+        float dist = length(uv);
+        if (dist > 0.5) discard;
+
+        float alpha = 1.0 - smoothstep(0.1, 0.5, dist);
+
+        // Hue cycles: cyan → violet → blue dominant
+        float hue = mod(vSeed * 0.6 + 0.55 + uTime * 0.015, 1.0);
+        vec3  col = hsl2rgb(hue, 0.85, 0.62);
+
+        // Bright hot core
+        float core = 1.0 - smoothstep(0.0, 0.18, dist);
+        col = mix(col, vec3(0.9, 0.97, 1.0), core * 0.7);
+
+        gl_FragColor = vec4(col * alpha, alpha);
+      }
+    `,
+  });
+
+  particleMesh = new THREE.Points(particleGeo, particleMat);
+  scene.add(particleMesh);
+}
+
+buildParticles(PCOUNT);
+
+// ══════════════════════════════════════════════════════════════
+//  4. HAND TRACKING DATA  (filled by MediaPipe callback)
+// ══════════════════════════════════════════════════════════════
+
+/*  fingertip landmark indices in MediaPipe Hands:
+    4 = thumb tip, 8 = index, 12 = middle, 16 = ring, 20 = pinky  */
+const TIP_IDS = [4, 8, 12, 16, 20];
+
+// Smoothed fingertip positions in NDC (x∈[-1,1], y∈[-1,1])
+// Up to 2 hands × 5 tips
+const MAX_TIPS = 10;
+const tipPositions = new Float32Array(MAX_TIPS * 2).fill(9999); // 9999 = inactive
+const tipRaw       = new Float32Array(MAX_TIPS * 2).fill(9999);
+
+// Pinch states per hand (0 = open, 1 = pinched)
+const pinchState   = [0, 0];
+const pinchRaw     = [0, 0];
+
+// How "open" the hand is (spread of tips, 0-1)
+const handSpread   = [0, 0];
+
+// Smoothing factor (higher = smoother but more lag)
+const SMOOTH_TIPS  = 0.25;
+const SMOOTH_PINCH = 0.18;
+
+function updateHandData(results) {
+  // Reset all tips inactive
+  tipPositions.fill(9999);
+  pinchRaw[0] = 0;
+  pinchRaw[1] = 0;
+
+  if (!results.multiHandLandmarks) return;
+
+  results.multiHandLandmarks.forEach((landmarks, handIdx) => {
+    if (handIdx >= 2) return;
+
+    // Mirror: MediaPipe outputs mirrored x, so we invert to match natural feel
+    // (user's right hand appears on right of screen)
+    TIP_IDS.forEach((lmIdx, tipIdx) => {
+      const lm = landmarks[lmIdx];
+      // lm.x ∈ [0,1] left→right (already mirrored by mediapipe selfie mode)
+      const nx =  (1 - lm.x) * 2 - 1;  // NDC, keep mirrored feel
+      const ny = -(lm.y * 2 - 1);       // flip Y (screen→NDC)
+
+      const slot = handIdx * 5 + tipIdx;
+      tipRaw[slot * 2]     = nx;
+      tipRaw[slot * 2 + 1] = ny;
+    });
+
+    // Pinch = distance between thumb tip (4) and index tip (8)
+    const t = landmarks[4], i = landmarks[8];
+    const pinchDist = Math.hypot(t.x - i.x, t.y - i.y);
+    pinchRaw[handIdx] = pinchDist < 0.06 ? 1 : 0;
+
+    // Spread = mean distance of tips from palm center (landmark 9)
+    const palm = landmarks[9];
+    let spread = 0;
+    TIP_IDS.forEach(id => {
+      spread += Math.hypot(landmarks[id].x - palm.x, landmarks[id].y - palm.y);
+    });
+    handSpread[handIdx] = Math.min(spread / TIP_IDS.length / 0.25, 1);
   });
 }
 
-/* ----- HERO dual-column animated pair --------------------------------- */
-const heroEn = document.getElementById('heroEnText');
-const heroEs = document.getElementById('heroEsText');
-const heroEnOriginal = heroEn.innerHTML; // we keep the dropcap H there after typing
-
-const heroPairs = [
-  {
-    en: 'We build software for small teams. Early customers ship projects about 40% faster. That is the whole pitch.',
-    es: 'Hacemos software para equipos chicos. Nuestros primeros clientes entregan proyectos 40% más rápido. Ese es el pitch completo.'
-  },
-  {
-    en: 'Three drops before bed. In six weeks, your skin tells you it is working before the mirror does.',
-    es: 'Tres gotas antes de dormir. En seis semanas, tu piel te avisa que funciona — antes de que lo haga el espejo.'
-  },
-  {
-    en: 'Walk me through what you are working on. I will come back with a real plan, not a sales deck.',
-    es: 'Contame en qué estás trabajando. Vuelvo con un plan de verdad — no con una presentación de ventas.'
+// Smooth tip positions every frame (called in animate loop)
+function smoothTips() {
+  for (let i = 0; i < MAX_TIPS * 2; i++) {
+    if (tipRaw[i] === 9999) {
+      tipPositions[i] = 9999;
+    } else if (tipPositions[i] === 9999) {
+      tipPositions[i] = tipRaw[i];
+    } else {
+      tipPositions[i] = lerp(tipPositions[i], tipRaw[i], SMOOTH_TIPS);
+    }
   }
-];
-
-async function heroLoop() {
-  let idx = 0;
-  // Initial state already has a hard-coded first pair; animate the Spanish side first.
-  await new Promise(r => setTimeout(r, 900));
-  await typewrite(heroEs, heroPairs[0].es, 20);
-  await new Promise(r => setTimeout(r, 3500));
-
-  while (true) {
-    idx = (idx + 1) % heroPairs.length;
-    // fade out
-    heroEn.style.transition = 'opacity .5s ease';
-    heroEs.style.transition = 'opacity .5s ease';
-    heroEn.style.opacity = '0';
-    heroEs.style.opacity = '0';
-    await new Promise(r => setTimeout(r, 520));
-    heroEn.style.opacity = '1';
-    heroEs.style.opacity = '1';
-    // Rebuild English with dropcap
-    const enText = heroPairs[idx].en;
-    const firstLetter = enText[0];
-    heroEn.innerHTML = '<span class="dropcap">' + firstLetter + '</span>' + enText.slice(1);
-    heroEs.innerHTML = '';
-    await new Promise(r => setTimeout(r, 300));
-    await typewrite(heroEs, heroPairs[idx].es, 18);
-    await new Promise(r => setTimeout(r, 3800));
+  for (let h = 0; h < 2; h++) {
+    pinchState[h] = lerp(pinchState[h], pinchRaw[h], SMOOTH_PINCH);
   }
 }
-heroLoop();
 
-/* ----- I · RED PEN LAB sequence --------------------------------- */
-const manuscript = document.getElementById('manuscript');
-const rpAfterText = document.getElementById('rpAfterText');
-const rpAfterCard = document.getElementById('rpAfter');
-const rpAfterClean = 'Hacemos que tu empresa funcione mejor. Sin vueltas. Sin tecnicismos. <span class="seal">— firmado</span>';
+// ══════════════════════════════════════════════════════════════
+//  5. PARTICLE PHYSICS
+// ══════════════════════════════════════════════════════════════
 
-const rpObs = new IntersectionObserver(async (entries) => {
-  for (const e of entries) {
-    if (!e.isIntersecting) continue;
-    rpObs.unobserve(e.target);
-    await new Promise(r => setTimeout(r, 600));
+const INERTIA      = 0.88;   // velocity damping per frame
+const HOME_SPRING  = 0.012;  // pull back toward rest position
+const HOME_SPRING_MAX = 0.04;
 
-    // 1. Strike through words marked for strike
-    const strikeWords = manuscript.querySelectorAll('.w[data-strike]');
-    for (const w of strikeWords) {
-      w.classList.add('struck');
-      await new Promise(r => setTimeout(r, 80));
-      w.classList.add('drawn');
-      await new Promise(r => setTimeout(r, 60));
-    }
+function tickParticles(dt) {
+  const reach2 = CFG.reachRadius * CFG.reachRadius;
+  const pos  = positions;
+  const vel  = velocities;
 
-    // 2. Circle
-    const circledWords = manuscript.querySelectorAll('.w[data-circle]');
-    for (const w of circledWords) {
-      w.classList.add('circled');
-      await new Promise(r => setTimeout(r, 120));
-      w.classList.add('drawn');
-    }
+  for (let i = 0; i < PCOUNT; i++) {
+    const ix = i * 3, iy = i * 3 + 1;
+    let px = pos[ix], py = pos[iy];
 
-    // 3. Reveal margin notes one by one
-    const notes = manuscript.querySelectorAll('.rp-note, .rp-side-note');
-    for (const n of notes) {
-      await new Promise(r => setTimeout(r, 240));
-      n.classList.add('on');
-    }
+    // Spring toward home position
+    const hx = homes[i * 2], hy = homes[i * 2 + 1];
+    const springK = pinchState[0] > 0.5 || pinchState[1] > 0.5
+      ? HOME_SPRING * 0.3   // weak spring during pinch for collapse effect
+      : HOME_SPRING;
 
-    // 4. Stamp arrives
-    await new Promise(r => setTimeout(r, 350));
-    manuscript.classList.add('marked');
+    vel[ix] += (hx - px) * springK;
+    vel[iy] += (hy - py) * springK;
 
-    // 5. Clean version types in below
-    await new Promise(r => setTimeout(r, 800));
-    rpAfterCard.classList.add('on');
-    await new Promise(r => setTimeout(r, 400));
+    // ── Per-hand interaction ───────────────────────────────
+    for (let h = 0; h < 2; h++) {
+      const ps = pinchState[h];
+      const spread = handSpread[h];
 
-    // Type the clean version, preserving the seal span at the end
-    await (async () => {
-      const plainTarget = 'Hacemos que tu empresa funcione mejor. Sin vueltas. Sin tecnicismos.';
-      rpAfterText.innerHTML = '';
-      const caret = document.createElement('span');
-      caret.className = 'caret';
-      rpAfterText.appendChild(caret);
-      let i = 0;
-      await new Promise(resolve => {
-        const iv = setInterval(() => {
-          i++;
-          rpAfterText.textContent = plainTarget.slice(0, i);
-          rpAfterText.appendChild(caret);
-          if (i >= plainTarget.length) {
-            clearInterval(iv);
-            setTimeout(() => {
-              caret.remove();
-              const seal = document.createElement('span');
-              seal.className = 'seal';
-              seal.textContent = ' — firmado';
-              rpAfterText.appendChild(seal);
-              resolve();
-            }, 350);
+      for (let t = 0; t < 5; t++) {
+        const slot = h * 5 + t;
+        const tx = tipPositions[slot * 2];
+        if (tx === 9999) continue;
+        const ty = tipPositions[slot * 2 + 1];
+
+        const dx = px - tx;
+        const dy = py - ty;
+        const d2 = dx * dx + dy * dy;
+
+        if (d2 < reach2 && d2 > 0.00001) {
+          const d  = Math.sqrt(d2);
+          const nd = d / CFG.reachRadius;  // 0 near tip, 1 at edge
+
+          // Attraction: pull particles toward tips (string effect)
+          const attractF = (1 - nd) * (1 - nd) * 0.018;
+
+          // Repulsion core: push away when very close
+          const repelF   = nd < 0.15 ? (0.15 - nd) * 0.12 : 0;
+
+          const forceNet = repelF - attractF;
+          const nx = dx / d, ny = dy / d;
+
+          vel[ix] += nx * forceNet;
+          vel[iy] += ny * forceNet;
+
+          // Pinch collapse: suck toward centroid of hand
+          if (ps > 0.5) {
+            vel[ix] -= nx * attractF * ps * 2.5;
+            vel[iy] -= ny * attractF * ps * 2.5;
           }
-        }, 22);
-      });
-    })();
-  }
-}, { threshold: 0.3 });
-rpObs.observe(manuscript);
 
-/* ----- II · GRAMMAR ANATOMY --------------------------------- */
-/*
-  Three cases. Each case has EN words + ES words.
-  Each word has an id; partnerships are an array of [enId, esId] pairs.
-  Some EN words have no partner in ES (dropped). Some are broken (idiom).
-*/
-const anaCases = {
-  a: {
-    meta: 'Case 01 · dropped subject',
-    readout: 'In English, the subject "I" is said out loud. In Spanish, the verb <em>tengo</em> already carries the subject — saying "yo" on top of it would sound <em>redundant, almost childish</em>. The pronoun doesn\'t vanish, it moves <em>into</em> the verb.',
-    en: [
-      { id: 'e1', t: 'I',      pos: 'subject', partner: null, dropped: true },
-      { id: 'e2', t: 'have',   pos: 'verb',    partner: 's2' },
-      { id: 'e3', t: 'a',      pos: 'article', partner: null, silent: true },
-      { id: 'e4', t: 'meeting',pos: 'noun',    partner: 's3' },
-      { id: 'e5', t: 'tomorrow',pos:'adv',      partner: 's4' }
-    ],
-    es: [
-      { id: 's1', t: '(yo)',   pos: 'sujeto implícito',  partner: null, ghost: true },
-      { id: 's2', t: 'tengo',  pos: 'verbo · 1ª persona', partner: 'e2' },
-      { id: 's3', t: 'reunión',pos: 'sustantivo',  partner: 'e4' },
-      { id: 's4', t: 'mañana', pos: 'adverbio',    partner: 'e5' }
-    ]
-  },
-  b: {
-    meta: 'Case 02 · idiom, not a word-for-word',
-    readout: 'English says "raining cats and dogs." A literal Spanish translation would be <span class="accent">absurd</span> — readers would stop and reread. The idiom doesn\'t <em>translate</em>; it gets <em>replaced</em> with its Spanish counterpart: <em>llueve a cántaros</em>. Same meaning. Different image.',
-    en: [
-      { id: 'e1', t: 'It',       pos: 'subject', partner: null, dropped: true },
-      { id: 'e2', t: 'is',       pos: 'aux',     partner: null, dropped: true },
-      { id: 'e3', t: 'raining',  pos: 'verb',    partner: 's1' },
-      { id: 'e4', t: 'cats',     pos: 'idiom',   partner: 's2', broken: true },
-      { id: 'e5', t: 'and',      pos: 'conj',    partner: null, dropped: true },
-      { id: 'e6', t: 'dogs',     pos: 'idiom',   partner: 's2', broken: true }
-    ],
-    es: [
-      { id: 's1', t: 'Llueve',     pos: 'verbo', partner: 'e3' },
-      { id: 's2', t: 'a cántaros', pos: 'locución idiomática', partner: 'e4', broken: true }
-    ]
-  },
-  c: {
-    meta: 'Case 03 · word order carries meaning',
-    readout: 'Place the adjective <em>after</em> the noun — <em>un coche rojo</em> — and it describes. Move it <em>before</em> — <em>un rojo coche</em> — and it <span class="accent">poeticizes</span>. English has no such lever. A translator who doesn\'t feel this writes correct Spanish that sounds cold.',
-    en: [
-      { id: 'e1', t: 'A',     pos: 'article', partner: 's1' },
-      { id: 'e2', t: 'red',   pos: 'adjective', partner: 's3', broken: true },
-      { id: 'e3', t: 'car',   pos: 'noun',    partner: 's2' }
-    ],
-    es: [
-      { id: 's1', t: 'Un',    pos: 'artículo', partner: 'e1' },
-      { id: 's2', t: 'coche', pos: 'sustantivo', partner: 'e3' },
-      { id: 's3', t: 'rojo',  pos: 'adjetivo · post-nominal', partner: 'e2', broken: true }
-    ]
-  }
-};
-
-const anaEn = document.getElementById('anaEn');
-const anaEs = document.getElementById('anaEs');
-const anaSvg = document.getElementById('anaSvg');
-const anaReadout = document.getElementById('anaReadout');
-const anaCaseMeta = document.getElementById('anaCaseMeta');
-const anaSwitcher = document.getElementById('anaSwitcher');
-const anaStage = document.getElementById('anaStage');
-
-function renderAnatomy(key) {
-  const data = anaCases[key];
-  anaEn.innerHTML = '';
-  anaEs.innerHTML = '';
-  anaSvg.innerHTML = '';
-  anaCaseMeta.textContent = data.meta;
-
-  const mkW = (row, w) => {
-    const span = document.createElement('span');
-    span.className = 'ana-w';
-    if (w.dropped || w.ghost) span.classList.add('dropped');
-    span.dataset.id = w.id;
-    if (w.partner) span.dataset.partner = w.partner;
-    if (w.broken) span.dataset.broken = '1';
-    span.innerHTML = w.t + '<span class="pos-tag">' + w.pos + '</span>';
-    row.appendChild(span);
-  };
-
-  data.en.forEach(w => mkW(anaEn, w));
-  data.es.forEach(w => mkW(anaEs, w));
-
-  drawAnaLines(data);
-  bindAnaHover();
-}
-
-function drawAnaLines(data) {
-  const svgNS = 'http://www.w3.org/2000/svg';
-  const stageRect = anaStage.getBoundingClientRect();
-  anaSvg.setAttribute('viewBox', `0 0 ${stageRect.width} ${stageRect.height}`);
-  anaSvg.innerHTML = '';
-
-  data.en.forEach(w => {
-    if (!w.partner) return;
-    const enEl = anaEn.querySelector(`[data-id="${w.id}"]`);
-    const esEl = anaEs.querySelector(`[data-id="${w.partner}"]`);
-    if (!enEl || !esEl) return;
-    const er = enEl.getBoundingClientRect();
-    const sr = esEl.getBoundingClientRect();
-    const x1 = er.left + er.width/2 - stageRect.left;
-    const y1 = er.bottom - stageRect.top + 4;
-    const x2 = sr.left + sr.width/2 - stageRect.left;
-    const y2 = sr.top - stageRect.top - 4;
-    const mid = (y1 + y2) / 2;
-    const d = `M ${x1} ${y1} C ${x1} ${mid}, ${x2} ${mid}, ${x2} ${y2}`;
-    const path = document.createElementNS(svgNS, 'path');
-    path.setAttribute('d', d);
-    path.classList.add('ana-line');
-    if (w.broken) path.classList.add('broken');
-    path.dataset.pair = `${w.id}_${w.partner}`;
-    anaSvg.appendChild(path);
-  });
-}
-
-function bindAnaHover() {
-  const all = anaStage.querySelectorAll('.ana-w');
-  all.forEach(w => {
-    w.addEventListener('mouseenter', () => {
-      const id = w.dataset.id;
-      const partner = w.dataset.partner;
-      all.forEach(x => x.classList.add('dimmed'));
-      w.classList.remove('dimmed');
-      w.classList.add('hl');
-      if (partner) {
-        const p = anaStage.querySelector(`[data-id="${partner}"]`);
-        if (p) { p.classList.remove('dimmed'); p.classList.add('hl-pair'); }
-      }
-      anaSvg.querySelectorAll('.ana-line').forEach(ln => {
-        if (ln.dataset.pair && ln.dataset.pair.includes(id)) {
-          ln.classList.add('visible');
-        } else {
-          ln.classList.remove('visible');
+          // Open-hand explode: push outward proportional to spread
+          if (spread > 0.7 && ps < 0.2) {
+            vel[ix] += nx * 0.008 * spread;
+            vel[iy] += ny * 0.008 * spread;
+          }
         }
-      });
-    });
-    w.addEventListener('mouseleave', () => {
-      all.forEach(x => {
-        x.classList.remove('dimmed', 'hl', 'hl-pair');
-      });
-      anaSvg.querySelectorAll('.ana-line').forEach(ln => ln.classList.add('visible'));
-    });
-  });
-  // Default: all lines visible softly
-  anaSvg.querySelectorAll('.ana-line').forEach(ln => ln.classList.add('visible'));
-}
-
-anaSwitcher.addEventListener('click', (e) => {
-  const btn = e.target.closest('.ana-switch-btn');
-  if (!btn) return;
-  anaSwitcher.querySelectorAll('.ana-switch-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const key = btn.dataset.case;
-  renderAnatomy(key);
-  anaReadout.innerHTML = anaCases[key].readout;
-});
-
-// Initial render — wait for fonts to settle
-window.addEventListener('load', () => {
-  renderAnatomy('a');
-});
-window.addEventListener('resize', () => {
-  const active = anaSwitcher.querySelector('.ana-switch-btn.active');
-  if (active) drawAnaLines(anaCases[active.dataset.case]);
-});
-// Redraw when section scrolls into view
-const anaObs = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      const active = anaSwitcher.querySelector('.ana-switch-btn.active');
-      if (active) drawAnaLines(anaCases[active.dataset.case]);
-    }
-  });
-}, { threshold: 0.1 });
-anaObs.observe(anaStage);
-
-/* ----- III · VOICE LABORATORY --------------------------------- */
-const voiceContent = {
-  luxury: {
-    label: 'Voz lujosa · 01',
-    text: 'Nuestro nuevo sérum devuelve a la piel su ritmo. A las seis semanas, el resultado se anticipa a cualquier espejo. Tres gotas, al cerrar el día — cada noche.'
-  },
-  bold: {
-    label: 'Voz directa · 02',
-    text: 'Tu piel se recupera más rápido. Punto. Seis semanas para verlo — y no hace falta el espejo. Tres gotas antes de dormir. Todas las noches, sin excepción.'
-  },
-  technical: {
-    label: 'Voz técnica · 03',
-    text: 'Un sérum reparador formulado para acelerar la regeneración cutánea. La mayoría de los usuarios percibe resultados visibles a las seis semanas. Aplicar tres gotas antes del descanso nocturno, diariamente.'
-  },
-  warm: {
-    label: 'Voz cercana · 04',
-    text: 'Nuestro nuevo sérum le da una mano a tu piel — para que se recupere más rápido. En unas seis semanas ya vas a notar la diferencia (antes que el espejo). Tres gotas antes de dormir, cada noche. Simple.'
-  },
-  editorial: {
-    label: 'Voz editorial · 05',
-    text: 'Un sérum que no corrige — acompaña. A las seis semanas, la piel ya escribe su propia evidencia, antes de que ningún espejo la confirme. Tres gotas, al cerrar la jornada: un gesto por noche.'
-  }
-};
-
-const voiceOutput = document.getElementById('voiceOutput');
-const voiceOutputCard = document.getElementById('voiceOutputCard');
-const voiceMeta = document.getElementById('voiceMeta');
-const voiceWords = document.getElementById('voiceWords');
-const voicePicker = document.getElementById('voicePicker');
-let voiceTypingController = null;
-
-async function runVoice(key) {
-  if (voiceTypingController) voiceTypingController.cancelled = true;
-  const controller = { cancelled: false };
-  voiceTypingController = controller;
-
-  const c = voiceContent[key];
-  voiceMeta.textContent = c.label;
-  voiceOutputCard.classList.remove('changed');
-
-  voiceOutput.textContent = '';
-  const caret = document.createElement('span');
-  caret.className = 'caret';
-  voiceOutput.appendChild(caret);
-
-  // brief fade + swap
-  voiceOutputCard.style.transition = 'opacity .35s ease';
-  voiceOutputCard.style.opacity = '0.25';
-  await new Promise(r => setTimeout(r, 180));
-  if (controller.cancelled) return;
-  voiceOutputCard.style.opacity = '1';
-
-  const text = c.text;
-  let i = 0;
-  await new Promise(resolve => {
-    const iv = setInterval(() => {
-      if (controller.cancelled) { clearInterval(iv); return resolve(); }
-      i++;
-      voiceOutput.textContent = text.slice(0, i);
-      voiceOutput.appendChild(caret);
-      voiceWords.textContent = `${text.slice(0,i).split(/\s+/).filter(Boolean).length} palabras · escribiendo…`;
-      if (i >= text.length) {
-        clearInterval(iv);
-        caret.remove();
-        voiceWords.textContent = `${text.split(/\s+/).filter(Boolean).length} palabras · adaptación final`;
-        voiceOutputCard.classList.add('changed');
-        setTimeout(() => voiceOutputCard.classList.remove('changed'), 1400);
-        resolve();
       }
-    }, 16);
-  });
+    }
+
+    // Damping
+    vel[ix] *= INERTIA;
+    vel[iy] *= INERTIA;
+
+    // Clamp velocity for stability
+    const spd = Math.hypot(vel[ix], vel[iy]);
+    if (spd > 0.04) {
+      vel[ix] = (vel[ix] / spd) * 0.04;
+      vel[iy] = (vel[iy] / spd) * 0.04;
+    }
+
+    // Integrate
+    pos[ix] = px + vel[ix];
+    pos[iy] = py + vel[iy];
+
+    // Soft boundary wrap — keep particles on screen
+    if (pos[ix] >  1.05) pos[ix] = -1.0;
+    if (pos[ix] < -1.05) pos[ix] =  1.0;
+    if (pos[iy] >  1.05) pos[iy] = -1.0;
+    if (pos[iy] < -1.05) pos[iy] =  1.0;
+  }
+
+  particleGeo.attributes.position.needsUpdate = true;
 }
 
-voicePicker.addEventListener('click', e => {
-  const btn = e.target.closest('.vl-btn');
-  if (!btn) return;
-  voicePicker.querySelectorAll('.vl-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  runVoice(btn.dataset.voice);
-});
+// ══════════════════════════════════════════════════════════════
+//  6. ENERGY STRINGS — line segments from tips to nearby particles
+// ══════════════════════════════════════════════════════════════
 
-// Kick off when section is first visible
-const vlObs = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      vlObs.unobserve(e.target);
-      runVoice('luxury');
-    }
+/*  We draw thin additive lines between each active fingertip and
+    the N nearest particles, creating the "magic string" look.   */
+
+const MAX_STRING_SEGS = 2000;
+let stringGeo, stringMat, stringMesh;
+const stringPositions = new Float32Array(MAX_STRING_SEGS * 6); // 2 verts × 3 comps
+
+function buildStrings() {
+  stringGeo = new THREE.BufferGeometry();
+  stringGeo.setAttribute('position', new THREE.BufferAttribute(stringPositions, 3));
+
+  stringMat = new THREE.LineBasicMaterial({
+    color:     0x88ddff,
+    transparent: true,
+    opacity:   0.18,
+    blending:  THREE.AdditiveBlending,
+    depthWrite: false,
+    linewidth:  1,
   });
-}, { threshold: 0.3 });
-vlObs.observe(document.getElementById('voice'));
 
-/* ----- LETTER send button --------------------------------- */
-const letterSend = document.getElementById('letterSend');
-letterSend.addEventListener('click', () => {
-  const name = document.getElementById('lfName').value.trim();
-  const email = document.getElementById('lfEmail').value.trim();
-  const msg = document.getElementById('lfMessage').value.trim();
-  const orig = letterSend.innerHTML;
-  if (!name || !email || !msg) {
-    letterSend.innerHTML = '<span>Fill the missing lines</span><span class="arr">✗</span>';
-    letterSend.style.background = 'var(--red)';
-    letterSend.style.borderColor = 'var(--red)';
-    setTimeout(() => {
-      letterSend.innerHTML = orig;
-      letterSend.style.background = '';
-      letterSend.style.borderColor = '';
-    }, 2200);
-    return;
+  stringMesh = new THREE.LineSegments(stringGeo, stringMat);
+  scene.add(stringMesh);
+}
+buildStrings();
+
+function updateStrings() {
+  let seg = 0;
+  const maxReach2 = (CFG.reachRadius * 0.9) ** 2;
+
+  for (let h = 0; h < 2; h++) {
+    for (let t = 0; t < 5; t++) {
+      const slot = h * 5 + t;
+      const tx = tipPositions[slot * 2];
+      if (tx === 9999) continue;
+      const ty = tipPositions[slot * 2 + 1];
+
+      // Find nearest particles within reach
+      for (let i = 0; i < PCOUNT && seg < MAX_STRING_SEGS; i++) {
+        const px = positions[i * 3];
+        const py = positions[i * 3 + 1];
+        const d2 = (px - tx) ** 2 + (py - ty) ** 2;
+        if (d2 < maxReach2) {
+          const base = seg * 6;
+          stringPositions[base]   = tx; stringPositions[base+1] = ty; stringPositions[base+2] = 0;
+          stringPositions[base+3] = px; stringPositions[base+4] = py; stringPositions[base+5] = 0;
+          seg++;
+        }
+      }
+    }
   }
-  letterSend.innerHTML = '<span>Letter sent · you\'ll hear back</span><span class="arr">✓</span>';
-  letterSend.style.background = 'var(--green-mark)';
-  letterSend.style.borderColor = 'var(--green-mark)';
-  setTimeout(() => {
-    letterSend.innerHTML = orig;
-    letterSend.style.background = '';
-    letterSend.style.borderColor = '';
-  }, 3500);
-});
 
-/* ----- SMOOTH anchor scroll --------------------------------- */
-document.querySelectorAll('a[href^="#"]').forEach(a => {
-  a.addEventListener('click', (e) => {
-    const href = a.getAttribute('href');
-    if (href === '#' || href.length < 2) return;
-    const target = document.querySelector(href);
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Zero out unused segments (move them offscreen)
+  for (let i = seg; i < MAX_STRING_SEGS; i++) {
+    const base = i * 6;
+    for (let k = 0; k < 6; k++) stringPositions[base + k] = 0;
+  }
+
+  stringGeo.setDrawRange(0, seg * 2);
+  stringGeo.attributes.position.needsUpdate = true;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  7. MEDIAPIPE HANDS SETUP
+// ══════════════════════════════════════════════════════════════
+
+const videoEl  = document.getElementById('videoEl');
+const statusEl = document.getElementById('status');
+
+async function initMediaPipe() {
+  const hands = new Hands({
+    locateFile: (f) =>
+      `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`,
+  });
+
+  hands.setOptions({
+    maxNumHands:        2,
+    modelComplexity:    1,
+    minDetectionConfidence: 0.65,
+    minTrackingConfidence:  0.55,
+  });
+
+  hands.onResults((results) => {
+    updateHandData(results);
+    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+      statusEl.style.opacity = '0';
+    } else {
+      statusEl.style.opacity = '1';
     }
   });
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: 640, height: 480, facingMode: 'user' },
+      audio: false,
+    });
+    videoEl.srcObject = stream;
+    await videoEl.play();
+
+    // Drive MediaPipe at ~30 fps using Camera utility
+    const mpCam = new Camera(videoEl, {
+      onFrame: async () => { await hands.send({ image: videoEl }); },
+      width: 640, height: 480,
+    });
+    mpCam.start();
+    statusEl.textContent = 'Show your hands · pinch to collapse · open to explode';
+    statusEl.style.opacity = '1';
+    setTimeout(() => statusEl.style.opacity = '0', 4000);
+  } catch (err) {
+    statusEl.textContent = 'Camera access denied — grant permission and reload';
+    statusEl.style.opacity = '1';
+    console.error(err);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  8. RENDER LOOP
+// ══════════════════════════════════════════════════════════════
+
+let lastTime   = performance.now();
+let fpsTimer   = 0;
+let frameCount = 0;
+const fpsEl    = document.getElementById('fps');
+
+function animate(now) {
+  requestAnimationFrame(animate);
+
+  const dt = Math.min((now - lastTime) / 16.67, 3); // capped delta, normalized to 60fps
+  lastTime = now;
+
+  // FPS counter (update every second)
+  frameCount++;
+  fpsTimer += now - (now - (now - lastTime));  // just use wall clock
+  if (frameCount % 30 === 0) {
+    const elapsed = performance.now();
+    fpsEl.textContent = `FPS: ${Math.round(1000 / ((elapsed - fpsTimer) || 16))}`;
+    fpsTimer = elapsed;
+  }
+
+  // Update time uniforms
+  const t = now * 0.001;
+  bgMat.uniforms.uTime.value      = t;
+  particleMat.uniforms.uTime.value = t;
+
+  // Hand smoothing
+  smoothTips();
+
+  // Physics
+  tickParticles(dt);
+
+  // Energy strings
+  updateStrings();
+
+  // Render with bloom
+  composer.render();
+}
+
+// ── Simpler FPS implementation ─────────────────────────────────
+let _fpsLast = performance.now(), _fpsFrames = 0;
+function trackFPS(now) {
+  _fpsFrames++;
+  if (now - _fpsLast >= 500) {
+    fpsEl.textContent = `FPS: ${Math.round(_fpsFrames / ((now - _fpsLast) / 1000))}`;
+    _fpsFrames = 0;
+    _fpsLast   = now;
+  }
+}
+
+// Override animate with clean version
+function animateClean(now) {
+  requestAnimationFrame(animateClean);
+  const dt = Math.min((now - lastTime) / 16.67, 3);
+  lastTime = now;
+
+  trackFPS(now);
+
+  const t = now * 0.001;
+  bgMat.uniforms.uTime.value       = t;
+  particleMat.uniforms.uTime.value  = t;
+
+  smoothTips();
+  tickParticles(dt);
+  updateStrings();
+
+  composer.render();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  9. RESIZE HANDLING
+// ══════════════════════════════════════════════════════════════
+function onResize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h);
+  composer.setSize(w, h);
+  bloomPass.resolution.set(w, h);
+  particleMat.uniforms.uPixelRatio.value = renderer.getPixelRatio();
+}
+window.addEventListener('resize', onResize);
+
+// ══════════════════════════════════════════════════════════════
+//  10. UI CONTROLS
+// ══════════════════════════════════════════════════════════════
+const pCountSlider = document.getElementById('pCount');
+const pCountVal    = document.getElementById('pCountVal');
+const glowSlider   = document.getElementById('glow');
+const glowVal      = document.getElementById('glowVal');
+const reachSlider  = document.getElementById('reach');
+const reachVal     = document.getElementById('reachVal');
+
+pCountSlider.addEventListener('input', () => {
+  const v = parseInt(pCountSlider.value);
+  pCountVal.textContent = v;
+  CFG.particleCount = v;
+  buildParticles(v);
 });
 
+glowSlider.addEventListener('input', () => {
+  const v = parseFloat(glowSlider.value);
+  glowVal.textContent = v.toFixed(1);
+  CFG.bloomStrength = v;
+  bloomPass.strength = v;
+});
+
+reachSlider.addEventListener('input', () => {
+  const v = parseFloat(reachSlider.value);
+  reachVal.textContent = v.toFixed(2);
+  CFG.reachRadius = v;
+});
+
+// ══════════════════════════════════════════════════════════════
+//  START
+// ══════════════════════════════════════════════════════════════
+initMediaPipe();
+requestAnimationFrame(animateClean);
 </script>
 </body>
 </html>
-
