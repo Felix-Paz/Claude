@@ -1130,7 +1130,7 @@ body:not([data-page="main"]) .reveal-section { display: none !important; }
 .what       { background: var(--cream) !important;     border-top: 1px solid var(--ink-12); border-bottom: 1px solid var(--ink-12); }
 .pricing    { background: var(--ink) !important;       color: var(--parchment); }
 .recommender{ background: var(--parchment) !important; border-bottom: 1px solid var(--ink-12); }
-.how        { background: var(--cream) !important; }
+.how        { background: var(--parchment) !important; }
 .contact    { background: var(--parchment) !important;     color: var(--ink); }
 
 /* Resources page — distinct intro vs sections */
@@ -1149,7 +1149,8 @@ body[data-page="faq"] .faq { background: var(--cream) !important; border-top: 0;
 /* Hide the floating-nav "island" on subpages — the masthead is enough.
    On main, it still appears after scrolling past the hero. */
 body[data-page="faq"] .floating-nav,
-body[data-page="resources"] .floating-nav { display: none !important; }
+body[data-page="resources"] .floating-nav,
+body[data-page="pricing"] .floating-nav { display: none !important; }
 
 /* FAQ page-intro — distinct dark frame so masthead → intro → FAQ list have clear color rhythm */
 body[data-page="faq"] .page-intro {
@@ -1265,7 +1266,7 @@ body[data-page="resources"] .reviews-headline {
 @media (min-width: 1024px) {
   .recommender, .faq, .contact { padding-top: clamp(96px, 12vh, 160px); padding-bottom: clamp(96px, 12vh, 160px); }
   .recommender .container, .faq .container { max-width: 1080px; }
-  .contact .container { max-width: 920px; }
+  /* .contact .container width is handled in the dedicated 1024px+ block above (1600px) */
   .quiz { padding: clamp(40px, 5vw, 72px) clamp(40px, 5vw, 72px); }
   .recommender-headline, .faq-headline { font-size: clamp(40px, 5.5vw, 68px); }
   .contact-headline { font-size: clamp(56px, 8vw, 116px); }
@@ -2879,8 +2880,7 @@ body[data-page="pricing"] .recommender { padding-top: clamp(56px, 9vh, 96px); }
 /* ============================================================
    v2 — FLOATING-NAV: keep glass, refine for new pages
    ============================================================ */
-body[data-page="pricing"] .floating-nav { display: flex !important; }
-body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72); }
+/* floating-nav explicitly hidden on pricing — see earlier rule */
 
 /* ============================================================
    v2 — HERO HEADLINE: subtle gradient sheen on the "em"
@@ -2932,6 +2932,248 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
     backdrop-filter: blur(8px);
   }
 }
+
+/* ============================================================
+   v3 — USD CURRENCY SUFFIX on plan prices
+   ============================================================ */
+.price-currency {
+  font-family: var(--mono);
+  font-size: 0.22em;
+  letter-spacing: 0.18em;
+  color: var(--stone);
+  margin-left: 8px;
+  vertical-align: 0.75em;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-style: normal;
+}
+.receipt.featured .price-currency,
+.price-discount .price-new .price-currency { color: var(--ember); }
+
+/* ============================================================
+   v3 — STAT-NUM-STATIC (for "$0" — no counter animation)
+   ============================================================ */
+.stat-num-static {
+  font-family: var(--display); font-style: italic; font-weight: 700;
+  letter-spacing: -0.025em;
+  display: inline-block;
+}
+
+/* ============================================================
+   v3 — SECTION TRANSITION FADES
+   Smooth gradient overlays at the top of each section, fading from
+   the *previous* section's bg color to transparent. This kills the
+   abrupt 1px color shelf between sections.
+   ============================================================ */
+.stat-band, .reveal-section, .wow-strip, .what, .how, .cta-banner, .contact { position: relative; }
+
+/* parchment -> midnight (stat-band -> reveal) */
+.reveal-section::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0;
+  height: 90px;
+  background: linear-gradient(180deg, var(--parchment) 0%, rgba(244, 238, 223, 0.0) 100%);
+  pointer-events: none; z-index: 4;
+}
+
+/* midnight -> ink (reveal -> wow-strip): already same family, soft fade */
+.wow-strip::before {
+  content: ''; position: absolute; left: 0; right: 0; top: -1px;
+  height: 1px; background: rgba(244, 238, 223, 0.10);
+  pointer-events: none; z-index: 3;
+}
+
+/* ink -> cream (wow-strip -> what) */
+.what { border-top: 0 !important; }
+.what::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0;
+  height: 110px;
+  background: linear-gradient(180deg, var(--ink) 0%, rgba(26, 22, 18, 0.0) 100%);
+  pointer-events: none; z-index: 4;
+}
+
+/* cream -> parchment (what -> how) */
+.what { border-bottom: 0 !important; }
+.how::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0;
+  height: 100px;
+  background: linear-gradient(180deg, var(--cream) 0%, rgba(250, 246, 235, 0.0) 100%);
+  pointer-events: none; z-index: 1;
+}
+
+/* parchment -> ink-gradient (how -> cta-banner) */
+.cta-banner::before, .cta-banner::after { /* keep existing orbs */ }
+.cta-banner > .cta-pre-fade {
+  position: absolute; left: 0; right: 0; top: 0;
+  height: 110px;
+  background: linear-gradient(180deg, var(--parchment) 0%, rgba(244, 238, 223, 0.0) 100%);
+  pointer-events: none; z-index: 1;
+}
+
+/* ink -> parchment (cta-banner -> contact) */
+.contact { border-top: 0 !important; }
+.contact > .contact-pre-fade {
+  position: absolute; left: 0; right: 0; top: 0;
+  height: 110px;
+  background: linear-gradient(180deg, #1A1612 0%, rgba(26, 22, 18, 0.0) 100%);
+  pointer-events: none; z-index: 1;
+}
+
+/* keep content above the fades */
+.stat-band > .container, .reveal-section > *, .wow-strip > *,
+.what > .container, .how > .container, .cta-banner > .cta-banner-inner,
+.contact > .container { position: relative; z-index: 5; }
+
+/* ============================================================
+   v3 — GLASS TEXTURE: subtle moving noise + slow gradient sheen
+   ============================================================ */
+.stat-card, .trust-pill, .cta-banner-inner, .floating-nav {
+  position: relative;
+}
+
+/* Moving gradient sheen behind the glass */
+.stat-card .stat-card-sheen,
+.cta-banner-inner .glass-sheen {
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.18) 35%,
+      rgba(255, 255, 255, 0) 70%);
+  background-size: 220% 100%;
+  background-position: 100% 0;
+  animation: glass-sheen-drift 8s var(--ease) infinite;
+  mix-blend-mode: overlay;
+}
+.cta-banner-inner .glass-sheen {
+  background: linear-gradient(115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 240, 220, 0.10) 35%,
+    rgba(255, 255, 255, 0) 70%);
+  background-size: 220% 100%;
+  background-position: 100% 0;
+  mix-blend-mode: screen;
+  animation-duration: 12s;
+}
+@keyframes glass-sheen-drift {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -120% 0; }
+}
+
+/* SVG-noise overlay for tactile glass texture — static, low-impact */
+.stat-card::before,
+.cta-banner-inner::before { /* re-purpose existing ::before; replaced below */ }
+.stat-card { /* keep existing styling but layer noise via ::before override */ }
+.stat-card { background-image:
+  linear-gradient(135deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0) 38%),
+  url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+.cta-banner-inner {
+  background-image:
+    linear-gradient(rgba(244, 238, 223, 0.06), rgba(244, 238, 223, 0.06)),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 320 320' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   v3 — STAT-BAND: ambient floating orbs + slow drift gradient
+   ============================================================ */
+.stat-band { isolation: isolate; }
+.stat-band-glow {
+  position: absolute; inset: -10%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 50% at 14% 30%, rgba(199, 62, 10, 0.10) 0%, transparent 65%),
+    radial-gradient(36% 48% at 86% 70%, rgba(228, 168, 92, 0.16) 0%, transparent 70%),
+    radial-gradient(28% 36% at 50% 50%, rgba(199, 62, 10, 0.06) 0%, transparent 70%);
+  filter: blur(30px);
+  animation: stat-glow-drift 18s var(--ease) infinite alternate;
+}
+@keyframes stat-glow-drift {
+  0%   { transform: translate3d(-2%, 0, 0) scale(1) rotate(0deg); }
+  100% { transform: translate3d(3%, 2%, 0) scale(1.08) rotate(6deg); }
+}
+.stat-band .container { position: relative; z-index: 1; }
+
+/* Stat-card hover: ramp up sheen speed + add a soft inner border glow */
+.stat-card:hover .stat-card-sheen { animation-duration: 3s; }
+.stat-card::after { z-index: 3; }
+
+/* ============================================================
+   v3 — HERO ORBS: more variation + ambient particles
+   ============================================================ */
+.hero-orb.orb-1 { width: 600px; height: 600px; opacity: 0.62; }
+.hero-orb.orb-2 { width: 440px; height: 440px; opacity: 0.55; }
+.hero-orb.orb-3 { width: 320px; height: 320px; opacity: 0.5; }
+
+/* ============================================================
+   v3 — WOW-STRIP: subtle vertical fade-in/out (so it joins ink above + cream below)
+   ============================================================ */
+.wow-strip {
+  background: linear-gradient(180deg, #0a0807 0%, var(--ink) 50%, var(--ink) 100%);
+}
+
+/* ============================================================
+   v3 — CTA-BANNER: solid dark, fade-in handled by .cta-pre-fade
+   ============================================================ */
+.cta-banner {
+  background: linear-gradient(180deg, #1A1612 0%, #2A241E 100%);
+}
+
+/* ============================================================
+   v3 — CONTACT: parchment, fade-in handled by .contact-pre-fade
+   ============================================================ */
+.contact {
+  background: var(--parchment) !important;
+  border-top: 0 !important;
+}
+
+/* ============================================================
+   v3 — PRICING / RECOMMENDER smooth fades for pricing page
+   ============================================================ */
+body[data-page="pricing"] .pricing {
+  background: linear-gradient(180deg, #14110E 0%, var(--ink) 18%, var(--ink) 100%) !important;
+}
+body[data-page="pricing"] .recommender {
+  background: linear-gradient(180deg, var(--ink) 0%, var(--parchment) 8%, var(--parchment) 100%) !important;
+}
+
+/* ============================================================
+   v3 — HOW SECTION: parchment with subtle ambient
+   ============================================================ */
+.how { isolation: isolate; }
+.how::after {
+  content: ''; position: absolute; inset: 0;
+  pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(40% 50% at 90% 20%, rgba(228, 168, 92, 0.12) 0%, transparent 65%),
+    radial-gradient(36% 48% at 10% 80%, rgba(199, 62, 10, 0.06) 0%, transparent 70%);
+  filter: blur(40px);
+  animation: stat-glow-drift 24s var(--ease) infinite alternate;
+}
+.how > .container { position: relative; z-index: 2; }
+
+/* ============================================================
+   v3 — WHAT SECTION: keep cream, add subtle texture too
+   ============================================================ */
+.what { isolation: isolate; }
+.what::after {
+  content: ''; position: absolute; inset: 0;
+  pointer-events: none; z-index: 0; opacity: 0.7;
+  background:
+    radial-gradient(36% 48% at 10% 20%, rgba(228, 168, 92, 0.10) 0%, transparent 65%),
+    radial-gradient(40% 50% at 90% 80%, rgba(199, 62, 10, 0.06) 0%, transparent 70%);
+  filter: blur(40px);
+  animation: stat-glow-drift 28s var(--ease) infinite alternate;
+}
+.what > .container { position: relative; z-index: 2; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-card-sheen, .glass-sheen,
+  .stat-band-glow, .how::after, .what::after { animation: none !important; }
+}
+
 </style>
 </head>
 <body data-lang="en" data-page="main">
@@ -3019,39 +3261,31 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
       <a href="#/pricing#recommender" class="btn btn-primary"><span data-i18n="hero.cta1">Find the right plan</span> <span class="arrow">→</span></a>
       <a href="#/pricing" class="btn btn-secondary" data-i18n="hero.cta2">See all three</a>
     </div>
-    <p class="hero-meta">
-      <span data-i18n="hero.from">From</span> <span class="ember">$397</span> <span class="sep">·</span> EN / ES / Bilingual <span class="sep">·</span> <span data-i18n="hero.flat">Flat fee</span> <span class="sep">·</span> <span data-i18n="hero.files">Files yours forever</span>
-    </p>
-    <div class="hero-stats" aria-label="At a glance">
-      <span class="hero-stat"><span class="stat-num" data-count="7">7</span><span class="stat-label" data-i18n="hero.s1">days delivery</span></span>
-      <span class="hero-stat"><span class="stat-num" data-count="100" data-suffix="%">100%</span><span class="stat-label" data-i18n="hero.s2">files yours</span></span>
-      <span class="hero-stat"><span class="stat-num" data-count="2">2</span><span class="stat-label" data-i18n="hero.s3">languages</span></span>
-      <span class="hero-stat"><span class="stat-num" data-count="0" data-suffix="$">$0</span><span class="stat-label" data-i18n="hero.s4">monthly fee</span></span>
-    </div>
   </div>
 </section>
 
 <section class="stat-band" id="stats" data-page="main" data-animate aria-label="At a glance">
+  <div class="stat-band-glow" aria-hidden="true"></div>
   <div class="container">
-    <article class="stat-card">
+    <article class="stat-card"><span class="stat-card-sheen" aria-hidden="true"></span>
       <span class="stat-eyebrow" data-i18n="stat.1.eye">Avg. timeline</span>
       <span class="stat-big"><span class="stat-num" data-count="7">7</span><span class="stat-suffix" data-i18n="stat.1.suf">days</span></span>
       <p class="stat-desc" data-i18n="stat.1.desc">From the moment your deposit clears to your page being live at the address you want.</p>
     </article>
-    <article class="stat-card">
-      <span class="stat-eyebrow" data-i18n="stat.2.eye">Conversion lift</span>
-      <span class="stat-big"><span class="stat-num" data-count="42" data-suffix="%">42%</span></span>
-      <p class="stat-desc" data-i18n="stat.2.desc">Average bump in conversion vs. a multi-page site, across the last 18 pages we shipped.</p>
+    <article class="stat-card"><span class="stat-card-sheen" aria-hidden="true"></span>
+      <span class="stat-eyebrow" data-i18n="stat.2.eye">Languages</span>
+      <span class="stat-big"><span class="stat-num" data-count="2">2</span></span>
+      <p class="stat-desc" data-i18n="stat.2.desc">English and Spanish, written natively, not machine-translated. Pick one or both.</p>
     </article>
-    <article class="stat-card">
-      <span class="stat-eyebrow" data-i18n="stat.3.eye">Mobile-first</span>
+    <article class="stat-card"><span class="stat-card-sheen" aria-hidden="true"></span>
+      <span class="stat-eyebrow" data-i18n="stat.3.eye">Files yours</span>
       <span class="stat-big"><span class="stat-num" data-count="100" data-suffix="%">100%</span></span>
-      <p class="stat-desc" data-i18n="stat.3.desc">Designed for the phone first, scaled up for laptops. Loads under 2s on 4G.</p>
+      <p class="stat-desc" data-i18n="stat.3.desc">You keep every source file on delivery. Edit it yourself, hand it to any developer later.</p>
     </article>
-    <article class="stat-card">
-      <span class="stat-eyebrow" data-i18n="stat.4.eye">Money-back</span>
-      <span class="stat-big"><span class="stat-num" data-count="100" data-suffix="%">100%</span></span>
-      <p class="stat-desc" data-i18n="stat.4.desc">If the revised version still doesn't fit, you get the second half back. No fight.</p>
+    <article class="stat-card"><span class="stat-card-sheen" aria-hidden="true"></span>
+      <span class="stat-eyebrow" data-i18n="stat.4.eye">Monthly fee</span>
+      <span class="stat-big"><span class="stat-num-static">$0</span></span>
+      <p class="stat-desc" data-i18n="stat.4.desc">No subscription, no platform lock-in. Hosting is free with the services we set up for you.</p>
     </article>
   </div>
 </section>
@@ -3202,7 +3436,6 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
     <div class="pricing-trust" aria-hidden="false">
       <div class="trust-pill"><span class="trust-dot"></span><span data-i18n="pricing.trust.1">Half on signup · Half on approval</span></div>
       <div class="trust-pill"><span class="trust-dot"></span><span data-i18n="pricing.trust.2">No monthly fees · Ever</span></div>
-      <div class="trust-pill"><span class="trust-dot"></span><span data-i18n="pricing.trust.3">Money-back if it doesn't fit</span></div>
     </div>
   </div>
 </section>
@@ -3219,7 +3452,7 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
         <div class="receipt-tag"><span data-i18n="plan.page.audience">For one focused offer</span><span class="serial">No. A001</span></div>
         <h3><em data-i18n="plan.page.name">Launch Page.</em><button class="info-icon" type="button" data-info="plan.page" aria-label="What this plan includes">i</button></h3>
         <p class="receipt-fit" data-i18n="plan.page.fit">For one offer, one clear goal, fast results. Ideal for freelancers, coaches, restaurants, creators, bookings, or product launches.</p>
-        <div class="price">$397</div>
+        <div class="price">$397<span class="price-currency">USD</span></div>
         <div class="price-meta" data-i18n="plan.page.meta">Flat · 7 days · 1 round of changes</div>
         <hr class="receipt-divider" />
         <ul>
@@ -3228,8 +3461,9 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
           <li data-i18n="plan.page.f3">English OR Spanish <span class="check">✓</span></li>
           <li data-i18n="plan.page.f4">Mobile-first build <span class="check">✓</span></li>
           <li data-i18n="plan.page.f5">Booking / payment / form embeds <span class="check">✓</span></li>
-          <li data-i18n="plan.page.f6">All source files <span class="check">✓</span></li>
-          <li data-i18n="plan.page.f7">Free hosting setup <span class="check">✓</span></li>
+          <li data-i18n="plan.page.f6">30-min strategy call <span class="check">✓</span></li>
+          <li data-i18n="plan.page.f7">All source files <span class="check">✓</span></li>
+          <li data-i18n="plan.page.f8">Free hosting setup <span class="check">✓</span></li>
         </ul>
         <a href="#/main#contact" class="pick-btn" data-i18n="plan.page.cta">Pick this one →</a>
       </article>
@@ -3238,7 +3472,7 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
         <div class="receipt-tag"><span data-i18n="plan.site.audience">For real businesses</span><span class="serial">No. B001</span></div>
         <h3><em data-i18n="plan.site.name">Growth Site.</em><button class="info-icon" type="button" data-info="plan.site" aria-label="What this plan includes">i</button></h3>
         <p class="receipt-fit" data-i18n="plan.site.fit">For real businesses that need trust and multiple pages. Service businesses, agencies, clinics, stores, brands.</p>
-        <div class="price">$597</div>
+        <div class="price">$597<span class="price-currency">USD</span></div>
         <div class="price-meta" data-i18n="plan.site.meta">Flat · 7 days · 1 round of changes</div>
         <hr class="receipt-divider" />
         <ul>
@@ -3248,7 +3482,8 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
           <li data-i18n="plan.site.f4">English OR Spanish <span class="check">✓</span></li>
           <li data-i18n="plan.site.f5">Mobile-first build <span class="check">✓</span></li>
           <li data-i18n="plan.site.f6">Booking / payment / form embeds <span class="check">✓</span></li>
-          <li data-i18n="plan.site.f7">All source files <span class="check">✓</span></li>
+          <li data-i18n="plan.site.f7">30-min strategy call <span class="check">✓</span></li>
+          <li data-i18n="plan.site.f8">All source files <span class="check">✓</span></li>
         </ul>
         <a href="#/main#contact" class="pick-btn" data-i18n="plan.site.cta">Pick this one →</a>
       </article>
@@ -3259,7 +3494,7 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
         <p class="receipt-fit" data-i18n="plan.dom.fit">For businesses serious about growth, ads, bilingual clients, and authority. Built to bring traffic in and convert it.</p>
         <div class="price price-discount" id="dominatorPrice">
           <span class="price-old" aria-hidden="true">$1,097</span>
-          <span class="price-new">$987</span>
+          <span class="price-new">$987<span class="price-currency">USD</span></span>
           <span class="discount-badge">−10%</span>
         </div>
         <div class="price-meta" data-i18n="plan.dom.meta">Flat · 7 days · 2 rounds of changes</div>
@@ -3449,7 +3684,7 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
 
 <section class="how" id="how" data-page="main">
   <div class="container">
-    <span class="eyebrow"><span class="num">/05</span> <span data-i18n="how.eyebrow">How it works</span></span>
+    <span class="eyebrow"><span class="num">/03</span> <span data-i18n="how.eyebrow">How it works</span></span>
 
     <div class="how-stage" id="howStage">
       <button class="rip-handle" id="ripHandle" type="button" aria-label="Peel back the section to see the source">
@@ -3734,7 +3969,9 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
 </section>
 
 <section class="cta-banner" id="ctaBanner" data-page="main" aria-label="Ready to start">
+  <span class="cta-pre-fade" aria-hidden="true"></span>
   <div class="cta-banner-inner">
+    <span class="glass-sheen" aria-hidden="true"></span>
     <div class="cta-banner-text">
       <h2 class="cta-banner-h" data-i18n="ctab.h">Ready to <em>build</em> something that converts?</h2>
       <p class="cta-banner-sub" data-i18n="ctab.sub">Pick a plan and we hold the slot. Half on signup, half on approval. Your page lives at the address you want in seven days — files yours forever.</p>
@@ -3749,8 +3986,9 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
 </section>
 
 <section class="contact" id="contact" data-page="main" data-animate>
+  <span class="contact-pre-fade" aria-hidden="true"></span>
   <div class="container">
-    <span class="eyebrow"><span class="num">/06</span> <span data-i18n="contact.eyebrow">Start a project</span></span>
+    <span class="eyebrow"><span class="num">/04</span> <span data-i18n="contact.eyebrow">Start a project</span></span>
     <h2 class="contact-headline" data-i18n="contact.headline">Let's see if it's a <em>fit</em>.</h2>
     <p class="contact-sub" data-i18n="contact.sub">Fill this in or email <a href="mailto:pageforge.contact@gmail.com">pageforge.contact@gmail.com</a>. We read everything and reply within a day.</p>
 
@@ -4183,7 +4421,7 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
     howSection?.classList.add('no-code-anim');
   } else {
     const codeLines = [
-      { txt: '<span class="com-k">// /05  build: how-it-works.html</span>' },
+      { txt: '<span class="com-k">// /03  build: how-it-works.html</span>' },
       { txt: '<span class="tag-k">&lt;section</span> <span class="attr-k">id</span>=<span class="str-k">"how"</span> <span class="attr-k">class</span>=<span class="str-k">"how"</span><span class="tag-k">&gt;</span>' },
       { txt: '  <span class="tag-k">&lt;h2&gt;</span>Three steps. <span class="tag-k">&lt;em&gt;</span>Simple.<span class="tag-k">&lt;/em&gt;&lt;/h2&gt;</span>' },
       { txt: '  <span class="tag-k">&lt;ol</span> <span class="attr-k">class</span>=<span class="str-k">"how-list"</span><span class="tag-k">&gt;</span>' },
@@ -5545,8 +5783,9 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
       'plan.page.f3': 'English OR Spanish <span class="check">✓</span>',
       'plan.page.f4': 'Mobile-first build <span class="check">✓</span>',
       'plan.page.f5': 'Booking / payment / form embeds <span class="check">✓</span>',
-      'plan.page.f6': 'All source files <span class="check">✓</span>',
-      'plan.page.f7': 'Free hosting setup <span class="check">✓</span>',
+      'plan.page.f6': '30-min strategy call <span class="check">✓</span>',
+      'plan.page.f7': 'All source files <span class="check">✓</span>',
+      'plan.page.f8': 'Free hosting setup <span class="check">✓</span>',
       'plan.page.cta': 'Pick this one →',
 
       'plan.site.tag': 'Growth Site', 'plan.site.name': 'Growth Site.',
@@ -5558,7 +5797,8 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
       'plan.site.f4': 'English OR Spanish <span class="check">✓</span>',
       'plan.site.f5': 'Mobile-first build <span class="check">✓</span>',
       'plan.site.f6': 'Booking / payment / form embeds <span class="check">✓</span>',
-      'plan.site.f7': 'All source files <span class="check">✓</span>',
+      'plan.site.f7': '30-min strategy call <span class="check">✓</span>',
+      'plan.site.f8': 'All source files <span class="check">✓</span>',
       'plan.site.cta': 'Pick this one →',
 
       'plan.dom.tag': 'Market Dominator', 'plan.dom.name': 'Market Dominator.',
@@ -5784,12 +6024,12 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
       'stat.1.eye':  'Avg. timeline',
       'stat.1.suf':  'days',
       'stat.1.desc': 'From the moment your deposit clears to your page being live at the address you want.',
-      'stat.2.eye':  'Conversion lift',
-      'stat.2.desc': 'Average bump in conversion vs. a multi-page site, across the last 18 pages we shipped.',
-      'stat.3.eye':  'Mobile-first',
-      'stat.3.desc': 'Designed for the phone first, scaled up for laptops. Loads under 2s on 4G.',
-      'stat.4.eye':  'Money-back',
-      'stat.4.desc': "If the revised version still doesn't fit, you get the second half back. No fight.",
+      'stat.2.eye':  'Languages',
+      'stat.2.desc': 'English and Spanish, written natively, not machine-translated. Pick one or both.',
+      'stat.3.eye':  'Files yours',
+      'stat.3.desc': 'You keep every source file on delivery. Edit it yourself, hand it to any developer later.',
+      'stat.4.eye':  'Monthly fee',
+      'stat.4.desc': 'No subscription, no platform lock-in. Hosting is free with the services we set up for you.',
 
       /* WOW marquee */
       'wow.1': 'Flat fee.',
@@ -5854,8 +6094,9 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
       'plan.page.f3': 'Inglés <em>o</em> español <span class="check">✓</span>',
       'plan.page.f4': 'Construida primero para celular <span class="check">✓</span>',
       'plan.page.f5': 'Reservas / pagos / formularios integrados <span class="check">✓</span>',
-      'plan.page.f6': 'Todos los archivos fuente <span class="check">✓</span>',
-      'plan.page.f7': 'Hosting gratis configurado <span class="check">✓</span>',
+      'plan.page.f6': 'Llamada de estrategia de 30 min <span class="check">✓</span>',
+      'plan.page.f7': 'Todos los archivos fuente <span class="check">✓</span>',
+      'plan.page.f8': 'Hosting gratis configurado <span class="check">✓</span>',
       'plan.page.cta': 'Quiero esta →',
 
       'plan.site.tag': 'Growth Site', 'plan.site.name': 'Growth Site.',
@@ -5867,7 +6108,8 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
       'plan.site.f4': 'Inglés <em>o</em> español <span class="check">✓</span>',
       'plan.site.f5': 'Construido primero para celular <span class="check">✓</span>',
       'plan.site.f6': 'Reservas / pagos / formularios integrados <span class="check">✓</span>',
-      'plan.site.f7': 'Todos los archivos fuente <span class="check">✓</span>',
+      'plan.site.f7': 'Llamada de estrategia de 30 min <span class="check">✓</span>',
+      'plan.site.f8': 'Todos los archivos fuente <span class="check">✓</span>',
       'plan.site.cta': 'Quiero este →',
 
       'plan.dom.tag': 'Market Dominator', 'plan.dom.name': 'Market Dominator.',
@@ -6089,12 +6331,12 @@ body[data-page="pricing"] .floating-nav { background: rgba(244, 238, 223, 0.72);
       'stat.1.eye':  'Tiempo promedio',
       'stat.1.suf':  'días',
       'stat.1.desc': 'Desde que se acredita tu seña hasta que la página está en vivo en la dirección que querés.',
-      'stat.2.eye':  'Mejora de conversión',
-      'stat.2.desc': 'Aumento promedio en conversión vs. un sitio de varias páginas, en las últimas 18 que entregamos.',
-      'stat.3.eye':  'Pensada para mobile',
-      'stat.3.desc': 'Diseñada primero para el teléfono, escalada para notebooks. Carga en menos de 2s en 4G.',
-      'stat.4.eye':  'Garantía',
-      'stat.4.desc': 'Si la versión revisada igual no encaja, te devolvemos la segunda mitad. Sin pelea.',
+      'stat.2.eye':  'Idiomas',
+      'stat.2.desc': 'Inglés y español, escritos a mano por hablantes nativos. Elegí uno o los dos.',
+      'stat.3.eye':  'Archivos tuyos',
+      'stat.3.desc': 'Te llevás todos los archivos fuente al entregar. Los editás vos o se los pasás a cualquier desarrollador.',
+      'stat.4.eye':  'Cuota mensual',
+      'stat.4.desc': 'Sin suscripción, sin quedar atado a una plataforma. El hosting es gratis con los servicios que configuramos.',
 
       /* WOW marquee */
       'wow.1': 'Precio cerrado.',
