@@ -2960,68 +2960,30 @@ body[data-page="pricing"] .recommender { padding-top: clamp(56px, 9vh, 96px); }
 }
 
 /* ============================================================
-   v3 — SECTION TRANSITION FADES
-   Smooth gradient overlays at the top of each section, fading from
-   the *previous* section's bg color to transparent. This kills the
-   abrupt 1px color shelf between sections.
+   v3 — SECTION RHYTHM RESET — restore solid sections + crisp borders
    ============================================================ */
-.stat-band, .reveal-section, .wow-strip, .what, .how, .cta-banner, .contact { position: relative; }
+/* (transitions reverted — solid colors with the original 1px borders) */
 
-/* parchment -> midnight (stat-band -> reveal) */
-.reveal-section::before {
-  content: ''; position: absolute; left: 0; right: 0; top: 0;
-  height: 90px;
-  background: linear-gradient(180deg, var(--parchment) 0%, rgba(244, 238, 223, 0.0) 100%);
-  pointer-events: none; z-index: 4;
+/* Defensive: no margin/padding above the masthead, no html-bg flash on
+   notched mobile. The whole top strip is cream (matches masthead). */
+html, body { margin: 0; padding: 0; }
+html { background: var(--cream); }
+.masthead { margin-top: 0 !important; }
+
+/* /02 What → /03 How — make the divider clear. /02 cream, /03 parchment,
+   plus a thin ember "stitch" line at the top of /03 that draws the eye. */
+.how { border-top: 1px solid var(--ink-12); position: relative; isolation: isolate; }
+.how > .how-stitch {
+  position: absolute; left: 50%; top: -1px;
+  transform: translateX(-50%);
+  width: clamp(60px, 14vw, 180px);
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, var(--ember) 50%, transparent 100%);
+  z-index: 4;
+  pointer-events: none;
+  border-radius: 2px;
 }
-
-/* midnight -> ink (reveal -> wow-strip): already same family, soft fade */
-.wow-strip::before {
-  content: ''; position: absolute; left: 0; right: 0; top: -1px;
-  height: 1px; background: rgba(244, 238, 223, 0.10);
-  pointer-events: none; z-index: 3;
-}
-
-/* ink -> cream (wow-strip -> what) */
-.what { border-top: 0 !important; }
-.what::before {
-  content: ''; position: absolute; left: 0; right: 0; top: 0;
-  height: 110px;
-  background: linear-gradient(180deg, var(--ink) 0%, rgba(26, 22, 18, 0.0) 100%);
-  pointer-events: none; z-index: 4;
-}
-
-/* cream -> parchment (what -> how) */
-.what { border-bottom: 0 !important; }
-.how::before {
-  content: ''; position: absolute; left: 0; right: 0; top: 0;
-  height: 100px;
-  background: linear-gradient(180deg, var(--cream) 0%, rgba(250, 246, 235, 0.0) 100%);
-  pointer-events: none; z-index: 1;
-}
-
-/* parchment -> ink-gradient (how -> cta-banner) */
-.cta-banner::before, .cta-banner::after { /* keep existing orbs */ }
-.cta-banner > .cta-pre-fade {
-  position: absolute; left: 0; right: 0; top: 0;
-  height: 110px;
-  background: linear-gradient(180deg, var(--parchment) 0%, rgba(244, 238, 223, 0.0) 100%);
-  pointer-events: none; z-index: 1;
-}
-
-/* ink -> parchment (cta-banner -> contact) */
-.contact { border-top: 0 !important; }
-.contact > .contact-pre-fade {
-  position: absolute; left: 0; right: 0; top: 0;
-  height: 110px;
-  background: linear-gradient(180deg, #1A1612 0%, rgba(26, 22, 18, 0.0) 100%);
-  pointer-events: none; z-index: 1;
-}
-
-/* keep content above the fades */
-.stat-band > .container, .reveal-section > *, .wow-strip > *,
-.what > .container, .how > .container, .cta-banner > .cta-banner-inner,
-.contact > .container { position: relative; z-index: 5; }
+.what { border-bottom: 1px solid var(--ink-12) !important; }
 
 /* ============================================================
    v3 — GLASS TEXTURE: subtle moving noise + slow gradient sheen
@@ -3110,34 +3072,11 @@ body[data-page="pricing"] .recommender { padding-top: clamp(56px, 9vh, 96px); }
 /* ============================================================
    v3 — WOW-STRIP: subtle vertical fade-in/out (so it joins ink above + cream below)
    ============================================================ */
-.wow-strip {
-  background: linear-gradient(180deg, #0a0807 0%, var(--ink) 50%, var(--ink) 100%);
-}
+/* wow-strip uses solid --ink from the base rule */
 
-/* ============================================================
-   v3 — CTA-BANNER: solid dark, fade-in handled by .cta-pre-fade
-   ============================================================ */
-.cta-banner {
-  background: linear-gradient(180deg, #1A1612 0%, #2A241E 100%);
-}
+/* cta-banner + contact use their original solid backgrounds + borders */
 
-/* ============================================================
-   v3 — CONTACT: parchment, fade-in handled by .contact-pre-fade
-   ============================================================ */
-.contact {
-  background: var(--parchment) !important;
-  border-top: 0 !important;
-}
-
-/* ============================================================
-   v3 — PRICING / RECOMMENDER smooth fades for pricing page
-   ============================================================ */
-body[data-page="pricing"] .pricing {
-  background: linear-gradient(180deg, #14110E 0%, var(--ink) 18%, var(--ink) 100%) !important;
-}
-body[data-page="pricing"] .recommender {
-  background: linear-gradient(180deg, var(--ink) 0%, var(--parchment) 8%, var(--parchment) 100%) !important;
-}
+/* pricing-page sections use their original solid backgrounds */
 
 /* ============================================================
    v3 — HOW SECTION: parchment with subtle ambient
@@ -3172,6 +3111,219 @@ body[data-page="pricing"] .recommender {
 @media (prefers-reduced-motion: reduce) {
   .stat-card-sheen, .glass-sheen,
   .stat-band-glow, .how::after, .what::after { animation: none !important; }
+}
+
+/* ============================================================
+   v4 — MORE GLASS TEXTURE + MOVEMENT
+   Visible sheen sweep that loops, slow hue rotation, floating dust
+   particles drifting across glassy surfaces.
+   ============================================================ */
+.stat-card .stat-card-sheen {
+  background: linear-gradient(115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 240, 220, 0.45) 45%,
+    rgba(199, 62, 10, 0.12) 55%,
+    rgba(255, 255, 255, 0) 75%);
+  background-size: 260% 100%;
+  animation: glass-sheen-drift 6.5s var(--ease) infinite;
+  mix-blend-mode: soft-light;
+}
+.stat-card:hover .stat-card-sheen {
+  animation-duration: 2.2s;
+  background-size: 220% 100%;
+}
+.cta-banner-inner .glass-sheen {
+  background: linear-gradient(115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 240, 220, 0.22) 45%,
+    rgba(199, 62, 10, 0.12) 55%,
+    rgba(255, 255, 255, 0) 75%);
+  background-size: 260% 100%;
+  animation: glass-sheen-drift 9s var(--ease) infinite;
+  mix-blend-mode: screen;
+}
+
+/* Slow ambient hue-pulse on glass containers — keeps them alive */
+@keyframes glass-hue-pulse {
+  0%, 100% { filter: hue-rotate(0deg) saturate(1); }
+  50%      { filter: hue-rotate(-6deg) saturate(1.08); }
+}
+.stat-card, .cta-banner-inner, .trust-pill {
+  animation: glass-hue-pulse 12s var(--ease) infinite;
+}
+.stat-card:nth-child(2) { animation-delay: -3s; }
+.stat-card:nth-child(3) { animation-delay: -6s; }
+.stat-card:nth-child(4) { animation-delay: -9s; }
+
+/* Floating dust particles inside stat-band */
+.stat-band .particle-field {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.stat-band .particle {
+  position: absolute;
+  width: 3px; height: 3px;
+  background: var(--ember);
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 8px rgba(199, 62, 10, 0.55);
+  animation: particle-drift 18s linear infinite;
+}
+.stat-band .particle.p1 { left: 10%; top: 80%; animation-delay: 0s;   animation-duration: 22s; }
+.stat-band .particle.p2 { left: 28%; top: 70%; animation-delay: -4s;  animation-duration: 19s; width: 2px; height: 2px; background: #d4a72c; }
+.stat-band .particle.p3 { left: 55%; top: 75%; animation-delay: -9s;  animation-duration: 26s; }
+.stat-band .particle.p4 { left: 72%; top: 82%; animation-delay: -2s;  animation-duration: 20s; width: 2px; height: 2px; }
+.stat-band .particle.p5 { left: 88%; top: 78%; animation-delay: -12s; animation-duration: 24s; background: #d4a72c; }
+.stat-band .particle.p6 { left: 18%; top: 90%; animation-delay: -7s;  animation-duration: 21s; width: 2px; height: 2px; }
+@keyframes particle-drift {
+  0%   { transform: translate3d(0, 0, 0)      scale(0.6); opacity: 0; }
+  15%  { opacity: 0.85; }
+  85%  { opacity: 0.4; }
+  100% { transform: translate3d(40px, -260px, 0) scale(0.4); opacity: 0; }
+}
+
+/* ============================================================
+   v4 — REVEAL SECTION REWORK
+   Warm dark background that fits the paper-ink palette + more wireframe.
+   ============================================================ */
+.reveal-section {
+  background:
+    radial-gradient(60% 70% at 14% 22%, rgba(199, 62, 10, 0.22) 0%, transparent 60%),
+    radial-gradient(50% 60% at 88% 78%, rgba(228, 168, 92, 0.16) 0%, transparent 60%),
+    linear-gradient(180deg, #1F1814 0%, #16110D 50%, #1F1814 100%) !important;
+}
+.reveal-section .reveal-eyebrow .num { color: rgba(244, 238, 223, 0.55); }
+.reveal-section .reveal-line { color: rgba(244, 238, 223, 0.32); }
+.reveal-section .reveal-line.is-active { color: var(--cream); }
+
+/* Frosted glass rim on the browser window */
+.rs-window {
+  border: 1px solid rgba(244, 238, 223, 0.18);
+  box-shadow:
+    0 60px 120px -30px rgba(0, 0, 0, 0.65),
+    0 24px 48px -16px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(244, 238, 223, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+
+/* New wireframe element styles (text bars + accent rect) */
+.wf-text-line {
+  fill: rgba(26, 22, 18, 0.18);
+  stroke: none;
+  opacity: 0;
+  transition: opacity 0.55s var(--ease);
+}
+.reveal-stage[data-stage="1"] .wf-text-line { opacity: 1; }
+.reveal-stage[data-stage="1"] .wf-text-line.wf-t1 { transition-delay: 0.50s; }
+.reveal-stage[data-stage="1"] .wf-text-line.wf-t2 { transition-delay: 0.55s; }
+.reveal-stage[data-stage="1"] .wf-text-line.wf-t3 { transition-delay: 0.60s; }
+.reveal-stage[data-stage="1"] .wf-text-line.wf-t4 { transition-delay: 0.66s; }
+.reveal-stage[data-stage="1"] .wf-text-line.wf-t5 { transition-delay: 0.72s; }
+.reveal-stage[data-stage="1"] .wf-text-line.wf-t6 { transition-delay: 0.78s; }
+.wf-accent {
+  fill: var(--ember);
+  opacity: 0;
+  transition: opacity 0.55s var(--ease) 0.42s;
+}
+.reveal-stage[data-stage="1"] .wf-accent { opacity: 0.85; }
+
+/* Live page (stage C) — more polish */
+.rs-live-nav-items { display: flex; gap: 14px; font-family: var(--mono); font-size: 11px; color: var(--stone); letter-spacing: 0.18em; text-transform: uppercase; }
+.rs-live-nav-items span { opacity: 0.7; }
+.rs-live-card {
+  position: relative; overflow: hidden;
+  background: linear-gradient(180deg, var(--parchment) 0%, var(--cream) 100%);
+}
+.rs-live-card .rs-card-head {
+  position: absolute; top: 10px; left: 10px; right: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.rs-live-card .rs-card-head .rs-card-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--ember);
+}
+.rs-live-card .rs-card-head .rs-card-bar {
+  flex: 1; height: 4px; border-radius: 2px;
+  background: var(--ink-12);
+}
+.rs-live-card .rs-card-body {
+  position: absolute; left: 10px; right: 10px; bottom: 10px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.rs-live-card .rs-card-body .rs-card-line {
+  height: 4px; border-radius: 2px;
+  background: var(--ink-12);
+}
+.rs-live-card .rs-card-body .rs-card-line.short { width: 60%; }
+
+/* ============================================================
+   v4 — REFERRAL CODE: collapsed by default, clean disclosure
+   ============================================================ */
+.field-referral { margin-bottom: 8px; position: relative; }
+.field-referral .referral-toggle {
+  background: none; border: 0; padding: 6px 0;
+  font-family: var(--mono); font-size: 11.5px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--stone);
+  cursor: none;
+  display: inline-flex; align-items: center; gap: 10px;
+  transition: color 0.2s var(--ease);
+}
+@media (pointer: coarse) { .field-referral .referral-toggle { cursor: pointer; } }
+.field-referral .referral-toggle:hover { color: var(--ember); }
+.field-referral .referral-toggle .ref-plus {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px;
+  font-family: var(--display); font-style: italic; font-weight: 700;
+  font-size: 18px; line-height: 1;
+  color: var(--ember);
+  border: 1px solid var(--ink-20);
+  border-radius: 50%;
+  transition: transform 0.3s var(--ease-snap), border-color 0.2s var(--ease);
+}
+.field-referral.is-open .referral-toggle .ref-plus {
+  transform: rotate(45deg);
+  border-color: var(--ember);
+}
+.field-referral .referral-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s var(--ease-out);
+  margin-top: 0;
+}
+.field-referral .referral-body > div { overflow: hidden; }
+.field-referral.is-open .referral-body {
+  grid-template-rows: 1fr;
+  margin-top: 10px;
+}
+.field-referral .referral-body input {
+  font: inherit;
+  padding: 10px 0;
+  background: transparent;
+  border: 0; border-bottom: 1px solid var(--ink-20);
+  color: var(--ink);
+  font-size: 17px;
+  font-family: var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  width: 100%;
+  cursor: none;
+}
+@media (pointer: coarse) { .field-referral .referral-body input { cursor: text; } }
+.field-referral .referral-body input:focus { outline: none; border-bottom-color: var(--ember); }
+.field-referral .form-hint {
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--stone);
+  line-height: 1.5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stat-card, .cta-banner-inner, .trust-pill,
+  .stat-band .particle { animation: none !important; }
 }
 
 </style>
@@ -3266,6 +3418,14 @@ body[data-page="pricing"] .recommender {
 
 <section class="stat-band" id="stats" data-page="main" data-animate aria-label="At a glance">
   <div class="stat-band-glow" aria-hidden="true"></div>
+  <div class="particle-field" aria-hidden="true">
+    <span class="particle p1"></span>
+    <span class="particle p2"></span>
+    <span class="particle p3"></span>
+    <span class="particle p4"></span>
+    <span class="particle p5"></span>
+    <span class="particle p6"></span>
+  </div>
   <div class="container">
     <article class="stat-card"><span class="stat-card-sheen" aria-hidden="true"></span>
       <span class="stat-eyebrow" data-i18n="stat.1.eye">Avg. timeline</span>
@@ -3309,27 +3469,61 @@ body[data-page="pricing"] .recommender {
             <div class="rs-stage rs-stage-a">
               <span class="rs-cursor-blink"></span>
             </div>
-            <!-- Stage B: wireframe -->
+            <!-- Stage B: wireframe (richer detail) -->
             <svg class="rs-stage rs-stage-b" viewBox="0 0 800 460" preserveAspectRatio="xMidYMid meet">
               <g class="wf-grp">
-                <rect class="wf-line wf-l1" x="60"  y="58"  rx="3" ry="3" width="120" height="14" />
-                <rect class="wf-line wf-l2" x="540" y="58"  rx="3" ry="3" width="200" height="14" />
-                <rect class="wf-line wf-l3" x="60"  y="120" rx="4" ry="4" width="500" height="40" />
-                <rect class="wf-line wf-l4" x="60"  y="180" rx="3" ry="3" width="380" height="12" />
-                <rect class="wf-line wf-l5" x="60"  y="208" rx="3" ry="3" width="320" height="12" />
-                <rect class="wf-line wf-l6" x="60"  y="252" rx="4" ry="4" width="160" height="38" />
-                <rect class="wf-line wf-l7" x="240" y="252" rx="4" ry="4" width="120" height="38" />
-                <rect class="wf-line wf-l8" x="60"  y="334" rx="6" ry="6" width="220" height="86" />
-                <rect class="wf-line wf-l9" x="295" y="334" rx="6" ry="6" width="220" height="86" />
-                <rect class="wf-line wf-l10" x="530" y="334" rx="6" ry="6" width="220" height="86" />
+                <!-- Nav bar: logo + 3 nav items + CTA -->
+                <rect class="wf-line wf-l1" x="60"  y="40"  rx="3" ry="3" width="86"  height="16" />
+                <rect class="wf-line wf-l2" x="520" y="46"  rx="2" ry="2" width="40"  height="6" />
+                <rect class="wf-line wf-l2" x="572" y="46"  rx="2" ry="2" width="40"  height="6" />
+                <rect class="wf-line wf-l2" x="624" y="46"  rx="2" ry="2" width="40"  height="6" />
+                <rect class="wf-accent wf-l2" x="678" y="38" rx="3" ry="3" width="62"  height="22" />
+                <!-- Thin nav divider -->
+                <line class="wf-line wf-l2" x1="60" y1="78" x2="740" y2="78" stroke-width="1" />
+
+                <!-- Hero headline (3 lines, last short) -->
+                <rect class="wf-line wf-l3" x="60"  y="108" rx="5" ry="5" width="540" height="32" />
+                <rect class="wf-line wf-l3" x="60"  y="150" rx="5" ry="5" width="460" height="32" />
+                <rect class="wf-line wf-l4" x="60"  y="192" rx="5" ry="5" width="260" height="32" />
+
+                <!-- Subtitle text bars -->
+                <rect class="wf-text-line wf-t1" x="60" y="240" rx="2" ry="2" width="380" height="6" />
+                <rect class="wf-text-line wf-t2" x="60" y="252" rx="2" ry="2" width="340" height="6" />
+                <rect class="wf-text-line wf-t3" x="60" y="264" rx="2" ry="2" width="280" height="6" />
+
+                <!-- Two CTAs -->
+                <rect class="wf-accent wf-l6" x="60"  y="286" rx="4" ry="4" width="148" height="36" />
+                <rect class="wf-line wf-l7"   x="220" y="286" rx="4" ry="4" width="112" height="36" />
+
+                <!-- Card grid (3) with header dot + title bar + body lines -->
+                <rect class="wf-line wf-l8"   x="60"  y="346" rx="6" ry="6" width="220" height="88" />
+                <circle class="wf-accent wf-l8" cx="76"  cy="362" r="5" />
+                <rect class="wf-text-line wf-t4" x="90"  y="358" rx="2" ry="2" width="80"  height="6" />
+                <rect class="wf-text-line wf-t4" x="74"  y="386" rx="2" ry="2" width="180" height="4" />
+                <rect class="wf-text-line wf-t4" x="74"  y="396" rx="2" ry="2" width="160" height="4" />
+                <rect class="wf-text-line wf-t4" x="74"  y="406" rx="2" ry="2" width="120" height="4" />
+
+                <rect class="wf-line wf-l9"   x="295" y="346" rx="6" ry="6" width="220" height="88" />
+                <circle class="wf-accent wf-l9" cx="311" cy="362" r="5" />
+                <rect class="wf-text-line wf-t5" x="325" y="358" rx="2" ry="2" width="80"  height="6" />
+                <rect class="wf-text-line wf-t5" x="309" y="386" rx="2" ry="2" width="180" height="4" />
+                <rect class="wf-text-line wf-t5" x="309" y="396" rx="2" ry="2" width="170" height="4" />
+                <rect class="wf-text-line wf-t5" x="309" y="406" rx="2" ry="2" width="140" height="4" />
+
+                <rect class="wf-line wf-l10"  x="530" y="346" rx="6" ry="6" width="210" height="88" />
+                <circle class="wf-accent wf-l10" cx="546" cy="362" r="5" />
+                <rect class="wf-text-line wf-t6" x="560" y="358" rx="2" ry="2" width="80"  height="6" />
+                <rect class="wf-text-line wf-t6" x="544" y="386" rx="2" ry="2" width="170" height="4" />
+                <rect class="wf-text-line wf-t6" x="544" y="396" rx="2" ry="2" width="160" height="4" />
+                <rect class="wf-text-line wf-t6" x="544" y="406" rx="2" ry="2" width="130" height="4" />
               </g>
             </svg>
-            <!-- Stage C: live page -->
+            <!-- Stage C: live page (more polished) -->
             <div class="rs-stage rs-stage-c">
               <div class="rs-live">
                 <div class="rs-live-row">
                   <span class="rs-live-brand">Page<span style="color:var(--ember)">Forge</span></span>
-                  <span class="rs-live-nav">— · — · —</span>
+                  <span class="rs-live-nav-items"><span>What</span><span>Pricing</span><span>FAQ</span></span>
                 </div>
                 <div class="rs-live-h1" data-i18n="reveal.h1">A custom landing page<br/><em>in 7 days.</em></div>
                 <div class="rs-live-sub" data-i18n="reveal.sub">Designed and written for what your business actually sells.</div>
@@ -3338,9 +3532,18 @@ body[data-page="pricing"] .recommender {
                   <span class="rs-live-btn rs-live-btn-2" data-i18n="reveal.btn2">See all three</span>
                 </div>
                 <div class="rs-live-cards">
-                  <span class="rs-live-card"></span>
-                  <span class="rs-live-card"></span>
-                  <span class="rs-live-card"></span>
+                  <span class="rs-live-card">
+                    <span class="rs-card-head"><span class="rs-card-dot"></span><span class="rs-card-bar"></span></span>
+                    <span class="rs-card-body"><span class="rs-card-line"></span><span class="rs-card-line short"></span></span>
+                  </span>
+                  <span class="rs-live-card">
+                    <span class="rs-card-head"><span class="rs-card-dot"></span><span class="rs-card-bar"></span></span>
+                    <span class="rs-card-body"><span class="rs-card-line"></span><span class="rs-card-line short"></span></span>
+                  </span>
+                  <span class="rs-live-card">
+                    <span class="rs-card-head"><span class="rs-card-dot"></span><span class="rs-card-bar"></span></span>
+                    <span class="rs-card-body"><span class="rs-card-line"></span><span class="rs-card-line short"></span></span>
+                  </span>
                 </div>
               </div>
             </div>
@@ -3683,6 +3886,7 @@ body[data-page="pricing"] .recommender {
 </section>
 
 <section class="how" id="how" data-page="main">
+  <span class="how-stitch" aria-hidden="true"></span>
   <div class="container">
     <span class="eyebrow"><span class="num">/03</span> <span data-i18n="how.eyebrow">How it works</span></span>
 
@@ -3969,7 +4173,6 @@ body[data-page="pricing"] .recommender {
 </section>
 
 <section class="cta-banner" id="ctaBanner" data-page="main" aria-label="Ready to start">
-  <span class="cta-pre-fade" aria-hidden="true"></span>
   <div class="cta-banner-inner">
     <span class="glass-sheen" aria-hidden="true"></span>
     <div class="cta-banner-text">
@@ -3986,7 +4189,6 @@ body[data-page="pricing"] .recommender {
 </section>
 
 <section class="contact" id="contact" data-page="main" data-animate>
-  <span class="contact-pre-fade" aria-hidden="true"></span>
   <div class="container">
     <span class="eyebrow"><span class="num">/04</span> <span data-i18n="contact.eyebrow">Start a project</span></span>
     <h2 class="contact-headline" data-i18n="contact.headline">Let's see if it's a <em>fit</em>.</h2>
@@ -4046,10 +4248,17 @@ body[data-page="pricing"] .recommender {
         </div>
       </div>
 
-      <div class="field">
-        <label for="f-referral" data-i18n="contact.ref">Referral code <span style="color:var(--ash);font-weight:400">(optional)</span></label>
-        <input id="f-referral" type="text" name="referral_code" placeholder="e.g. JEN-K7QM" autocomplete="off" pattern="[A-Z]{3}-[A-Z0-9]{4}" title="Format: three letters, hyphen, four letters or numbers (uppercase). Optional." style="font-family:var(--mono);letter-spacing:0.04em;text-transform:uppercase" />
-        <p class="form-hint" data-i18n="contact.refhint" style="margin-top:6px;font-size:13px;color:var(--ash)">Got a code from someone we've worked with? Drop it here and we'll take $50 off your project.</p>
+      <div class="field-referral" id="referralField">
+        <button type="button" class="referral-toggle" id="referralToggle" aria-expanded="false" aria-controls="referralBody">
+          <span class="ref-plus" aria-hidden="true">+</span>
+          <span data-i18n="contact.reftoggle">Have a referral code?</span>
+        </button>
+        <div class="referral-body" id="referralBody" aria-hidden="true">
+          <div>
+            <input id="f-referral" type="text" name="referral_code" placeholder="JEN-K7QM" autocomplete="off" pattern="[A-Z]{3}-[A-Z0-9]{4}" title="Format: three letters, hyphen, four letters or numbers (uppercase)." />
+            <p class="form-hint" data-i18n="contact.refhint">Got a code from someone we've worked with? Drop it here and we'll take $50 off your project.</p>
+          </div>
+        </div>
       </div>
 
       <div class="field">
@@ -4899,6 +5108,21 @@ body[data-page="pricing"] .recommender {
     const checked = budgetBox.querySelector('input:checked');
     if (checked) checked.parentElement.classList.add('is-active');
   });
+
+  /* REFERRAL DISCLOSURE — collapsed by default */
+  const referralField  = document.getElementById('referralField');
+  const referralToggle = document.getElementById('referralToggle');
+  const referralBody   = document.getElementById('referralBody');
+  const referralInput  = document.getElementById('f-referral');
+  if (referralField && referralToggle) {
+    referralToggle.addEventListener('click', () => {
+      const open = !referralField.classList.contains('is-open');
+      referralField.classList.toggle('is-open', open);
+      referralToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      referralBody.setAttribute('aria-hidden', open ? 'false' : 'true');
+      if (open && referralInput) setTimeout(() => referralInput.focus(), 250);
+    });
+  }
 
   /* CONTACT FORM SUBMIT */
   const form = document.getElementById('contactForm');
@@ -5918,8 +6142,8 @@ body[data-page="pricing"] .recommender {
       'contact.opt4': 'Custom plan',
       'contact.opt5': 'Maintenance only',
       'contact.opt6': 'Not sure yet',
-      'contact.ref': 'Referral code (optional)',
-      'contact.refhint': "Got a code from someone we've worked with? Drop it here and we'll take $50 off your project.",
+      'contact.reftoggle': 'Have a referral code?',
+      'contact.refhint': "Drop it here and we'll take $50 off your project.",
       'contact.else': 'Anything else? (Existing site, photos, deadline, referrer, etc.)',
       'contact.meta': 'Reply within 24 hours · Buenos Aires time',
       'contact.send': 'Send →',
@@ -6225,8 +6449,8 @@ body[data-page="pricing"] .recommender {
       'contact.opt4': 'Plan a medida',
       'contact.opt5': 'Solo mantenimiento',
       'contact.opt6': 'Todavía no sé',
-      'contact.ref': 'Código de referido (opcional)',
-      'contact.refhint': '¿Tenés un código de un cliente nuestro? Pegalo acá y te llevás $50 de descuento en tu proyecto.',
+      'contact.reftoggle': '¿Tenés un código de referido?',
+      'contact.refhint': 'Pegalo acá y te llevás $50 de descuento en tu proyecto.',
       'contact.else': '¿Algo más? (Sitio actual, fotos, fecha límite, quién te recomendó, etc.)',
       'contact.meta': 'Respuesta en 24 horas · Hora de Buenos Aires',
       'contact.send': 'Enviar →',
