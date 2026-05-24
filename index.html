@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="España 2026" />
 <title>Andalucía & Castilla · España 2026</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23C45A38'/%3E%3Cstop offset='0.6' stop-color='%23A8462A'/%3E%3Cstop offset='1' stop-color='%231E4D6B'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='8.5' r='2.4' fill='white'/%3E%3Cpath d='M8 26V18.5C8 13 11.5 9.5 16 9.5C20.5 9.5 24 13 24 18.5V26H20.5V19.5C20.5 16.5 18.5 14.5 16 14.5C13.5 14.5 11.5 16.5 11.5 19.5V26Z' fill='white'/%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -104,8 +105,33 @@ a { color: inherit; text-decoration: none; }
   gap: 12px;
 }
 .brand {
-  display: flex; flex-direction: column;
+  display: flex; align-items: center; gap: 12px;
   line-height: 1;
+}
+.brand-text { display: flex; flex-direction: column; }
+.logo {
+  width: 40px; height: 40px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--terracotta) 0%, var(--terracotta-deep) 55%, var(--azulejo) 130%);
+  display: grid; place-items: center;
+  box-shadow: 0 4px 12px rgba(196, 90, 56, 0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.logo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(40px 30px at 70% 110%, rgba(0,0,0,0.18), transparent 60%);
+  pointer-events: none;
+}
+.logo svg {
+  width: 24px; height: 24px;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
 }
 .brand-eyebrow {
   font-family: var(--sans);
@@ -239,6 +265,19 @@ a { color: inherit; text-decoration: none; }
   margin: 4px 0 6px;
 }
 .day-heading em { font-style: italic; color: var(--terracotta); }
+.day-heading .t-base {
+  color: var(--ink-mute);
+  font-weight: 400;
+  font-style: italic;
+  font-size: 0.78em;
+  letter-spacing: 0;
+}
+.day-heading .t-sep {
+  color: var(--ochre);
+  font-weight: 400;
+  margin: 0 2px;
+  opacity: 0.6;
+}
 .day-subtitle {
   font-size: 14px;
   color: var(--ink-soft);
@@ -1069,10 +1108,11 @@ a { color: inherit; text-decoration: none; }
   left: 0; right: 0; bottom: 0;
   z-index: 50;
   padding: 6px 12px calc(8px + var(--safe-bottom));
-  background: rgba(247, 241, 227, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--line-soft);
+  background: rgba(255, 252, 244, 0.96);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-top: 1px solid rgba(27, 24, 20, 0.08);
+  box-shadow: 0 -8px 24px rgba(27, 24, 20, 0.05), 0 -1px 0 rgba(27, 24, 20, 0.02);
 }
 .tabbar-inner {
   max-width: 560px;
@@ -1251,6 +1291,135 @@ a { color: inherit; text-decoration: none; }
   margin: 24px 4px 8px;
 }
 
+/* ---------- Smart alert banner ---------- */
+.alerts-wrap {
+  margin: 6px 0 14px;
+  display: flex; flex-direction: column;
+  gap: 8px;
+}
+.alert {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid;
+  font-size: 13px;
+  line-height: 1.4;
+  position: relative;
+  background: var(--surface);
+}
+.alert-icon {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  display: grid; place-items: center;
+}
+.alert-icon svg { width: 16px; height: 16px; }
+.alert-body strong { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); margin-bottom: 1px; }
+.alert-body .alert-sub { color: var(--ink-soft); font-size: 12.5px; }
+.alert-cta {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 10px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transition: transform 0.15s;
+}
+.alert-cta:active { transform: scale(0.95); }
+
+.alert.urgent { background: linear-gradient(170deg, #FFEBE0 0%, #FCDCCD 100%); border-color: rgba(196, 90, 56, 0.3); }
+.alert.urgent .alert-icon { background: var(--terracotta); color: #fff; }
+.alert.urgent .alert-cta { background: var(--terracotta); color: #fff; }
+
+.alert.soon { background: linear-gradient(170deg, var(--ochre-soft) 0%, #F8EBC8 100%); border-color: rgba(201, 160, 91, 0.3); }
+.alert.soon .alert-icon { background: #C9A05B; color: #fff; }
+.alert.soon .alert-cta { background: #8B6E2C; color: #fff; }
+
+.alert.info { background: linear-gradient(170deg, var(--azulejo-soft) 0%, #DAE6EE 100%); border-color: rgba(30, 77, 107, 0.2); }
+.alert.info .alert-icon { background: var(--azulejo); color: #fff; }
+.alert.info .alert-cta { background: var(--azulejo); color: #fff; }
+
+/* ---------- Expandable timeline cards ---------- */
+.tl-card { user-select: none; }
+.tl-card .tl-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+}
+.tl-card.expanded .tl-desc,
+.tl-card.no-expand .tl-desc {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  display: block;
+}
+.tl-card .tl-actions, .tl-card .tl-tags { display: none; }
+.tl-card.expanded .tl-actions { display: flex; }
+.tl-card.expanded .tl-tags { display: flex; }
+.tl-item.current .tl-card .tl-actions,
+.tl-item.current .tl-card .tl-tags,
+.tl-card.no-expand .tl-tags { display: flex; }
+.tl-item.current .tl-card .tl-desc {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  display: block;
+}
+.tl-expand-hint {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-mute);
+  margin-top: 6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 4px;
+  opacity: 0.7;
+}
+.tl-expand-hint svg { width: 11px; height: 11px; transition: transform 0.25s; }
+.tl-card.expanded .tl-expand-hint svg { transform: rotate(180deg); }
+.tl-card.expanded .tl-expand-hint { color: var(--terracotta); opacity: 1; }
+.tl-item.past .tl-expand-hint { display: none; }
+.tl-item.current .tl-expand-hint { display: none; }
+
+/* ---------- Reservation cards in info screen ---------- */
+.res-row.status-paid { border-left: 3px solid var(--olive); }
+.res-row.status-urgent { border-left: 3px solid var(--terracotta); background: linear-gradient(90deg, #FFF6F0, var(--surface) 30%); }
+.res-row.status-soon { border-left: 3px solid var(--ochre); }
+.res-row.status-future { border-left: 3px solid var(--line); }
+.res-row.status-done-visit { opacity: 0.5; border-left: 3px solid var(--line); }
+.res-status-badge {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 3px 7px;
+  border-radius: 4px;
+  margin-top: 6px;
+}
+.res-status-badge.urgent { background: var(--terracotta); color: #fff; }
+.res-status-badge.soon { background: var(--ochre); color: #fff; }
+.res-status-badge.paid { background: var(--olive); color: #fff; }
+.res-status-badge.future { background: var(--line); color: var(--ink-soft); }
+.res-status-badge.done-visit { background: var(--line-soft); color: var(--ink-mute); }
+.res-row-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 7px 12px;
+  background: var(--azulejo);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: transform 0.15s;
+}
+.res-row-cta:active { transform: scale(0.95); }
+.res-row-cta svg { width: 12px; height: 12px; }
+
 /* Tomorrow preview card */
 .tomorrow-card {
   margin-top: 22px;
@@ -1280,19 +1449,108 @@ a { color: inherit; text-decoration: none; }
   color: var(--ink-soft);
 }
 
-/* Larger screens (tablets / desktop) — keep mobile feel */
-@media (min-width: 720px) {
-  body { background: #EFE6D2; }
+/* ─── Tablet (iPad portrait & small) — single column, more breathable ─── */
+@media (min-width: 720px) and (max-width: 1099px) {
+  body {
+    background:
+      radial-gradient(900px 500px at 50% -10%, rgba(196, 90, 56, 0.08), transparent 60%),
+      #EFE6D2;
+  }
   .app {
+    max-width: 640px;
     margin: 24px auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04);
-    border-radius: 32px;
-    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.05);
+    border-radius: 36px;
     background: var(--bg);
+    padding-bottom: calc(100px + var(--safe-bottom));
   }
   .tabbar {
-    border-radius: 0 0 32px 32px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: 640px;
+    border-radius: 0 0 36px 36px;
   }
+  .screen { padding: 8px 28px 28px; }
+  .day-heading { font-size: 36px; }
+}
+
+/* ─── Desktop — 2-column layout with sidebar ─── */
+@media (min-width: 1100px) {
+  body {
+    background:
+      radial-gradient(1400px 700px at 50% -10%, rgba(196, 90, 56, 0.07), transparent 60%),
+      radial-gradient(900px 500px at 100% 100%, rgba(30, 77, 107, 0.06), transparent 60%),
+      #EAE1CC;
+  }
+  .app {
+    max-width: 1180px;
+    margin: 28px auto;
+    background: var(--bg);
+    border-radius: 32px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.06);
+    padding: 0 0 calc(96px + var(--safe-bottom));
+    position: relative;
+    overflow: hidden;
+  }
+  .topbar {
+    padding: calc(var(--safe-top) + 22px) 36px 18px;
+  }
+  .brand-title { font-size: 26px; }
+  .logo { width: 48px; height: 48px; border-radius: 13px; }
+  .logo svg { width: 28px; height: 28px; }
+  .progress-strip { margin-top: 14px; }
+
+  .screen { padding: 0; }
+  #screenHoy.desktop-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: 28px;
+    padding: 12px 36px 28px;
+    align-items: flex-start;
+  }
+  #screenHoy.desktop-grid .col-main { min-width: 0; }
+  #screenHoy.desktop-grid .col-side { min-width: 0; position: sticky; top: 130px; }
+  #screenHoy.desktop-grid .day-header { margin-top: 0; }
+  #screenHoy.desktop-grid .day-heading { font-size: 38px; }
+  #screenHoy.desktop-grid .now-card { margin-bottom: 16px; }
+
+  .days-screen, .hotels-screen, .info-screen {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 12px 36px 28px;
+  }
+  .days-screen-title, .info-title { font-size: 38px; }
+  #daysList {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  #daysList .day-card { margin-bottom: 0; }
+  #hotelsList {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  #hotelsList .hotel-list-card { margin-bottom: 0; }
+
+  .tabbar {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: 1180px;
+    border-radius: 0 0 32px 32px;
+    padding-left: 36px;
+    padding-right: 36px;
+  }
+  .tabbar-inner { max-width: 640px; }
+  .jump-today { right: calc(50vw - 540px); }
+}
+
+@media (min-width: 1400px) {
+  .app { max-width: 1280px; }
+  .tabbar { width: 1280px; }
+  .jump-today { right: calc(50vw - 580px); }
 }
 
 /* "Jump to today" floating button */
@@ -1335,8 +1593,18 @@ a { color: inherit; text-decoration: none; }
   <header class="topbar" id="topbar">
     <div class="topbar-row">
       <div class="brand">
-        <span class="brand-eyebrow">España · 2026</span>
-        <span class="brand-title">Andalucía <em>&</em> Castilla</span>
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Moorish horseshoe arch with sun above -->
+            <circle cx="16" cy="6.5" r="2.8" fill="currentColor" opacity="0.95"/>
+            <path d="M7 26 V18 C7 12 11 8 16 8 C21 8 25 12 25 18 V26 H21 V19 C21 16 19 14 16 14 C13 14 11 16 11 19 V26 Z"
+                  fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-eyebrow">España · 2026</span>
+          <span class="brand-title">Andalucía <em>&</em> Castilla</span>
+        </div>
       </div>
       <div id="dayChip" class="day-chip"><span class="dot"></span><span id="dayChipText">Día 1 de 18</span></div>
     </div>
@@ -1471,6 +1739,46 @@ const HOTELS = [
 function ev(time, type, title, desc, opts={}) {
   return { time, type, title, desc, ...opts };
 }
+
+/* Reservation specs — used by smart alerts on the Hoy screen
+   and the Info → Reservas section. Lead times are conservative. */
+const RESERVATIONS = [
+  { id:'alhambra', name:'Alhambra · Granada', visitIso:'2026-06-07',
+    leadDays:60, paid:true,
+    url:'https://tickets.alhambra-patronato.es',
+    detail:'Reserva confirmada · 7 jun, 18:00. Llegar 30 min antes a Pabellón de Acceso. Llevar pasaportes (entrada nominal). Bolsos pequeños.',
+    actionLabel:'Ver entradas', price:'Pagado' },
+  { id:'mezquita', name:'Mezquita-Catedral · Córdoba', visitIso:'2026-05-28',
+    leadDays:21,
+    url:'https://www.mezquita-catedraldecordoba.es',
+    detail:'Reservar 2-3 semanas antes para 09:00 o 09:30. Muy recomendable saltar la cola.',
+    actionLabel:'Reservar online', price:'≈ 13 €' },
+  { id:'alcazar', name:'Real Alcázar · Sevilla', visitIso:'2026-05-30',
+    leadDays:28, mustReserve:true,
+    url:'https://www.alcazarsevilla.org',
+    detail:'IMPRESCINDIBLE reservar online con 3-4 semanas de antelación. Se agotan los slots. Elegir 09:30 o 10:00.',
+    actionLabel:'Reservar online', price:'≈ 14,50 €' },
+  { id:'catedral-sevilla', name:'Catedral & Giralda · Sevilla', visitIso:'2026-05-30',
+    leadDays:7,
+    url:'https://www.catedraldesevilla.es',
+    detail:'Reservar online con una semana de antelación. La subida a la Giralda es por rampas (sin escalones) — apta para la mamá.',
+    actionLabel:'Reservar online', price:'≈ 13 €' },
+  { id:'catedral-toledo', name:'Catedral · Toledo', visitIso:'2026-05-27',
+    leadDays:7,
+    url:'https://www.catedralprimada.es',
+    detail:'Se puede comprar en taquilla, pero online ahorra cola. La "Pulsera Turística" combina 7 monumentos por 12 €, conviene si ven varios.',
+    actionLabel:'Reservar online', price:'12 €' },
+  { id:'sjr', name:'S. Juan de los Reyes · Toledo', visitIso:'2026-05-27',
+    leadDays:0,
+    url:null,
+    detail:'Entrada en taquilla, sin reserva previa. Abre 10:00. Está incluido en la Pulsera Turística.',
+    price:'≈ 4 €' },
+  { id:'crucero', name:'Crucero por Guadalquivir', visitIso:'2026-05-30',
+    leadDays:0,
+    url:null,
+    detail:'Sevilla — opción de descanso si están cansadas de caminar. Salidas cada hora desde la Torre del Oro. No requiere reserva, conviene comprar al llegar.',
+    price:'≈ 18 €' }
+];
 
 const DAYS = [
   // ─── Día 1
@@ -2035,6 +2343,132 @@ function mapsUrl(query) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
+/* Smart reservation status — based on today vs visit date and lead time.
+   Statuses: 'paid', 'urgent' (lead time passed), 'soon' (within 7d of lead trigger),
+   'future' (still time), 'done-visit' (already visited or no reserve needed) */
+function reservationStatus(r, today) {
+  if (r.visitIso < today) return 'done-visit';
+  if (r.paid) return 'paid';
+  if (!r.url || r.leadDays === 0) return 'no-reserve';
+  const visit = isoToDate(r.visitIso);
+  const triggerDate = new Date(visit.getTime() - r.leadDays * 86400000);
+  const trigger = `${triggerDate.getFullYear()}-${String(triggerDate.getMonth()+1).padStart(2,'0')}-${String(triggerDate.getDate()).padStart(2,'0')}`;
+  const daysToTrigger = isoDiffDays(today, trigger);
+  if (daysToTrigger <= 0) return 'urgent';   // should already be reserved
+  if (daysToTrigger <= 7) return 'soon';     // reserve within a week
+  return 'future';
+}
+
+/* Build smart alerts for the Hoy screen */
+function buildAlerts() {
+  const today = todayIso();
+  const alerts = [];
+
+  // Pending reservations
+  const pending = RESERVATIONS
+    .filter(r => !r.paid && r.url && r.leadDays > 0 && r.visitIso >= today)
+    .map(r => ({ r, status: reservationStatus(r, today) }))
+    .filter(x => x.status === 'urgent' || x.status === 'soon');
+
+  if (pending.length) {
+    const urgent = pending.filter(x => x.status === 'urgent');
+    if (urgent.length) {
+      const label = urgent.length === 1
+        ? `Reservar ${urgent[0].r.name.split('·')[0].trim()}`
+        : `${urgent.length} reservas pendientes`;
+      const sub = urgent.length === 1
+        ? `Visita el ${formatLongDate(urgent[0].r.visitIso)}. Se recomendaba reservar con ${urgent[0].r.leadDays} días.`
+        : `Reservar lo antes posible para evitar quedarse sin lugar.`;
+      alerts.push({
+        type:'urgent', icon:'reservation',
+        title:label, sub,
+        ctaLabel: urgent.length === 1 ? 'Reservar' : 'Ver reservas',
+        ctaUrl: urgent.length === 1 ? urgent[0].r.url : null,
+        ctaAction: urgent.length === 1 ? null : () => { switchTab('info'); setTimeout(()=>scrollToSection('reservas'), 100); }
+      });
+    }
+    const soon = pending.filter(x => x.status === 'soon');
+    if (soon.length && !urgent.length) {
+      alerts.push({
+        type:'soon', icon:'reservation',
+        title: `Reservar pronto · ${soon.length} entrada${soon.length>1?'s':''}`,
+        sub:'Estás dentro de la ventana recomendada para reservar.',
+        ctaLabel:'Ver reservas',
+        ctaAction: () => { switchTab('info'); setTimeout(()=>scrollToSection('reservas'), 100); }
+      });
+    }
+  }
+
+  // Tomorrow's critical reminders (day-before alerts)
+  const todayIdx = dayIndex(today);
+  if (todayIdx >= 0 && todayIdx < DAYS.length - 1) {
+    const tomorrow = DAYS[todayIdx + 1];
+    // Alhambra day
+    if (tomorrow.iso === '2026-06-07') {
+      alerts.push({
+        type:'info', icon:'reservation',
+        title:'Mañana · Alhambra a las 18:00',
+        sub:'Llevar pasaportes (entrada nominal). Salir con margen — los Palacios no admiten retraso.',
+        ctaLabel:'Ver día',
+        ctaAction: () => { state.selectedIso = tomorrow.iso; render(); window.scrollTo({top:0, behavior:'smooth'}); }
+      });
+    }
+    // Last day (return car / flight prep)
+    if (tomorrow.iso === '2026-06-11') {
+      alerts.push({
+        type:'info', icon:'flight',
+        title:'Mañana · vuelo de regreso',
+        sub:'Empacar esta noche. Llegar al aeropuerto 3 h antes. Tax-free antes del check-in.',
+        ctaLabel:'Ver día',
+        ctaAction: () => { state.selectedIso = tomorrow.iso; render(); window.scrollTo({top:0, behavior:'smooth'}); }
+      });
+    }
+    // Day before a long drive (>200km)
+    if (tomorrow.drive && /≈\s*([0-9]+)/.test(tomorrow.drive.dist)) {
+      const km = parseInt(tomorrow.drive.dist.match(/([0-9]+)/)[1], 10);
+      if (km >= 280) {
+        alerts.push({
+          type:'info', icon:'drive',
+          title:`Mañana · ruta larga (${tomorrow.drive.dist})`,
+          sub:`${tomorrow.drive.from} → ${tomorrow.drive.to}. Salir descansadas y con tanque lleno.`,
+          ctaLabel:'Ver día',
+          ctaAction: () => { state.selectedIso = tomorrow.iso; render(); window.scrollTo({top:0, behavior:'smooth'}); }
+        });
+      }
+    }
+  }
+
+  // Today-of critical reminders
+  if (todayIdx >= 0) {
+    const td = DAYS[todayIdx];
+    if (td.iso === '2026-06-07') {
+      // morning: passport reminder
+      const now = nowMinutes();
+      if (now < 17*60) {
+        alerts.unshift({
+          type:'urgent', icon:'monument',
+          title:'Hoy · Alhambra a las 18:00',
+          sub:'Llevar pasaportes y salir del hotel con margen. La franja de Palacios es estricta.',
+          ctaLabel:'Ver mapa',
+          ctaUrl: mapsUrl('Pabellón de Acceso Alhambra')
+        });
+      }
+    }
+  }
+
+  return alerts;
+}
+
+function scrollToSection(id) {
+  // Expand the section and scroll to it
+  document.querySelectorAll('.info-section').forEach(s => {
+    if (s.dataset.id === id) {
+      s.classList.remove('collapsed');
+      s.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+  });
+}
+
 /* =========================================================
    RENDER — TOP BAR
    ========================================================= */
@@ -2073,6 +2507,16 @@ function renderTopbar() {
 function renderHoy() {
   const screen = document.getElementById('screenHoy');
   screen.innerHTML = '';
+  screen.classList.remove('desktop-grid');
+  const isDesktop = window.matchMedia('(min-width: 1100px)').matches;
+  let mainCol = screen, sideCol = null;
+  if (isDesktop) {
+    screen.classList.add('desktop-grid');
+    mainCol = document.createElement('div'); mainCol.className = 'col-main';
+    sideCol = document.createElement('div'); sideCol.className = 'col-side';
+    screen.appendChild(mainCol);
+    screen.appendChild(sideCol);
+  }
   const t = todayIso();
   const showingIso = activeDayIso();
   const day = DAYS.find(d => d.iso === showingIso);
@@ -2091,7 +2535,7 @@ function renderHoy() {
       <p>${days === 0 ? 'Hoy comienza la aventura.' : days === 1 ? 'Mañana sale el vuelo de Buenos Aires.' : `Faltan <strong>${days} días</strong> para volar a España.`}</p>
       <div class="countdown">${TRIP.startISO === showingIso ? 'Día 1 · 25 de mayo' : `${formatLongDate(TRIP.startISO)} · vuelo nocturno`}</div>
     `;
-    screen.appendChild(pre);
+    mainCol.appendChild(pre);
   }
 
   // ── Post-trip placeholder
@@ -2104,7 +2548,33 @@ function renderHoy() {
       <h2>Buen viaje · y bienvenidos a casa</h2>
       <p>Diecisiete días en Andalucía y Castilla. La idea no era ver todo: era ver bien lo elegido.</p>
     `;
-    screen.appendChild(post);
+    mainCol.appendChild(post);
+  }
+
+  // ── Smart alerts (only when viewing today)
+  if (isToday) {
+    const alerts = buildAlerts();
+    if (alerts.length) {
+      const wrap = document.createElement('div');
+      wrap.className = 'alerts-wrap';
+      alerts.forEach(a => {
+        const el = document.createElement('div');
+        el.className = `alert ${a.type}`;
+        const ctaHTML = a.ctaUrl
+          ? `<a class="alert-cta" href="${a.ctaUrl}" target="_blank" rel="noopener">${a.ctaLabel}</a>`
+          : `<button class="alert-cta">${a.ctaLabel}</button>`;
+        el.innerHTML = `
+          <div class="alert-icon">${ICON[a.icon] || ICON.rest}</div>
+          <div class="alert-body"><strong>${a.title}</strong><div class="alert-sub">${a.sub}</div></div>
+          ${ctaHTML}
+        `;
+        if (a.ctaAction) {
+          el.querySelector('.alert-cta').addEventListener('click', a.ctaAction);
+        }
+        wrap.appendChild(el);
+      });
+      mainCol.appendChild(wrap);
+    }
   }
 
   // ── Day header card
@@ -2112,6 +2582,33 @@ function renderHoy() {
   header.className = 'day-header';
   const canPrev = idx > 0;
   const canNext = idx < DAYS.length - 1;
+
+  // Smart title — highlight base city vs day's destinations when they differ
+  // (e.g. day 9: "Setenil · Grazalema · Ronda" — Ronda is the base, so dim it)
+  const baseCity = day.hotel ? hotelById(day.hotel).city : null;
+  // Tomorrow's base, to detect transition days
+  const yesterday = idx > 0 ? DAYS[idx-1] : null;
+  const yBase = yesterday && yesterday.hotel ? hotelById(yesterday.hotel).city : null;
+
+  function smartTitle(title, base) {
+    if (!base) return title;
+    const parts = title.split('·').map(p => p.trim());
+    if (parts.length < 2) return title;
+    // If base is also the title's main word, leave it; only dim it if appears as a non-leading token
+    return parts.map((p, i) => {
+      // Dim if equals base AND there are other parts that are clearly different destinations
+      const isBase = p.toLowerCase().includes(base.toLowerCase().split(' ')[0]);
+      if (isBase && parts.length >= 3) {
+        return `<span class="t-base">${p}</span>`;
+      }
+      return p;
+    }).join(' <span class="t-sep">·</span> ');
+  }
+
+  // Subtitle should not duplicate the cities/title content
+  const hasCitiesInfo = day.cities && day.cities.length > 1;
+  const titleCitiesMatch = day.cities && day.title.split('·').length === day.cities.length;
+
   header.innerHTML = `
     <div class="day-header-nav">
       <button class="day-nav-btn" id="navPrev" ${!canPrev ? 'disabled' : ''} aria-label="Día anterior">
@@ -2122,40 +2619,31 @@ function renderHoy() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>
-    <h1 class="day-heading">${day.title}</h1>
+    <h1 class="day-heading">${smartTitle(day.title, baseCity)}</h1>
     <p class="day-subtitle">${day.subtitle || ''}</p>
+    ${(day.drive || day.hotel) ? `
     <div class="day-meta">
-      ${day.cities.length ? `
-        <div class="day-meta-item">
-          <div class="day-meta-label">Ciudades</div>
-          <div class="day-meta-value">${day.cities.join(' · ')}</div>
-        </div>` : ''}
       ${day.hotel ? `
-        <div class="day-meta-item">
+        <div class="day-meta-item${day.drive ? '' : ' full'}">
           <div class="day-meta-label">Noche en</div>
           <div class="day-meta-value">${hotelById(day.hotel).city} <span class="tiny">· ${hotelById(day.hotel).name.split(' — ')[0]}</span></div>
-        </div>` : `
-        <div class="day-meta-item">
-          <div class="day-meta-label">Noche</div>
-          <div class="day-meta-value">— <span class="tiny">vuelo</span></div>
-        </div>`}
+        </div>` : ''}
       ${day.drive ? `
-        <div class="day-meta-item full">
+        <div class="day-meta-item${day.hotel ? '' : ' full'}">
           <div class="day-meta-label">Conducción</div>
-          <div class="day-meta-value">${day.drive.from} → ${day.drive.to}<span class="tiny"> · ${day.drive.dist}${day.drive.time ? ' · ' + day.drive.time : ''}</span></div>
-        </div>` : `
-        <div class="day-meta-item full">
-          <div class="day-meta-label">Conducción</div>
-          <div class="day-meta-value">Día sin auto</div>
-        </div>`}
-    </div>
+          <div class="day-meta-value">${day.drive.dist}<span class="tiny">${day.drive.time ? ' · ' + day.drive.time : ''}</span></div>
+        </div>` : ''}
+    </div>` : ''}
   `;
-  screen.appendChild(header);
+  mainCol.appendChild(header);
 
   // ── Now card (only when viewing today)
   if (isToday && day.events.length > 0) {
     const nowCard = buildNowCard(day);
-    if (nowCard) screen.appendChild(nowCard);
+    if (nowCard) {
+      // On desktop, put Now card in sidebar; on mobile, after header
+      (isDesktop ? sideCol : mainCol).appendChild(nowCard);
+    }
   }
 
   // ── Empty events case (e.g., Day 1)
@@ -2163,17 +2651,17 @@ function renderHoy() {
     const empty = document.createElement('div');
     empty.className = 'timeline-empty';
     empty.innerHTML = '<strong>Sin programación.</strong><br/>Vuelo nocturno hacia España.';
-    screen.appendChild(empty);
+    mainCol.appendChild(empty);
   } else {
     // ── Timeline section label
     const lbl = document.createElement('div');
     lbl.className = 'timeline-section-label';
     lbl.textContent = isToday ? 'Hoy · timeline' : 'Plan del día';
-    screen.appendChild(lbl);
+    mainCol.appendChild(lbl);
 
     // ── Timeline
     const timeline = buildTimeline(day, isToday);
-    screen.appendChild(timeline);
+    mainCol.appendChild(timeline);
   }
 
   // ── Hotel quick card (current day's hotel)
@@ -2181,6 +2669,7 @@ function renderHoy() {
     const h = hotelById(day.hotel);
     const hb = document.createElement('div');
     hb.className = 'hotel-block';
+    const tel = (h.phone || '').replace(/[^\d+]/g,'');
     hb.innerHTML = `
       <div class="hotel-eyebrow">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13M9 21v-6h6v6M3 21h18"/></svg>
@@ -2190,11 +2679,11 @@ function renderHoy() {
       <div class="hotel-meta">${h.address} ${h.price ? `<span class="pill">${h.price}</span>` : ''}</div>
       <div class="hotel-actions">
         <a class="hotel-action" href="${mapsUrl(h.address)}" target="_blank" rel="noopener">${ICON_MAPS}<span>Mapa</span></a>
-        <a class="hotel-action" href="tel:${(h.phone||'').replace(/[^\d+]/g,'')}">${ICON_PHONE}<span>Llamar</span></a>
+        <a class="hotel-action" href="tel:${tel}">${ICON_PHONE}<span>Llamar</span></a>
         ${h.email ? `<a class="hotel-action" href="mailto:${h.email}">${ICON_MAIL}<span>Email</span></a>` : (h.web ? `<a class="hotel-action" href="https://${h.web}" target="_blank" rel="noopener">${ICON_WEB}<span>Web</span></a>` : '<div></div>')}
       </div>
     `;
-    screen.appendChild(hb);
+    (isDesktop ? sideCol : mainCol).appendChild(hb);
   }
 
   // ── Notes / avisos
@@ -2209,7 +2698,7 @@ function renderHoy() {
         </div>
         <div class="notes-body">${n.body}</div>
       `;
-      screen.appendChild(nb);
+      (isDesktop ? sideCol : mainCol).appendChild(nb);
     });
   }
 
@@ -2229,7 +2718,7 @@ function renderHoy() {
       render();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-    screen.appendChild(tom);
+    (isDesktop ? sideCol : mainCol).appendChild(tom);
   }
 
   // Wire up nav
@@ -2379,16 +2868,27 @@ function buildTimeline(day, isToday) {
     }).join('');
 
     const actions = [];
-    if (e.maps) actions.push(`<a class="tl-action" href="${mapsUrl(e.maps)}" target="_blank" rel="noopener">${ICON_MAPS}<span>Ir</span></a>`);
+    if (e.maps) actions.push(`<a class="tl-action primary" href="${mapsUrl(e.maps)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${ICON_MAPS}<span>Cómo llegar</span></a>`);
     if (e.hotel) {
       const h = hotelById(e.hotel);
-      actions.push(`<a class="tl-action" href="tel:${(h.phone||'').replace(/[^\d+]/g,'')}">${ICON_PHONE}<span>${h.city}</span></a>`);
+      const tel = (h.phone||'').replace(/[^\d+]/g,'');
+      actions.push(`<a class="tl-action" href="tel:${tel}" onclick="event.stopPropagation()">${ICON_PHONE}<span>Llamar</span></a>`);
+      if (h.email) {
+        actions.push(`<a class="tl-action" href="mailto:${h.email}" onclick="event.stopPropagation()">${ICON_MAIL}<span>Mail</span></a>`);
+      } else if (h.web) {
+        actions.push(`<a class="tl-action" href="https://${h.web}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${ICON_WEB}<span>Web</span></a>`);
+      }
     }
     const actionsHtml = actions.length ? `<div class="tl-actions">${actions.join('')}</div>` : '';
 
+    const hasExpand = (e.desc && e.desc.length > 90) || actions.length > 0 || tags;
+    const expandHint = hasExpand
+      ? `<div class="tl-expand-hint">Tocar para ${actions.length ? 'acciones y ' : ''}detalle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>`
+      : '';
+
     item.innerHTML = `
       <div class="tl-time">${hh}<small>:${mm}</small></div>
-      <div class="tl-card">
+      <div class="tl-card${hasExpand ? '' : ' no-expand'}" data-i="${i}">
         <div class="tl-row">
           <div class="tl-icon t-${e.type}">${icon}</div>
           <div class="tl-body">
@@ -2396,10 +2896,19 @@ function buildTimeline(day, isToday) {
             ${e.desc ? `<div class="tl-desc">${e.desc}${e.price ? ` <span class="price">${e.price}</span>` : ''}</div>` : ''}
             ${tags ? `<div class="tl-tags">${tags}</div>` : ''}
             ${actionsHtml}
+            ${expandHint}
           </div>
         </div>
       </div>
     `;
+    // Click-to-expand handler (not for past events or no-expand cards)
+    if (hasExpand && !item.classList.contains('past')) {
+      const card = item.querySelector('.tl-card');
+      card.addEventListener('click', (ev) => {
+        if (ev.target.closest('a')) return;
+        card.classList.toggle('expanded');
+      });
+    }
     wrap.appendChild(item);
   });
 
@@ -2511,37 +3020,8 @@ const INFO_SECTIONS = [
     title:'Reservas anticipadas',
     iconType:'reservation',
     body:`
-      <p>Lo más importante: <strong>la Alhambra ya está confirmada</strong> para el 7 de junio a las 18:00. Las demás entradas se pueden gestionar online con dos o tres semanas de margen.</p>
-      <div class="reservations-table" style="margin-top:10px">
-        <div class="res-row">
-          <div class="res-row-head"><div class="res-row-name">Alhambra · Granada</div><div class="res-row-price done">Pagado</div></div>
-          <div class="res-row-desc"><strong>YA RESERVADA</strong> · 7 jun, 18:00. Llegar 30 min antes a Pabellón de Acceso. <strong>Llevar pasaportes</strong> (entrada nominal). Bolsos pequeños.</div>
-        </div>
-        <div class="res-row">
-          <div class="res-row-head"><div class="res-row-name">Mezquita-Catedral · Córdoba</div><div class="res-row-price">≈ 13 €</div></div>
-          <div class="res-row-desc">mezquita-catedraldecordoba.es · Reservar 2-3 semanas antes para 09:00 o 09:30. Saltar la cola.</div>
-        </div>
-        <div class="res-row">
-          <div class="res-row-head"><div class="res-row-name">Real Alcázar · Sevilla</div><div class="res-row-price">≈ 14,50 €</div></div>
-          <div class="res-row-desc">alcazarsevilla.org · <strong>IMPRESCINDIBLE</strong> reservar online con 3-4 semanas. Se agotan los slots. Elegir 09:30 o 10:00.</div>
-        </div>
-        <div class="res-row">
-          <div class="res-row-head"><div class="res-row-name">Catedral & Giralda · Sevilla</div><div class="res-row-price">≈ 13 €</div></div>
-          <div class="res-row-desc">catedraldesevilla.es · Reservar online con una semana. La subida a la Giralda es por rampas (sin escalones).</div>
-        </div>
-        <div class="res-row">
-          <div class="res-row-head"><div class="res-row-name">Catedral · Toledo</div><div class="res-row-price">12 €</div></div>
-          <div class="res-row-desc">catedralprimada.es · Online ahorra cola. La <strong>"Pulsera Turística"</strong> combina 7 monumentos por 12 €.</div>
-        </div>
-        <div class="res-row">
-          <div class="res-row-head"><div class="res-row-name">S. Juan de los Reyes · Toledo</div><div class="res-row-price">≈ 4 €</div></div>
-          <div class="res-row-desc">En taquilla, sin reserva. Abre 10:00. Incluido en la Pulsera Turística.</div>
-        </div>
-        <div class="res-row">
-          <div class="res-row-head"><div class="res-row-name">Crucero por Guadalquivir</div><div class="res-row-price">≈ 18 €</div></div>
-          <div class="res-row-desc">Sevilla · opción de descanso. Salidas cada hora desde la Torre del Oro. No requiere reserva.</div>
-        </div>
-      </div>
+      <p>Lo más importante: <strong>la Alhambra ya está confirmada</strong> para el 7 de junio a las 18:00. Las demás entradas se pueden gestionar online; el estado de cada reserva se calcula automáticamente según la fecha de hoy.</p>
+      <div id="resTable" class="reservations-table" style="margin-top:12px"></div>
     `
   },
   {
@@ -2613,17 +3093,6 @@ const INFO_SECTIONS = [
       <div class="info-row"><div class="label">Combustible</div><div class="value">≈ 350 € total para los <strong>1.700 km</strong> del recorrido</div></div>
     `
   },
-  {
-    id:'cierre',
-    title:'Y por último',
-    iconType:'sunset',
-    body:`
-      <p style="font-family:var(--serif); font-size:17px; line-height:1.55; font-style:italic; color:var(--ink-soft); padding: 4px 0;">
-      Este es un viaje pensado para disfrutar. La idea no es ver todo: es ver bien lo elegido. Si un día están cansadas, sáltense una visita. La mejor escena del viaje quizás sea un café tranquilo en una plaza pequeña, sin agenda. El itinerario está para servir, no para mandar.
-      </p>
-      <p style="text-align:center; font-family:var(--serif); font-size: 20px; color: var(--terracotta); margin-top: 10px;">Buen viaje.</p>
-    `
-  }
 ];
 
 function renderInfo() {
@@ -2632,6 +3101,7 @@ function renderInfo() {
   INFO_SECTIONS.forEach((s, idx) => {
     const div = document.createElement('div');
     div.className = 'info-section' + (idx > 0 ? ' collapsed' : '');
+    div.dataset.id = s.id;
     div.innerHTML = `
       <div class="info-section-head">
         <div class="info-section-icon">${ICON[s.iconType] || ICON.rest}</div>
@@ -2646,6 +3116,48 @@ function renderInfo() {
       div.classList.toggle('collapsed');
     });
     c.appendChild(div);
+  });
+  renderReservationsTable();
+}
+
+function renderReservationsTable() {
+  const tbl = document.getElementById('resTable');
+  if (!tbl) return;
+  const today = todayIso();
+  tbl.innerHTML = '';
+  // Sort: urgent first, then soon, then future, then paid, then no-reserve, then done-visit
+  const order = { 'urgent':0, 'soon':1, 'future':2, 'no-reserve':3, 'paid':4, 'done-visit':5 };
+  const sorted = RESERVATIONS.slice()
+    .map(r => ({ r, st: reservationStatus(r, today) }))
+    .sort((a, b) => (order[a.st] - order[b.st]) || (a.r.visitIso.localeCompare(b.r.visitIso)));
+
+  sorted.forEach(({ r, st }) => {
+    const row = document.createElement('div');
+    row.className = `res-row status-${st}`;
+    let badge = '';
+    if (st === 'urgent') badge = '<span class="res-status-badge urgent">Reservar ya</span>';
+    else if (st === 'soon') badge = '<span class="res-status-badge soon">Reservar pronto</span>';
+    else if (st === 'paid') badge = '<span class="res-status-badge paid">Pagado</span>';
+    else if (st === 'future') badge = `<span class="res-status-badge future">Falta tiempo</span>`;
+    else if (st === 'done-visit') badge = '<span class="res-status-badge done-visit">Ya visitado</span>';
+    else if (st === 'no-reserve') badge = '<span class="res-status-badge future">Sin reserva</span>';
+
+    const visitText = `Visita: ${formatLongDate(r.visitIso)}`;
+    const cta = (r.url && st !== 'paid' && st !== 'done-visit')
+      ? `<a class="res-row-cta" href="${r.url}" target="_blank" rel="noopener">${ICON_WEB}<span>${r.actionLabel || 'Reservar online'}</span></a>`
+      : '';
+
+    row.innerHTML = `
+      <div class="res-row-head">
+        <div class="res-row-name">${r.name}</div>
+        <div class="res-row-price ${st === 'paid' ? 'done' : ''}">${r.price || ''}</div>
+      </div>
+      <div class="res-row-desc">${r.detail}</div>
+      <div style="margin-top:6px; font-size:11.5px; color:var(--ink-mute); font-weight:600; letter-spacing:0.04em;">${visitText}</div>
+      ${badge}
+      ${cta ? `<div>${cta}</div>` : ''}
+    `;
+    tbl.appendChild(row);
   });
 }
 
@@ -2700,6 +3212,16 @@ setInterval(() => {
   }
   renderTopbar();
 }, 60000);
+
+// Re-render on resize across the desktop breakpoint
+let lastIsDesktop = window.matchMedia('(min-width: 1100px)').matches;
+window.addEventListener('resize', () => {
+  const now = window.matchMedia('(min-width: 1100px)').matches;
+  if (now !== lastIsDesktop) {
+    lastIsDesktop = now;
+    render();
+  }
+});
 
 </script>
 </body>
