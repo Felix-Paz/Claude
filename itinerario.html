@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#1E4D6B" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="España 2026" />
+<title>Andalucía & Castilla · España 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   ANDALUCÍA & CASTILLA · COMPAÑERO DE VIAJE 2.0
+   ========================================================= */
+:root {
+  --bg: #F7F1E3;
+  --bg-soft: #FBF6E8;
+  --surface: #FFFFFF;
+  --surface-elev: #FFFFFF;
+  --ink: #1B1814;
+  --ink-soft: #4A4540;
+  --ink-mute: #847C72;
+  --ink-faint: #B8AEA0;
+  --line: #E8DFC9;
+  --line-soft: #F0E8D2;
+  --terracotta: #C45A38;
+  --terracotta-deep: #A8462A;
+  --terracotta-soft: #F3DCD0;
+  --terracotta-glow: rgba(196, 90, 56, 0.18);
+  --azulejo: #1E4D6B;
+  --azulejo-deep: #143847;
+  --azulejo-soft: #D6E2EA;
+  --ochre: #C9A05B;
+  --ochre-soft: #F5E6C7;
+  --olive: #6B7A4B;
+  --olive-soft: #E1E5D2;
+  --plum: #6B3B5E;
+  --shadow-sm: 0 1px 2px rgba(27,24,20,.04), 0 1px 3px rgba(27,24,20,.06);
+  --shadow-md: 0 4px 12px rgba(27,24,20,.08), 0 2px 4px rgba(27,24,20,.04);
+  --shadow-lg: 0 12px 32px rgba(27,24,20,.12), 0 4px 12px rgba(27,24,20,.06);
+  --shadow-glow: 0 0 0 1px rgba(196,90,56,.18), 0 8px 28px rgba(196,90,56,.18), 0 2px 6px rgba(27,24,20,.06);
+  --r-sm: 10px; --r: 16px; --r-lg: 22px; --r-xl: 28px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --ease: cubic-bezier(.4, 0, .2, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+body {
+  font-family: var(--sans);
+  font-size: 15px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  min-height: 100dvh; overflow-x: hidden;
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(196,90,56,.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(30,77,107,.05), transparent 60%),
+    var(--bg);
+}
+button { font: inherit; color: inherit; cursor: pointer; background: none; border: none; padding: 0; }
+a { color: inherit; text-decoration: none; }
+
+/* ---------- App shell ---------- */
+.app { max-width: 560px; margin: 0 auto; padding: 0 0 calc(96px + var(--safe-bottom)); position: relative; min-height: 100dvh; }
+
+/* ---------- Top bar (collapses on scroll) ---------- */
+.topbar {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 560px; z-index: 50;
+  padding: calc(var(--safe-top) + 10px) 20px 10px;
+  background: linear-gradient(180deg, rgba(247,241,227,.96) 0%, rgba(247,241,227,.82) 75%, rgba(247,241,227,0) 100%);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  transition: transform .35s var(--ease), opacity .25s var(--ease);
+}
+body.scrolled .topbar { transform: translateX(-50%) translateY(-100%); opacity: 0; pointer-events: none; }
+body.scrolled .topbar.peek { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+
+.topbar-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-eyebrow {
+  font-size: 10px; font-weight: 600; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--terracotta); margin-bottom: 3px;
+}
+.brand-title { font-family: var(--serif); font-weight: 600; font-size: 22px; letter-spacing: -.01em; }
+.brand-title em { font-style: italic; color: var(--azulejo); font-weight: 500; }
+
+.day-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: 999px;
+  background: var(--azulejo); color: #fff;
+  font-size: 11px; font-weight: 600; letter-spacing: .04em;
+  white-space: nowrap;
+}
+.day-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: .9; animation: pulse 2s infinite; }
+.day-chip.outside { background: var(--ink-mute); }
+.day-chip.outside .dot { animation: none; opacity: .7; }
+@keyframes pulse { 0%,100%{opacity:.9;transform:scale(1)} 50%{opacity:.4;transform:scale(.85)} }
+
+/* hairline progress under topbar */
+.progress-strip { margin-top: 10px; display: flex; gap: 3px; }
+.progress-strip .pip {
+  flex: 1; height: 3px; border-radius: 2px;
+  background: var(--line); transition: background .4s;
+}
+.progress-strip .pip.done { background: var(--ochre); }
+.progress-strip .pip.current { background: var(--terracotta); position: relative; }
+.progress-strip .pip.current::after {
+  content: ''; position: absolute; inset: -3px; border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(196,90,56,.25);
+  animation: ringPulse 2s infinite;
+}
+@keyframes ringPulse { 0%,100%{box-shadow:0 0 0 2px rgba(196,90,56,.25)} 50%{box-shadow:0 0 0 4px rgba(196,90,56,.05)} }
+
+/* ---------- Screens ---------- */
+.screen { padding: calc(var(--safe-top) + 76px) 16px 24px; animation: fadeIn .4s var(--ease); }
+.screen[hidden] { display: none; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+/* ---------- Hero (only on top of Hoy) ---------- */
+.hero {
+  margin-bottom: 18px;
+  padding: 18px 18px 16px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(135deg, var(--azulejo) 0%, var(--azulejo-deep) 100%);
+  color: #fff; position: relative; overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+.hero::before {
+  content: ''; position: absolute; inset: -40% -20% auto auto;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,160,91,.25), transparent 70%);
+}
+.hero-eyebrow { font-size: 10px; letter-spacing: .2em; opacity: .7; text-transform: uppercase; font-weight: 600; }
+.hero-title { font-family: var(--serif); font-size: 28px; font-weight: 600; margin: 4px 0 6px; letter-spacing: -.01em; }
+.hero-title em { font-style: italic; color: var(--ochre); font-weight: 500; }
+.hero-sub { font-size: 13px; opacity: .85; line-height: 1.5; }
+.hero-meta { display: flex; gap: 16px; margin-top: 12px; font-size: 11px; opacity: .8; }
+.hero-meta span { display: flex; align-items: center; gap: 5px; }
+
+/* ---------- Section headers ---------- */
+.sec-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 22px 4px 10px;
+}
+.sec-head h2 {
+  font-family: var(--serif); font-size: 21px; font-weight: 600;
+  letter-spacing: -.01em; margin: 0; color: var(--ink);
+}
+.sec-head .sec-sub { font-size: 11px; color: var(--ink-mute); letter-spacing: .04em; }
+.sec-head .toggle {
+  font-size: 11px; color: var(--azulejo); font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; padding: 4px 10px; border-radius: 999px;
+  background: var(--azulejo-soft); transition: background .2s;
+}
+.sec-head .toggle:hover { background: #c5d4dd; }
+
+/* ---------- Alerts strip ---------- */
+.alerts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.alert {
+  display: flex; gap: 12px; padding: 12px 14px;
+  border-radius: var(--r); background: var(--surface);
+  border-left: 3px solid var(--ochre);
+  box-shadow: var(--shadow-sm); animation: slideIn .4s var(--ease);
+}
+.alert.urgent { border-left-color: var(--terracotta); background: linear-gradient(90deg, var(--terracotta-soft) 0%, var(--surface) 30%); }
+.alert.info { border-left-color: var(--azulejo); }
+.alert-ico {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--ochre-soft); color: var(--terracotta-deep);
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.alert.urgent .alert-ico { background: var(--terracotta-soft); }
+.alert.info .alert-ico { background: var(--azulejo-soft); color: var(--azulejo); }
+.alert-body { flex: 1; min-width: 0; }
+.alert-title { font-size: 13px; font-weight: 600; line-height: 1.3; margin-bottom: 2px; }
+.alert-sub { font-size: 12px; color: var(--ink-mute); line-height: 1.4; }
+@keyframes slideIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+/* =========================================================
+   AHORA — current event mega card
+   ========================================================= */
+.now-card {
+  position: relative;
+  margin-bottom: 18px;
+  padding: 20px 18px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(180deg, #FFFCF4 0%, var(--surface) 100%);
+  box-shadow: var(--shadow-glow);
+  border: 1px solid rgba(196,90,56,.15);
+  overflow: hidden;
+}
+.now-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: linear-gradient(180deg, var(--terracotta), var(--terracotta-deep));
+}
+.now-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--terracotta); color: #fff;
+  font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+}
+.now-tag .live {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #fff; animation: pulse 1.5s infinite;
+}
+.now-time {
+  font-family: var(--mono); font-size: 12px; font-weight: 600;
+  color: var(--terracotta-deep); margin-left: 10px; letter-spacing: .04em;
+}
+.now-title {
+  font-family: var(--serif); font-size: 26px; font-weight: 600;
+  letter-spacing: -.01em; margin: 10px 0 6px; line-height: 1.2;
+}
+.now-desc { font-size: 14px; color: var(--ink-soft); line-height: 1.55; margin-bottom: 14px; }
+.now-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.now-tags { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ---------- Action chips ---------- */
+.act {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 14px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; letter-spacing: -.005em;
+  transition: transform .15s var(--ease), background .2s, box-shadow .2s;
+  white-space: nowrap;
+}
+.act:active { transform: scale(.97); }
+.act svg { width: 14px; height: 14px; }
+.act.primary { background: var(--azulejo); color: #fff; box-shadow: 0 2px 6px rgba(30,77,107,.25); }
+.act.primary:hover { background: var(--azulejo-deep); }
+.act.secondary { background: var(--terracotta-soft); color: var(--terracotta-deep); }
+.act.secondary:hover { background: #ecc7b8; }
+.act.ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+.act.ghost:hover { background: var(--bg-soft); }
+
+.tag {
+  display: inline-flex; padding: 3px 8px; border-radius: 6px;
+  font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+}
+.tag.reservada { background: var(--olive-soft); color: var(--olive); }
+.tag.reservar { background: var(--terracotta-soft); color: var(--terracotta-deep); }
+.tag.imprescindible { background: var(--ochre-soft); color: #8a6a2a; }
+.tag.opcional { background: var(--line-soft); color: var(--ink-mute); }
+.tag.especial { background: #ead7e5; color: var(--plum); }
+.tag.critico { background: #fde0d6; color: var(--terracotta-deep); }
+
+/* =========================================================
+   TIMELINE (compact / current / future / past)
+   ========================================================= */
+.timeline { display: flex; flex-direction: column; gap: 6px; }
+
+/* shared event base */
+.event {
+  position: relative;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  transition: all .25s var(--ease);
+  cursor: pointer;
+  overflow: hidden;
+}
+.event-head {
+  display: flex; align-items: center; gap: 10px;
+  min-width: 0;
+}
+.event-time {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--ink-mute); letter-spacing: .02em;
+  min-width: 38px; text-align: right; flex-shrink: 0;
+}
+.event-icon {
+  width: 26px; height: 26px; border-radius: 7px;
+  display: grid; place-items: center; flex-shrink: 0;
+  background: var(--bg-soft); color: var(--ink-mute);
+}
+.event-icon svg { width: 14px; height: 14px; }
+.event-title {
+  font-size: 13.5px; font-weight: 600; line-height: 1.3;
+  flex: 1; min-width: 0; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis;
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+}
+.event-caret {
+  width: 16px; height: 16px; color: var(--ink-faint);
+  transition: transform .3s var(--ease);
+  flex-shrink: 0;
+}
+.event.open .event-caret { transform: rotate(180deg); }
+
+.event-body {
+  max-height: 0; opacity: 0;
+  overflow: hidden;
+  transition: max-height .35s var(--ease), opacity .25s var(--ease), padding .3s var(--ease);
+  padding: 0 0 0 48px;
+}
+.event.open .event-body { max-height: 600px; opacity: 1; padding: 10px 0 4px 48px; }
+.event-desc { font-size: 13px; line-height: 1.55; color: var(--ink-soft); margin-bottom: 10px; }
+.event-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.event-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.event-actions .act { padding: 7px 12px; font-size: 12px; }
+
+/* state: past (small, dim, no expand) */
+.event.past {
+  background: transparent;
+  border: 1px dashed var(--line);
+  padding: 6px 12px;
+  opacity: .55;
+}
+.event.past .event-time { font-size: 10px; }
+.event.past .event-icon { width: 18px; height: 18px; border-radius: 5px; background: transparent; }
+.event.past .event-icon svg { width: 10px; height: 10px; }
+.event.past .event-title { font-size: 12px; font-weight: 500; color: var(--ink-mute); text-decoration: line-through; text-decoration-color: var(--line); }
+.event.past .event-caret { display: none; }
+.event.past .event-body { display: none; }
+.event.past .event-check {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--olive); color: #fff;
+  display: grid; place-items: center; flex-shrink: 0;
+  margin-left: 6px;
+}
+.event.past .event-check svg { width: 10px; height: 10px; }
+
+/* state: current */
+.event.current {
+  background: linear-gradient(180deg, #FFFCF4 0%, var(--surface) 100%);
+  border: 1px solid rgba(196,90,56,.2);
+  box-shadow: var(--shadow-glow);
+  padding: 16px 18px;
+}
+.event.current .event-time { color: var(--terracotta-deep); font-size: 12px; font-weight: 700; }
+.event.current .event-icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: var(--terracotta); color: #fff;
+}
+.event.current .event-icon svg { width: 17px; height: 17px; }
+.event.current .event-title { font-family: var(--serif); font-size: 19px; font-weight: 600; line-height: 1.25; -webkit-line-clamp: 2; }
+.event.current .event-caret { display: none; }
+.event.current .event-body { max-height: 600px; opacity: 1; padding: 12px 0 4px 50px; }
+.event.current .event-desc { color: var(--ink-soft); font-size: 13.5px; }
+.event.current::after {
+  content: 'AHORA'; position: absolute; top: 14px; right: 14px;
+  font-size: 9px; font-weight: 700; letter-spacing: .18em;
+  padding: 3px 8px; border-radius: 999px;
+  background: var(--terracotta); color: #fff;
+}
+
+/* state: future (default compact, expands on tap) */
+.event.future { background: var(--surface); border: 1px solid var(--line-soft); }
+.event.future:hover { background: var(--bg-soft); border-color: var(--line); }
+.event.future.next { border-color: rgba(30,77,107,.2); background: linear-gradient(90deg, var(--azulejo-soft) 0%, var(--surface) 30%); }
+.event.future.next::after {
+  content: 'PRÓXIMO'; position: absolute; top: 8px; right: 10px;
+  font-size: 8px; font-weight: 700; letter-spacing: .14em;
+  padding: 2px 6px; border-radius: 999px;
+  background: var(--azulejo); color: #fff;
+}
+
+/* event icon type colors */
+.event-icon.flight { background: var(--azulejo-soft); color: var(--azulejo); }
+.event-icon.drive { background: #f0e0d0; color: #8a5a2a; }
+.event-icon.hotel { background: var(--olive-soft); color: var(--olive); }
+.event-icon.food { background: var(--terracotta-soft); color: var(--terracotta-deep); }
+.event-icon.coffee { background: #f1e3d2; color: #8a5a3a; }
+.event-icon.monument { background: var(--ochre-soft); color: #8a6a2a; }
+.event-icon.walk { background: var(--olive-soft); color: var(--olive); }
+.event-icon.sunset { background: #fde4c8; color: #b86a2a; }
+.event-icon.shop { background: #ead7e5; color: var(--plum); }
+.event-icon.rest { background: var(--line-soft); color: var(--ink-mute); }
+.event-icon.tour { background: var(--azulejo-soft); color: var(--azulejo); }
+.event-icon.reservation { background: var(--terracotta); color: #fff; }
+
+/* ---------- Choice event (A/B) ---------- */
+.choice {
+  margin: 6px 0; padding: 12px 14px;
+  border-radius: var(--r); background: var(--surface);
+  border: 1px dashed var(--azulejo); position: relative;
+}
+.choice-head {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--azulejo); margin-bottom: 10px;
+}
+.choice-head .event-time { color: var(--azulejo); font-weight: 700; }
+.choice-options { display: grid; gap: 8px; }
+.choice-opt {
+  display: flex; gap: 12px; padding: 11px 12px;
+  border-radius: 10px; background: var(--bg-soft);
+  border: 1px solid var(--line-soft); cursor: pointer;
+  transition: all .2s var(--ease); text-align: left; width: 100%;
+}
+.choice-opt:hover { background: #f3ead2; }
+.choice-opt-label { font-size: 10px; font-weight: 700; letter-spacing: .14em; color: var(--azulejo); display: block; margin-bottom: 2px; }
+.choice-opt-title { font-size: 13.5px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
+.choice-opt-desc { font-size: 12px; color: var(--ink-mute); line-height: 1.4; }
+.choice-opt-ico {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.choice-opt-ico svg { width: 15px; height: 15px; }
+.choice.picked .choice-opt:not(.selected) { opacity: .35; }
+.choice.picked .choice-opt.selected { background: var(--surface); border-color: var(--azulejo); box-shadow: var(--shadow-sm); }
+.choice .undo {
+  margin-top: 10px; font-size: 11px; color: var(--ink-mute);
+  text-decoration: underline; cursor: pointer; display: none;
+}
+.choice.picked .undo { display: inline; }
+
+/* ---------- Past events collapsed group ---------- */
+.past-group {
+  margin: 6px 0 10px; padding: 10px 14px;
+  border-radius: 12px; background: transparent;
+  border: 1px dashed var(--line);
+  cursor: pointer; transition: background .2s;
+}
+.past-group:hover { background: var(--bg-soft); }
+.past-group-head {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: var(--ink-mute); font-weight: 500;
+}
+.past-group-count {
+  display: inline-grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--olive); color: #fff;
+  font-size: 11px; font-weight: 700;
+}
+.past-group-list { display: none; margin-top: 8px; }
+.past-group.open .past-group-list { display: flex; flex-direction: column; gap: 4px; }
+.past-group .arrow { margin-left: auto; transition: transform .25s; }
+.past-group.open .arrow { transform: rotate(180deg); }
+
+/* =========================================================
+   DAY DECK (Hoy + Días page card)
+   ========================================================= */
+.day-deck {
+  margin-bottom: 18px;
+  padding: 18px 18px 16px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--line-soft);
+  position: relative;
+  overflow: hidden;
+}
+.day-deck .day-num {
+  position: absolute; top: 14px; right: 16px;
+  font-family: var(--serif); font-size: 14px; font-style: italic;
+  color: var(--ink-faint); letter-spacing: .04em;
+}
+.day-deck-date {
+  font-size: 11px; font-weight: 600; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--terracotta);
+  margin-bottom: 8px;
+}
+.day-bundle {
+  display: flex; align-items: flex-start; gap: 14px;
+  margin-bottom: 4px;
+}
+.day-bundle-ico {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--ochre-soft), var(--terracotta-soft));
+  color: var(--terracotta-deep);
+  display: grid; place-items: center; flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(196,90,56,.15);
+}
+.day-bundle-ico svg { width: 22px; height: 22px; }
+.day-bundle-text { flex: 1; min-width: 0; }
+.day-bundle-city {
+  font-family: var(--serif); font-size: 26px; font-weight: 600;
+  letter-spacing: -.01em; line-height: 1.15; color: var(--ink);
+}
+.day-bundle-activity {
+  font-family: var(--serif); font-style: italic; font-size: 16px;
+  color: var(--azulejo); margin-top: 2px; font-weight: 500;
+  line-height: 1.3;
+}
+.day-tone {
+  margin-top: 12px; padding: 10px 12px;
+  background: var(--bg-soft); border-radius: 10px;
+  font-size: 12.5px; color: var(--ink-soft); line-height: 1.45;
+  font-style: italic;
+}
+.day-route {
+  margin-top: 10px; display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--ink-mute);
+}
+.day-route svg { width: 14px; height: 14px; }
+
+/* =========================================================
+   ESTA NOCHE / hotel mini card
+   ========================================================= */
+.tonight {
+  margin-top: 18px; padding: 16px;
+  border-radius: var(--r); background: var(--surface);
+  border: 1px solid var(--line-soft); box-shadow: var(--shadow-sm);
+}
+.tonight-head {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 10px; font-weight: 700; letter-spacing: .16em;
+  color: var(--olive); text-transform: uppercase; margin-bottom: 10px;
+}
+.tonight-head svg { width: 14px; height: 14px; }
+.tonight-name { font-family: var(--serif); font-size: 19px; font-weight: 600; line-height: 1.2; margin-bottom: 4px; }
+.tonight-meta { font-size: 12px; color: var(--ink-mute); margin-bottom: 12px; }
+.tonight-code {
+  display: flex; align-items: center; gap: 10px;
+  margin: 10px 0; padding: 10px 12px;
+  background: var(--bg-soft); border-radius: 10px;
+  border-left: 3px solid var(--ochre);
+}
+.tonight-code-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .14em;
+  color: var(--ink-mute); text-transform: uppercase;
+}
+.tonight-code-val {
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  color: var(--ink); margin-top: 2px;
+  word-break: break-all; line-height: 1.3;
+}
+.tonight-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+/* copy button */
+.copy-btn {
+  margin-left: auto; flex-shrink: 0;
+  padding: 6px 10px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--line);
+  font-size: 11px; font-weight: 600; color: var(--ink-soft);
+  display: inline-flex; align-items: center; gap: 4px;
+  transition: all .15s var(--ease);
+}
+.copy-btn:hover { background: var(--bg); }
+.copy-btn.copied { background: var(--olive); color: #fff; border-color: var(--olive); }
+.copy-btn svg { width: 11px; height: 11px; }
+
+/* enlarge modal trigger */
+.code-enlarge {
+  display: inline-flex; padding: 4px; margin-left: 4px;
+  color: var(--ink-mute);
+}
+.code-enlarge svg { width: 12px; height: 12px; }
+
+/* =========================================================
+   DAYS LIST PAGE
+   ========================================================= */
+.days-list { display: flex; flex-direction: column; gap: 12px; }
+.day-row {
+  display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center;
+  padding: 14px; border-radius: var(--r); background: var(--surface);
+  border: 1px solid var(--line-soft); box-shadow: var(--shadow-sm);
+  cursor: pointer; transition: all .2s var(--ease);
+}
+.day-row:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.day-row.past { opacity: .55; }
+.day-row.current { border-color: rgba(196,90,56,.3); box-shadow: var(--shadow-glow); }
+.day-row-date {
+  text-align: center; padding: 6px 0;
+  border-radius: 10px; background: var(--bg-soft);
+}
+.day-row.current .day-row-date { background: var(--terracotta); color: #fff; }
+.day-row-day { font-size: 18px; font-weight: 700; line-height: 1; font-family: var(--serif); }
+.day-row-month { font-size: 9px; letter-spacing: .12em; text-transform: uppercase; opacity: .7; margin-top: 2px; }
+.day-row-body { min-width: 0; }
+.day-row-city { font-family: var(--serif); font-size: 17px; font-weight: 600; line-height: 1.2; }
+.day-row-activity { font-family: var(--serif); font-style: italic; font-size: 13px; color: var(--azulejo); margin-top: 1px; }
+.day-row-ico { color: var(--ink-faint); }
+.day-row-ico svg { width: 22px; height: 22px; }
+
+/* =========================================================
+   HOTELES PAGE
+   ========================================================= */
+.hotels-list { display: flex; flex-direction: column; gap: 10px; }
+.hotel-card {
+  padding: 14px 16px; border-radius: var(--r);
+  background: var(--surface); border: 1px solid var(--line-soft);
+  box-shadow: var(--shadow-sm); transition: all .25s var(--ease);
+  position: relative; overflow: hidden;
+}
+.hotel-card.past {
+  opacity: .48; padding: 9px 14px;
+  background: transparent; border: 1px dashed var(--line);
+  cursor: pointer;
+}
+.hotel-card.past .hotel-body { display: none; }
+.hotel-card.past.open .hotel-body { display: block; opacity: 1; margin-top: 10px; }
+.hotel-card.past.open { opacity: .85; padding: 14px 16px; background: var(--surface); border-style: solid; }
+.hotel-card.current {
+  border: 1px solid rgba(196,90,56,.25);
+  box-shadow: var(--shadow-glow);
+  background: linear-gradient(180deg, #FFFCF4 0%, var(--surface) 100%);
+}
+.hotel-card.current::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: linear-gradient(180deg, var(--terracotta), var(--terracotta-deep));
+}
+.hotel-card.future { border-color: var(--line); }
+.hotel-card.future.next { border-color: rgba(30,77,107,.2); background: linear-gradient(90deg, var(--azulejo-soft) 0%, var(--surface) 40%); }
+
+.hotel-head {
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.hotel-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 999px;
+  background: var(--bg-soft); color: var(--ink-mute);
+  font-size: 10px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.hotel-card.current .hotel-pill { background: var(--terracotta); color: #fff; }
+.hotel-card.next .hotel-pill { background: var(--azulejo); color: #fff; }
+.hotel-city {
+  font-size: 11px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ink-mute);
+}
+.hotel-card.current .hotel-city { color: var(--terracotta-deep); }
+.hotel-name { font-family: var(--serif); font-size: 18px; font-weight: 600; line-height: 1.2; margin-top: 2px; }
+.hotel-card.past .hotel-name { font-size: 14px; }
+.hotel-card.past.open .hotel-name { font-size: 18px; }
+.hotel-meta { font-size: 12px; color: var(--ink-mute); margin-top: 4px; }
+.hotel-nights {
+  text-align: right; font-family: var(--serif); font-size: 13px;
+  font-style: italic; color: var(--ink-mute); flex-shrink: 0;
+}
+.hotel-nights .num { font-size: 22px; font-style: normal; font-weight: 600; color: var(--ink); display: block; line-height: 1; }
+.hotel-body { margin-top: 12px; }
+.hotel-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+.hotel-code {
+  margin-top: 10px; padding: 10px 12px;
+  background: var(--bg-soft); border-radius: 10px;
+  border-left: 3px solid var(--ochre);
+  display: flex; align-items: center; gap: 10px;
+}
+.hotel-code-block { flex: 1; min-width: 0; }
+.hotel-code-label { font-size: 10px; font-weight: 700; letter-spacing: .14em; color: var(--ink-mute); text-transform: uppercase; }
+.hotel-code-val { font-family: var(--mono); font-size: 13px; font-weight: 600; margin-top: 2px; word-break: break-all; line-height: 1.3; }
+
+/* =========================================================
+   INFO PAGE — accordions
+   ========================================================= */
+.info-list { display: flex; flex-direction: column; gap: 10px; }
+.acc {
+  border-radius: var(--r); background: var(--surface);
+  border: 1px solid var(--line-soft); box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.acc-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; cursor: pointer; width: 100%;
+  text-align: left; transition: background .2s;
+}
+.acc-head:hover { background: var(--bg-soft); }
+.acc-ico {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: var(--ochre-soft); color: #8a6a2a;
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.acc-ico svg { width: 17px; height: 17px; }
+.acc-title { font-family: var(--serif); font-size: 17px; font-weight: 600; flex: 1; line-height: 1.2; }
+.acc-arrow {
+  width: 18px; height: 18px; color: var(--ink-faint);
+  transition: transform .3s var(--ease);
+}
+.acc.open .acc-arrow { transform: rotate(180deg); }
+.acc-body {
+  max-height: 0; opacity: 0; overflow: hidden;
+  transition: max-height .4s var(--ease), opacity .25s var(--ease);
+  padding: 0 16px;
+}
+.acc.open .acc-body { max-height: 3000px; opacity: 1; padding: 4px 16px 16px; }
+
+.res-list { display: flex; flex-direction: column; gap: 10px; }
+.res-item {
+  padding: 12px; border-radius: 10px; background: var(--bg-soft);
+  border-left: 3px solid var(--olive);
+}
+.res-item.pending { border-left-color: var(--terracotta); background: var(--terracotta-soft); }
+.res-item.urgent { border-left-color: var(--terracotta-deep); }
+.res-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
+.res-name { font-family: var(--serif); font-size: 16px; font-weight: 600; line-height: 1.2; }
+.res-status {
+  font-size: 10px; font-weight: 700; letter-spacing: .12em;
+  padding: 3px 8px; border-radius: 6px;
+  text-transform: uppercase; flex-shrink: 0;
+}
+.res-status.ok { background: var(--olive); color: #fff; }
+.res-status.todo { background: var(--terracotta); color: #fff; }
+.res-detail { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; margin: 6px 0; }
+.res-foot { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--ink-mute); margin-top: 8px; flex-wrap: wrap; }
+
+.tip-list { display: flex; flex-direction: column; gap: 10px; }
+.tip {
+  padding: 10px 12px; background: var(--bg-soft);
+  border-radius: 10px; border-left: 3px solid var(--azulejo);
+}
+.tip strong { color: var(--ink); }
+.tip-title { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--azulejo); margin-bottom: 4px; }
+.tip-body { font-size: 13px; line-height: 1.55; color: var(--ink-soft); }
+
+/* ---------- Note cards (within timeline view) ---------- */
+.notes-block { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.note {
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--ochre-soft); border-left: 3px solid var(--ochre);
+}
+.note-title { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #8a6a2a; margin-bottom: 4px; }
+.note-body { font-size: 12.5px; line-height: 1.5; color: var(--ink-soft); }
+.note-body strong { color: var(--ink); }
+
+/* =========================================================
+   TABBAR
+   ========================================================= */
+.tabbar {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 560px; z-index: 60;
+  padding: 8px 14px calc(8px + var(--safe-bottom));
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--line-soft);
+  display: flex; justify-content: space-around;
+}
+.tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 8px; border-radius: 12px;
+  color: var(--ink-mute); transition: all .2s var(--ease);
+}
+.tab.active { color: var(--terracotta-deep); }
+.tab svg { width: 22px; height: 22px; transition: transform .2s var(--ease); }
+.tab.active svg { transform: scale(1.1); }
+.tab-label { font-size: 10px; font-weight: 600; letter-spacing: .04em; }
+
+/* =========================================================
+   EMERGENCY FAB
+   ========================================================= */
+.fab {
+  position: fixed; right: 20px; bottom: calc(78px + var(--safe-bottom)); z-index: 70;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--terracotta); color: #fff;
+  display: grid; place-items: center;
+  box-shadow: 0 6px 20px rgba(196,90,56,.4);
+  transition: transform .2s var(--ease);
+  animation: fabIn .5s var(--ease-spring) .3s both;
+}
+@keyframes fabIn { from{transform:scale(0)} to{transform:scale(1)} }
+.fab:hover { transform: scale(1.05); }
+.fab:active { transform: scale(.92); }
+.fab svg { width: 22px; height: 22px; }
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+.modal-bg {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(27,24,20,.45);
+  backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px; animation: fadeIn .25s var(--ease);
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--surface); border-radius: var(--r-lg);
+  padding: 24px 20px; max-width: 440px; width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn .35s var(--ease-spring);
+}
+@keyframes modalIn { from{opacity:0;transform:scale(.9)} to{opacity:1;transform:scale(1)} }
+.modal-title { font-family: var(--serif); font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+.modal-sub { font-size: 12px; color: var(--ink-mute); margin-bottom: 18px; }
+.modal-code {
+  font-family: var(--mono); font-size: 26px; font-weight: 600;
+  text-align: center; padding: 18px; border-radius: 12px;
+  background: var(--bg-soft); margin-bottom: 14px;
+  word-break: break-all; line-height: 1.35; letter-spacing: .02em;
+}
+.modal-actions { display: flex; gap: 8px; }
+.modal-actions .act { flex: 1; justify-content: center; }
+
+.emergency-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.emergency-item {
+  padding: 12px 14px; border-radius: 12px;
+  background: var(--bg-soft);
+  display: flex; align-items: center; gap: 12px;
+}
+.emergency-ico {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--terracotta-soft); color: var(--terracotta-deep);
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.emergency-body { flex: 1; min-width: 0; }
+.emergency-name { font-size: 13px; font-weight: 600; line-height: 1.2; }
+.emergency-num { font-family: var(--mono); font-size: 12px; color: var(--ink-mute); margin-top: 2px; }
+
+/* =========================================================
+   TABLET (768+) — wider single column with breathing room
+   ========================================================= */
+@media (min-width: 768px) {
+  .app { max-width: 720px; padding: 0 0 calc(110px + var(--safe-bottom)); }
+  .topbar { max-width: 720px; padding: calc(var(--safe-top) + 16px) 32px 12px; }
+  .screen { padding: calc(var(--safe-top) + 90px) 28px 32px; }
+  .tabbar { max-width: 720px; padding: 10px 32px calc(10px + var(--safe-bottom)); }
+  .brand-title { font-size: 26px; }
+  .hero { padding: 28px 28px 24px; }
+  .hero-title { font-size: 34px; }
+  .day-bundle-city { font-size: 32px; }
+  .day-bundle-activity { font-size: 18px; }
+  .now-title { font-size: 30px; }
+  .event.current .event-title { font-size: 22px; }
+}
+
+/* =========================================================
+   DESKTOP (1100+) — 2-column grid where useful
+   ========================================================= */
+@media (min-width: 1100px) {
+  .app { max-width: 1180px; padding: 0 24px calc(40px + var(--safe-bottom)); }
+  .topbar {
+    max-width: 1180px; padding: calc(var(--safe-top) + 18px) 40px 14px;
+    background: linear-gradient(180deg, rgba(247,241,227,.96) 0%, rgba(247,241,227,.85) 80%, rgba(247,241,227,0) 100%);
+  }
+  .screen { padding: calc(var(--safe-top) + 96px) 40px 40px; }
+  .tabbar {
+    max-width: none; left: 0; right: 0; transform: none;
+    background: rgba(255,255,255,.95);
+  }
+  .tabbar-inner { max-width: 1180px; margin: 0 auto; display: flex; justify-content: center; gap: 24px; }
+  .tab { flex: 0 0 auto; min-width: 90px; flex-direction: row; padding: 8px 18px; }
+  .tab svg { width: 18px; height: 18px; }
+  .hero { padding: 36px 32px 28px; }
+  .hero-title { font-size: 40px; }
+
+  /* 2-column Hoy layout */
+  .hoy-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    align-items: start;
+  }
+  .hoy-col-main { grid-column: 1; }
+  .hoy-col-side { grid-column: 2; position: sticky; top: 110px; }
+  .day-deck { padding: 26px 26px 22px; }
+  .day-bundle-city { font-size: 38px; }
+  .day-bundle-activity { font-size: 20px; }
+
+  /* Hoteles grid */
+  .hotels-list { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .days-list { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .fab { right: 32px; bottom: 90px; }
+}
+
+@media (min-width: 1400px) {
+  .app { max-width: 1320px; }
+  .topbar, .tabbar-inner { max-width: 1320px; }
+  .hotels-list, .days-list { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* utility */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.flash {
+  animation: flash .5s var(--ease);
+}
+@keyframes flash {
+  0% { background: var(--olive-soft); }
+  100% { background: transparent; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar" id="topbar">
+    <div class="topbar-row">
+      <div class="brand-text">
+        <span class="brand-eyebrow">España 2026</span>
+        <span class="brand-title">Andalucía <em>&amp;</em> Castilla</span>
+      </div>
+      <span class="day-chip" id="dayChip"><span class="dot"></span><span id="dayChipText">Día 1</span></span>
+    </div>
+    <div class="progress-strip" id="progressStrip"></div>
+  </header>
+
+  <!-- ===== SCREENS ===== -->
+  <main id="screenHoy" class="screen"></main>
+  <main id="screenDias" class="screen" hidden></main>
+  <main id="screenHoteles" class="screen" hidden></main>
+  <main id="screenInfo" class="screen" hidden></main>
+
+  <!-- ===== EMERGENCY FAB ===== -->
+  <button class="fab" id="fab" aria-label="Contactos rápidos">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.7.6 2.5a2 2 0 0 1-.4 2.1L8 9.6a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.5.6a2 2 0 0 1 1.7 2z"/></svg>
+  </button>
+
+  <!-- ===== TABBAR ===== -->
+  <nav class="tabbar"><div class="tabbar-inner">
+    <button class="tab active" data-tab="hoy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg><span class="tab-label">Hoy</span></button>
+    <button class="tab" data-tab="dias"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="tab-label">Días</span></button>
+    <button class="tab" data-tab="hoteles"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14h.01M8 18h.01M16 14h.01M16 18h.01"/></svg><span class="tab-label">Hoteles</span></button>
+    <button class="tab" data-tab="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="16" r=".5" fill="currentColor"/></svg><span class="tab-label">Info</span></button>
+  </div></nav>
+
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+/* =========================================================
+   DATA
+   ========================================================= */
+const TRIP = {
+  startISO: '2026-05-25',
+  endISO:   '2026-06-11',
+  cities: ['Toledo','Córdoba','Sevilla','Carmona','Jerez','Ronda','Málaga','Granada','Madrid']
+};
+
+const HOTELS = [
+  { id:'toledo', city:'Toledo', nights:1, dates:'26 → 27 may', name:'Hotel San Juan de los Reyes',
+    address:'Calle Reyes Católicos 5, Toledo', mapsQuery:'Hotel San Juan de los Reyes Toledo Calle Reyes Católicos 5',
+    phone:'+34 925 283 535', email:'info@hotelsanjuandelosreyes.com',
+    code:'46875', codeNote:'Localizador de reserva',
+    booked:false, bookedNote:'Pendiente de reserva' },
+  { id:'cordoba', city:'Córdoba', nights:2, dates:'27 → 29 may', name:'Hotel Casa Museo de la Mezquita',
+    address:'Plaza Santa Catalina 1, Córdoba', mapsQuery:'Hotel Casa Museo de la Mezquita Córdoba Plaza Santa Catalina',
+    phone:'+34 957 475 585', web:'hotelmezquita.com',
+    code:'6213420146', codeNote:'Localizador de reserva' },
+  { id:'sevilla', city:'Sevilla', nights:1, dates:'29 → 30 may', name:'Sercotel Las Casas de los Mercaderes',
+    address:'Calle Álvarez Quintero 9-13, Sevilla', mapsQuery:'Sercotel Las Casas de los Mercaderes Sevilla',
+    phone:'+34 900 938 038', web:'sercotelhoteles.com',
+    code:'P8619637', codeNote:'Localizador de reserva' },
+  { id:'carmona', city:'Carmona', nights:1, dates:'30 → 31 may', name:'Parador de Carmona',
+    address:'Alcázar, s/n, Carmona', mapsQuery:'Parador de Carmona',
+    phone:'+34 954 141 010', email:'recepcion.carmona@parador.es',
+    code:'26WEB/025/1/5/550', codeNote:'Localizador de reserva' },
+  { id:'jerez', city:'Jerez de la Frontera', nights:1, dates:'31 may → 1 jun', name:'Hotel Bodega Tío Pepe',
+    address:'Plaza de la Encarnación 1, Jerez', mapsQuery:'Hotel Bodega Tío Pepe Jerez Plaza Encarnación',
+    phone:'+34 956 357 017', email:'infohotel@tiopepe.com',
+    code:'BB26050120819712', codeNote:'Localizador de reserva' },
+  { id:'ronda', city:'Ronda', nights:2, dates:'1 → 3 jun', name:'Parador de Ronda',
+    address:'Plaza de España, s/n, Ronda', mapsQuery:'Parador de Ronda Plaza España',
+    phone:'+34 952 877 500', email:'ronda@parador.es',
+    code:'26WEB10501050728', codeNote:'Localizador de reserva' },
+  { id:'malaga', city:'Málaga', nights:2, dates:'3 → 5 jun', name:'Cristine Bedfor Málaga',
+    address:'Calle Granada esquina Méndez Núñez, Málaga', mapsQuery:'Cristine Bedfor Hotel Málaga Calle Granada',
+    phone:'+34 638 822 464', email:'malaga@cristinebedfor.com', web:'cristinebedforhotel.com',
+    code:'P9293686', codeNote:'Reserva · Ref M4768745', codeAlt:'M4768745' },
+  { id:'granada', city:'Granada', nights:3, dates:'5 → 8 jun', name:'Sercotel Palacio de los Gamboa',
+    address:'Plaza de Gamboa, s/n, Granada', mapsQuery:'Sercotel Palacio de los Gamboa Granada',
+    phone:'+34 958 215 323', web:'sercotelhoteles.com',
+    code:'P9453876', codeNote:'Localizador de reserva' },
+  { id:'madrid', city:'Madrid', nights:3, dates:'8 → 11 jun', name:'Hotel Catalonia (Madrid)',
+    address:'Verificar dirección exacta en la reserva', mapsQuery:'Hotel Catalonia Madrid',
+    phone:'+34 932 161 100', web:'cataloniahotels.com',
+    code:'C2026050120465196022', codeNote:'Localizador de reserva',
+    note:'Catalonia tiene 8 hoteles en Madrid — confirmar cuál' }
+];
+
+function ev(time, type, title, desc, opts={}) {
+  return { time, type, title, desc, ...opts };
+}
+function choice(time, label, options) {
+  return { time, kind:'choice', label, options };
+}
+
+/* Reservations — booked unless flagged otherwise */
+const RESERVATIONS = [
+  { id:'alhambra', name:'Alhambra · Granada', visitIso:'2026-06-07', booked:true,
+    detail:'Reserva confirmada · 7 jun, 18:00. Llegar 30 min antes a Pabellón de Acceso. Llevar pasaportes (entrada nominal). Bolsos pequeños.',
+    url:'https://tickets.alhambra-patronato.es', actionLabel:'Ver entradas' },
+  { id:'mezquita', name:'Mezquita-Catedral · Córdoba', visitIso:'2026-05-28', booked:true,
+    detail:'Reservada. Llegada 09:00–09:30 para saltar la cola.',
+    url:'https://www.mezquita-catedraldecordoba.es', actionLabel:'Ver entrada' },
+  { id:'alcazar', name:'Real Alcázar · Sevilla', visitIso:'2026-05-30', booked:true,
+    detail:'Reservada · franja 09:30–10:00. Imprescindible. Confirmar el día anterior.',
+    url:'https://www.alcazarsevilla.org', actionLabel:'Ver entrada' },
+  { id:'catedral-sevilla', name:'Catedral & Giralda · Sevilla', visitIso:'2026-05-30', booked:true,
+    detail:'Reservada. La subida a la Giralda es por rampas, sin escalones — apta para la mamá.',
+    url:'https://www.catedraldesevilla.es', actionLabel:'Ver entrada' },
+  { id:'catedral-toledo', name:'Catedral · Toledo', visitIso:'2026-05-27', booked:true,
+    detail:'Reservada. La "Pulsera Turística" combina 7 monumentos por 12 € — conviene si ven varios.',
+    url:'https://www.catedralprimada.es', actionLabel:'Ver entrada' },
+  { id:'sjr', name:'S. Juan de los Reyes · Toledo', visitIso:'2026-05-27', booked:false,
+    detail:'Entrada en taquilla · sin reserva previa. Abre 10:00. Incluido en la Pulsera Turística.',
+    url:null, actionLabel:null },
+  { id:'crucero', name:'Crucero por Guadalquivir · Sevilla', visitIso:'2026-05-30', booked:false,
+    detail:'Opcional · ideal para descansar piernas. Salidas cada hora desde la Torre del Oro. Comprar al llegar.',
+    url:null, actionLabel:null }
+];
+
+const DAYS = [
+  /* DÍA 1 */
+  { iso:'2026-05-25', weekday:'lunes', bundle:'Buenos Aires', activity:'Vuelo a São Paulo',
+    icon:'flight', cities:['Buenos Aires','São Paulo'], hotel:null,
+    drive:null, tone:'Vuelo nocturno. Sin programación. Aterrizaje suave al día siguiente.',
+    events:[], notes:[] },
+
+  /* DÍA 2 */
+  { iso:'2026-05-26', weekday:'martes', bundle:'Toledo', activity:'Llegada y atardecer',
+    icon:'flight', cities:['Madrid','Toledo'], hotel:'toledo',
+    drive:{from:'Madrid-Barajas', to:'Toledo', dist:'≈ 75 km', time:'1 h'},
+    tone:'Aterrizaje suave. No exigir.',
+    events:[
+      ev('14:00','flight','Llegada a Madrid-Barajas','Recogida del auto en el aeropuerto.',{maps:'Madrid Barajas Aeropuerto'}),
+      ev('15:30','drive','Salida hacia Toledo','Por la A-42 (mejor que la R-5 de peaje).',{maps:'Toledo España'}),
+      ev('16:30','hotel','Check-in y descanso','Hidratarse, ducha, descansar una hora.',{hotel:'toledo'}),
+      ev('18:30','walk','Bajada a Plaza de Zocodover','Caminando por calle Comercio.',{maps:'Plaza de Zocodover Toledo'}),
+      ev('19:00','walk','Paseo por la Judería','Callejuelas, Sinagoga del Tránsito por fuera, Santa María la Blanca.',{maps:'Judería de Toledo'}),
+      ev('19:45','sunset','Mirador del Valle','En auto, 10 min. Vista panorámica de Toledo al sol bajo. La postal del Greco.',{maps:'Mirador del Valle Toledo'}),
+      ev('20:45','rest','Vuelta al hotel'),
+      ev('21:30','food','Cena tranquila','Restaurante Comes en Plaza de la Magdalena, o cena ligera en el hotel.',{maps:'Restaurante Comes Toledo'})
+    ],
+    notes:[
+      {title:'Dato práctico', body:'<strong>NO meter el auto al casco histórico</strong> — calles estrechísimas, queda atrapado. Parking gratuito en Paseo del Miradero o Parking Recaredo (pago, más céntrico).'},
+      {title:'Compra sugerida', body:'<strong>Mariano Zamorano</strong> (c/ Ciudad, 19) — taller-museo de tijeras de damasquinado, piezas serias, no las versiones para turistas.'}
+    ]},
+
+  /* DÍA 3 */
+  { iso:'2026-05-27', weekday:'miércoles', bundle:'Toledo', activity:'Mañana monumental · Consuegra · Córdoba',
+    icon:'monument', cities:['Toledo','Consuegra','Córdoba'], hotel:'cordoba',
+    drive:{from:'Toledo', to:'Córdoba', dist:'≈ 380 km', time:'4 h con parada'},
+    tone:'Mañana monumental, almuerzo en ruta, llegada con luz.',
+    events:[
+      ev('09:00','coffee','Desayuno en el hotel'),
+      ev('09:45','monument','Catedral de Toledo','Una hora y media: transparente del altar, sillería del coro, sacristía con El Greco, Tesoro.',{maps:'Catedral de Toledo', tags:['reservada']}),
+      ev('11:30','monument','Iglesia de Santo Tomé','"El Entierro del Señor de Orgaz". Visita corta, 15 min.',{maps:'Iglesia de Santo Tomé Toledo'}),
+      ev('11:50','monument','Monasterio de San Juan de los Reyes','Claustro renacentista, una de las joyas. Comprar la tijera ahí cerca.',{maps:'San Juan de los Reyes Toledo'}),
+      ev('12:45','hotel','Check-out y valijas'),
+      ev('13:30','drive','Salida hacia Consuegra','Por la CM-42 (1 h).',{maps:'Consuegra España'}),
+      ev('14:30','food','Almuerzo en Consuegra','Restaurante El Alfar — cocina manchega clásica. Gachas manchegas o pisto.',{price:'≈ 25 €/p', maps:'Restaurante El Alfar Consuegra'}),
+      ev('16:00','sunset','Cerro Calderico','Subir en auto hasta los molinos de viento. Vista panorámica de La Mancha.',{maps:'Molinos de Consuegra Cerro Calderico'}),
+      ev('16:45','drive','Salida hacia Córdoba','Por la A-4, ≈ 2 h 45 min.'),
+      ev('19:30','hotel','Llegada y check-in en Córdoba',null,{hotel:'cordoba'}),
+      ev('20:30','food','Paseo y cena','Paseo corto por el entorno de la Mezquita iluminada. Cena en el hotel o taberna del barrio.',{maps:'Mezquita-Catedral de Córdoba'})
+    ],
+    notes:[
+      {title:'Estacionamiento Córdoba', body:'Casco histórico peatonal. <strong>Parking La Mezquita</strong> (c/ Cairuán 1) o Parking La Ribera. Ambos a 5 min del hotel. ≈ 16 €/noche.'}
+    ]},
+
+  /* DÍA 4 */
+  { iso:'2026-05-28', weekday:'jueves', bundle:'Córdoba', activity:'A fondo · día sin auto',
+    icon:'monument', cities:['Córdoba'], hotel:'cordoba',
+    drive:null, tone:'Día grande pero sin apuro. Mañana monumental, sobremesa larga, tarde de jardines.',
+    events:[
+      ev('08:30','coffee','Desayuno','Salir temprano antes del calor.'),
+      ev('09:00','monument','Mezquita-Catedral','Reserva confirmada. Una hora y media de visita.',{maps:'Mezquita-Catedral de Córdoba', tags:['reservada','imprescindible']}),
+      ev('10:45','walk','Calleja de las Flores y del Pañuelo','Los callejones más fotogénicos del barrio.',{maps:'Calleja de las Flores Córdoba'}),
+      ev('11:30','monument','Judería','Sinagoga (la más antigua de Andalucía), Casa de Sefarad. Paseo lento.',{maps:'Sinagoga de Córdoba'}),
+      ev('12:30','coffee','Aperitivo en Bodegas Mezquita','C/ Céspedes 12. Media de salmorejo y copa de fino Montilla-Moriles.',{price:'≈ 8 €/p', maps:'Bodegas Mezquita Córdoba'}),
+      ev('13:30','food','Almuerzo en Casa Pepe de la Judería','C/ Romero 1. Patio andaluz precioso, salmorejo impecable.',{price:'≈ 35 €/p', maps:'Casa Pepe de la Judería Córdoba', tags:['reservar']}),
+      ev('16:00','walk','Puente Romano y Torre de la Calahorra','Vista al Guadalquivir desde la sombra de los álamos.',{maps:'Puente Romano Córdoba'}),
+      ev('16:45','monument','Alcázar de los Reyes Cristianos','Jardines de agua, baños árabes. Perfectos a esta hora.',{maps:'Alcázar de los Reyes Cristianos Córdoba'}),
+      ev('19:30','sunset','Paseo de vuelta por la Ribera','Vista de la Mezquita iluminada al atardecer.'),
+      ev('21:00','food','Cena tranquila','Patio de la Judería (cocina cordobesa elegante) o en el hotel.',{price:'≈ 40 €/p', maps:'Patio de la Judería Córdoba'})
+    ],
+    notes:[
+      {title:'Caballerizas Reales', body:'Opcional, al lado del Alcázar — solo si les interesa el espectáculo ecuestre.'}
+    ]},
+
+  /* DÍA 5 */
+  { iso:'2026-05-29', weekday:'viernes', bundle:'Sevilla', activity:'Traslado y primera tarde sevillana',
+    icon:'drive', cities:['Córdoba','Sevilla'], hotel:'sevilla',
+    drive:{from:'Córdoba', to:'Sevilla', dist:'≈ 145 km', time:'1 h 40 min'},
+    tone:'Mañana suave, traslado corto, llegada al casco antiguo.',
+    events:[
+      ev('09:30','coffee','Desayuno sin apuro'),
+      ev('10:30','walk','Patios de San Basilio','Paseo por el barrio del Alcázar Viejo. En mayo, temporada de Patios.',{maps:'Patios de San Basilio Córdoba'}),
+      ev('12:00','coffee','Tortilla en Bar Santos','C/ Magistral González Francés 3, frente a la Mezquita. La tortilla más famosa de España. De pie en la barra.',{price:'≈ 5 €/p', maps:'Bar Santos Córdoba'}),
+      ev('13:00','hotel','Vuelta al hotel · valijas · check-out'),
+      ev('13:30','drive','Salida hacia Sevilla','Por la A-4.',{maps:'Sevilla España'}),
+      ev('14:30','food','Almuerzo en Las Columnas','Bodega Santa Cruz, c/ Rodrigo Caro 1. Pedir el serranito y una caña.',{price:'≈ 12 €/p', maps:'Bodega Santa Cruz Las Columnas Sevilla'}),
+      ev('16:00','hotel','Check-in en Las Casas de los Mercaderes',null,{hotel:'sevilla'}),
+      ev('17:30','walk','Barrio de Santa Cruz','Plaza de Doña Elvira, Plaza de los Venerables, Hospital de los Venerables (por fuera).',{maps:'Barrio Santa Cruz Sevilla'}),
+      ev('18:30','monument','Plaza del Triunfo','Vista de Catedral, Giralda y Archivo de Indias juntos.',{maps:'Plaza del Triunfo Sevilla'}),
+      ev('19:30','sunset','Atardecer en Plaza de España','En taxi, 8 min. Luz dorada sobre los azulejos.',{maps:'Plaza de España Sevilla'}),
+      ev('21:00','food','Cena en Eslava','C/ Eslava 3 — tapas de autor, una de las mejores mesas de Sevilla. Llegar temprano, no toman reservas.',{price:'≈ 35 €/p', maps:'Restaurante Eslava Sevilla'})
+    ],
+    notes:[
+      {title:'Estacionamiento Sevilla', body:'Centro <strong>ACIRE</strong>: solo residentes, multas automáticas. <strong>Parking Plaza Nueva</strong> (subterráneo) o Magdalena. ≈ 22-26 €/día.'}
+    ]},
+
+  /* DÍA 6 */
+  { iso:'2026-05-30', weekday:'sábado', bundle:'Sevilla', activity:'Imprescindibles · llegada a Carmona',
+    icon:'monument', cities:['Sevilla','Carmona'], hotel:'carmona',
+    drive:{from:'Sevilla', to:'Carmona', dist:'≈ 35 km', time:'35 min'},
+    tone:'Sevilla a fondo por la mañana, llegada elegante a Carmona.',
+    events:[
+      ev('08:30','coffee','Desayuno temprano'),
+      ev('09:30','monument','Catedral de Sevilla y Giralda','Reserva online previa. Subir a la Giralda por las rampas (sin escalones, apta para la mamá). Vista 360°.',{maps:'Catedral de Sevilla', tags:['reservada','imprescindible']}),
+      ev('11:30','coffee','Confitería La Campana','C/ Sierpes 1 — pastelería más antigua de Sevilla (1885). Milhojas o yema de San Leandro. De pie en la barra de mármol.',{price:'≈ 5 €/p', maps:'Confitería La Campana Sevilla'}),
+      ev('12:00','monument','Real Alcázar','Reserva imprescindible. Patio del León, Salón de Embajadores, Patio de las Doncellas, jardines.',{maps:'Real Alcázar de Sevilla', tags:['reservada','imprescindible']}),
+      ev('14:00','food','Almuerzo en Santa Cruz','Casa Robles o Vinería San Telmo. Tapas y descanso.',{price:'≈ 25-30 €/p', maps:'Vinería San Telmo Sevilla'}),
+      choice('16:00','Tarde · elige una', [
+        {id:'a', type:'tour', title:'Crucero por el Guadalquivir', desc:'1 hora desde Torre del Oro. Ideal para descansar las piernas.', price:'≈ 18 €/p', maps:'Torre del Oro Sevilla'},
+        {id:'b', type:'walk', title:'Barrio de Triana', desc:'Mercado de Triana, Capilla de los Marineros, vista del puente.', maps:'Barrio de Triana Sevilla'}
+      ]),
+      ev('17:30','hotel','Vuelta al hotel · valijas · check-out'),
+      ev('18:30','drive','Salida hacia Carmona','Por la A-4 (35 min).'),
+      ev('19:15','hotel','Parador de Carmona','Antiguo alcázar mudéjar sobre la vega del Corbones. Vista espectacular.',{hotel:'carmona'}),
+      ev('20:30','walk','Casco histórico de Carmona','Puerta de Sevilla, Plaza de San Fernando, Iglesia de Santa María. A esta hora casi vacío.',{maps:'Puerta de Sevilla Carmona'}),
+      ev('21:30','food','Cena en el Parador','Vista a la vega, cocina andaluza. Uno de los grandes momentos del viaje.',{price:'≈ 45 €/p'})
+    ],
+    notes:[
+      {title:'Aviso · Parador de Carmona', body:'Pagado en USD 260. Verificar tarjeta Visa 0439 — confirmar con el banco que no esté bloqueada por "stop debit" cuando llegue el cargo.'}
+    ]},
+
+  /* DÍA 7 */
+  { iso:'2026-05-31', weekday:'domingo', bundle:'Jerez', activity:'Carmona · pueblo blanco y mar',
+    icon:'walk', cities:['Carmona','Jerez','Vejer','Caños de Meca','Jerez'], hotel:'jerez',
+    drive:{from:'Carmona', to:'Jerez (vía Vejer y Caños)', dist:'≈ 280 km', time:'3 h 20 min totales'},
+    tone:'Pueblo blanco y mar. El día más sereno y andaluz.',
+    events:[
+      ev('09:00','coffee','Desayuno en el Parador','Última vista a la vega.'),
+      ev('10:00','drive','Salida hacia Jerez','Por la A-4 (1 h 40 min).',{maps:'Jerez de la Frontera'}),
+      ev('11:45','rest','Estacionar en Plaza del Arenal',null,{maps:'Plaza del Arenal Jerez'}),
+      ev('12:00','walk','Centro histórico de Jerez','Plaza del Arenal, Catedral por fuera, Alcázar (mezquita y baños árabes, los jardines son una joya), calle Larga.',{price:'≈ 5 €', maps:'Alcázar de Jerez'}),
+      ev('13:30','food','Almuerzo en Tabanco El Pasaje','C/ Santa María 8 — el tabanco más antiguo de Jerez (1925), ambiente de toneles, a veces con cante flamenco. Chicharrones y queso payoyo.',{price:'≈ 20 €/p', maps:'Tabanco El Pasaje Jerez'}),
+      choice('15:00','Tarde · elige tu costa', [
+        {id:'a', type:'monument', title:'Vejer + Caños de Meca', desc:'Pueblo blanco perched y playa al pie de los acantilados de la Breña. Más completo pero más largo.', maps:'Vejer de la Frontera'},
+        {id:'b', type:'rest', title:'Solo Vejer · vuelta a Jerez', desc:'Vejer relajado y vuelta a Jerez para descansar. Más corto y sereno.', maps:'Vejer de la Frontera'}
+      ]),
+      ev('15:45','rest','Aparcar en Vejer','Parking gratuito a la entrada del pueblo. Subir caminando.',{maps:'Vejer de la Frontera'}),
+      ev('16:00','monument','Vejer a fondo','Plaza de España con su fuente azulejada, Castillo, Iglesia del Divino Salvador, Mirador de la Cobijada. Pausa en El Califa Bar.',{price:'≈ 4 €/p', maps:'Plaza de España Vejer'}),
+      ev('18:00','drive','Bajada a Caños de Meca','25 min en auto.',{maps:'Caños de Meca'}),
+      ev('18:30','sunset','Playa y acantilados de Caños','Paseo por la playa al pie de los acantilados de la Breña. Copa al atardecer en Las Acacias o Tropicana.',{price:'≈ 15 €/p', maps:'Playa Caños de Meca'}),
+      ev('20:00','drive','Regreso a Jerez','1 h 15 min.'),
+      ev('21:30','food','Cena en el hotel','Restaurante Pedro Nolasco (terraza con vista a la Catedral) o el bar del hotel.',{price:'≈ 35 €/p', hotel:'jerez'})
+    ],
+    notes:[
+      {title:'Estacionamiento Jerez', body:'Plaza del Arenal a 5 min del hotel. ≈ 18 €/día. El Hotel Bodega Tío Pepe no tiene parking propio (edificio histórico).'}
+    ]},
+
+  /* DÍA 8 */
+  { iso:'2026-06-01', weekday:'lunes', bundle:'Ronda', activity:'Mañana en Jerez · ruta panorámica',
+    icon:'drive', cities:['Jerez','Ronda'], hotel:'ronda',
+    drive:{from:'Jerez', to:'Ronda', dist:'≈ 130 km', time:'2 h por la A-382'},
+    tone:'Mañana suave, ruta panorámica, tarde en Ronda.',
+    events:[
+      ev('09:30','coffee','Desayuno'),
+      ev('10:30','walk','Centro de Jerez sin auto','Catedral, Alcázar, Plaza del Arenal. Real Escuela Andaluza del Arte Ecuestre si hay función.',{price:'≈ 25 €', maps:'Real Escuela Andaluza Arte Ecuestre Jerez', tags:['opcional']}),
+      ev('12:30','food','Almuerzo en Bar Juanito','C/ Pescadería Vieja 4 — clásico jerezano, alcachofas en temporada (mayo-junio).',{price:'≈ 14 €/p', maps:'Bar Juanito Jerez'}),
+      ev('14:00','drive','Salida hacia Ronda','Por la A-382. Una de las rutas más bonitas de Andalucía: viñedos, dehesas, sierra al fondo.'),
+      ev('14:45','sunset','Parada en Arcos de la Frontera','Otro pueblo blanco perched sobre el barranco. Bajar al mirador, 20 minutos.',{maps:'Arcos de la Frontera', tags:['opcional']}),
+      ev('16:30','hotel','Check-in en el Parador de Ronda','En pleno borde del Tajo, sobre el Puente Nuevo.',{hotel:'ronda'}),
+      ev('17:30','monument','Puente Nuevo','El ícono de Ronda. Mirador del Puente Viejo. Bajada a la zona del Tajo.',{maps:'Puente Nuevo Ronda'}),
+      ev('18:30','monument','Plaza de Toros','La más antigua de España — solo por fuera o entrada corta al museo.',{price:'≈ 9 €', maps:'Plaza de Toros de Ronda', tags:['opcional']}),
+      ev('19:30','walk','Calle Espinel y centro','La "Carrera" de Ronda, Plaza del Socorro, Iglesia de Santa María la Mayor.',{maps:'Calle Espinel Ronda'}),
+      ev('20:30','sunset','Jardines de Cuenca','Atardecer con vista al barranco con luz dorada.',{maps:'Jardines de Cuenca Ronda'}),
+      ev('21:30','food','Cena','En el Parador o en Pedro Romero (frente a la Plaza de Toros).',{price:'≈ 35 €', maps:'Restaurante Pedro Romero Ronda'})
+    ],
+    notes:[]},
+
+  /* DÍA 9 */
+  { iso:'2026-06-02', weekday:'martes', bundle:'Ronda', activity:'Setenil · Grazalema · circuito serrano',
+    icon:'walk', cities:['Ronda','Setenil','Grazalema','Ronda'], hotel:'ronda',
+    drive:{from:'Ronda', to:'circuito Setenil · Grazalema · Ronda', dist:'≈ 100 km', time:'circuito'},
+    tone:'Pueblos blancos. Salida temprano, vuelta a media tarde.',
+    events:[
+      ev('08:30','coffee','Desayuno'),
+      ev('09:00','drive','Salida hacia Setenil','30 min.',{maps:'Setenil de las Bodegas'}),
+      ev('09:30','monument','Setenil — casas bajo la roca','Calles Cuevas del Sol y Cuevas de la Sombra. Subir al Castillo. 1h30.',{maps:'Cuevas del Sol Setenil'}),
+      ev('11:30','coffee','Pausa en Bar La Tasca','C/ Cuevas del Sol 6 — terraza literalmente bajo la roca volada. Las fotos desde la mesa son la postal de Setenil.',{price:'≈ 6 €/p', maps:'Bar La Tasca Setenil'}),
+      ev('12:15','drive','Salida hacia Grazalema','1 h por carreteras serranas. Ruta lenta pero preciosa.',{maps:'Grazalema'}),
+      ev('13:15','walk','Llegada a Grazalema','Plaza de España, Iglesia de la Encarnación, calles empedradas.',{maps:'Plaza de España Grazalema'}),
+      ev('14:30','food','Almuerzo en Cádiz El Chico','Plaza de España — cocina serrana, sopa grazalemeña, queso payoyo.',{price:'≈ 25 €/p', maps:'Cádiz El Chico Grazalema'}),
+      ev('16:00','sunset','Mirador del Puerto de las Palomas','10 min en auto desde Grazalema. Una de las vistas más amplias de la Sierra.',{maps:'Mirador Puerto de las Palomas'}),
+      ev('17:00','drive','Regreso a Ronda','1 h.'),
+      ev('18:00','rest','Tarde libre','En el Parador o paseo por la Ciudad Vieja (Casa del Rey Moro, Palacio de Mondragón por fuera).'),
+      ev('21:30','food','Cena',null)
+    ],
+    notes:[
+      {title:'Aviso · Setenil', body:'Setenil se llena de turismo desde las 11:00. Salir temprano: a las 9:30 está casi vacío y el contraste blanco/roca se ve mucho mejor.'}
+    ]},
+
+  /* DÍA 10 */
+  { iso:'2026-06-03', weekday:'miércoles', bundle:'Málaga', activity:'Vía Frigiliana · cambio al Mediterráneo',
+    icon:'drive', cities:['Ronda','Frigiliana','Málaga'], hotel:'malaga',
+    drive:{from:'Ronda', to:'Málaga (vía Frigiliana)', dist:'≈ 200 km', time:'3 h con parada'},
+    tone:'Cambio de paisaje: serranía a Mediterráneo.',
+    events:[
+      ev('09:30','coffee','Desayuno y check-out'),
+      ev('10:30','drive','Salida hacia Frigiliana','Por la A-397 / A-7, ≈ 1 h 45 min.',{maps:'Frigiliana'}),
+      ev('12:15','rest','Llegada a Frigiliana','Estacionar fuera del casco (parking gratuito al ingreso).'),
+      ev('12:30','walk','Barrio Mudéjar de Frigiliana','Calles empinadas, blanco impecable, macetas, azulejos. Mirador de Frigiliana.',{maps:'Barrio Mudéjar Frigiliana'}),
+      ev('14:00','food','Almuerzo en La Bodeguilla','Calle Real 26 — terraza con vista al pueblo, cocina mediterránea.',{price:'≈ 25 €/p', maps:'La Bodeguilla Frigiliana'}),
+      ev('16:00','drive','Salida hacia Málaga','1 h.'),
+      ev('17:00','hotel','Check-in en Cristine Bedfor',null,{hotel:'malaga'}),
+      ev('18:30','walk','Paseo por el centro','Plaza de la Constitución, calle Larios, Plaza de la Merced.',{maps:'Calle Larios Málaga'}),
+      ev('21:00','food','Cena en El Pimpi','C/ Granada 62 — bodega histórica con barricas firmadas, terraza con vista a la Alcazaba.',{price:'≈ 35 €/p', maps:'El Pimpi Málaga', tags:['reservar']})
+    ],
+    notes:[
+      {title:'Estacionamiento Málaga', body:'Cristine Bedfor es boutique (27 habitaciones, sin parking propio). <strong>Parking Alcazaba</strong> o Parking Tejón y Rodríguez, ambos a 5 min. ≈ 22-30 €/día.'}
+    ]},
+
+  /* DÍA 11 */
+  { iso:'2026-06-04', weekday:'jueves', bundle:'Málaga', activity:'Día lento · mediterráneo',
+    icon:'sunset', cities:['Málaga'], hotel:'malaga',
+    drive:null, tone:'Día lento, mediterráneo, urbano-elegante.',
+    events:[
+      ev('09:30','coffee','Desayuno sin apuro'),
+      ev('10:30','monument','Mercado de Atarazanas','Estructura modernista, vitrales coloridos, productos andaluces.',{maps:'Mercado de Atarazanas Málaga'}),
+      ev('11:30','monument','Catedral de Málaga ("La Manquita")','Visita corta, 45 min. La cubierta tiene vistas espectaculares (entrada extra).',{price:'≈ 10 € cubierta', maps:'Catedral de Málaga'}),
+      ev('13:00','coffee','Casa Aranda','C/ Herrería del Rey 3 — chocolatería desde 1932. Chocolate espeso con tejeringos.',{price:'≈ 4,50 €/p', maps:'Casa Aranda Málaga'}),
+      ev('14:30','food','Almuerzo en Uvedoble','C/ Císter 15 — tapas modernas elegantes, cerca de la Catedral.',{price:'≈ 30 €/p', maps:'Uvedoble Málaga'}),
+      ev('16:30','shop','Calle Larios','Peatonal, en parte sombreada. Tiendas, escaparates de diseño. Sin agenda.'),
+      ev('18:00','monument','Alcazaba de Málaga','Jardines, patios, vistas al puerto. Una hora.',{price:'≈ 4 €', maps:'Alcazaba de Málaga'}),
+      ev('20:30','sunset','Atardecer en Muelle Uno','Paseo del puerto. Opción elevada: AC Hotel Málaga Palacio Rooftop con vista al puerto y la Catedral.',{price:'≈ 9 € copa', maps:'Muelle Uno Málaga'}),
+      ev('22:00','food','Cena ligera','Repetir El Pimpi o probar KGB Málaga (c/ Fresca 12 — tapas creativas).',{maps:'KGB Málaga'})
+    ],
+    notes:[
+      {title:'Invitación a Martina', body:'Día previsto para invitar a Martina. Si se confirma, reservar mesa en El Pimpi, KGB o Uvedoble — todos toman reservas online.'}
+    ]},
+
+  /* DÍA 12 */
+  { iso:'2026-06-05', weekday:'viernes', bundle:'Granada', activity:'Cierre malagueño · traslado · primera noche',
+    icon:'drive', cities:['Málaga','Granada'], hotel:'granada',
+    drive:{from:'Málaga', to:'Granada', dist:'≈ 130 km', time:'1 h 30 min por la A-92'},
+    tone:'Mañana de cierre en Málaga, traslado, llegada nocturna.',
+    events:[
+      ev('09:30','coffee','Desayuno'),
+      ev('10:30','walk','Pendientes en Málaga','Soho (murales callejeros), Casa Natal de Picasso o un café largo en Plaza de la Merced.',{maps:'Casa Natal de Picasso Málaga'}),
+      ev('13:00','food','Almuerzo en Bar Lo Güeno','C/ Marín García 9 — taberna malagueña, montadito de pringá y caña.',{price:'≈ 8 €/p', maps:'Bar Lo Güeno Málaga'}),
+      ev('15:00','drive','Salida hacia Granada','Por la A-92.'),
+      ev('16:30','hotel','Check-in en Sercotel Palacio de los Gamboa','En pleno centro histórico, calle Gracia.',{hotel:'granada'}),
+      ev('18:00','walk','Reconocimiento de Granada','Plaza Nueva, Carrera del Darro (la calle más bonita, empedrada junto al río).',{maps:'Carrera del Darro Granada'}),
+      ev('20:30','food','Cena en Bar Los Diamantes','Plaza Nueva 13 — clásico granadino, con cada bebida traen una tapa gratis. Sin reserva, llegar antes de 21:00.',{price:'≈ 12-15 €/p', maps:'Bar Los Diamantes Granada'})
+    ],
+    notes:[
+      {title:'Estacionamiento Granada', body:'Granada también es <strong>ACIRE</strong> en el centro. <strong>Parking San Agustín</strong> o Parking Plaza Puerta Real. ≈ 24 €/día.'}
+    ]},
+
+  /* DÍA 13 */
+  { iso:'2026-06-06', weekday:'sábado', bundle:'Granada', activity:'Albaicín y miradores',
+    icon:'sunset', cities:['Granada'], hotel:'granada',
+    drive:null, tone:'El día más andaluz del viaje. Sin prisa, mucho mirador.',
+    events:[
+      ev('09:30','coffee','Desayuno'),
+      ev('10:30','monument','Catedral y Capilla Real','Donde están los Reyes Católicos. Una hora y media combinadas.',{price:'≈ 6 € c/u', maps:'Catedral de Granada'}),
+      ev('12:30','shop','Alcaicería','Antiguo zoco, hoy más turístico pero conserva la atmósfera.',{maps:'Alcaicería Granada'}),
+      ev('13:00','coffee','Café Fútbol','Plaza Mariana Pineda — institución granadina desde 1922. Chocolate con churros o un piononos de Santa Fe.',{price:'≈ 4,50 €/p', maps:'Café Fútbol Granada'}),
+      ev('14:00','food','Almuerzo en Carmela','C/ Colcha 13 — cocina granadina elegante, terraza con vista.',{price:'≈ 30 €/p', maps:'Carmela Restaurante Granada'}),
+      ev('16:00','walk','Subida al Albaicín','Taxi hasta Plaza Larga o caminando por Cuesta del Chapiz.',{maps:'Plaza Larga Albaicín'}),
+      ev('17:30','sunset','Mirador de San Nicolás','La vista más famosa de la Alhambra. Mejor por la tarde, cuando la luz baña Sierra Nevada y los muros rojos.',{maps:'Mirador de San Nicolás Granada', tags:['imprescindible']}),
+      ev('18:30','sunset','Mirador de San Cristóbal o Cruz de Rauda','Menos turísticos, vista distinta.',{maps:'Mirador de San Cristóbal Granada'}),
+      ev('19:30','walk','Bajada por Carrera del Darro','Una de las caminatas más bonitas de Europa al atardecer.'),
+      ev('21:00','food','Cena en El Claustro','Hotel Palacio de Santa Paula — la mesa más refinada de Granada, ambiente de claustro mudéjar. Una cena especial.',{price:'≈ 60-80 €/p', maps:'El Claustro Granada Palacio Santa Paula', tags:['reservar','especial']})
+    ],
+    notes:[
+      {title:'Mirador de San Nicolás', body:'Para evitar la concentración, ir <strong>30-40 min antes</strong> del atardecer para ganar lugar en el muro. Llevar agua.'}
+    ]},
+
+  /* DÍA 14 */
+  { iso:'2026-06-07', weekday:'domingo', bundle:'Granada', activity:'La Alhambra · tarde sagrada',
+    icon:'monument', cities:['Granada'], hotel:'granada',
+    drive:null, tone:'Mañana muy liviana, siesta de preparación, tarde sagrada.',
+    packHint:{title:'Listo para salir', items:['Pasaportes (entrada nominal)','Agua y sombrero','Calzado cómodo cerrado','Chal o saco ligero (refresca al atardecer)','Bolso pequeño (no mochilas)']},
+    events:[
+      ev('10:00','coffee','Desayuno tranquilo'),
+      ev('11:30','walk','Paseo opcional por Realejo','Barrio judío. Casa de los Tiros, Campo del Príncipe, Cuesta del Realejo. Una hora.',{maps:'Realejo Granada', tags:['opcional']}),
+      ev('13:00','food','Almuerzo ligero en Los Diamantes','Plaza Nueva — solo dos bebidas con su tapa gratis. Llegar a la Alhambra con energía pero sin estómago pesado.',{price:'≈ 10 €/p', maps:'Bar Los Diamantes Granada'}),
+      ev('14:30','rest','Siesta deliberada','La única siesta deliberada del viaje. Persianas cerradas, 45-60 min, hidratarse, calzado cómodo.'),
+      ev('15:30','drive','Salida del hotel','Taxi hasta el Pabellón de Acceso (≈ 8 €, 10 min). NO subir por la Cuesta de Gomérez.',{maps:'Pabellón de Acceso Alhambra Granada'}),
+      ev('16:00','reservation','Llegada al Pabellón de Acceso','Recoger entradas con pasaporte (nominal). Bolsos pequeños, agua y sombrero permitidos.',{tags:['reservada','imprescindible']}),
+      ev('16:15','monument','Alcazaba','Parte militar, torres y vistas más altas a Granada. Una hora y cuarto.'),
+      ev('17:30','rest','Pausa junto al aljibe','Hidratarse. Caminar despacio hacia los Palacios.'),
+      ev('18:00','monument','PALACIOS NAZARÍES','Franja ESTRICTA. Mexuar, Patio de los Arrayanes, Salón de Embajadores, Patio de los Leones. La parte más mágica del viaje.',{tags:['imprescindible','critico']}),
+      ev('19:15','monument','Generalife','Jardines en terrazas, Patio de la Acequia, Escalera del Agua. La luz del sol bajo dora todo. Cierran a las 20:00.'),
+      ev('20:00','rest','Salida obligatoria','No se puede demorar la salida del recinto.'),
+      ev('20:15','drive','Bajada en taxi al hotel'),
+      ev('22:00','food','Cena ligera y temprana','En el hotel o, opción especial: Mirador de Morayma (Albaicín) — terraza con vista frontal a la Alhambra iluminada.',{price:'≈ 50 €/p Morayma', maps:'Mirador de Morayma Granada Albaicín', tags:['opcional']})
+    ],
+    notes:[
+      {title:'Punto crítico', body:'Si pierden la franja de los Palacios Nazaríes a las 18:00, <strong>pierden lo mejor del viaje</strong>. Todo lo demás es flexible; los Palacios no admiten retraso. Salir con margen sobrado.'}
+    ]},
+
+  /* DÍA 15 */
+  { iso:'2026-06-08', weekday:'lunes', bundle:'Madrid', activity:'Traslado largo desde Granada',
+    icon:'drive', cities:['Granada','Madrid'], hotel:'madrid',
+    drive:{from:'Granada', to:'Madrid', dist:'≈ 420 km', time:'4 h 30 min por la A-44 / A-4'},
+    tone:'Día de traslado real. Sin sumar visitas intermedias.',
+    events:[
+      ev('09:30','coffee','Desayuno tranquilo'),
+      ev('10:30','sunset','Última vuelta corta por Granada','Mirador de San Cristóbal de mañana, o solo café.',{tags:['opcional']}),
+      ev('11:30','hotel','Vuelta al hotel · valijas · check-out'),
+      ev('12:00','drive','Salida hacia Madrid','Por la A-44 (norte) y luego A-4.'),
+      ev('14:30','food','Almuerzo en ruta · Bailén','Restaurante Zocodover (área de servicio Andalucía Plaza, salida 296). Cocina manchega. Alternativa: Mesón Despeñaperros con vista al desfiladero.',{price:'≈ 14-18 €/p', maps:'Restaurante Zocodover Bailén'}),
+      ev('17:00','drive','Llegada estimada a Madrid','Devolver auto en el lugar pactado o estacionar en parking del hotel.'),
+      ev('18:00','hotel','Check-in en Catalonia','Descansar.',{hotel:'madrid'}),
+      ev('21:00','food','Cena en Casa González','C/ León 12, Barrio de las Letras — taberna de quesos y vinos desde 1931. Tabla de quesos y copa de Ribera.',{price:'≈ 25 €/p', maps:'Casa González Madrid Barrio de las Letras'})
+    ],
+    notes:[
+      {title:'Devolución del auto', body:'Confirmar con la rentadora: oficinas del centro de Madrid (sin gasto extra de combustible al aeropuerto) o Barajas (más cómodo si vuelan desde ahí).'}
+    ]},
+
+  /* DÍA 16 */
+  { iso:'2026-06-09', weekday:'martes', bundle:'Madrid', activity:'Día abierto · compras',
+    icon:'shop', cities:['Madrid'], hotel:'madrid',
+    drive:null, tone:'Día abierto. Compras, cafés, descanso.',
+    events:[
+      ev('11:00','shop','Barrio de Salamanca','La zona elegante de Madrid. Calle Serrano, Goya, Velázquez. Loewe, Manolo Blahnik, Sybilla. Cafés tranquilos: El Jardín del Salmón, Mama Framboise.',{maps:'Calle Serrano Madrid', tags:['opcional']}),
+      ev('12:30','shop','Calle Almirante y Conde de Xiquena','Entre Chueca y Recoletos — boutiques de diseñadores españoles independientes. Para el ojo de diseñadora.',{maps:'Calle Almirante Madrid', tags:['opcional']}),
+      ev('14:00','food','Mercado de San Miguel','Plaza Mayor — mercado gourmet, almuerzo informal y elegante.',{maps:'Mercado de San Miguel Madrid'}),
+      ev('17:00','monument','Museo Sorolla','Pº General Martínez Campos 37 — casa-museo del pintor. Íntimo, perfecto.',{price:'≈ 3 €', maps:'Museo Sorolla Madrid', tags:['opcional']}),
+      ev('21:00','food','Cena en Casa Lucio','C/ Cava Baja 35 — clásico madrileño, huevos rotos famosos, ambiente patrimonial. Alternativa elegante: La Tasquita de Enfrente.',{price:'≈ 45-70 €/p', maps:'Casa Lucio Madrid Cava Baja', tags:['reservar']})
+    ],
+    notes:[
+      {title:'Día deliberadamente sin agenda apretada', body:'Caixa Forum y Jardín Vertical (frente al Prado) si quieren un paso visual.'}
+    ]},
+
+  /* DÍA 17 */
+  { iso:'2026-06-10', weekday:'miércoles', bundle:'Madrid', activity:'Cierre · lo más querido, repetido',
+    icon:'monument', cities:['Madrid'], hotel:'madrid',
+    drive:null, tone:'Día final. Lo que más les haya gustado, repetido.',
+    events:[
+      ev('10:00','coffee','Desayuno largo'),
+      ev('11:30','monument','Madrid de los Austrias','Plaza Mayor, Plaza de la Villa, calle Mayor. Visita corta al Palacio Real por fuera, Catedral de la Almudena.',{maps:'Plaza Mayor Madrid'}),
+      ev('13:30','coffee','Chocolatería San Ginés','C/ Pasadizo de San Ginés 5 — chocolate con churros centenario, casi una obligación.',{maps:'Chocolatería San Ginés Madrid'}),
+      ev('14:30','food','Almuerzo en Botín','C/ Cuchilleros 17 — el restaurante más antiguo del mundo en funcionamiento (1725). Cocido madrileño, cochinillo.',{price:'≈ 50 €/p', maps:'Restaurante Botín Madrid Cuchilleros', tags:['reservar']}),
+      ev('16:30','walk','Última vuelta por Retiro','Palacio de Cristal, Estanque, paseo lento. Una hora y media.',{maps:'Palacio de Cristal Retiro Madrid'}),
+      ev('19:00','shop','Compras finales o empacar'),
+      ev('21:00','food','Cena de cierre','DSTAgE (estrella Michelin, vanguardista, ≈ 150 €/p). Alternativa cálida: Sacha (institución elegante, ≈ 70 €/p).',{price:'≈ 70-150 €/p', maps:'DSTAgE Madrid', tags:['reservar','especial']})
+    ],
+    notes:[
+      {title:'Equipaje', body:'Empacar <strong>esta noche</strong>, no la mañana del vuelo. España permite 23 kg en bodega y 8 kg en cabina (verificar con la aerolínea).'}
+    ]},
+
+  /* DÍA 18 */
+  { iso:'2026-06-11', weekday:'jueves', bundle:'Madrid', activity:'Aeropuerto · regreso',
+    icon:'flight', cities:['Madrid','Aeropuerto'], hotel:null,
+    drive:{from:'Hotel', to:'Aeropuerto', dist:'Taxi (≈ 30 €) o Cercanías', time:'35-45 min'},
+    tone:'Mañana sin estrés, salida a la tarde.',
+    events:[
+      ev('09:30','coffee','Desayuno'),
+      ev('10:30','walk','Última mañana suave','Retiro otra vez, café en una terraza de Recoletos (Café Gijón), última vuelta por Gran Vía o Sol.',{maps:'Café Gijón Madrid'}),
+      ev('13:00','food','Almuerzo en Mercado de San Antón','C/ Augusto Figueroa 24, Chueca — barras de comer arriba: ostras, sushi, jamón, ensaladas.',{price:'≈ 10-18 €/p', maps:'Mercado de San Antón Madrid Chueca'}),
+      ev('14:00','hotel','Retiro de valijas','Los hoteles guardan equipaje sin cargo después del check-out.'),
+      ev('15:30','drive','Taxi al aeropuerto','Barajas — Terminal según vuelo. 35-45 min de camino.',{maps:'Aeropuerto Madrid-Barajas T4'}),
+      ev('16:30','flight','Check-in y control en el aeropuerto')
+    ],
+    notes:[
+      {title:'Aviso final', body:'Llegar al aeropuerto <strong>al menos 3 horas antes</strong> del vuelo internacional. Si tienen tax-free (compras > 90 € con DNI extranjero), hacerlo ANTES del check-in en las oficinas DIVA.'}
+    ]}
+];
+
+const EMERGENCY = [
+  { name:'Emergencias España', num:'112', tel:'112' },
+  { name:'Policía Nacional', num:'091', tel:'091' },
+  { name:'Embajada Argentina · Madrid', num:'+34 91 771 0500', tel:'+34917710500' },
+  { name:'Asistencia médica turistas', num:'+34 902 102 112', tel:'+34902102112' }
+];
+
+
+/* =========================================================
+   STATE & PERSISTENCE
+   ========================================================= */
+const STORAGE_KEY = 'esp2026_v2';
+const state = (() => {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+})();
+state.tab = state.tab || 'hoy';
+state.expanded = state.expanded || {};      // event key → bool
+state.choices  = state.choices  || {};      // choice key → option id
+state.done     = state.done     || {};      // event key → bool
+state.openPast = state.openPast || false;
+state.openHotel = state.openHotel || {};
+state.openAcc  = state.openAcc  || {};
+function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {} }
+
+/* =========================================================
+   ICONS
+   ========================================================= */
+const I = {
+  flight:'<path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1L15 22v-1.5L13 19v-5.5L21 16z"/>',
+  drive:'<path d="M5 17h14M5 17a2 2 0 1 1 4 0M5 17V12l2-5h10l2 5v5M15 17a2 2 0 1 1 4 0"/>',
+  hotel:'<path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14h.01M8 18h.01M16 14h.01M16 18h.01"/>',
+  food:'<path d="M3 11h18l-2 9H5l-2-9z M6 11V7a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v4"/>',
+  coffee:'<path d="M17 8h1a4 4 0 0 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z M6 2v3M10 2v3M14 2v3"/>',
+  monument:'<path d="M3 22h18M5 22V11l7-4 7 4v11M9 22v-6h6v6"/>',
+  walk:'<circle cx="13" cy="4" r="2"/><path d="M10.5 22l1-7 4 3 1 4M8 13l3-3 3 2.5 4 1"/>',
+  sunset:'<path d="M12 10V2M4.93 10.93l-1.41-1.41M19.07 10.93l1.41-1.41M2 18h20M5 22h14M16 18a4 4 0 0 0-8 0"/>',
+  shop:'<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/>',
+  rest:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  tour:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>',
+  reservation:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9,16 11,18 15,14"/>',
+  maps:'<path d="M12 22s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="10" r="2.5"/>',
+  phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.7.6 2.5a2 2 0 0 1-.4 2.1L8 9.6a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.5.6a2 2 0 0 1 1.7 2z"/>',
+  mail:'<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+  web:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>',
+  copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  expand:'<polyline points="15,3 21,3 21,9"/><polyline points="9,21 3,21 3,15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>',
+  caret:'<polyline points="6,9 12,15 18,9"/>',
+  check:'<polyline points="5,12 10,17 19,8"/>',
+  warning:'<path d="M10.3 1.4 1.7 18.5a2 2 0 0 0 1.7 3h17.2a2 2 0 0 0 1.7-3L13.7 1.4a2 2 0 0 0-3.4 0z M12 9v4 M12 17h.01"/>',
+  bed:'<path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/>',
+  ticket:'<path d="M2 9V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z M13 5v14"/>',
+  car:'<path d="M5 17h14M5 17a2 2 0 1 1 4 0M5 17V12l2-5h10l2 5v5M15 17a2 2 0 1 1 4 0"/>',
+  utensils:'<path d="M3 11h18l-2 9H5l-2-9z M6 11V7a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v4"/>',
+  info:'<circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="16" r=".5" fill="currentColor"/>',
+  alert:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+  pack:'<rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'
+};
+function svg(name, cls='') {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${cls}">${I[name]||''}</svg>`;
+}
+
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+function todayIso() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function isoToDate(iso){ const[y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d); }
+function isoDiffDays(a,b){ return Math.round((isoToDate(b)-isoToDate(a))/86400000); }
+function nowMin(){ const d=new Date(); return d.getHours()*60+d.getMinutes(); }
+function timeToMin(t){ if(!t) return 0; const[h,m]=t.split(':').map(Number); return h*60+(m||0); }
+function dayIndex(iso){ return DAYS.findIndex(d=>d.iso===iso); }
+const M_LONG = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const M_SHORT = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function fmtLong(iso){ const d=isoToDate(iso); return `${d.getDate()} de ${M_LONG[d.getMonth()]}`; }
+function fmtShort(iso){ const d=isoToDate(iso); return `${d.getDate()} ${M_SHORT[d.getMonth()]}`; }
+function hotelById(id){ return HOTELS.find(h=>h.id===id); }
+function activeDayIso(){
+  const t = todayIso();
+  if (isoDiffDays(t, TRIP.startISO) > 0) return TRIP.startISO;
+  if (isoDiffDays(t, TRIP.endISO) < 0)   return TRIP.endISO;
+  const idx = dayIndex(t);
+  return idx >= 0 ? t : TRIP.startISO;
+}
+function mapsUrl(query){ return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query); }
+function hotelMapsUrl(h){ return mapsUrl(h.mapsQuery || (h.name + ' ' + h.address)); }
+function telUrl(p){ return 'tel:' + p.replace(/\s+/g,''); }
+function mailUrl(e){ return 'mailto:' + e; }
+function webUrl(w){ return w.startsWith('http') ? w : 'https://' + w; }
+
+/* =========================================================
+   COPY + MODAL
+   ========================================================= */
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    if (btn) {
+      btn.classList.add('copied');
+      const orig = btn.innerHTML;
+      btn.innerHTML = svg('check') + 'Copiado';
+      setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = orig; }, 1500);
+    }
+  });
+}
+function openModal(html) {
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalBg').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('open');
+}
+document.getElementById('modalBg').addEventListener('click', e => {
+  if (e.target.id === 'modalBg') closeModal();
+});
+function enlargeCode(label, code) {
+  openModal(`
+    <h3 class="modal-title">${label}</h3>
+    <p class="modal-sub">Tocá para copiar o cerrá tocando fuera.</p>
+    <div class="modal-code" onclick="copyToClipboard('${code.replace(/'/g,"\\'")}', this.nextElementSibling.querySelector('.copy-btn'))">${code}</div>
+    <div class="modal-actions">
+      <button class="act primary copy-btn" onclick="copyToClipboard('${code.replace(/'/g,"\\'")}', this)">${svg('copy')}Copiar</button>
+      <button class="act ghost" onclick="closeModal()">Cerrar</button>
+    </div>
+  `);
+}
+function openEmergency() {
+  const h = hotelById(DAYS[Math.max(0, dayIndex(activeDayIso()))].hotel);
+  const items = [];
+  if (h) items.push(`
+    <div class="emergency-item">
+      <div class="emergency-ico">${svg('bed')}</div>
+      <div class="emergency-body">
+        <div class="emergency-name">Hotel actual · ${h.name}</div>
+        <div class="emergency-num">${h.phone}</div>
+      </div>
+      <a class="act primary" href="${telUrl(h.phone)}">${svg('phone')}Llamar</a>
+    </div>
+  `);
+  EMERGENCY.forEach(e => items.push(`
+    <div class="emergency-item">
+      <div class="emergency-ico">${svg('phone')}</div>
+      <div class="emergency-body">
+        <div class="emergency-name">${e.name}</div>
+        <div class="emergency-num">${e.num}</div>
+      </div>
+      <a class="act primary" href="${telUrl(e.tel)}">Llamar</a>
+    </div>
+  `));
+  openModal(`
+    <h3 class="modal-title">Contactos rápidos</h3>
+    <p class="modal-sub">Hotel actual y números de emergencia en España.</p>
+    <div class="emergency-list">${items.join('')}</div>
+    <div class="modal-actions" style="margin-top:18px"><button class="act ghost" style="flex:1;justify-content:center" onclick="closeModal()">Cerrar</button></div>
+  `);
+}
+
+/* =========================================================
+   ALERTS
+   ========================================================= */
+function buildAlerts() {
+  const today = todayIso();
+  const alerts = [];
+  const tIdx = dayIndex(today);
+  if (tIdx >= 0 && tIdx < DAYS.length - 1) {
+    const tomorrow = DAYS[tIdx + 1];
+    if (tomorrow.iso === '2026-06-07') {
+      alerts.push({ icon:'ticket', kind:'urgent', title:'Mañana es La Alhambra', sub:'Llevar pasaportes. Los Palacios no admiten retraso.' });
+    }
+    if (tomorrow.drive && parseInt((tomorrow.drive.dist.match(/(\d+)/)||[0,0])[1],10) > 200) {
+      alerts.push({ icon:'car', kind:'info', title:`Mañana traslado largo · ${tomorrow.drive.dist}`, sub:`De ${tomorrow.drive.from} a ${tomorrow.drive.to}. Tanque lleno y desayuno temprano.` });
+    }
+  }
+  if (tIdx >= 0) {
+    const td = DAYS[tIdx];
+    if (td.packHint) alerts.push({ icon:'pack', kind:'info', title:td.packHint.title, sub:td.packHint.items.join(' · ') });
+  }
+  return alerts;
+}
+
+/* =========================================================
+   TOPBAR
+   ========================================================= */
+function renderTopbar() {
+  const t = todayIso();
+  const idx = dayIndex(t);
+  const chip = document.getElementById('dayChip');
+  const txt = document.getElementById('dayChipText');
+  if (idx >= 0) {
+    chip.className = 'day-chip';
+    txt.textContent = `Día ${idx+1} de ${DAYS.length}`;
+  } else if (isoDiffDays(t, TRIP.startISO) > 0) {
+    chip.className = 'day-chip outside';
+    const d = isoDiffDays(t, TRIP.startISO);
+    txt.textContent = d === 1 ? 'Mañana empieza' : `Faltan ${d} días`;
+  } else {
+    chip.className = 'day-chip outside';
+    txt.textContent = 'Viaje terminado';
+  }
+  const strip = document.getElementById('progressStrip');
+  strip.innerHTML = '';
+  DAYS.forEach((d,i) => {
+    const pip = document.createElement('div');
+    pip.className = 'pip';
+    if (idx >= 0) {
+      if (i < idx) pip.classList.add('done');
+      else if (i === idx) pip.classList.add('current');
+    } else if (isoDiffDays(t, TRIP.startISO) <= 0) {
+      pip.classList.add('done');
+    }
+    strip.appendChild(pip);
+  });
+}
+
+/* =========================================================
+   EVENT RENDERERS
+   ========================================================= */
+function eventKey(dayIso, evIdx) { return `${dayIso}#${evIdx}`; }
+
+function renderEventBody(e, dayIso) {
+  const parts = [];
+  if (e.desc) parts.push(`<div class="event-desc">${e.desc}</div>`);
+  const tags = (e.tags || []).map(t => `<span class="tag ${t}">${t}</span>`).join('');
+  if (tags) parts.push(`<div class="event-meta">${tags}</div>`);
+  const actions = [];
+  if (e.hotel) {
+    const h = hotelById(e.hotel);
+    if (h) {
+      actions.push(`<a class="act primary" href="${hotelMapsUrl(h)}" target="_blank" rel="noopener">${svg('maps')}Cómo llegar</a>`);
+      actions.push(`<a class="act secondary" href="${telUrl(h.phone)}">${svg('phone')}Llamar</a>`);
+    }
+  } else if (e.maps) {
+    actions.push(`<a class="act primary" href="${mapsUrl(e.maps)}" target="_blank" rel="noopener">${svg('maps')}Cómo llegar</a>`);
+  }
+  if (e.price) actions.push(`<span class="act ghost">${e.price}</span>`);
+  if (actions.length) parts.push(`<div class="event-actions">${actions.join('')}</div>`);
+  return parts.join('');
+}
+
+function renderEvent(e, dayIso, evIdx, status, isNext) {
+  const key = eventKey(dayIso, evIdx);
+  const open = status === 'current' || status === 'past-done' ? true : !!state.expanded[key];
+  const showCaret = status === 'future';
+  const cls = `event ${status}${open && status === 'future' ? ' open' : ''}${isNext ? ' next' : ''}`;
+  const icoCls = `event-icon ${e.type || ''}`;
+  const ico = svg(e.type) || svg('rest');
+  const time = e.time || '';
+  const checkMark = status === 'past'
+    ? `<span class="event-check" title="Hecho">${svg('check')}</span>` : '';
+  const caret = showCaret ? `<svg class="event-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I.caret}</svg>` : '';
+  const body = (status === 'current' || (status === 'future' && open))
+    ? `<div class="event-body">${renderEventBody(e, dayIso)}</div>`
+    : (status === 'future' ? `<div class="event-body">${renderEventBody(e, dayIso)}</div>` : '');
+  return `
+    <div class="${cls}" data-event-key="${key}" data-status="${status}">
+      <div class="event-head">
+        <span class="event-time">${time}</span>
+        <span class="${icoCls}">${ico}</span>
+        <span class="event-title">${e.title || ''}</span>
+        ${checkMark}
+        ${caret}
+      </div>
+      ${body}
+    </div>
+  `;
+}
+
+function renderChoice(c, dayIso, evIdx, status) {
+  const key = eventKey(dayIso, evIdx);
+  const picked = state.choices[key];
+  const isPicked = !!picked;
+  const opts = c.options.map(o => {
+    const selected = picked === o.id;
+    return `
+      <button class="choice-opt ${selected ? 'selected' : ''}" data-choice-key="${key}" data-opt-id="${o.id}">
+        <span class="choice-opt-ico event-icon ${o.type}">${svg(o.type) || svg('walk')}</span>
+        <span style="flex:1;min-width:0">
+          <span class="choice-opt-label">Opción ${o.id.toUpperCase()}</span>
+          <span class="choice-opt-title">${o.title}</span>
+          <span class="choice-opt-desc">${o.desc || ''}</span>
+        </span>
+      </button>
+    `;
+  }).join('');
+  return `
+    <div class="choice ${isPicked ? 'picked' : ''}" data-status="${status}">
+      <div class="choice-head"><span class="event-time">${c.time || ''}</span><span>${c.label || 'Elige tu próximo paso'}</span></div>
+      <div class="choice-options">${opts}</div>
+      <span class="undo" data-undo-key="${key}">Cambiar elección</span>
+    </div>
+  `;
+}
+
+function eventStatus(dayIso, ev, now) {
+  if (dayIso < now.iso) return 'past';
+  if (dayIso > now.iso) return 'future';
+  // same day
+  const evMin = timeToMin(ev.time || '00:00');
+  const cur = now.min;
+  if (evMin + 60 < cur) return 'past';   // assume each event ~1h
+  if (evMin <= cur && cur <= evMin + 60) return 'current';
+  return 'future';
+}
+
+/* =========================================================
+   TIMELINE (Hoy)
+   ========================================================= */
+function renderTimeline(day) {
+  if (!day.events.length) {
+    return `<div style="text-align:center;padding:30px 20px;color:var(--ink-mute);font-style:italic;font-family:var(--serif);font-size:16px">${day.tone || 'Sin programación hoy.'}</div>`;
+  }
+  const today = todayIso();
+  const now = { iso: today, min: nowMin() };
+  const isToday = day.iso === today;
+
+  // determine statuses
+  const items = day.events.map((e, i) => {
+    if (e.kind === 'choice') {
+      const picked = state.choices[eventKey(day.iso, i)];
+      const status = !isToday ? (day.iso < today ? 'past' : 'future')
+        : (picked ? 'past' : 'current');
+      return { kind:'choice', e, idx:i, status };
+    }
+    let status;
+    if (!isToday) status = (day.iso < today ? 'past' : 'future');
+    else status = eventStatus(day.iso, e, now);
+    return { kind:'event', e, idx:i, status };
+  });
+
+  // ensure at most one current; mark next future
+  if (isToday) {
+    let foundCurrent = false;
+    for (let i = items.length-1; i >= 0; i--) {
+      if (items[i].status === 'current') {
+        if (foundCurrent) items[i].status = 'past';
+        else foundCurrent = true;
+      }
+    }
+    if (!foundCurrent) {
+      // pick the next future as "next"
+      const fi = items.findIndex(x => x.status === 'future');
+      if (fi >= 0) items[fi].isNext = true;
+    } else {
+      const ci = items.findIndex(x => x.status === 'current');
+      const fi = items.findIndex((x,i) => i>ci && x.status === 'future');
+      if (fi >= 0) items[fi].isNext = true;
+    }
+  }
+
+  // collapse past block (if not all past)
+  const pastItems = items.filter(x => x.status === 'past');
+  const livePastBlock = isToday && pastItems.length >= 2;
+  const html = [];
+  if (livePastBlock) {
+    const openCls = state.openPast ? 'open' : '';
+    html.push(`
+      <div class="past-group ${openCls}" id="pastGroup">
+        <div class="past-group-head">
+          <span class="past-group-count">${pastItems.length}</span>
+          <span>Ya hecho hoy</span>
+          <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I.caret}</svg>
+        </div>
+        <div class="past-group-list">
+          ${pastItems.map(x => x.kind==='event' ? renderEvent(x.e, day.iso, x.idx, 'past', false) : '').join('')}
+        </div>
+      </div>
+    `);
+    items.forEach(x => {
+      if (x.status === 'past') return;
+      if (x.kind === 'choice') html.push(renderChoice(x.e, day.iso, x.idx, x.status));
+      else html.push(renderEvent(x.e, day.iso, x.idx, x.status, !!x.isNext));
+    });
+  } else {
+    items.forEach(x => {
+      if (x.kind === 'choice') html.push(renderChoice(x.e, day.iso, x.idx, x.status));
+      else html.push(renderEvent(x.e, day.iso, x.idx, x.status, !!x.isNext));
+    });
+  }
+  return `<div class="timeline">${html.join('')}</div>`;
+}
+
+/* =========================================================
+   DAY DECK (top of Hoy)
+   ========================================================= */
+function renderDayDeck(day) {
+  const idx = DAYS.indexOf(day);
+  const ico = svg(day.icon || 'monument');
+  return `
+    <div class="day-deck">
+      <span class="day-num">día ${idx+1}/${DAYS.length}</span>
+      <div class="day-deck-date">${day.weekday} · ${fmtLong(day.iso)}</div>
+      <div class="day-bundle">
+        <div class="day-bundle-ico">${ico}</div>
+        <div class="day-bundle-text">
+          <div class="day-bundle-city">${day.bundle}</div>
+          <div class="day-bundle-activity">${day.activity}</div>
+        </div>
+      </div>
+      ${day.drive ? `<div class="day-route">${svg('car')}<span>${day.drive.from} → ${day.drive.to} · ${day.drive.dist}${day.drive.time ? ' · ' + day.drive.time : ''}</span></div>` : ''}
+      ${day.tone ? `<div class="day-tone">${day.tone}</div>` : ''}
+    </div>
+  `;
+}
+
+/* =========================================================
+   TONIGHT HOTEL (with booking code, no price)
+   ========================================================= */
+function renderTonight(day) {
+  if (!day.hotel) return '';
+  const h = hotelById(day.hotel);
+  if (!h) return '';
+  return `
+    <div class="tonight">
+      <div class="tonight-head">${svg('bed')}Esta noche</div>
+      <div class="tonight-name">${h.name}</div>
+      <div class="tonight-meta">${h.city} · ${h.address}</div>
+      <div class="tonight-code">
+        <div style="flex:1;min-width:0">
+          <div class="tonight-code-label">${h.codeNote || 'Localizador'}</div>
+          <div class="tonight-code-val">${h.code}</div>
+        </div>
+        <button class="copy-btn" onclick="copyToClipboard('${h.code}', this)">${svg('copy')}Copiar</button>
+        <button class="code-enlarge" onclick="enlargeCode('${h.name}', '${h.code}')" aria-label="Agrandar">${svg('expand')}</button>
+      </div>
+      <div class="tonight-actions">
+        <a class="act primary" href="${hotelMapsUrl(h)}" target="_blank" rel="noopener">${svg('maps')}Cómo llegar</a>
+        <a class="act secondary" href="${telUrl(h.phone)}">${svg('phone')}Llamar</a>
+        ${h.email ? `<a class="act ghost" href="${mailUrl(h.email)}">${svg('mail')}Email</a>` : ''}
+        ${h.web ? `<a class="act ghost" href="${webUrl(h.web)}" target="_blank" rel="noopener">${svg('web')}Web</a>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   ALERTS RENDER
+   ========================================================= */
+function renderAlerts() {
+  const list = buildAlerts();
+  if (!list.length) return '';
+  return `<div class="alerts">${list.map(a => `
+    <div class="alert ${a.kind || ''}">
+      <div class="alert-ico">${svg(a.icon || 'info')}</div>
+      <div class="alert-body">
+        <div class="alert-title">${a.title}</div>
+        <div class="alert-sub">${a.sub}</div>
+      </div>
+    </div>
+  `).join('')}</div>`;
+}
+
+/* =========================================================
+   HOY SCREEN
+   ========================================================= */
+function renderHoy() {
+  const iso = activeDayIso();
+  const day = DAYS[dayIndex(iso)] || DAYS[0];
+  const isDesktop = (window.matchMedia && window.matchMedia('(min-width: 1100px)').matches) || false;
+  const today = todayIso();
+  const isPre = isoDiffDays(today, TRIP.startISO) > 0;
+
+  const heroBlock = isPre
+    ? `<div class="hero">
+        <div class="hero-eyebrow">${isoDiffDays(today, TRIP.startISO)} días para empezar</div>
+        <div class="hero-title">Andalucía <em>&amp;</em> Castilla</div>
+        <div class="hero-sub">${TRIP.cities.join(' · ')}</div>
+        <div class="hero-meta"><span>25 may – 11 jun 2026</span><span>18 días · 9 ciudades</span></div>
+      </div>`
+    : '';
+
+  const main = `
+    ${heroBlock}
+    ${renderAlerts()}
+    ${renderDayDeck(day)}
+    <div class="sec-head"><h2>Hoy</h2><span class="sec-sub">${day.events.length} momentos</span></div>
+    ${renderTimeline(day)}
+  `;
+  const side = renderTonight(day);
+
+  const screen = document.getElementById('screenHoy');
+  if (isDesktop && side) {
+    screen.innerHTML = `<div class="hoy-grid">
+      <div class="hoy-col-main">${main}</div>
+      <div class="hoy-col-side">${side}</div>
+    </div>`;
+  } else {
+    screen.innerHTML = main + side;
+  }
+  attachHoyHandlers();
+}
+
+function attachHoyHandlers() {
+  document.querySelectorAll('.event.future').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target.closest('a') || e.target.closest('button')) return;
+      const k = el.dataset.eventKey;
+      state.expanded[k] = !state.expanded[k];
+      saveState();
+      el.classList.toggle('open');
+    });
+  });
+  document.querySelectorAll('.choice-opt').forEach(el => {
+    el.addEventListener('click', () => {
+      const k = el.dataset.choiceKey;
+      state.choices[k] = el.dataset.optId;
+      saveState();
+      renderHoy();
+    });
+  });
+  document.querySelectorAll('.undo').forEach(el => {
+    el.addEventListener('click', () => {
+      const k = el.dataset.undoKey;
+      delete state.choices[k];
+      saveState();
+      renderHoy();
+    });
+  });
+  const pg = document.getElementById('pastGroup');
+  if (pg) pg.addEventListener('click', () => {
+    state.openPast = !state.openPast;
+    saveState();
+    pg.classList.toggle('open');
+  });
+}
+
+/* =========================================================
+   DÍAS SCREEN
+   ========================================================= */
+function renderDias() {
+  const today = todayIso();
+  const rows = DAYS.map((d, i) => {
+    const date = isoToDate(d.iso);
+    let cls = 'day-row';
+    if (d.iso < today) cls += ' past';
+    if (d.iso === today) cls += ' current';
+    return `
+      <button class="${cls}" data-day-iso="${d.iso}">
+        <div class="day-row-date">
+          <div class="day-row-day">${date.getDate()}</div>
+          <div class="day-row-month">${M_SHORT[date.getMonth()]}</div>
+        </div>
+        <div class="day-row-body">
+          <div class="day-row-city">${d.bundle}</div>
+          <div class="day-row-activity">${d.activity}</div>
+        </div>
+        <div class="day-row-ico">${svg(d.icon || 'monument')}</div>
+      </button>
+    `;
+  }).join('');
+  document.getElementById('screenDias').innerHTML = `
+    <div class="sec-head">
+      <h2>Dieciocho días</h2>
+      <span class="sec-sub">25 may – 11 jun</span>
+    </div>
+    <div class="days-list">${rows}</div>
+  `;
+  document.querySelectorAll('#screenDias .day-row').forEach(el => {
+    el.addEventListener('click', () => {
+      openDayDetail(el.dataset.dayIso);
+    });
+  });
+}
+
+function openDayDetail(iso) {
+  const d = DAYS[dayIndex(iso)];
+  if (!d) return;
+  const evHtml = d.events.length ? d.events.map((e, i) => {
+    if (e.kind === 'choice') return renderChoice(e, d.iso, i, 'future');
+    // for day-detail, show all expanded
+    return `
+      <div class="event future open" data-event-key="${eventKey(d.iso, i)}">
+        <div class="event-head">
+          <span class="event-time">${e.time||''}</span>
+          <span class="event-icon ${e.type||''}">${svg(e.type)||svg('rest')}</span>
+          <span class="event-title">${e.title||''}</span>
+        </div>
+        <div class="event-body">${renderEventBody(e, d.iso)}</div>
+      </div>
+    `;
+  }).join('') : `<div style="color:var(--ink-mute);font-style:italic;font-family:var(--serif);font-size:16px;padding:10px 0">${d.tone||''}</div>`;
+  const notesHtml = (d.notes||[]).map(n => `
+    <div class="note"><div class="note-title">${n.title}</div><div class="note-body">${n.body}</div></div>
+  `).join('');
+  const dateLong = `${d.weekday} ${fmtLong(d.iso)}`;
+  openModal(`
+    <div style="max-height:75vh;overflow-y:auto;padding-right:4px">
+      <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--terracotta);font-weight:600">${dateLong}</div>
+      <h3 class="modal-title">${d.bundle}</h3>
+      <div style="font-family:var(--serif);font-style:italic;color:var(--azulejo);font-size:16px;margin-bottom:14px">${d.activity}</div>
+      ${d.drive ? `<div class="day-route" style="margin-bottom:12px">${svg('car')}<span>${d.drive.from} → ${d.drive.to} · ${d.drive.dist}${d.drive.time ? ' · ' + d.drive.time : ''}</span></div>` : ''}
+      ${d.tone ? `<div class="day-tone" style="margin-bottom:14px">${d.tone}</div>` : ''}
+      <div class="timeline">${evHtml}</div>
+      ${notesHtml ? `<div class="notes-block">${notesHtml}</div>` : ''}
+    </div>
+    <div class="modal-actions" style="margin-top:14px"><button class="act ghost" style="flex:1;justify-content:center" onclick="closeModal()">Cerrar</button></div>
+  `);
+  // attach choice handlers within modal
+  document.querySelectorAll('#modalContent .choice-opt').forEach(el => {
+    el.addEventListener('click', () => {
+      const k = el.dataset.choiceKey;
+      state.choices[k] = el.dataset.optId;
+      saveState();
+      openDayDetail(iso);
+    });
+  });
+}
+
+/* =========================================================
+   HOTELES SCREEN
+   ========================================================= */
+function hotelStatus(h) {
+  const today = todayIso();
+  // find the day window for this hotel
+  const days = DAYS.filter(d => d.hotel === h.id);
+  if (!days.length) return 'future';
+  const first = days[0].iso, last = days[days.length-1].iso;
+  if (today > last) return 'past';
+  if (today >= first && today <= last) return 'current';
+  return 'future';
+}
+function renderHoteles() {
+  let nextMarked = false;
+  const today = todayIso();
+  const cards = HOTELS.map(h => {
+    let status = hotelStatus(h);
+    let isNext = false;
+    if (!nextMarked && status === 'future') { isNext = true; nextMarked = true; }
+    const open = status === 'past' ? !!state.openHotel[h.id] : true;
+    const pillTxt = status === 'current' ? 'Aquí ahora' : status === 'past' ? 'Ya estuviste' : (isNext ? 'Próximo' : 'Próximo destino');
+    const body = `
+      <div class="hotel-body">
+        <div class="hotel-meta">${h.address}</div>
+        <div class="hotel-code">
+          <div class="hotel-code-block">
+            <div class="hotel-code-label">${h.codeNote || 'Localizador'}</div>
+            <div class="hotel-code-val">${h.code}</div>
+          </div>
+          <button class="copy-btn" onclick="copyToClipboard('${h.code}', this)">${svg('copy')}Copiar</button>
+          <button class="code-enlarge" onclick="enlargeCode('${h.name}', '${h.code}')" aria-label="Agrandar">${svg('expand')}</button>
+        </div>
+        ${h.codeAlt ? `<div class="hotel-code" style="margin-top:6px">
+          <div class="hotel-code-block">
+            <div class="hotel-code-label">Referencia</div>
+            <div class="hotel-code-val">${h.codeAlt}</div>
+          </div>
+          <button class="copy-btn" onclick="copyToClipboard('${h.codeAlt}', this)">${svg('copy')}Copiar</button>
+        </div>` : ''}
+        <div class="hotel-actions">
+          <a class="act primary" href="${hotelMapsUrl(h)}" target="_blank" rel="noopener">${svg('maps')}Cómo llegar</a>
+          <a class="act secondary" href="${telUrl(h.phone)}">${svg('phone')}Llamar</a>
+          ${h.email ? `<a class="act ghost" href="${mailUrl(h.email)}">${svg('mail')}Email</a>` : ''}
+          ${h.web ? `<a class="act ghost" href="${webUrl(h.web)}" target="_blank" rel="noopener">${svg('web')}Web</a>` : ''}
+        </div>
+        ${h.note ? `<div class="note" style="margin-top:10px"><div class="note-body">${h.note}</div></div>` : ''}
+      </div>
+    `;
+    const openCls = (status === 'past' && state.openHotel[h.id]) ? ' open' : '';
+    return `
+      <div class="hotel-card ${status}${isNext ? ' next' : ''}${openCls}" data-hotel-id="${h.id}">
+        <div class="hotel-head">
+          <div style="flex:1;min-width:0">
+            <span class="hotel-pill">${pillTxt}</span>
+            <div class="hotel-city">${h.city}</div>
+            <div class="hotel-name">${h.name}</div>
+            <div class="hotel-meta" style="margin-top:2px">${h.dates}</div>
+          </div>
+          <div class="hotel-nights"><span class="num">${h.nights}</span>noche${h.nights>1?'s':''}</div>
+        </div>
+        ${(status !== 'past' || state.openHotel[h.id]) ? body : ''}
+      </div>
+    `;
+  }).join('');
+  document.getElementById('screenHoteles').innerHTML = `
+    <div class="sec-head"><h2>Hoteles</h2><span class="sec-sub">9 alojamientos</span></div>
+    <div class="hotels-list">${cards}</div>
+  `;
+  document.querySelectorAll('#screenHoteles .hotel-card.past').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target.closest('a') || e.target.closest('button')) return;
+      const id = el.dataset.hotelId;
+      state.openHotel[id] = !state.openHotel[id];
+      saveState();
+      renderHoteles();
+    });
+  });
+}
+
+/* =========================================================
+   INFO SCREEN (accordions, all closed)
+   ========================================================= */
+function renderInfo() {
+  const reservas = RESERVATIONS.map(r => {
+    const cls = r.booked ? '' : 'pending';
+    const status = r.booked ? '<span class="res-status ok">Reservada</span>' : '<span class="res-status todo">Sin reserva</span>';
+    return `
+      <div class="res-item ${cls}">
+        <div class="res-row"><div class="res-name">${r.name}</div>${status}</div>
+        <div class="res-detail">${r.detail}</div>
+        <div class="res-foot">
+          <span>Visita ${fmtLong(r.visitIso)}</span>
+          ${r.url ? `<a class="act ghost" style="padding:5px 10px;font-size:11px" href="${r.url}" target="_blank" rel="noopener">${svg('web')}${r.actionLabel || 'Ver'}</a>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const tramos = [
+    'Madrid → Toledo · 1 h corta. Salir directo del aeropuerto.',
+    'Toledo → Córdoba · 3 h 30 m por la A-4 + parada en Consuegra (molinos de Don Quijote).',
+    'Córdoba → Sevilla · 1 h 40 m por autopista, sin paradas.',
+    'Sevilla → Carmona · 35 m. Llegada relajada al Parador.',
+    'Carmona → Jerez → Costa · 1 h a Jerez; luego Vejer y Caños de Meca.',
+    'Jerez → Ronda · 2 h por la A-382 (viñedos, dehesas, sierra).',
+    'Ronda → Setenil → Grazalema → Ronda · medio día, distancias cortas.',
+    'Ronda → Frigiliana → Málaga · 3 h con parada en Frigiliana.',
+    'Málaga → Granada · 1 h 30 m por la A-92.',
+    'Granada → Madrid · 4 h 30 m por la A-4. Día reservado al traslado.'
+  ];
+
+  const evitar = [
+    'Puerto Banús, Mijas, Costa del Sol urbanizada — opuesto al espíritu del viaje.',
+    'Cádiz capital el mismo día que Jerez + Vejer + Caños — agotador. Elegir uno.',
+    'Iznájar, Priego, Úbeda, Guadix, Aracena, Caravaca, Murcia, Huelva — fuera de ruta lógica o ya muy denso.',
+    'Colomares (Benalmádena) — pintoresco pero fuera de ruta y algo kitsch.'
+  ];
+
+  const avisos = [
+    {title:'Alhambra', body:'El ticket es nominal y se controla al ingresar a los Palacios Nazaríes con el pasaporte. La franja de Palacios es estricta — si llegan tarde, no las dejan entrar.'},
+    {title:'Pulsera Toledo', body:'Por 12 € acceso a 7 monumentos: Iglesia de los Jesuitas, Iglesia del Salvador, Santo Tomé, San Juan de los Reyes, Santa María la Blanca, Mezquita del Cristo de la Luz, Real Colegiata de Santa María.'},
+    {title:'Horarios de comida', body:'Almuerzo 14:00–15:30. Cena desde las 21:00. Muchos restaurantes cierran entre 16:00 y 20:00. Los hoteles ofrecen cena más temprano (desde 19:30).'},
+    {title:'Domingos', body:'Muchos comercios cierran. Los museos abren con horario reducido. Ajustar compras a sábado o lunes.'}
+  ];
+
+  function acc(id, ico, title, content) {
+    const open = state.openAcc[id] ? 'open' : '';
+    return `
+      <div class="acc ${open}" data-acc-id="${id}">
+        <button class="acc-head">
+          <div class="acc-ico">${svg(ico)}</div>
+          <div class="acc-title">${title}</div>
+          <svg class="acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I.caret}</svg>
+        </button>
+        <div class="acc-body">${content}</div>
+      </div>
+    `;
+  }
+
+  document.getElementById('screenInfo').innerHTML = `
+    <div class="sec-head"><h2>Información</h2><span class="sec-sub">Reservas, ruta y avisos</span></div>
+    <div class="info-list">
+      ${acc('reservas','ticket','Reservas anticipadas', `<div class="res-list">${reservas}</div>`)}
+      ${acc('ruta','car','El recorrido en auto', `<div class="tip-list">${tramos.map(t => `<div class="tip"><div class="tip-body">${t}</div></div>`).join('')}</div>`)}
+      ${acc('evitar','warning','Lo que conviene evitar', `<div class="tip-list">${evitar.map(t => `<div class="tip" style="border-left-color:var(--terracotta)"><div class="tip-body">${t}</div></div>`).join('')}</div>`)}
+      ${acc('avisos','alert','Avisos importantes', `<div class="tip-list">${avisos.map(a => `<div class="tip"><div class="tip-title">${a.title}</div><div class="tip-body">${a.body}</div></div>`).join('')}</div>`)}
+      ${acc('ritmo','rest','Sobre el ritmo general', `<div class="tip"><div class="tip-body">Ningún día requiere más de 3 h 30 m de auto, y la mayoría son trayectos cortos. Tres bloques de descanso real: Córdoba 2 noches, Ronda 2 noches, Granada 3 noches, Málaga 2 noches, Madrid 3 noches. La idea: no agregar ciudades extra.</div></div>`)}
+    </div>
+  `;
+  document.querySelectorAll('#screenInfo .acc').forEach(el => {
+    el.querySelector('.acc-head').addEventListener('click', () => {
+      const id = el.dataset.accId;
+      state.openAcc[id] = !state.openAcc[id];
+      saveState();
+      el.classList.toggle('open');
+    });
+  });
+}
+
+/* =========================================================
+   TABS
+   ========================================================= */
+function switchTab(tab) {
+  state.tab = tab;
+  saveState();
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('screenHoy').hidden = tab !== 'hoy';
+  document.getElementById('screenDias').hidden = tab !== 'dias';
+  document.getElementById('screenHoteles').hidden = tab !== 'hoteles';
+  document.getElementById('screenInfo').hidden = tab !== 'info';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+
+/* =========================================================
+   SCROLL: hide topbar after threshold, peek on scroll up
+   ========================================================= */
+let lastScroll = 0;
+let scrollDir = 'down';
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  if (y > 80) document.body.classList.add('scrolled');
+  else { document.body.classList.remove('scrolled'); document.getElementById('topbar').classList.remove('peek'); }
+  if (y < lastScroll - 10 && y > 80) {
+    document.getElementById('topbar').classList.add('peek');
+  } else if (y > lastScroll + 4) {
+    document.getElementById('topbar').classList.remove('peek');
+  }
+  lastScroll = y;
+}, { passive: true });
+
+/* =========================================================
+   FAB
+   ========================================================= */
+document.getElementById('fab').addEventListener('click', openEmergency);
+
+/* =========================================================
+   INIT
+   ========================================================= */
+function init() {
+  renderTopbar();
+  renderHoy();
+  renderDias();
+  renderHoteles();
+  renderInfo();
+  switchTab(state.tab || 'hoy');
+}
+init();
+
+// Re-render Hoy every 5 minutes to keep current/past status fresh
+setInterval(() => {
+  if (state.tab === 'hoy') renderHoy();
+  renderTopbar();
+}, 5 * 60 * 1000);
+
+</script>
+</body>
+</html>
