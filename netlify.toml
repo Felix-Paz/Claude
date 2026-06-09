@@ -1,0 +1,3 @@
+# Memory Palace Builder — static single-file app
+[build]
+  publish = "."
