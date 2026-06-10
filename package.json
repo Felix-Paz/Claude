@@ -1,0 +1,19 @@
+{
+  "name": "tique-critique-factory",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "TIQUE: The Critique Factory — a living 3D machine that judges writing with personality.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
+    "three": "^0.182.0"
+  },
+  "devDependencies": {
+    "vite": "^7.3.0"
+  }
+}
