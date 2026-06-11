@@ -1,6 +1,7 @@
-/* FCE Mastery — adaptive engine. 100% local: Elo ability tracking, per-skill mastery
-   with forgetting curves, SM-2-style spaced repetition, confidence calibration,
-   mistake-DNA, Cambridge-scale score prediction, and the study coach. */
+/* Mastery (FCE Edition) — adaptive engine. 100% on-device.
+   Elo ability · skill mastery with forgetting · spaced repetition · answer diagnosis
+   (spelling / word-family / word-class) · behavioural confidence inference ·
+   error generalization (reinforce the CONCEPT in new exercises) · grade prediction. */
 window.FCE = window.FCE || {};
 (function(){
 var E = FCE.engine = {};
@@ -10,19 +11,22 @@ var DAY = 86400000;
 /* ---------------- state ---------------- */
 E.blank = function(){
   return {
-    v:1, name:'', examDate:'', createdAt:Date.now(), onboarded:false,
-    settings:{dailyGoal:20, emergency:false},
+    v:2, name:'', examDate:'', createdAt:Date.now(), onboarded:false,
+    settings:{dailyGoal:20, emergency:false, lite:'auto'},
     xp:0, streak:{count:0, last:''}, badges:[], records:{bestRun:0, bestAcc:0, total:0},
     week:{id:'', counts:{}},
     ability:{kwt:1150, cloze:1150, wf:1150, mcc:1150},
-    tags:{},        // tagId -> {att,cor,m,last,lapses,causes:{},hist:[]}
-    items:{},       // itemId -> {att,cor,last,due,ivl,ease,lapses,conf:''}
-    gaps:{},        // gapType -> {att,cor,recent:[]}
+    tags:{}, items:{}, gaps:{},
     calib:{g:{att:0,cor:0}, f:{att:0,cor:0}, s:{att:0,cor:0}},
-    log:[],         // {t,id,type,tags,gt,ok,conf,ms,cause,ans,user}
-    sessions:[],    // {t,n,ok,type}
-    mocks:[],       // {t,score,max,scale,parts}
-    trend:[],       // rolling per-session accuracy {t,acc,n}
+    log:[], sessions:[], mocks:[], trend:[],
+    passSeen:{},
+    beh:{ n:0, ttfkSum:0, editSum:0, pauseSum:0, changed:0, changedRight:0, selfCorrect:0, hiddenHesit:0, fluentSure:0, skips:0, fastRight:0 },
+    boost:{},            // tag -> remaining reinforcement count (error generalization)
+    wants:{},            // itemId -> {t, tag, cleared:0} — "I want to master this"
+    accepts:{},          // itemId -> [extra accepted answers] (user reported "I was right")
+    reports:[],          // {t,id,user} app-mistake reports
+    spell:{pat:{}, words:{}}, // spelling-error patterns + the exact words missed
+    spellSeen:{},        // spelling-gym word -> wins
   };
 };
 E.state = null;
@@ -32,14 +36,21 @@ E.load = function(){
     E.state = raw ? JSON.parse(raw) : E.blank();
   }catch(e){ E.state = E.blank(); }
   if(!E.state.v) E.state = E.blank();
+  var b = E.blank(); // migrate forward: fill anything missing
+  Object.keys(b).forEach(function(k){ if(E.state[k] === undefined) E.state[k] = b[k]; });
+  ['boost','wants','accepts','passSeen','spellSeen'].forEach(function(k){ if(!E.state[k]) E.state[k]={}; });
+  if(!E.state.spell) E.state.spell = {pat:{}, words:{}};
+  if(!E.state.reports) E.state.reports = [];
+  if(!E.state.settings.lite) E.state.settings.lite = 'auto';
   return E.state;
 };
 E.save = function(){ try{ localStorage.setItem(KEY, JSON.stringify(E.state)); }catch(e){} };
 E.reset = function(){ E.state = E.blank(); E.save(); };
 E.export = function(){ return JSON.stringify(E.state, null, 1); };
-E.import = function(json){ var s = JSON.parse(json); if(!s || !s.v) throw new Error('bad file'); E.state = s; E.save(); };
+E.import = function(json){ var s = JSON.parse(json); if(!s || !s.v) throw new Error('bad file'); E.state = s; E.load2(); E.save(); };
+E.load2 = function(){ var b=E.blank(); Object.keys(b).forEach(function(k){ if(E.state[k]===undefined) E.state[k]=b[k]; }); };
 
-/* ---------------- item access ---------------- */
+/* ---------------- bank access ---------------- */
 E.allItems = function(){
   var B = FCE.BANK, out = [];
   B.kwt.forEach(function(q){ out.push({q:q, type:'kwt'}); });
@@ -49,12 +60,11 @@ E.allItems = function(){
   return out;
 };
 E.byId = {};
-E.indexBank = function(){
-  E.allItems().forEach(function(it){ E.byId[it.q.id] = it; });
-};
+E.indexBank = function(){ E.allItems().forEach(function(it){ E.byId[it.q.id] = it; }); };
 E.itemState = function(id){
   var s = E.state.items[id];
-  if(!s){ s = E.state.items[id] = {att:0,cor:0,last:0,due:0,ivl:0,ease:2.3,lapses:0,conf:''}; }
+  if(!s){ s = E.state.items[id] = {att:0,cor:0,last:0,due:0,ivl:0,ease:2.3,lapses:0,conf:'',hist:[]}; }
+  if(!s.hist) s.hist = [];
   return s;
 };
 E.tagState = function(tag){
@@ -73,30 +83,100 @@ E.norm = function(s){
 E.wordCount = function(s){
   var t = E.norm(s); if(!t) return 0;
   var toks = t.split(' '), n = 0;
-  toks.forEach(function(w){
-    n += 1;
-    // Cambridge rule: contractions count as two words (isn't = is not). Possessive 's is ambiguous; we follow the contraction rule.
-    if(/[a-z]'(t|s|ll|re|ve|d|m)\b/.test(w)) n += 1;
-  });
+  toks.forEach(function(w){ n += 1; if(/[a-z]'(t|s|ll|re|ve|d|m)\b/.test(w)) n += 1; });
   return n;
 };
+function userAccepts(q, u){
+  var ex = E.state.accepts[q.id];
+  return !!(ex && ex.indexOf(u) !== -1);
+}
 E.gradeKWT = function(q, user){
   var u = E.norm(user);
-  var full = q.ans.some(function(a){ return E.norm(a) === u; });
+  var full = q.ans.some(function(a){ return E.norm(a) === u; }) || userAccepts(q, u);
   if(full) return {score:2, ok:true};
   var hits = 0;
   q.halves.forEach(function(h){
     if(h.some(function(a){ return u.indexOf(E.norm(a)) !== -1; })) hits++;
   });
-  return {score: hits >= 2 ? 1 : (hits === 1 ? 1 : 0), ok:false};
+  return {score: hits >= 1 ? 1 : 0, ok:false};
 };
-E.gradeOne = function(q, user){ // cloze + wf: exact one-word match against list
+E.gradeOne = function(q, user){
   var u = E.norm(user);
-  return q.ans.some(function(a){ return E.norm(a) === u; });
+  return q.ans.some(function(a){ return E.norm(a) === u; }) || userAccepts(q, u);
 };
 
-/* ---------------- Elo ability & difficulty ---------------- */
-E.qElo = function(q){ return 950 + (q.diff||2)*110; };           // diff 1..5 -> 1060..1500
+/* ---------------- answer diagnosis (what KIND of wrong was it?) ---------------- */
+E.lev = function(a, b){
+  a = String(a); b = String(b);
+  if(Math.abs(a.length-b.length) > 3) return 99;
+  var m = [], i, j;
+  for(i=0;i<=b.length;i++) m[i]=[i];
+  for(j=0;j<=a.length;j++) m[0][j]=j;
+  for(i=1;i<=b.length;i++) for(j=1;j<=a.length;j++)
+    m[i][j] = Math.min(m[i-1][j]+1, m[i][j-1]+1, m[i-1][j-1] + (b[i-1]===a[j-1]?0:1));
+  return m[b.length][a.length];
+};
+E.classOf = function(w){
+  w = E.norm(w);
+  var order = ['art','modal','aux','rel','pron','det','comp','prep','advpart','link'];
+  for(var i=0;i<order.length;i++){
+    if(FCE.WORDCLASS[order[i]].indexOf(w) !== -1) return order[i];
+  }
+  return null;
+};
+function stemOverlap(a, b){
+  var n = 0, L = Math.min(a.length, b.length);
+  while(n < L && a[n] === b[n]) n++;
+  return n;
+}
+/* Returns {code, msg, right} — codes: blank | spell | family | class | key | half | wrong */
+E.diagnose = function(q, type, user){
+  var u = E.norm(user);
+  var best = E.norm(q.ans[0]);
+  if(!u) return {code:'blank', msg:'Left blank — in the real exam ALWAYS write something; blanks score zero with certainty.', right:best};
+  if(type === 'kwt'){
+    if(u.indexOf(E.norm(q.key)) === -1)
+      return {code:'key', msg:'Your answer doesn’t contain the key word “'+q.key+'” — Cambridge gives 0 even if the grammar is perfect.', right:best};
+    var hits = 0;
+    q.halves.forEach(function(h){ if(h.some(function(a){ return u.indexOf(E.norm(a)) !== -1; })) hits++; });
+    if(hits === 1) return {code:'half', msg:'Half right — one of the two marking chunks is there. In the exam this earns 1 of 2 marks.', right:best};
+    return {code:'wrong', msg:'', right:best};
+  }
+  // single-word answers (cloze / wf)
+  var bestDist = 99, bestAns = best;
+  q.ans.forEach(function(a){
+    var d = E.lev(u, E.norm(a));
+    if(d < bestDist){ bestDist = d; bestAns = E.norm(a); }
+  });
+  var tol = bestAns.length >= 7 ? 2 : 1;
+  if(bestDist > 0 && bestDist <= tol)
+    return {code:'spell', msg:'You had the right word — the spelling betrayed you: “'+user.trim()+'” → “'+bestAns+'”. At Cambridge, spelling is all-or-nothing.', right:bestAns};
+  var ov = stemOverlap(u, bestAns);
+  if(ov >= 4 && Math.abs(u.length - bestAns.length) <= 5)
+    return {code:'family', msg:'Right word family, wrong form: “'+user.trim()+'” vs “'+bestAns+'”. Re-read the sentence — what part of speech does the gap demand?', right:bestAns};
+  if(type === 'cloze' && q.gt && FCE.GT2CLASS[q.gt]){
+    var need = FCE.GT2CLASS[q.gt], got = E.classOf(u);
+    if(got && got !== need)
+      return {code:'class', msg:'You wrote a '+FCE.CLASSNAMES[got]+' (“'+user.trim()+'”), but this gap needs a '+FCE.CLASSNAMES[need]+'. Look at the words either side of the gap.', right:bestAns};
+  }
+  return {code:'wrong', msg:'', right:bestAns};
+};
+/* Spelling error pattern classifier */
+E.spellPattern = function(wrong, right){
+  wrong = E.norm(wrong); right = E.norm(right);
+  function squash(s){ return s.replace(/(.)\1+/g,'$1'); }
+  if(squash(wrong) === squash(right)) return {id:'double', name:'double letters', tip:'Your enemy is the double letter (occurrence, beginning, necessary). Say the word slowly and tap each doubled letter twice.'};
+  if(wrong.replace(/ie/g,'ei') === right || wrong.replace(/ei/g,'ie') === right) return {id:'ie', name:'ie / ei order', tip:'I before E except after C — and learn the rebels (foreign, height) by heart.'};
+  if(wrong.replace(/tion/g,'sion') === right || wrong.replace(/sion/g,'tion') === right) return {id:'tion', name:'-tion vs -sion', tip:'decide→decision, explain→explanation: the verb’s final sound usually decides T or S.'};
+  var wv = wrong.replace(/[aeiou]/g,'•'), rv = right.replace(/[aeiou]/g,'•');
+  if(wv === rv && wrong !== right) return {id:'vowel', name:'weak vowel choice', tip:'Unstressed vowels all sound like “uh” (separate, definite). Anchor the letter visually: sep-A-rate has A RAT in it.'};
+  if(wrong.length === right.length - 1 && right.indexOf('e') !== -1) return {id:'silente', name:'dropped letters', tip:'A letter is going missing — usually a silent E or a quiet N (government). Write the word out by hand, slowly, once.'};
+  if(wrong.length === right.length && squash(wrong) !== wrong) return {id:'double', name:'double letters', tip:'Check which letter doubles — and which doesn’t (until has one L).'};
+  return {id:'other', name:'letter order / shape', tip:'Photograph the word: write it large, circle the danger zone, then write it twice from memory.'};
+};
+
+/* ---------------- Elo, mastery, forgetting ---------------- */
+E.qElo = function(q){ return 950 + (q.diff||2)*110; };
 E.pWin = function(ability, qe){ return 1/(1+Math.pow(10,(qe-ability)/400)); };
 E.updAbility = function(type, q, ok){
   var a = E.state.ability, n = E.state.records.total;
@@ -104,45 +184,46 @@ E.updAbility = function(type, q, ok){
   var p = E.pWin(a[type], E.qElo(q));
   a[type] = Math.max(700, Math.min(1700, a[type] + k*((ok?1:0)-p)));
 };
-
-/* ---------------- mastery with forgetting ---------------- */
 E.recordTag = function(tag, ok, weight){
   var t = E.tagState(tag);
   t.att++; if(ok) t.cor++;
-  var alpha = Math.max(0.12, 1/(t.att)) * (weight||1);
-  alpha = Math.min(0.5, alpha);
+  var alpha = Math.min(0.5, Math.max(0.12, 1/(t.att)) * (weight||1));
   t.m = Math.max(0, Math.min(1, t.m + alpha*((ok?1:0) - t.m)));
   if(!ok) t.lapses++;
   t.last = Date.now();
   t.hist.push(ok?1:0); if(t.hist.length>30) t.hist.shift();
 };
-E.mEff = function(tag){ // mastery decayed toward 0.5 (uncertainty) with time unseen
+E.mEff = function(tag){
   var t = E.state.tags[tag];
   if(!t || !t.att) return null;
   var days = (Date.now()-t.last)/DAY;
   return 0.5 + (t.m-0.5)*Math.exp(-days/12);
 };
-E.tagTrend = function(tag){ // recent half vs older half of hist
+E.tagTrend = function(tag){
   var t = E.state.tags[tag];
   if(!t || t.hist.length < 6) return 0;
   var h = t.hist, mid = Math.floor(h.length/2);
   var a = h.slice(0,mid), b = h.slice(mid);
-  var av = a.reduce(function(x,y){return x+y;},0)/a.length;
-  var bv = b.reduce(function(x,y){return x+y;},0)/b.length;
-  return bv - av;
+  return b.reduce(function(x,y){return x+y;},0)/b.length - a.reduce(function(x,y){return x+y;},0)/a.length;
 };
 
-/* ---------------- spaced repetition (compressed for exam-week cramming) ---------------- */
-E.schedule = function(id, ok, conf){
+/* ---------------- expected pace ---------------- */
+E.par = function(type, diff){
+  var base = {mcc:35, cloze:35, wf:35, kwt:60}[type] || 40;
+  return Math.round(base * (0.75 + 0.125*(diff||3)));
+};
+
+/* ---------------- spaced repetition ---------------- */
+E.schedule = function(id, ok, conf, fast){
   var it = E.itemState(id), now = Date.now();
   if(ok){
-    var lucky = (conf === 'g'); // lucky guess: re-test soon, half credit to interval
-    if(it.ivl === 0) it.ivl = lucky ? 0.25 : 1;
-    else it.ivl = Math.min(15, it.ivl * (lucky ? 1.2 : it.ease));
+    var lucky = (conf === 'g');
+    if(it.ivl === 0) it.ivl = lucky ? 0.25 : (fast ? 1.6 : 1);
+    else it.ivl = Math.min(15, it.ivl * (lucky ? 1.2 : it.ease) * (fast ? 1.15 : 1));
     it.ease = Math.min(2.8, it.ease + (conf==='s' ? 0.08 : 0.02));
   }else{
-    it.lapses++; it.ivl = 0.2; // ~5h
-    it.ease = Math.max(1.4, it.ease - (conf==='s' ? 0.3 : 0.18)); // false confidence hits harder
+    it.lapses++; it.ivl = 0.2;
+    it.ease = Math.max(1.4, it.ease - (conf==='s' ? 0.3 : 0.18));
   }
   it.due = now + it.ivl*DAY;
 };
@@ -155,50 +236,162 @@ E.dueItems = function(){
   out.sort(function(a,b){ return E.state.items[a].due - E.state.items[b].due; });
   return out;
 };
-E.leeches = function(){ // items failed 3+ times -> memory lab
+E.leeches = function(){
   return Object.keys(E.state.items).filter(function(id){
     var it = E.state.items[id];
     return it.lapses >= 3 && E.byId[id];
   });
+};
+/* wobbly = right-wrong-right-wrong pattern: it isn't sticking */
+E.isWobbly = function(id){
+  var it = E.state.items[id];
+  if(!it || !it.hist || it.hist.length < 3) return false;
+  var flips = 0;
+  for(var i=1;i<it.hist.length;i++) if(it.hist[i] !== it.hist[i-1]) flips++;
+  return flips >= 2 && it.hist.indexOf(0) !== -1;
+};
+
+/* ---------------- behavioural confidence inference ---------------- */
+E.inferConf = function(beh, ms, parMs){
+  if(!beh) return 'f';
+  var hesit = (beh.ttfk||0) > 4000 || (beh.edits||0) >= 6 || (beh.pauses||0) >= 2 || beh.changed;
+  var fluent = (beh.ttfk||0) > 0 && (beh.ttfk||0) < 2600 && (beh.edits||0) <= 1 && !beh.changed && ms < parMs;
+  if(fluent) return 's';
+  if(hesit) return 'g';
+  return 'f';
 };
 
 /* ---------------- the master record call ---------------- */
 E.record = function(q, type, ok, conf, ms, user, cause, opts){
   opts = opts || {};
   var st = E.state, now = Date.now();
-  // weight: certain-but-wrong counts extra (false confidence), guess-and-right counts half (lucky)
+  var parMs = E.par(type, q.diff) * 1000;
+  var beh = opts.beh;
+  var declared = !!conf;
+  var effConf = conf || E.inferConf(beh, ms||parMs, parMs);
+  var fast = ok && ms > 0 && ms < parMs*0.8 && (!beh || (beh.edits||0) <= 1);
+
   var w = 1;
-  if(!ok && conf==='s') w = 1.5;
-  if(ok && conf==='g') w = 0.5;
+  if(!ok && effConf==='s') w = 1.3;
+  if(ok && effConf==='g') w = 0.5;
+  if(fast) w *= 1.1;
   (q.tags||[]).forEach(function(t){ E.recordTag(t, ok, w); });
+
   if(type==='cloze' && q.gt){
     var g = st.gaps[q.gt] || (st.gaps[q.gt]={att:0,cor:0,recent:[]});
     g.att++; if(ok) g.cor++;
     g.recent.push(ok?1:0); if(g.recent.length>14) g.recent.shift();
   }
   var it = E.itemState(q.id);
-  it.att++; if(ok) it.cor++; it.last = now; it.conf = conf;
-  E.schedule(q.id, ok, conf);
+  it.att++; if(ok) it.cor++; it.last = now; it.conf = effConf;
+  it.hist.push(ok?1:0); if(it.hist.length>10) it.hist.shift();
+  E.schedule(q.id, ok, effConf, fast);
   E.updAbility(type, q, ok);
-  if(conf && st.calib[conf]){ st.calib[conf].att++; if(ok) st.calib[conf].cor++; }
-  st.log.push({t:now, id:q.id, type:type, tags:q.tags||[], gt:q.gt||'', ok:ok?1:0,
-               conf:conf, ms:ms||0, cause:cause||'', user:String(user||'').slice(0,80)});
+  if(declared && st.calib[conf]){ st.calib[conf].att++; if(ok) st.calib[conf].cor++; }
+
+  var entry = {t:now, id:q.id, type:type, tags:q.tags||[], gt:q.gt||'', ok:ok?1:0,
+               conf:declared?conf:'', iconf:effConf, ms:ms||0, cause:cause||'', user:String(user||'').slice(0,80)};
+  if(opts.diag) entry.diag = opts.diag.code;
+  if(beh){
+    entry.beh = beh;
+    var B = st.beh;
+    B.n++; B.ttfkSum += beh.ttfk||0; B.editSum += beh.edits||0; B.pauseSum += beh.pauses||0;
+    if(beh.skipped) B.skips++;
+    if(beh.changed){
+      B.changed++;
+      if(beh.firstRight && !ok) B.changedRight++;
+      if(!beh.firstRight && ok) B.selfCorrect++;
+    }
+    var hes = (beh.ttfk||0) > 4000 || (beh.edits||0) >= 6 || (beh.pauses||0) >= 2;
+    if(declared && conf==='s' && hes) B.hiddenHesit++;
+    if(declared && conf==='g' && !hes && !beh.changed && ok) B.fluentSure++;
+    if(fast) B.fastRight++;
+    if(ok && hes){ it.ivl = Math.max(0.2, it.ivl*0.8); it.due = now + it.ivl*DAY; }
+  }
+  st.log.push(entry);
   if(st.log.length > 1500) st.log = st.log.slice(-1200);
-  // gamification
+
+  /* spelling intelligence */
+  if(opts.diag && opts.diag.code === 'spell'){
+    var sp = E.spellPattern(user, opts.diag.right);
+    st.spell.pat[sp.id] = (st.spell.pat[sp.id]||0)+1;
+    st.spell.words[opts.diag.right] = (st.spell.words[opts.diag.right]||0)+1;
+    entry.cause = entry.cause || 'spell';
+    var ts0 = q.tags||[]; ts0.forEach(function(t){ var s2=E.tagState(t); s2.causes.spell=(s2.causes.spell||0)+1; });
+  }
+
+  /* error generalization: a miss boosts the CONCEPT, so the idea returns in NEW exercises */
+  if(!ok){
+    (q.tags||[]).slice(0,2).forEach(function(t){
+      st.boost[t] = Math.min(8, (st.boost[t]||0) + (E.isWobbly(q.id) ? 3 : 2));
+    });
+  } else {
+    // wants clearing: a wanted item answered correctly twice in a row clears
+    var wnt = st.wants[q.id];
+    if(wnt){
+      wnt.cleared = (wnt.cleared||0)+1;
+      if(wnt.cleared >= 2){
+        delete st.wants[q.id];
+        var clearedCount = (st.wantsCleared = (st.wantsCleared||0)+1);
+        if(clearedCount >= 3) E.award('wants');
+        if(FCE.ui && FCE.ui.toast) FCE.ui.toast('🎯 Mastered: that one is off your Mastery List.');
+      }
+    }
+  }
+
   st.records.total++;
-  if(ok){ st.xp += 8 + (q.diff||2)*4 + (conf==='s'?3:0); } else { st.xp += 2; }
+  if(ok){ st.xp += 8 + (q.diff||2)*4 + (fast?4:0) + (effConf==='s'&&declared?3:0); } else { st.xp += 2; }
   E.touchStreak();
   E.bumpWeek(type, ok);
   if(!opts.quiet){ E.checkBadges(opts.runStreak||0); }
   E.save();
+  return {fast:fast, effConf:effConf, declared:declared};
 };
-E.setCause = function(cause){ // attach cause to last log entry + tag stats
+E.setCause = function(cause){
   var l = E.state.log[E.state.log.length-1];
   if(!l || l.ok) return;
   l.cause = cause;
   (l.tags||[]).forEach(function(t){
     var ts = E.tagState(t);
     ts.causes[cause] = (ts.causes[cause]||0)+1;
+  });
+  E.save();
+};
+
+/* "I was actually right" — accept the user's answer, repair the stats, log a report */
+E.amend = function(qid){
+  var st = E.state;
+  var l = null;
+  for(var i=st.log.length-1;i>=0;i--){ if(st.log[i].id===qid){ l = st.log[i]; break; } }
+  if(!l || l.ok) return false;
+  var u = E.norm(l.user);
+  if(!u) return false;
+  l.ok = 1; l.amended = true;
+  (st.accepts[qid] = st.accepts[qid] || []).push(u);
+  st.reports.push({t:Date.now(), id:qid, user:l.user});
+  (l.tags||[]).forEach(function(t){
+    var ts = E.tagState(t);
+    ts.cor++; ts.lapses = Math.max(0, ts.lapses-1);
+    ts.m = Math.min(1, ts.m + 0.25*(1-ts.m));
+    if(ts.hist.length) ts.hist[ts.hist.length-1] = 1;
+  });
+  var it = E.itemState(qid);
+  it.cor++; it.lapses = Math.max(0, it.lapses-1);
+  if(it.hist.length) it.hist[it.hist.length-1] = 1;
+  it.ivl = 2; it.due = Date.now() + 2*DAY;
+  if(l.gt && st.gaps[l.gt]){ st.gaps[l.gt].cor++; if(st.gaps[l.gt].recent.length) st.gaps[l.gt].recent[st.gaps[l.gt].recent.length-1]=1; }
+  (l.tags||[]).slice(0,2).forEach(function(t){ if(st.boost[t]) st.boost[t] = Math.max(0, st.boost[t]-2); });
+  st.xp += 12;
+  E.save();
+  return true;
+};
+
+/* "I want to master this" */
+E.addWant = function(qid){
+  var it = E.byId[qid]; if(!it) return;
+  E.state.wants[qid] = {t:Date.now(), tag:(it.q.tags||[])[0]||'', cleared:0};
+  (it.q.tags||[]).slice(0,2).forEach(function(t){
+    E.state.boost[t] = Math.min(10, (E.state.boost[t]||0) + 5);
   });
   E.save();
 };
@@ -228,7 +421,7 @@ E.challenge = function(){
   return {ch:ch, prog:Math.min(prog, ch.n), done:prog>=ch.n};
 };
 E.bumpWeek = function(type, ok){
-  E.challenge(); // ensures week reset
+  E.challenge();
   var c = E.state.week.counts;
   c[type] = (c[type]||0)+1;
   if(ok) c.correct = (c.correct||0)+1;
@@ -250,50 +443,52 @@ E.checkBadges = function(runStreak){
   if(st.calib.s.att >= 25 && st.calib.s.cor/st.calib.s.att >= 0.9) E.award('calib');
   var types = {}; st.log.forEach(function(l){ types[l.type]=1; });
   if(types.kwt && types.cloze && types.wf && types.mcc) E.award('allparts');
-  // comeback: an item with >=3 lapses now at 2+ consecutive correct (ivl>=2)
   var cb = Object.keys(st.items).some(function(id){ var it=st.items[id]; return it.lapses>=3 && it.ivl>=2; });
   if(cb) E.award('comeback');
 };
+E.level = function(){ return Math.floor(Math.sqrt(E.state.xp/90)) + 1; };
+E.levelProgress = function(){
+  var lvl = E.level();
+  var cur = Math.pow(lvl-1,2)*90, next = Math.pow(lvl,2)*90;
+  return (E.state.xp-cur)/(next-cur);
+};
 
-/* ---------------- score predictor (Cambridge scale 122–190) ---------------- */
+/* ---------------- grade prediction (Cambridge scale 122–190) ---------------- */
+var SCALE_MAP = [[0,126],[0.25,148],[0.40,158],[0.50,164],[0.60,170],[0.72,177],[0.82,183],[0.92,188],[1,190]];
+function toScale(p){
+  for(var i=0;i<SCALE_MAP.length-1;i++){
+    if(p >= SCALE_MAP[i][0] && p <= SCALE_MAP[i+1][0]){
+      var f = (p-SCALE_MAP[i][0])/(SCALE_MAP[i+1][0]-SCALE_MAP[i][0] || 1);
+      return SCALE_MAP[i][1] + f*(SCALE_MAP[i+1][1]-SCALE_MAP[i][1]);
+    }
+  }
+  return 126;
+}
 E.expectedAccuracy = function(){
-  // marks-weighted: P1 8, P2 8, P3 8, P4 12 of 36
-  var a = E.state.ability;
-  var acc = {};
+  var a = E.state.ability, acc = {};
   ['kwt','cloze','wf','mcc'].forEach(function(t){
-    // expected accuracy vs a mid-difficulty (diff 3) item
-    acc[t] = E.pWin(a[t], 950+3*110);
+    acc[t] = E.pWin(a[t], 950+2.8*110); // real exam sits slightly below our practice difficulty
   });
-  var p = (8*acc.mcc + 8*acc.cloze + 8*acc.wf + 12*acc.kwt) / 36;
-  return {p:p, per:acc};
+  return {p:(8*acc.mcc + 8*acc.cloze + 8*acc.wf + 12*acc.kwt)/36, per:acc};
 };
 E.predict = function(){
   var n = E.state.records.total;
   var ex = E.expectedAccuracy(), p = ex.p;
-  // blend with recent observed accuracy when available
-  var recent = E.state.log.slice(-60);
+  var recent = E.state.log.slice(-80);
   if(recent.length >= 10){
     var obs = recent.reduce(function(x,l){return x+l.ok;},0)/recent.length;
-    p = 0.6*p + 0.4*obs;
+    p = 0.55*p + 0.45*obs;
   }
-  // piecewise map accuracy -> Cambridge scale
-  var map = [[0,128],[0.30,145],[0.45,155],[0.55,160],[0.70,170],[0.82,180],[0.92,188],[1,190]];
-  var scale = 128;
-  for(var i=0;i<map.length-1;i++){
-    if(p >= map[i][0] && p <= map[i+1][0]){
-      var f = (p-map[i][0])/(map[i+1][0]-map[i][0] || 1);
-      scale = map[i][1] + f*(map[i+1][1]-map[i][1]);
-      break;
-    }
-  }
-  // mock results carry real weight
+  // practice here is deliberately harder than the exam (desirable difficulty) — correct for it
+  p = Math.min(1, p*1.05 + 0.02);
+  var scale = toScale(p);
   if(E.state.mocks.length){
     var last = E.state.mocks[E.state.mocks.length-1];
     scale = 0.55*scale + 0.45*last.scale;
   }
-  var ci = Math.max(2.5, 22/Math.sqrt(n+3)); // narrows with evidence
+  var ci = Math.max(2.5, 22/Math.sqrt(n+3));
   var sd = ci/1.6;
-  var phi = function(z){ // standard normal CDF approx
+  var phi = function(z){
     var t = 1/(1+0.2316419*Math.abs(z));
     var d = 0.3989423*Math.exp(-z*z/2);
     var pr = d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
@@ -301,15 +496,22 @@ E.predict = function(){
   };
   var pAbove = function(th){ return 1-phi((th-scale)/sd); };
   var pA = pAbove(180), pB = Math.max(0,pAbove(173)-pA), pC = Math.max(0,pAbove(160)-pA-pB);
+  var grade = scale>=180 ? 'A' : scale>=173 ? 'B' : scale>=160 ? 'C' : scale>=140 ? 'B1' : '—';
+  var borderline = Math.abs(scale-160)<=ci || Math.abs(scale-173)<=ci || Math.abs(scale-180)<=ci;
+  var label = grade==='A' ? 'Grade A — top 2% territory'
+            : grade==='B' ? 'Grade B — strong pass'
+            : grade==='C' ? 'Grade C — a pass'
+            : grade==='B1' ? 'Just below pass (B1 certificate)'
+            : 'Below pass — keep building';
   return {
     scale:Math.round(scale), ci:Math.round(ci), p:p, n:n, per:ex.per,
     pass:pAbove(160), pA:pA, pB:pB, pC:pC,
+    grade:grade, label:label, borderline:borderline,
     cefr: scale>=180 ? 'C1' : scale>=160 ? 'B2' : scale>=140 ? 'B1' : 'A2–B1',
-    grade: scale>=180 ? 'A' : scale>=173 ? 'B' : scale>=160 ? 'C' : (scale>=140?'B1 Cert':'Below')
   };
 };
 
-/* ---------------- coach: what to study next & why ---------------- */
+/* ---------------- coach ---------------- */
 E.coach = function(){
   var recs = [];
   Object.keys(FCE.TAGS).forEach(function(tag){
@@ -322,20 +524,20 @@ E.coach = function(){
       risk = 1 - m;
       var days = (Date.now()-t.last)/DAY;
       if(days > 3 && t.m > 0.6){ risk += 0.12; why = 'Was solid, but untouched for '+Math.round(days)+' days — forgetting has started.'; }
-      else if(t.lapses >= 4 && risk > 0.35){ why = 'Repeated misses ('+t.lapses+' errors so far) — a stubborn weakness.'; }
-      else if(risk > 0.5){ why = 'Accuracy '+Math.round((t.cor/t.att)*100)+'% over '+t.att+' tries — well below exam-safe.'; }
-      else why = 'Fine-tuning: close to mastery, cheap marks available.';
+      else if(t.lapses >= 4 && risk > 0.35){ why = 'A stubborn weakness ('+t.lapses+' misses so far).'; }
+      else if(risk > 0.5){ why = Math.round((t.cor/t.att)*100)+'% over '+t.att+' tries — below exam-safe.'; }
+      else why = 'Close to mastery — cheap marks still on the table.';
     }
-    var cost = meta.weight * Math.max(0, risk - 0.15); // marks at risk vs a strong candidate
-    recs.push({tag:tag, name:meta.name, risk:risk, cost:cost, why:why, seen:seen, m:m});
+    var boost = E.state.boost[tag] ? 0.3 : 0;
+    var cost = meta.weight * Math.max(0, risk - 0.15) + boost;
+    recs.push({tag:tag, name:meta.name, risk:risk, cost:cost, why:why, seen:seen, m:m, boosted:!!E.state.boost[tag]});
   });
   recs.sort(function(a,b){ return b.cost - a.cost; });
   return recs;
 };
 E.daysToExam = function(){
   if(!E.state.examDate) return null;
-  var d = Math.ceil((new Date(E.state.examDate+'T00:00:00') - new Date())/DAY);
-  return d;
+  return Math.ceil((new Date(E.state.examDate+'T00:00:00') - new Date())/DAY);
 };
 E.emergencyOn = function(){
   var d = E.daysToExam();
@@ -346,77 +548,115 @@ E.emergencyPlan = function(){
   var top = E.coach().slice(0,6);
   var names = top.map(function(r){ return r.name; });
   var plan = [
-    {day:1, title:'Damage report', what:'Smart Session ×2 + review every mistake', focus:names.slice(0,3).join(', ')},
+    {day:1, title:'Damage report', what:'Two Smart Sessions + review every mistake', focus:names.slice(0,3).join(', ')},
     {day:2, title:'Heaviest weakness', what:'20 targeted questions on your #1 weak skill', focus:names[0]||'—'},
-    {day:3, title:'Transformations day', what:'Key Word Transformations sprint + memory hooks', focus:'Part 4 patterns'},
-    {day:4, title:'Open Cloze + heatmap', what:'Drill your two worst gap types', focus:'Part 2 function words'},
+    {day:3, title:'Transformations day', what:'Part 4 sprint — highest marks per minute', focus:'Part 4 patterns'},
+    {day:4, title:'Little words day', what:'Open Cloze + your two worst gap types + Spelling Gym', focus:'Part 2 & 3 function words'},
     {day:5, title:'Full mock test', what:'36 marks under real timing, then autopsy every error', focus:'Exam conditions'},
-    {day:6, title:'Leech hunt', what:'Memory Lab: kill every item you have failed twice+', focus:'Mistake DNA review'},
-    {day:7, title:'Light polish', what:'1 short Smart Session + read your Grammar Book. Sleep.', focus:'Confidence'},
+    {day:6, title:'Mastery List hunt', what:'Clear everything you marked “want to master”', focus:'Stubborn items'},
+    {day:7, title:'Light polish', what:'One short Smart Session + read your Grammar Book. Sleep well.', focus:'Confidence'},
   ];
-  if(d !== null && d >= 0 && d <= 7 && d > 0){
-    var startIdx = 7 - d;
-    plan = plan.map(function(p,i){ return p; }).slice(Math.max(0,startIdx-0));
-  }
+  if(d !== null && d > 0 && d <= 7){ plan = plan.slice(Math.max(0, 7-d)); }
   return plan;
 };
 
-/* ---------------- adaptive question selection ---------------- */
+/* ---------------- adaptive selection ----------------
+   Priorities: due reviews → boosted concepts (your recent errors, in NEW exercises)
+   → wanted re-tests → weak×valuable skills → coverage explore → type balance. */
 function shuffle(a){ a = a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
 E.pickSession = function(n, filter){
   n = n || 10;
-  var st = E.state, picked = [], usedTags = [], usedIds = {};
+  filter = filter || {};
+  var types = filter.types || (filter.type ? [filter.type] : null);
+  var st = E.state, picked = [], usedTags = [], usedIds = {}, typeCount = {kwt:0,cloze:0,wf:0,mcc:0};
   var pool = E.allItems().filter(function(it){
-    if(filter && filter.type && it.type !== filter.type) return false;
-    if(filter && filter.tag && (it.q.tags||[]).indexOf(filter.tag) === -1) return false;
+    if(types && types.indexOf(it.type) === -1) return false;
+    if(filter.tag && (it.q.tags||[]).indexOf(filter.tag) === -1) return false;
     return true;
   });
-  var emergency = E.emergencyOn();
-  // 1) due reviews first (max 3, or 4 in emergency)
-  var due = E.dueItems().filter(function(id){
-    var it = E.byId[id];
-    if(filter && filter.type && it.type !== filter.type) return false;
-    if(filter && filter.tag && (it.q.tags||[]).indexOf(filter.tag) === -1) return false;
-    return true;
-  }).slice(0, emergency ? 4 : 3);
-  due.forEach(function(id){ picked.push(E.byId[id]); usedIds[id]=1; });
-  // 2) coach-driven weak-tag targeting with interleaving + difficulty window
-  var recs = E.coach().filter(function(r){ return !filter || !filter.tag || r.tag===filter.tag; });
-  var weakTags = recs.slice(0, emergency ? 5 : 8).map(function(r){ return r.tag; });
-  var tries = 0;
-  while(picked.length < n && tries < 400){
-    tries++;
-    var strengthCheck = Math.random() < 0.15 && recs.length > 4; // desirable difficulty: occasional strength retrieval
-    var tagPool = strengthCheck ? recs.slice(-4) : recs.filter(function(r){ return weakTags.indexOf(r.tag)!==-1; });
-    if(!tagPool.length) tagPool = recs;
-    var rec = tagPool[Math.floor(Math.random()*tagPool.length)];
-    var lastTag = usedTags[usedTags.length-1];
-    if(rec.tag === lastTag && Math.random() < 0.7) continue; // interleave
-    var cands = pool.filter(function(it){
-      if(usedIds[it.q.id]) return false;
-      if((it.q.tags||[]).indexOf(rec.tag) === -1) return false;
-      var ab = st.ability[it.type], qe = E.qElo(it.q);
-      var p = E.pWin(ab, qe);
-      return p >= 0.25 && p <= 0.92; // the learning zone
-    });
-    if(!cands.length){
-      cands = pool.filter(function(it){ return !usedIds[it.q.id] && (it.q.tags||[]).indexOf(rec.tag) !== -1; });
-    }
-    if(!cands.length) continue;
-    // prefer unseen, then oldest-seen
-    cands.sort(function(a,b){
-      var ia = st.items[a.q.id], ib = st.items[b.q.id];
-      var sa = ia ? ia.last : 0, sb = ib ? ib.last : 0;
-      return sa - sb;
-    });
-    var pick = cands[Math.floor(Math.random()*Math.min(3,cands.length))];
-    picked.push(pick); usedIds[pick.q.id]=1; usedTags.push(rec.tag);
+  var nTypes = types ? types.length : 4;
+  var quota = Math.max(1, Math.ceil(n/nTypes));
+  function fits(it){
+    if(usedIds[it.q.id]) return false;
+    if(types || filter.tag) return true;
+    return typeCount[it.type] < quota;
   }
-  // 3) fallback fill
-  if(picked.length < n){
-    shuffle(pool).forEach(function(it){
-      if(picked.length < n && !usedIds[it.q.id]){ picked.push(it); usedIds[it.q.id]=1; }
+  function take(it, tag){
+    picked.push(it); usedIds[it.q.id]=1; typeCount[it.type]++;
+    if(tag) usedTags.push(tag);
+  }
+  // 1) due reviews
+  E.dueItems().filter(function(id){
+    var it = E.byId[id];
+    if(types && types.indexOf(it.type) === -1) return false;
+    if(filter.tag && (it.q.tags||[]).indexOf(filter.tag) === -1) return false;
+    return true;
+  }).slice(0, E.emergencyOn() ? 4 : 3).forEach(function(id){ take(E.byId[id]); });
+  // 2) boosted concepts — same idea, NEW exercises
+  var boostTags = Object.keys(st.boost).filter(function(t){ return st.boost[t] > 0; })
+    .sort(function(a,b){ return st.boost[b]-st.boost[a]; });
+  boostTags.forEach(function(tag){
+    if(picked.length >= n) return;
+    if(filter.tag && tag !== filter.tag) return;
+    var cands = pool.filter(function(it){
+      return fits(it) && (it.q.tags||[]).indexOf(tag) !== -1 &&
+             (!st.items[it.q.id] || st.items[it.q.id].att === 0 || E.isWobbly(it.q.id));
     });
+    if(!cands.length) cands = pool.filter(function(it){ return fits(it) && (it.q.tags||[]).indexOf(tag) !== -1; });
+    if(cands.length){
+      take(shuffle(cands)[0], tag);
+      st.boost[tag]--;
+      if(st.boost[tag] <= 0) delete st.boost[tag];
+    }
+  });
+  // 3) one wanted re-test per session
+  var wantIds = Object.keys(st.wants).filter(function(id){ return E.byId[id] && !usedIds[id]; });
+  if(wantIds.length && picked.length < n){
+    var wid = shuffle(wantIds)[0];
+    if(!types || types.indexOf(E.byId[wid].type) !== -1) take(E.byId[wid]);
+  }
+  // 4) weak × valuable, interleaved, in the learning zone; 5) explore least-seen
+  var recs = E.coach().filter(function(r){ return !filter.tag || r.tag === filter.tag; });
+  var weakTags = recs.slice(0, E.emergencyOn() ? 5 : 8).map(function(r){ return r.tag; });
+  var tries = 0;
+  while(picked.length < n && tries < 500){
+    tries++;
+    var roll = Math.random();
+    var tagPick;
+    if(roll < 0.15){ // coverage: least practised skill
+      var unseen = recs.filter(function(r){ return !r.seen; });
+      var leastSeen = unseen.length ? unseen : recs.slice().sort(function(a,b){
+        return (st.tags[a.tag]?st.tags[a.tag].att:0) - (st.tags[b.tag]?st.tags[b.tag].att:0);
+      });
+      tagPick = leastSeen[Math.floor(Math.random()*Math.min(4,leastSeen.length))];
+    } else if(roll < 0.25 && recs.length > 5){ // retrieval of strengths
+      tagPick = recs[recs.length-1-Math.floor(Math.random()*3)];
+    } else {
+      var wt = recs.filter(function(r){ return weakTags.indexOf(r.tag) !== -1; });
+      tagPick = wt[Math.floor(Math.random()*wt.length)] || recs[0];
+    }
+    if(!tagPick) break;
+    if(tagPick.tag === usedTags[usedTags.length-1] && Math.random() < 0.7) continue;
+    var cands2 = pool.filter(function(it){
+      if(!fits(it)) return false;
+      if((it.q.tags||[]).indexOf(tagPick.tag) === -1) return false;
+      var p = E.pWin(st.ability[it.type], E.qElo(it.q));
+      return p >= 0.25 && p <= 0.92;
+    });
+    if(!cands2.length) cands2 = pool.filter(function(it){ return fits(it) && (it.q.tags||[]).indexOf(tagPick.tag) !== -1; });
+    if(!cands2.length) continue;
+    cands2.sort(function(a,b){
+      var ia = st.items[a.q.id], ib = st.items[b.q.id];
+      return (ia?ia.last:0) - (ib?ib.last:0);
+    });
+    take(cands2[Math.floor(Math.random()*Math.min(3,cands2.length))], tagPick.tag);
+  }
+  // 6) fill
+  if(picked.length < n){
+    shuffle(pool).forEach(function(it){ if(picked.length < n && fits(it)) take(it); });
+  }
+  if(picked.length < n){
+    shuffle(pool).forEach(function(it){ if(picked.length < n && !usedIds[it.q.id]) take(it); });
   }
   return picked.slice(0,n);
 };
@@ -426,31 +666,58 @@ E.diagnosticSet = function(){
 };
 E.mockSet = function(){
   var P = FCE.BANK.passages;
-  var p1 = P.p1[Math.floor(Math.random()*P.p1.length)];
-  var p2 = P.p2[Math.floor(Math.random()*P.p2.length)];
-  var p3 = P.p3[Math.floor(Math.random()*P.p3.length)];
+  var p1 = E.pickPassage('p1') || P.p1[0];
+  var p2 = E.pickPassage('p2') || P.p2[0];
+  var p3 = E.pickPassage('p3') || P.p3[0];
   var kwts = shuffle(FCE.BANK.kwt).slice(0,6);
   return {p1:p1, p2:p2, p3:p3, p4:kwts};
 };
 E.recordMock = function(score, max, parts){
-  var p = score/max;
-  var map = [[0,128],[0.30,145],[0.45,155],[0.55,160],[0.70,170],[0.82,180],[0.92,188],[1,190]];
-  var scale = 128;
-  for(var i=0;i<map.length-1;i++){
-    if(p >= map[i][0] && p <= map[i+1][0]){
-      var f = (p-map[i][0])/(map[i+1][0]-map[i][0] || 1);
-      scale = Math.round(map[i][1] + f*(map[i+1][1]-map[i][1]));
-      break;
-    }
-  }
+  var p = Math.min(1, (score/max)*1.02);
+  var scale = Math.round(toScale(p));
   E.state.mocks.push({t:Date.now(), score:score, max:max, scale:scale, parts:parts});
   E.award('mock');
   if(score >= 30) E.award('mock30');
   E.save();
   return scale;
 };
+E.pickPassage = function(part){
+  var list = FCE.BANK.passages[part] || [];
+  if(!list.length) return null;
+  var seen = E.state.passSeen, min = Infinity;
+  list.forEach(function(p){ var c = seen[p.id]||0; if(c < min) min = c; });
+  var pool = list.filter(function(p){ return (seen[p.id]||0) === min; });
+  return pool[Math.floor(Math.random()*pool.length)];
+};
+E.markPassage = function(id){ E.state.passSeen[id] = (E.state.passSeen[id]||0)+1; E.save(); };
 
-/* ---------------- analytics helpers for views ---------------- */
+/* ---------------- Spelling Gym ---------------- */
+E.spellingSet = function(n){
+  n = n || 8;
+  var st = E.state, out = [], used = {};
+  // 1) the user's own recent spelling victims
+  Object.keys(st.spell.words).sort(function(a,b){ return st.spell.words[b]-st.spell.words[a]; })
+    .forEach(function(w){
+      if(out.length >= Math.min(3,n)) return;
+      var entry = FCE.SPELL.filter(function(s){ return s.w === w; })[0] ||
+                  {w:w, bad:[], cue:'One of your own past misspellings — beat it this time.'};
+      out.push(entry); used[entry.w]=1;
+    });
+  // 2) least-practised danger words
+  var rest = FCE.SPELL.filter(function(s){ return !used[s.w]; })
+    .sort(function(a,b){ return (st.spellSeen[a.w]||0) - (st.spellSeen[b.w]||0) || Math.random()-0.5; });
+  rest.forEach(function(s){ if(out.length < n){ out.push(s); used[s.w]=1; } });
+  return shuffle(out).slice(0,n);
+};
+E.recordSpell = function(word, ok){
+  var st = E.state;
+  if(ok){ st.spellSeen[word] = (st.spellSeen[word]||0)+1; st.xp += 6; if(st.spell.words[word] && st.spellSeen[word] >= 2) delete st.spell.words[word]; }
+  else { st.spell.words[word] = (st.spell.words[word]||0)+1; st.xp += 1; }
+  E.touchStreak();
+  E.save();
+};
+
+/* ---------------- analytics for views ---------------- */
 E.heatmap = function(){
   var out = [];
   Object.keys(FCE.GAPTYPES).forEach(function(gt){
@@ -461,7 +728,7 @@ E.heatmap = function(){
       if(g.recent.length >= 6){
         var mid = Math.floor(g.recent.length/2);
         var a = g.recent.slice(0,mid), b = g.recent.slice(mid);
-        trend = (b.reduce(function(x,y){return x+y;},0)/b.length) - (a.reduce(function(x,y){return x+y;},0)/a.length);
+        trend = b.reduce(function(x,y){return x+y;},0)/b.length - a.reduce(function(x,y){return x+y;},0)/a.length;
       }
     }
     out.push({gt:gt, name:meta.name, freq:meta.freq, att:att, err:err, trend:trend,
@@ -493,6 +760,23 @@ E.luckyAndFalse = function(){
   });
   return {lucky:lucky, falseConf:falseConf};
 };
+E.behaviorReport = function(){
+  var B = E.state.beh;
+  if(!B || !B.n) return null;
+  var flips = B.changedRight + B.selfCorrect;
+  return {
+    n:B.n, avgHesit:B.ttfkSum/B.n/1000, avgEdits:B.editSum/B.n,
+    changed:B.changed, changedRight:B.changedRight, selfCorrect:B.selfCorrect,
+    hiddenHesit:B.hiddenHesit, fluentSure:B.fluentSure, skips:B.skips, fastRight:B.fastRight,
+    instinct: flips ? B.changedRight/flips : null,
+  };
+};
+E.spellReport = function(){
+  var st = E.state.spell;
+  var pats = Object.keys(st.pat).map(function(p){ return {id:p, n:st.pat[p]}; }).sort(function(a,b){ return b.n-a.n; });
+  var words = Object.keys(st.words).map(function(w){ return {w:w, n:st.words[w]}; }).sort(function(a,b){ return b.n-a.n; });
+  return {patterns:pats, words:words, total:pats.reduce(function(x,p){return x+p.n;},0)};
+};
 E.readiness = function(){
   var pr = E.predict();
   var tagsSeen = Object.keys(E.state.tags).filter(function(t){return E.state.tags[t].att>0;}).length;
@@ -505,16 +789,14 @@ E.grammarBook = function(){
   var byTag = {};
   E.state.log.forEach(function(l){
     if(l.ok) return;
-    (l.tags||[]).forEach(function(t){
-      (byTag[t] = byTag[t] || []).push(l);
-    });
+    (l.tags||[]).forEach(function(t){ (byTag[t] = byTag[t] || []).push(l); });
   });
   var chapters = Object.keys(byTag).map(function(tag){
     var meta = FCE.TAGS[tag]; if(!meta) return null;
     var t = E.state.tags[tag] || {causes:{}};
     var topCause = null, max=0;
     Object.keys(t.causes||{}).forEach(function(c){ if(t.causes[c]>max){max=t.causes[c];topCause=c;} });
-    return {tag:tag, meta:meta, errors:byTag[tag].slice(-8).reverse(), n:byTag[tag].length, topCause:topCause, m:E.mEff(tag)};
+    return {tag:tag, meta:meta, errors:byTag[tag].slice(-6).reverse(), n:byTag[tag].length, topCause:topCause, m:E.mEff(tag)};
   }).filter(Boolean);
   chapters.sort(function(a,b){ return b.n - a.n; });
   return chapters;
@@ -529,10 +811,12 @@ E.patternFor = function(answerText){
   }
   return null;
 };
-E.level = function(){ return Math.floor(Math.sqrt(E.state.xp/90)) + 1; };
-E.levelProgress = function(){
-  var lvl = E.level();
-  var cur = Math.pow(lvl-1,2)*90, next = Math.pow(lvl,2)*90;
-  return (E.state.xp-cur)/(next-cur);
+E.tipFor = function(q){
+  var tags = q.tags||[];
+  for(var i=0;i<tags.length;i++){
+    var meta = FCE.TAGS[tags[i]];
+    if(meta && meta.tips && meta.tips.length) return meta.tips[Math.floor(Math.random()*meta.tips.length)];
+  }
+  return '';
 };
 })();

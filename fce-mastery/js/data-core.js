@@ -190,6 +190,72 @@ FCE.makeHook = function(word, context){
   return out;
 };
 
+/* ---------- Spelling intelligence ----------
+   FCE danger words with the misspellings students actually produce, plus a cue. */
+FCE.SPELL = [
+ {w:'pronunciation', bad:['pronounciation','pronuntiation'], cue:'pronounce drops its O: pron-UN-ciation'},
+ {w:'explanation', bad:['explaination','explenation'], cue:'explain loses its I: expl-A-nation'},
+ {w:'argument', bad:['arguement','argumment'], cue:'argue drops the E before -ment'},
+ {w:'maintenance', bad:['maintainance','maintenence'], cue:'main-TEN-ance — the "tain" becomes "ten"'},
+ {w:'truly', bad:['truely'], cue:'true loses its E: tru-ly'},
+ {w:'repetition', bad:['repeatition','repitition'], cue:'rep-E-tition — no "eat" inside'},
+ {w:'curiosity', bad:['curiousity'], cue:'curious drops the U of -ous'},
+ {w:'anxiety', bad:['anxiousity','anxity'], cue:'anxious changes shape completely: anx-I-ety'},
+ {w:'height', bad:['hight','heigth'], cue:'high + T, but spelled h-e-i-g-h-t'},
+ {w:'weight', bad:['weigth','wieght'], cue:'weigh + T — keep the GH before the T'},
+ {w:'belief', bad:['beleif','believe'], cue:'the noun has no V-E: belie-F (and I before E)'},
+ {w:'choice', bad:['choise','choize'], cue:'choose → choice with -ICE like ice'},
+ {w:'strength', bad:['strenght','strenth'], cue:'strong → streng-TH: the TH comes last'},
+ {w:'length', bad:['lenght','lenth'], cue:'long → leng-TH, same family as strength'},
+ {w:'depth', bad:['deepth','dept'], cue:'deep shrinks: d-e-p-t-h'},
+ {w:'knowledge', bad:['knowlege','nowledge'], cue:'know + LEDGE — a ledge of knowing'},
+ {w:'environment', bad:['enviroment','enviornment'], cue:'environ-MENT: keep the N before -ment'},
+ {w:'government', bad:['goverment'], cue:'govern + ment: the N stays'},
+ {w:'beginning', bad:['begining'], cue:'begin doubles the N: begi-NN-ing'},
+ {w:'accommodation', bad:['accomodation','acommodation'], cue:'two C, two M — room for doubles'},
+ {w:'achievement', bad:['acheivement','achivement'], cue:'I before E: ach-IE-vement'},
+ {w:'beautiful', bad:['beutiful','beautifull'], cue:'b-e-a-u + one final L'},
+ {w:'business', bad:['buisness','bussiness'], cue:'busy → busi-ness'},
+ {w:'comfortable', bad:['confortable','comfortble'], cue:'coMfort — M, not N'},
+ {w:'convenient', bad:['convinient','conveniant'], cue:'conven-IENT ends -ient'},
+ {w:'definitely', bad:['definately','definetly'], cue:'fin-ITE inside: def-INITE-ly'},
+ {w:'embarrassment', bad:['embarassment','embarrasment'], cue:'double R AND double S'},
+ {w:'existence', bad:['existance'], cue:'-ENCE, not -ance: exist-ence'},
+ {w:'experience', bad:['experiance','expirience'], cue:'exper-IENCE ends -ience'},
+ {w:'foreign', bad:['foriegn','forein'], cue:'rule-breaker: E before I — for-EI-gn'},
+ {w:'forty', bad:['fourty'], cue:'four loses its U at forty'},
+ {w:'grateful', bad:['greatful'], cue:'from gratitude, not great: GRATE-ful'},
+ {w:'immediately', bad:['inmediately','immediatly'], cue:'IMM- start, -ELY end'},
+ {w:'necessary', bad:['neccessary','necesary'], cue:'one C, double S — a shirt has one Collar, two Sleeves'},
+ {w:'occasion', bad:['ocassion','occassion'], cue:'double C, single S'},
+ {w:'opportunity', bad:['oportunity','opportunaty'], cue:'double P: o-PP-ortunity'},
+ {w:'recommend', bad:['reccomend','recomend'], cue:'one C, double M: re-co-MM-end'},
+ {w:'restaurant', bad:['restaurante','restorant'], cue:'rest-AU-rant — French middle'},
+ {w:'rhythm', bad:['rythm','rithym'], cue:'Rhythm Helps Your Two Hips Move'},
+ {w:'separate', bad:['seperate'], cue:'there is A RAT in sep-A-RAT-e'},
+ {w:'successful', bad:['succesful','sucessful'], cue:'double C, double S, one L'},
+ {w:'until', bad:['untill'], cue:'one L (but "till" has two!)'},
+ {w:'writing', bad:['writting'], cue:'one T: writing (written has two)'},
+];
+
+/* Closed-class word lists — lets the engine diagnose WHAT KIND of word the student
+   wrote vs what the gap needed ("you wrote a preposition; this needs a relative pronoun"). */
+FCE.WORDCLASS = {
+ art:['a','an','the'],
+ modal:['can','could','may','might','must','should','would','shall','ought','need'],
+ aux:['be','been','being','am','is','are','was','were','have','has','had','do','does','did','will'],
+ rel:['who','whom','whose','which','where','what'],
+ pron:['it','he','she','they','them','him','her','himself','herself','themselves','myself','yourself','yourselves','itself','ourselves','each','other','another','one','ones','mine','yours','everybody','everyone','something','anything','nothing'],
+ det:['any','no','some','every','both','either','neither','few','little','much','many','more','most','several','such','enough','all','half','whatever','whichever','none','plenty'],
+ comp:['than','as','more','less','most','least','better','worse','sooner','rather'],
+ link:['and','but','or','so','because','although','though','while','whereas','unless','if','whether','when','that','nor','once','provided','despite','however','therefore','moreover','otherwise'],
+ prep:['at','by','for','from','in','of','off','on','out','to','with','under','between','during','without','since','until','after','before','about','against','among','behind','below','beyond','into','onto','past','per','through','towards','toward','upon','within','across','along','around','near','besides','behind','above','outside','inside'],
+ advpart:['up','down','back','away','forward','over','round','ahead','apart','aside','along'],
+};
+FCE.CLASSNAMES = { art:'article', modal:'modal verb', aux:'auxiliary verb', rel:'relative pronoun',
+ pron:'pronoun', det:'determiner', comp:'comparison word', link:'linking word', prep:'preposition', advpart:'adverb particle' };
+FCE.GT2CLASS = { prep:'prep', art:'art', link:'link', aux:'aux', modal:'modal', rel:'rel', pron:'pron', det:'det', adv:'advpart', comp:'comp', fixphrase:null, vform:null };
+
 /* Mistake-cause taxonomy (Mistake DNA) */
 FCE.CAUSES = {
   gap:    {name:'Never learned it',    icon:'🕳️', advice:'a knowledge gap — study the rule card, then re-test tomorrow'},
@@ -221,7 +287,8 @@ FCE.BADGES = [
   {id:'mock30',  icon:'🎖️', name:'Mock Master', desc:'Score 30+/36 in a mock test'},
   {id:'allparts',icon:'🧩', name:'All-Rounder',      desc:'Practise all four task types'},
   {id:'bookworm',icon:'📖', name:'Bookworm',         desc:'Open your Personal Grammar Book'},
-  {id:'memory',  icon:'🧠', name:'Memory Athlete',   desc:'Review 10 memory hooks'},
+  {id:'speller', icon:'🐝', name:'Spelling Bee',     desc:'A perfect Spelling Gym round'},
+  {id:'wants',   icon:'🎯', name:'Deliberate One',   desc:'Master 3 items from your Mastery List'},
   {id:'emg',     icon:'🚨', name:'Crunch Mode',      desc:'Activate 7-Day Emergency Mode'},
 ];
 

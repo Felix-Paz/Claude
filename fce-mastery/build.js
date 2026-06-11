@@ -10,6 +10,7 @@ const js = [
   'js/data-core.js',
   'js/data-bank1.js',
   'js/data-bank2.js',
+  'js/data-bank3.js',
   'js/engine.js',
   'js/charts.js',
   'js/views.js',
@@ -24,5 +25,5 @@ html = html.replace(/(\s*<script src="[^"]+"><\/script>)+/, () => '\n<script>\n'
 
 const out = path.join(root, '..', 'dist');
 fs.mkdirSync(out, { recursive: true });
-fs.writeFileSync(path.join(out, 'FCE-Mastery.html'), html);
-console.log('Built dist/FCE-Mastery.html (' + (html.length / 1024).toFixed(1) + ' KB)');
+fs.writeFileSync(path.join(out, 'Mastery-FCE.html'), html);
+console.log('Built dist/Mastery-FCE.html (' + (html.length / 1024).toFixed(1) + ' KB)');
