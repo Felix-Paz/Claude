@@ -7,6 +7,7 @@ require('../js/data-bank2.js');
 require('../js/data-bank3.js');
 require('../js/data-bank4.js');
 require('../js/data-bank5.js');
+require('../js/data-bank6.js');
 require('../js/data-vocab.js');
 require('../js/engine.js');
 require('../js/charts.js');
@@ -18,7 +19,7 @@ function ok(cond, msg){ if(cond){ console.log('  ✓ ' + msg); } else { fails++;
 console.log('— bank integrity —');
 E.load(); E.indexBank();
 const all = E.allItems();
-ok(all.length >= 460, `bank has ${all.length} items (>=460)`);
+ok(all.length >= 540, `bank has ${all.length} items (>=540)`);
 const ids = new Set();
 let dup = null;
 all.forEach(it => { if(ids.has(it.q.id)) dup = it.q.id; ids.add(it.q.id); });
@@ -158,8 +159,11 @@ const fs2 = E.searchLearnables('had better');
 ok(fs2.length > 0, 'focus search finds "had better" ('+fs2.length+' hits)');
 E.focusAdd(fs2[0]);
 ok(Object.keys(E.state.boost).length > 0 || Object.keys(E.state.wants).length > 0, 'focus search feeds the engine');
-// spelling gym
+// spelling gym — incl. the white-screen regression (own-mistake words must carry a def)
+E.state.spell.words['decision'] = 2; // simulate a word missed in sessions that is NOT in FCE.SPELL
 const gym = E.spellingSet(8);
+ok(gym.every(g => g.def && g.cue), 'every gym item has a definition clue (white-screen fix)');
+ok(typeof E.difficultyTier().name === 'string', 'difficulty tier resolves ('+E.difficultyTier().name+')');
 ok(gym.length === 8, 'spelling gym builds a round');
 E.recordSpell(gym[0].w, true);
 ok(E.state.spellSeen[gym[0].w] === 1, 'spelling result recorded');

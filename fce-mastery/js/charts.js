@@ -2,9 +2,9 @@
 window.FCE = window.FCE || {};
 FCE.charts = (function(){
 var C = {};
-var T = { ink:'#EAF6F4', sub:'#A9CCC8', faint:'#6E9793', grid:'rgba(189,217,215,.14)',
-          teal:'#5FD3C0', teal2:'#8FBDB9', ok:'#5FD3A6', bad:'#FF6B5C', warn:'#D9A53A',
-          gold:'#F2C94C', sage:'#37B8A4' };
+var T = { ink:'#1B1C21', sub:'#52504A', faint:'#8E8878', grid:'rgba(27,28,33,.12)',
+          teal:'#E0492F', teal2:'#C2371F', ok:'#2E7D4F', bad:'#C2371F', warn:'#C98A2D',
+          gold:'#C98A2D', sage:'#7FA98C' };
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 
 /* Semi-circular score gauge, Cambridge scale 122–190, with CI band */
@@ -62,7 +62,7 @@ C.radar = function(data){
     var p2 = pt(j, R*v);
     d2 += (j?'L':'M')+p2[0].toFixed(1)+' '+p2[1].toFixed(1);
   }
-  s += '<path d="'+d2+'Z" fill="rgba(14,94,100,.16)" stroke="'+T.teal+'" stroke-width="2"/>';
+  s += '<path d="'+d2+'Z" fill="rgba(224,73,47,.14)" stroke="'+T.teal+'" stroke-width="2"/>';
   for(var k=0;k<N;k++){
     var v2 = Math.max(0.06, data[k].val);
     var pp = pt(k, R*v2);
@@ -88,7 +88,7 @@ C.calibration = function(rows){
   rows.forEach(function(r,i){
     var x = x0 + 22 + i*(bw*2+gap);
     var hc = r.claimed*scaleH;
-    s += '<rect x="'+x+'" y="'+(y0-hc)+'" width="'+bw+'" height="'+hc+'" rx="5" fill="rgba(32,48,58,.16)"/>';
+    s += '<rect x="'+x+'" y="'+(y0-hc)+'" width="'+bw+'" height="'+hc+'" rx="5" fill="rgba(27,28,33,.14)"/>';
     if(r.actual !== null){
       var ha = r.actual*scaleH;
       var col = r.actual >= r.claimed-0.07 ? T.ok : T.bad;
@@ -99,7 +99,7 @@ C.calibration = function(rows){
     s += '<text x="'+(x+bw+2)+'" y="'+(y0+16)+'" font-size="10" fill="'+T.sub+'" text-anchor="middle">'+r.icon+' '+esc(r.name)+'</text>';
     if(r.att) s += '<text x="'+(x+bw+2)+'" y="'+(y0+30)+'" font-size="8.5" fill="'+T.faint+'" text-anchor="middle">'+r.att+' answers</text>';
   });
-  s += '<rect x="'+x0+'" y="178" width="9" height="9" rx="2" fill="rgba(32,48,58,.16)"/><text x="'+(x0+14)+'" y="186" font-size="9" fill="'+T.faint+'">what you claim</text>';
+  s += '<rect x="'+x0+'" y="178" width="9" height="9" rx="2" fill="rgba(27,28,33,.14)"/><text x="'+(x0+14)+'" y="186" font-size="9" fill="'+T.faint+'">what you claim</text>';
   s += '<rect x="'+(x0+110)+'" y="178" width="9" height="9" rx="2" fill="'+T.ok+'"/><text x="'+(x0+124)+'" y="186" font-size="9" fill="'+T.faint+'">what you score</text>';
   s += '</svg>';
   return s;
@@ -115,7 +115,7 @@ C.spark = function(data, w, h){
   });
   var d = pts.map(function(p,i){ return (i?'L':'M')+p[0]+' '+p[1]; }).join('');
   var s = '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%">';
-  s += '<path d="'+d+' L'+pts[pts.length-1][0]+' '+(h-2)+' L'+pts[0][0]+' '+(h-2)+'Z" fill="rgba(14,94,100,.10)" stroke="none"/>';
+  s += '<path d="'+d+' L'+pts[pts.length-1][0]+' '+(h-2)+' L'+pts[0][0]+' '+(h-2)+'Z" fill="rgba(224,73,47,.10)" stroke="none"/>';
   s += '<path d="'+d+'" fill="none" stroke="'+T.teal+'" stroke-width="2.2" stroke-linecap="round"/>';
   var last = pts[pts.length-1];
   s += '<circle cx="'+last[0]+'" cy="'+last[1]+'" r="3.4" fill="'+T.ink+'"/>';
@@ -129,7 +129,7 @@ C.ring = function(frac, label, sub, color){
   var R=34, CIRC=2*Math.PI*R;
   return '<div style="text-align:center">'+
     '<svg viewBox="0 0 84 84" style="width:84px;height:84px">'+
-    '<circle cx="42" cy="42" r="'+R+'" fill="none" stroke="rgba(189,217,215,.14)" stroke-width="7"/>'+
+    '<circle cx="42" cy="42" r="'+R+'" fill="none" stroke="rgba(27,28,33,.12)" stroke-width="7"/>'+
     '<circle cx="42" cy="42" r="'+R+'" fill="none" stroke="'+(color||T.teal)+'" stroke-width="7" stroke-linecap="round" '+
     'stroke-dasharray="'+CIRC.toFixed(1)+'" stroke-dashoffset="'+(CIRC*(1-frac)).toFixed(1)+'" transform="rotate(-90 42 42)" style="transition:stroke-dashoffset 1s cubic-bezier(.22,.9,.26,1)"/>'+
     '<text x="42" y="47" font-size="17" font-weight="700" fill="'+T.ink+'" text-anchor="middle" font-family="Iowan Old Style,Palatino,Georgia,serif">'+esc(label)+'</text>'+
@@ -139,20 +139,20 @@ C.ring = function(frac, label, sub, color){
 
 /* heat colors for error rate (deep-water theme) */
 C.heatColor = function(err){
-  if(err === null) return 'rgba(189,217,215,.05)';
-  if(err < 0.15) return 'rgba(95,211,166,.12)';
-  if(err < 0.3)  return 'rgba(95,211,192,.10)';
-  if(err < 0.45) return 'rgba(242,201,76,.12)';
-  if(err < 0.65) return 'rgba(242,153,76,.14)';
-  return 'rgba(255,107,92,.16)';
+  if(err === null) return 'rgba(255,251,241,.55)';
+  if(err < 0.15) return 'rgba(46,125,79,.10)';
+  if(err < 0.3)  return 'rgba(127,169,140,.14)';
+  if(err < 0.45) return 'rgba(201,138,45,.13)';
+  if(err < 0.65) return 'rgba(214,110,40,.16)';
+  return 'rgba(194,55,31,.14)';
 };
 C.heatBorder = function(err){
-  if(err === null) return 'rgba(189,217,215,.16)';
-  if(err < 0.15) return 'rgba(95,211,166,.4)';
-  if(err < 0.3)  return 'rgba(95,211,192,.4)';
-  if(err < 0.45) return 'rgba(242,201,76,.4)';
-  if(err < 0.65) return 'rgba(242,153,76,.45)';
-  return 'rgba(255,107,92,.5)';
+  if(err === null) return 'rgba(27,28,33,.12)';
+  if(err < 0.15) return 'rgba(46,125,79,.4)';
+  if(err < 0.3)  return 'rgba(127,169,140,.5)';
+  if(err < 0.45) return 'rgba(201,138,45,.45)';
+  if(err < 0.65) return 'rgba(214,110,40,.5)';
+  return 'rgba(194,55,31,.5)';
 };
 C.colors = T;
 return C;

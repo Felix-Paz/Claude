@@ -70,7 +70,7 @@ P.start = function(cfg){
   if(!queue.length){ U().toast('No questions available for that filter yet.'); return; }
   S = {queue:queue, idx:0, ok:0, run:0, mode:endless?'endless':(cfg.mode||'smart'), cfg:cfg,
        tag:cfg.tag||'', t0:Date.now(), selOpt:-1, conf:'', graded:false, results:[],
-       skippedIds:{}, summarySaved:false, paused:false, levelBefore:eng.level()};
+       skippedIds:{}, requeued:{}, planned:queue.length, summarySaved:false, paused:false, levelBefore:eng.level()};
   render();
 };
 
@@ -136,7 +136,8 @@ function qView(){
       (isReview?'<span class="chip warn">🔁 review</span>':'')+
       (tr.skipped?'<span class="chip">↩ skipped earlier</span>':'')+
       (S.mode==='diagnostic'?'<span class="chip">🧪 diagnostic</span>':'')+
-      '<span class="grow"></span><span class="tiny" title="typical exam pace for this question">⏱ pace '+par+'s</span>'+
+      '<span class="grow"></span><span class="chip" style="font-size:10px" title="'+u.esc(eng.difficultyTier().desc)+'">'+eng.difficultyTier().icon+' '+u.esc(eng.difficultyTier().name)+'</span>'+
+      '<span class="tiny" title="typical exam pace for this question">⏱ pace '+par+'s</span>'+
       '</div>'+
       body+
       '<div class="conf-row">'+
@@ -158,7 +159,7 @@ function qView(){
   var timerEl = u.$('#q-timer', v);
   var tInt = setInterval(function(){
     if(!document.body.contains(timerEl)){ clearInterval(tInt); return; }
-    if(S.paused) return;
+    if(S.paused || S.graded) return; // clock stops the moment you answer
     var s = Math.floor((Date.now()-tr.t0-tr.pausedMs)/1000);
     timerEl.textContent = Math.floor(s/60)+':'+('0'+s%60).slice(-2);
     if(s > par) timerEl.classList.add('hot');
@@ -289,6 +290,12 @@ function grade(v, it, gaveUp){
     var ie = u.$('#ans', v); if(ie) ie.disabled = true;
   }
   S.graded = true;
+  var cbtn = u.$('#q-check', v);
+  if(cbtn){ cbtn.disabled = true; cbtn.classList.add('spent'); cbtn.textContent = 'Checked'; }
+  var tEl = u.$('#q-timer', v); if(tEl) tEl.classList.add('done');
+  var idkB = u.$('#q-idk', v); if(idkB) idkB.disabled = true;
+  var skB = u.$('#q-skip', v); if(skB) skB.disabled = true;
+  u.$$('.conf', v).forEach(function(x){ x.disabled = true; });
   finishTracker(tr, userTxt);
   var firstRight = gradeFirstGuess(it, q, tr);
   var beh = behFromTracker(tr, userTxt, firstRight);
@@ -302,6 +309,19 @@ function grade(v, it, gaveUp){
   var autoCause = gaveUp ? 'gap' : (diag && diag.code==='spell' ? 'spell' : '');
   var xpBefore = eng.state.xp;
   var res = eng.record(q, it.type, ok, S.conf, ms, userTxt, autoCause, {runStreak:S.run, beh:beh, diag:diag||undefined});
+  // immediate retrieval practice: a missed item returns once, a few questions later.
+  // The session keeps its planned length: the retry replaces an unseen question at the tail.
+  if(!ok && S.mode !== 'diagnostic' && !S.requeued[q.id]){
+    S.requeued[q.id] = true;
+    var pos = Math.min(S.idx + 3, S.queue.length);
+    S.queue.splice(pos, 0, it);
+    if(S.queue.length > S.planned){
+      var lastId = S.queue[S.queue.length-1].q.id;
+      if(lastId !== q.id && !S.requeued[lastId] && S.queue.length-1 > pos){
+        S.queue.pop();
+      }
+    }
+  }
   var xpGain = eng.state.xp - xpBefore;
   if(FCE.app && FCE.app.buildTopbar) FCE.app.buildTopbar();
   S.results.push({id:q.id, ok:ok});
@@ -393,12 +413,12 @@ function grade(v, it, gaveUp){
   }
   wireNext();
   if(ok && xpGain > 0){
-    var qa = u.$('.feedback .q-actions', v);
-    if(qa){
+    var fh = u.$('.feedback .fb-head', v);
+    if(fh){
       var fl = document.createElement('span');
       fl.className = 'xp-float';
       fl.textContent = '+'+xpGain+' XP'+(res.fast?' ⚡':'');
-      qa.appendChild(fl);
+      fh.appendChild(fl);
     }
   }
 }
@@ -451,6 +471,16 @@ function summaryView(){
     : acc >= 0.5 ? 'Good work. Each miss just became a chapter in your Grammar Book and a scheduled review.'
     : 'Hard session — on purpose. Struggling at the edge of your ability is where memory is actually made.';
   var wrong = S.results.filter(function(r){ return !r.ok; });
+  var wrongSeen = {}, consol = '';
+  wrong.forEach(function(r){
+    if(wrongSeen[r.id]) return; wrongSeen[r.id] = 1;
+    var it2 = eng.byId[r.id]; if(!it2) return;
+    var corr = it2.type==='mcc' ? it2.q.opts[it2.q.cor] : it2.q.ans[0];
+    var cue = it2.type==='kwt' ? it2.q.key : (it2.q.stem || '');
+    consol += '<div class="consol-row"><span class="tiny" style="flex:1;text-align:left">'+u.esc((it2.q.s1||it2.q.s||'').slice(0,72))+'…'+(cue?' ['+u.esc(cue)+']':'')+'</span><b>'+u.esc(corr)+'</b></div>';
+  });
+  if(S.run >= 5){ eng.state.xp += 15; eng.save(); if(FCE.app) FCE.app.buildTopbar(); }
+  var boostsNow = Object.keys(eng.state.boost).length;
   var v = u.el(
     '<div class="q-shell"><div class="q-card session-done" style="position:relative;overflow:hidden">'+
       '<div id="confetti-zone"></div>'+
@@ -458,12 +488,14 @@ function summaryView(){
       '<h2 class="serif" style="margin:12px 0 4px;font-size:28px">'+(S.mode==='diagnostic'?'Diagnostic complete':'Session complete')+'</h2>'+
       '<p class="muted" style="max-width:430px;margin:0 auto">'+msg+'</p>'+
       '<div class="ring-stats">'+
-        FCE.charts.ring(acc, Math.round(acc*100)+'%', 'accuracy', acc>=0.7?'#2e7d5b':acc>=0.45?'#b07c2e':'#b5474d')+
-        FCE.charts.ring(Math.min(1,n/10), String(S.results.length), 'questions', '#0e5e64')+
-        FCE.charts.ring(Math.max(0,Math.min(1,(pr.scale-122)/68)), pr.grade, 'predicted grade', '#c9a227')+
+        FCE.charts.ring(acc, Math.round(acc*100)+'%', 'accuracy', acc>=0.7?'#2E7D4F':acc>=0.45?'#C98A2D':'#C2371F')+
+        FCE.charts.ring(Math.min(1,n/10), String(S.results.length), 'questions', '#1B1C21')+
+        FCE.charts.ring(Math.max(0,Math.min(1,(pr.scale-122)/68)), pr.grade, 'predicted grade', '#C98A2D')+
       '</div>'+
-      (wrong.length ? '<p class="tiny" style="margin-bottom:14px">'+wrong.length+' item'+(wrong.length>1?'s':'')+' scheduled for review — and their <i>concepts</i> will resurface in new disguises.</p>'
+      (S.run >= 5 ? '<div class="chip gold" style="margin-bottom:10px">🔥 combo ×'+S.run+' — +15 bonus XP</div>' : '')+
+      (wrong.length ? '<p class="tiny" style="margin-bottom:6px">'+wrong.length+' miss'+(wrong.length>1?'es':'')+' → scheduled for review · <b>'+boostsNow+'</b> concept reinforcement'+(boostsNow===1?'':'s')+' queued by the engine.</p>'
                     : '<p class="tiny" style="margin-bottom:14px">Clean sweep. Intervals extended on everything you saw.</p>')+
+      (consol ? '<div class="card consol" style="text-align:left;margin:14px auto;max-width:520px"><h3>⚡ 60-second consolidation — read each answer once, aloud</h3>'+consol+'</div>' : '')+
       '<div class="row" style="justify-content:center;flex-wrap:wrap">'+
         '<button class="btn primary" id="ss-again">Another session ▸</button>'+
         '<button class="btn" id="ss-dash">Home</button>'+
@@ -652,7 +684,17 @@ function vocabQ(){
   var item = VB.set[VB.idx];
   VB.graded = false;
   var st = eng.state.vocab[item.up[0]];
-  var typed = st && st.box >= 1; // known words must be produced, not recognised
+  var box = st ? st.box : 0;
+  var mode = box >= 2 ? 'recall' : box >= 1 ? 'cued' : 'choose'; // recognition -> cued recall -> free recall
+  var typed = mode !== 'choose';
+  var scaffold = '';
+  if(mode === 'cued'){
+    var w0 = item.up[0];
+    scaffold = '<div class="letterboxes" style="margin-top:14px">'+w0.split('').map(function(ch,i){
+      if(ch === ' ') return '<span style="width:12px"></span>';
+      return '<span class="lbox'+(i===0?'':' hole')+'">'+(i===0?ch:'')+'</span>';
+    }).join('')+'</div>';
+  }
   var opts = [];
   if(!typed){
     opts = [item.up[0]];
@@ -672,12 +714,13 @@ function vocabQ(){
         (VB.ok>=3?'<span class="chip gold combo-chip">💎 ×'+VB.ok+'</span>':'')+
       '</div>'+
       '<div class="q-card">'+
-        '<div class="q-type"><span class="chip acc">💎 Essay Vocab Lab · '+(typed?'recall':'recognise')+'</span>'+
+        '<div class="q-type"><span class="chip acc">💎 Essay Vocab Lab · '+(mode==='recall'?'full recall':mode==='cued'?'cued recall':'recognise')+'</span>'+
         '<span class="grow"></span><span class="tiny">writing-paper vocabulary</span></div>'+
         '<div class="vb-basic">upgrade: <b>'+u.esc(item.basic)+'</b></div>'+
         '<div class="q-text">'+u.esc(item.s).replace(/____+/g,'<span class="gap">&nbsp;?&nbsp;</span>')+'</div>'+
+        scaffold+
         (typed
-          ? '<input class="ans-input" id="vb-ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="The stronger word…">'
+          ? '<input class="ans-input" id="vb-ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="'+(mode==='cued'?'Type the word — the skeleton is your cue…':'The stronger word, from memory…')+'">'
           : '<div class="opts">'+opts.map(function(o,i){
               return '<button class="opt" data-w="'+u.esc(o)+'"><span class="letter">'+String.fromCharCode(65+i)+'</span><span>'+u.esc(o)+'</span></button>';
             }).join('')+'</div>')+
@@ -692,9 +735,10 @@ function vocabQ(){
     eng.recordVocab(item, ok);
     if(FCE.app && FCE.app.buildTopbar) FCE.app.buildTopbar();
     u.$('#vb-fb', v).innerHTML = '<div class="feedback '+(ok?'ok':'bad')+'">'+
-      (ok ? '<div class="fb-head">✓ '+u.esc(item.up[0])+'</div>'
+      (ok ? '<div class="fb-head">✓ '+u.esc(item.up[0])+(mode!=='choose'?' — produced from memory':'')+'</div>'
           : '<div class="fb-head">Not quite</div><div class="big-answer">'+u.esc(item.up.join('  ·  '))+'</div>')+
-      '<div class="fb-exp">'+u.esc(item.s.replace(/____+/g, item.up[0]))+'</div>'+
+      '<div class="fb-exp"><b>'+u.esc(item.s.replace(/____+/g, item.up[0].toUpperCase()))+'</b></div>'+
+      '<div class="fb-diag">🔒 <b>Lock it in:</b> look away from the screen and say the whole sentence aloud, with <i>'+u.esc(item.up[0])+'</i> in place. Retrieval + production is what plants it for essay day.</div>'+
       '<div class="fb-hook">✍️ <b>Examiner note:</b> '+u.esc(item.why)+(item.up.length>1?' Also accepted: <i>'+u.esc(item.up.slice(1).join(', '))+'</i>.':'')+'</div>'+
       '<div class="q-actions"><button class="btn primary" id="vb-next">'+(VB.idx+1>=VB.set.length?'See results':'Next')+' →</button></div></div>';
     u.$('#vb-next', v).addEventListener('click', function(){ VB.idx++; renderVocab(); });
@@ -820,12 +864,14 @@ function gradeMock(v){
   M.done = true;
   var u = U(), eng = E(), s = M.set;
   var score = 0, parts = {p1:0,p2:0,p3:0,p4:0}, errors = [];
+  var marks = {p1:{}, p2:{}, p3:{}, p4:[]};
   s.p1.gaps.forEach(function(g){
     var sel = u.$('select[data-part="p1"][data-n="'+g.n+'"]', v);
     var val = sel ? +sel.value : -1;
     var ok = val === g.cor;
     if(ok){ score++; parts.p1++; }
     else errors.push({part:'Part 1', n:g.n, user: val>=0 ? g.opts[val] : '(blank)', corr:g.opts[g.cor], exp:g.exp});
+    marks.p1[g.n] = {ok:ok, user: val>=0 ? g.opts[val] : '', corr:g.opts[g.cor], exp:g.exp};
     eng.record({id:s.p1.id+'-'+g.n, tags:g.tags, diff:3, ans:[g.opts[g.cor]]}, 'mcc', ok, '', 0, val>=0?g.opts[val]:'', '', {quiet:true});
   });
   s.p2.gaps.forEach(function(g){
@@ -834,6 +880,7 @@ function gradeMock(v){
     var ok = eng.gradeOne({id:s.p2.id+'-'+g.n, ans:g.ans}, val);
     if(ok){ score++; parts.p2++; }
     else errors.push({part:'Part 2', n:g.n, user:val||'(blank)', corr:g.ans.join(' / '), exp:g.exp});
+    marks.p2[g.n] = {ok:ok, user:val, corr:g.ans[0], exp:g.exp};
     eng.record({id:s.p2.id+'-'+g.n, tags:g.tags, gt:g.gt, diff:3, ans:g.ans}, 'cloze', ok, '', 0, val, '', {quiet:true});
   });
   s.p3.gaps.forEach(function(g){
@@ -842,6 +889,7 @@ function gradeMock(v){
     var ok = eng.gradeOne({id:s.p3.id+'-'+g.n, ans:g.ans}, val);
     if(ok){ score++; parts.p3++; }
     else errors.push({part:'Part 3', n:g.n, user:val||'(blank)', corr:g.ans.join(' / ')+' ('+g.stem+')', exp:g.exp});
+    marks.p3[g.n] = {ok:ok, user:val, corr:g.ans[0], stem:g.stem, exp:g.exp};
     eng.record({id:s.p3.id+'-'+g.n, tags:g.tags, diff:3, ans:g.ans}, 'wf', ok, '', 0, val, '', {quiet:true});
   });
   s.p4.forEach(function(q,i){
@@ -850,12 +898,30 @@ function gradeMock(v){
     var g = eng.gradeKWT(q, val);
     score += g.score; parts.p4 += g.score;
     if(!g.ok) errors.push({part:'Part 4', n:i+1, user:val||'(blank)', corr:q.ans[0], exp:q.exp + (g.score===1?' (1 mark earned for a correct half.)':'')});
+    marks.p4.push({q:q, user:val, score:g.score, ok:g.ok});
     eng.record(q, 'kwt', g.ok, '', 0, val, '', {quiet:true});
   });
   eng.checkBadges(0);
   eng.markPassage(s.p1.id); eng.markPassage(s.p2.id); eng.markPassage(s.p3.id);
   var scale = eng.recordMock(score, 36, parts);
   var pr = eng.predict();
+  // render the WHOLE paper back, corrected in place — like a marked exam script
+  function corrected(pass, mode){
+    var txt = u.esc(pass.text);
+    pass.gaps.forEach(function(g){
+      var m = marks[mode][g.n];
+      var inner;
+      if(m.ok){
+        inner = '<span class="pgap"><span class="n">'+g.n+'</span><b class="mk-ok">'+u.esc(m.corr)+'</b></span>';
+      } else {
+        inner = '<span class="pgap"><span class="n">'+g.n+'</span>'+
+                (m.user ? '<s class="mk-bad">'+u.esc(m.user)+'</s>' : '<span class="mk-bad">—</span>')+
+                '<b class="mk-fix" title="'+u.esc(m.exp||'')+'">'+u.esc(m.corr)+'</b></span>';
+      }
+      txt = txt.replace('('+g.n+')'+(mode==='p3'?u.esc(marks.p3[g.n].stem):''), inner);
+    });
+    return '<div class="passage corrected">'+txt+'</div>';
+  }
   var host = u.$('#view');
   host.innerHTML = '';
   host.appendChild(u.el(
@@ -866,12 +932,23 @@ function gradeMock(v){
       '<div class="mr-grid">'+
         mr('Part 1', parts.p1, 8)+mr('Part 2', parts.p2, 8)+mr('Part 3', parts.p3, 8)+mr('Part 4', parts.p4, 12)+
       '</div>'+
-      '<p class="tiny">Overall prediction updated: <b>'+pr.grade+'</b> ('+pr.scale+'). Every error is queued for review.</p>'+
+      '<p class="tiny">Overall prediction updated: <b>'+pr.grade+'</b> ('+pr.scale+'). Below is your whole paper, marked — green stays, red gets fixed. Every miss is queued for review.</p>'+
     '</div>'+
-    (errors.length ? '<div class="card" style="margin-top:16px"><h3>🔍 Error autopsy ('+errors.length+')</h3>'+
-      errors.map(function(e2){
-        return '<div class="gb-mistake"><b>'+e2.part+' · '+e2.n+'</b> — you: <span class="yours">'+u.esc(e2.user)+'</span> → <span class="right">'+u.esc(e2.corr)+'</span><br><span class="tiny">'+u.esc(e2.exp||'')+'</span></div>';
-      }).join('')+'</div>' : '')+
+    '<h3 class="sec-label" style="margin-top:22px">Your paper, corrected</h3>'+
+    '<div class="mock-part"><h4>Part 1 · '+u.esc(s.p1.title)+' <span class="chip '+(parts.p1>=6?'ok':'warn')+'">'+parts.p1+'/8</span></h4>'+corrected(s.p1,'p1')+'</div>'+
+    '<div class="mock-part"><h4>Part 2 · '+u.esc(s.p2.title)+' <span class="chip '+(parts.p2>=6?'ok':'warn')+'">'+parts.p2+'/8</span></h4>'+corrected(s.p2,'p2')+'</div>'+
+    '<div class="mock-part"><h4>Part 3 · '+u.esc(s.p3.title)+' <span class="chip '+(parts.p3>=6?'ok':'warn')+'">'+parts.p3+'/8</span></h4>'+corrected(s.p3,'p3')+'</div>'+
+    '<div class="mock-part"><h4>Part 4 · Transformations <span class="chip '+(parts.p4>=9?'ok':'warn')+'">'+parts.p4+'/12</span></h4>'+
+      marks.p4.map(function(m,i){
+        return '<div class="mock-kwt"><div class="ms1">'+(i+1)+'. '+u.esc(m.q.s1)+' <span class="q-key" style="margin:0">[<b>'+u.esc(m.q.key)+'</b>]</span></div>'+
+          '<div class="ms1" style="margin-top:6px">'+u.esc(m.q.s2).replace(/____+/g,
+            m.ok ? '<b class="mk-ok">'+u.esc(m.user)+'</b>'
+                 : (m.user?'<s class="mk-bad">'+u.esc(m.user)+'</s> ':'')+'<b class="mk-fix">'+u.esc(m.q.ans[0])+'</b>')+
+          ' <span class="chip '+(m.score===2?'ok':m.score===1?'warn':'bad')+'" style="font-size:10px">'+m.score+'/2</span></div>'+
+          (!m.ok ? '<div class="tiny" style="margin-top:6px">'+u.esc(m.q.exp||'')+'</div>' : '')+
+        '</div>';
+      }).join('')+
+    '</div>'+
     '<div class="row" style="justify-content:center;margin-top:18px;flex-wrap:wrap">'+
       '<button class="btn primary" id="mk-dash">Home</button>'+
       '<button class="btn" id="mk-again">New mock</button>'+

@@ -57,18 +57,19 @@ A.buildTopbar = function(){
   tb.innerHTML =
     '<div class="tb-logo">'+FCE.ui.wordmark()+'</div>'+
     '<div class="tb-spacer"></div>'+
-    '<div class="tb-level"><span class="lvl">LVL '+eng.level()+'</span><div class="bar thin"><i class="shimmer" style="width:'+Math.round(eng.levelProgress()*100)+'%"></i></div><span class="lvl">'+st.xp+' XP</span></div>'+
-    '<span class="tb-chip flame"><span class="fl">🔥</span>'+st.streak.count+'</span>';
+    '<div class="tb-level" title="XP = effort made visible. Levels grow on a square-root curve — each costs more work, and the engine raises its expectations as you climb."><span class="lvl">LVL '+eng.level()+'</span><div class="bar thin"><i class="shimmer" style="width:'+Math.round(eng.levelProgress()*100)+'%"></i></div><span class="lvl">'+st.xp+' XP</span></div>'+
+    '<span class="tb-chip flame" title="Consecutive days practised. Habit is the best predictor of passing — protect the flame."><span class="fl">🔥</span>'+st.streak.count+'</span>';
 };
 
 A.buildNav = function(){
   var sb = document.querySelector('.sidebar');
   var items = FCE.ui.isLite() ? NAV_LITE : NAV_FULL;
   sb.innerHTML =
+    '<div class="rail-card">'+
     items.map(function(n){
       return '<button class="nav-btn" data-v="'+n[0]+'" title="'+n[2]+'"><span class="ic">'+n[1]+'</span><span>'+n[2]+'</span></button>';
     }).join('')+
-    '<div class="nav-spacer"></div>';
+    '</div><div class="nav-spacer"></div>';
   Array.prototype.forEach.call(sb.querySelectorAll('.nav-btn'), function(b){
     b.addEventListener('click', function(){ FCE.ui.go(b.dataset.v); });
   });

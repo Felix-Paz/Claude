@@ -577,6 +577,55 @@ select:focus{border-color:var(--red)}
 .tele-cell .tl{font-size:10px;color:var(--ink3);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-top:3px;line-height:1.4}
 .stem-chip{font-family:var(--mono);font-weight:800;letter-spacing:1.2px;font-size:11px;color:var(--amber);background:var(--ambersoft);border:1px solid rgba(201,138,45,.4);border-radius:7px;padding:2px 7px}
 .passage input.p3in{width:128px}
+/* v5.2 polish: frosted nav rail, cinematic page transitions, spent check, xp anchor */
+.rail-card{
+  display:flex;flex-direction:column;gap:2px;padding:14px 10px;border-radius:20px;
+  background:var(--glass);border:1px solid var(--gb);box-shadow:var(--shadow);
+  backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);
+}
+#view.leaving>.view{animation:pageOut .19s var(--ease) forwards}
+#view.leaving>.view>*{animation:none}
+@keyframes pageOut{to{opacity:0;transform:translateY(-12px) scale(.992);filter:blur(5px)}}
+.view{animation:pageIn .5s var(--ease)}
+@keyframes pageIn{from{opacity:.0;transform:translateY(8px);filter:blur(7px)}60%{filter:blur(0)}to{opacity:1;transform:none}}
+.btn.spent{
+  background:rgba(27,28,33,.06);border:1px solid var(--edge);color:var(--ink3);
+  box-shadow:none;transform:none;opacity:1 !important;cursor:default;
+}
+.btn.spent::after{display:none}
+.fb-head{position:relative}
+.fb-head .xp-float{right:2px;top:-4px}
+@media (max-width:860px){
+  .rail-card{flex-direction:row;flex:1;justify-content:space-around;padding:6px;border-radius:18px;background:rgba(255,251,241,.9)}
+  .sidebar{background:transparent;border-top:0}
+}
+/* v5.3: contrast pass, marked-paper, ink stroke WOW, consolidation, glass plus */
+:root{--ink3:#7A7468}
+.card::before{
+  content:"";position:absolute;inset:0 14px auto 14px;height:1px;border-radius:99px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);
+}
+.q-timer.done{opacity:.45;border-style:dashed}
+.mk-ok{color:var(--ok);font-weight:800}
+.mk-bad{color:var(--red2);font-weight:600;opacity:.75}
+.mk-fix{color:var(--ok);font-weight:800;background:var(--oksoft);border:1px solid rgba(46,125,79,.3);border-radius:7px;padding:0 7px;margin-left:4px}
+.passage.corrected{line-height:2.3}
+.consol{background:var(--glass3)}
+.consol-row{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--edge);font-size:13px}
+.consol-row:last-child{border:0}
+.consol-row b{font-family:var(--disp);font-size:15px;color:var(--ok);white-space:nowrap}
+.ink-stroke{display:block;width:min(320px,60%);height:14px;margin-top:2px}
+.ink-stroke path{stroke-dasharray:340;stroke-dashoffset:340;animation:inkdraw 1.1s .25s var(--ease) forwards;opacity:.9}
+@keyframes inkdraw{to{stroke-dashoffset:0}}
+.grade-big{animation:gradein .8s .2s var(--spring) backwards}
+@keyframes gradein{from{opacity:0;transform:scale(.7) rotate(-4deg);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+body::after{opacity:.085}
+.q-card::after{
+  content:"";position:absolute;inset:1px;border-radius:25px;pointer-events:none;
+  background:linear-gradient(118deg,rgba(255,255,255,.5) 0%,transparent 22%);
+  opacity:.5;
+}
+@media (prefers-reduced-motion:reduce){.ink-stroke path{animation:none;stroke-dashoffset:0}}
 
 </style>
 </head>
@@ -1614,6 +1663,106 @@ FCE.BANK.passages.p3.push({ id:"pp3d", title:"Why maps lie",
 })();
 
 
+/* ===== js/data-bank6.js ===== */
+/* Mastery (FCE) — question bank VI (k111–k130, c138–c157, w109–w128, m111–m130). */
+window.FCE = window.FCE || {};
+FCE.BANK = FCE.BANK || {};
+(function(){
+var K = [
+{id:"k111", s1:"Driving without a seatbelt is against the law.", key:"ALLOWED", s2:"You are ____ without a seatbelt.", ans:["not allowed to drive"], halves:[["not allowed"],["to drive"]], tags:["pass","modal"], diff:2, exp:"against the law ↔ NOT ALLOWED TO + infinitive.", trap:"Keep TO: not allowed to drive."},
+{id:"k112", s1:"The film didn’t live up to my expectations.", key:"GOOD", s2:"The film was not ____ I had expected.", ans:["as good as","so good as"], halves:[["as good","so good"],["as"]], tags:["comp"], diff:3, exp:"not AS/SO good AS.", trap:"Base adjective inside as…as — never 'better'."},
+{id:"k113", s1:"“I’m sorry I’m late,” said Tom.", key:"FOR", s2:"Tom apologised ____ late.", ans:["for being","for arriving"], halves:[["for"],["being","arriving"]], tags:["rep","ger"], diff:2, exp:"apologise FOR + -ing.", trap:"'for to be late' / 'for be late' both fail."},
+{id:"k114", s1:"This puzzle is too difficult for the children to solve.", key:"SIMPLE", s2:"This puzzle is not ____ for the children to solve.", ans:["simple enough"], halves:[["simple"],["enough"]], tags:["comp"], diff:2, exp:"too difficult ↔ not + opposite + ENOUGH.", trap:"enough AFTER the adjective."},
+{id:"k115", s1:"People believe the painting was stolen to order.", key:"BELIEVED", s2:"The painting is ____ stolen to order.", ans:["believed to have been"], halves:[["believed to"],["have been"]], tags:["pass","rep"], diff:5, exp:"Impersonal passive + past: believed TO HAVE BEEN stolen.", trap:"The past reference needs HAVE BEEN, not just 'to be'."},
+{id:"k116", s1:"We arrived too late to see the opening ceremony.", key:"TIME", s2:"We did not arrive in ____ the opening ceremony.", ans:["time to see","time for"], halves:[["time"],["to see","for"]], tags:["fix","prep"], diff:3, exp:"IN TIME to do / for something.", trap:"in time (early enough) ≠ on time (punctually)."},
+{id:"k117", s1:"My sister is a much better cook than me.", key:"WELL", s2:"I do not cook ____ my sister.", ans:["as well as","so well as","nearly as well as"], halves:[["as well","so well","nearly as well"],["as"]], tags:["comp"], diff:3, exp:"adverb comparison: not as WELL as.", trap:"WELL (adverb), not GOOD, after a verb."},
+{id:"k118", s1:"It’s possible that the keys are still in the car.", key:"MIGHT", s2:"The keys ____ in the car.", ans:["might still be","might be still"], halves:[["might"],["still be","be still"]], tags:["modal"], diff:2, exp:"Present possibility: MIGHT + be.", trap:"No TO after might."},
+{id:"k119", s1:"The teacher made the class rewrite the essay.", key:"WAS", s2:"The class ____ rewrite the essay.", ans:["was made to"], halves:[["was made"],["to"]], tags:["pass"], diff:4, exp:"make sb do → passive BE MADE TO do.", trap:"The returning TO — Cambridge’s favourite half mark."},
+{id:"k120", s1:"I haven’t spoken French since I left school.", key:"LAST", s2:"The ____ French was when I left school.", ans:["last time i spoke"], halves:[["last time"],["i spoke"]], tags:["fix","aux"], diff:3, exp:"present perfect negative + since ↔ the LAST TIME + past simple.", trap:"Past simple after 'the last time'."},
+{id:"k121", s1:"He couldn’t find his passport anywhere.", key:"NOWHERE", s2:"His passport was ____ found.", ans:["nowhere to be"], halves:[["nowhere"],["to be"]], tags:["fix","pass"], diff:4, exp:"be NOWHERE TO BE found.", trap:"All four words fixed."},
+{id:"k122", s1:"They will announce the results on Friday.", key:"BE", s2:"The results will ____ on Friday.", ans:["be announced"], halves:[["be"],["announced"]], tags:["pass"], diff:1, exp:"Future passive: will BE + participle.", trap:"Simple but rushed students write 'be announce'."},
+{id:"k123", s1:"Maybe they didn’t receive our invitation.", key:"HAVE", s2:"They may not ____ our invitation.", ans:["have received","have got"], halves:[["have"],["received","got"]], tags:["modal"], diff:3, exp:"Past possibility negative: may not HAVE + participle.", trap:"'may not received' loses the HAVE."},
+{id:"k124", s1:"I find it strange that she didn’t phone.", key:"ODD", s2:"It strikes me ____ she didn’t phone.", ans:["as odd that"], halves:[["as odd"],["that"]], tags:["fix"], diff:5, exp:"strike somebody AS + adjective.", trap:"strike as — elegant C1-flavour pattern."},
+{id:"k125", s1:"Although he is rich, he lives very simply.", key:"DESPITE", s2:"He lives very simply ____ rich.", ans:["despite being"], halves:[["despite"],["being"]], tags:["link","ger"], diff:2, exp:"DESPITE + being + adjective.", trap:"despite OF — automatic zero."},
+{id:"k126", s1:"“Did you lock the door, Sam?” asked Rosa.", key:"IF", s2:"Rosa asked Sam ____ the door.", ans:["if he had locked"], halves:[["if he"],["had locked"]], tags:["rep"], diff:3, exp:"Reported yes/no question: IF + past perfect.", trap:"Backshift did → had locked."},
+{id:"k127", s1:"Eating in the library is forbidden.", key:"MUST", s2:"Food ____ in the library.", ans:["must not be eaten","mustn't be eaten","must not be consumed"], halves:[["must not","mustn't"],["be eaten","be consumed"]], tags:["pass","modal"], diff:3, exp:"Prohibition passive: MUST NOT BE + participle.", trap:"BE is the half students drop."},
+{id:"k128", s1:"It was such an exciting match that nobody left early.", key:"SO", s2:"The match was ____ nobody left early.", ans:["so exciting that"], halves:[["so exciting"],["that"]], tags:["comp","det"], diff:2, exp:"such a + noun ↔ SO + adjective + that.", trap:"Mirror transformation — drop the noun, drop the article."},
+{id:"k129", s1:"I’d prefer to go by train rather than fly.", key:"SOONER", s2:"I would ____ by train than fly.", ans:["sooner go","sooner travel"], halves:[["sooner"],["go","travel"]], tags:["wish","comp"], diff:4, exp:"would SOONER do = would rather do.", trap:"Bare infinitive after would sooner."},
+{id:"k130", s1:"Whose idea was this brilliant plan?", key:"CAME", s2:"Who ____ this brilliant plan?", ans:["came up with"], halves:[["came up"],["with"]], tags:["pv"], diff:2, exp:"COME UP WITH = think of/invent — here in the past: came up with.", trap:"All three words needed; the particle pair UP WITH carries a full mark."},
+];
+var C = [
+{id:"c138", s:"The success of the festival depends largely ____ the weather holding.", ans:["on","upon"], gt:"prep", tags:["prep"], diff:2, exp:"depend ON.", trap:"largely is a distractor between verb and preposition."},
+{id:"c139", s:"It was kind ____ you to wait for me.", ans:["of"], gt:"prep", tags:["prep"], diff:2, exp:"kind/nice/good OF somebody to do.", trap:"kind FOR you — the judging-adjective pattern takes OF."},
+{id:"c140", s:"____ average, it rains here one day in three.", ans:["on"], gt:"prep", tags:["depprep"], diff:2, exp:"ON average.", trap:"IN average is the standard miss."},
+{id:"c141", s:"You ____ to see his face when he opened the box!", ans:["ought","had"], gt:"modal", tags:["modal"], diff:4, exp:"You OUGHT to have seen… (here: ought to see) — exclamation idiom.", trap:"OUGHT is the only modal with TO."},
+{id:"c142", s:"The new bridge, ____ construction took five years, finally opened.", ans:["whose"], gt:"rel", tags:["rel"], diff:4, exp:"WHOSE works for things too: the bridge whose construction…", trap:"'which construction' is impossible."},
+{id:"c143", s:"We could see the coast far ____ in the distance.", ans:["off","away","below"], gt:"adv", tags:["fix"], diff:2, exp:"far OFF / far AWAY = distant.", trap:"Multiple answers accepted — pick the one you're sure of."},
+{id:"c144", s:"He is, ____ doubt, the finest goalkeeper of his generation.", ans:["without","beyond"], gt:"prep", tags:["fix"], diff:3, exp:"WITHOUT/BEYOND doubt = certainly.", trap:"'with no doubt' needs three words; the slot wants one."},
+{id:"c145", s:"____ being injured, the captain insisted on playing.", ans:["despite"], gt:"link", tags:["link","ger"], diff:3, exp:"DESPITE + -ing.", trap:"Although + -ing is impossible."},
+{id:"c146", s:"There’s a fine ____ between confidence and arrogance.", ans:["line"], gt:"vform", tags:["fix","col"], diff:4, exp:"a fine LINE between X and Y.", trap:"'fine limit/border' — the idiom owns LINE."},
+{id:"c147", s:"I’ll meet you at the café ____ to the station entrance.", ans:["next","close"], gt:"adv", tags:["prep","fix"], diff:2, exp:"NEXT TO / CLOSE TO = beside.", trap:"NEAR takes no TO — that's why it can't fill this gap."},
+{id:"c148", s:"She speaks four languages, two of ____ fluently.", ans:["them"], gt:"pron", tags:["pron","rel"], diff:4, exp:"two of THEM (no verb follows → pronoun, not which).", trap:"'two of which' needs a verb after it."},
+{id:"c149", s:"____ a rule, I avoid sugary drinks during exam week.", ans:["as"], gt:"fixphrase", tags:["fix"], diff:3, exp:"AS a rule = generally.", trap:"'For a rule' / 'In a rule' miss the idiom."},
+{id:"c150", s:"The lecture was so boring that I could hardly stay ____ .", ans:["awake"], gt:"vform", tags:["col"], diff:2, exp:"stay AWAKE.", trap:"'stay woke up' — the adjective is awake."},
+{id:"c151", s:"Success in Part 4 comes ____ to knowing the patterns.", ans:["down"], gt:"adv", tags:["pv"], diff:4, exp:"COME DOWN TO = be essentially a matter of.", trap:"comes UP to / comes OUT to — only DOWN works."},
+{id:"c152", s:"Neither the manager ____ the staff knew about the inspection.", ans:["nor"], gt:"link", tags:["link"], diff:2, exp:"neither … NOR.", trap:"'neither…or' is the classic loss."},
+{id:"c153", s:"We were made to wait outside, ____ of the freezing wind.", ans:["regardless"], gt:"fixphrase", tags:["fix","link"], diff:4, exp:"REGARDLESS of = without considering.", trap:"'despite of' bait again — the word here is regardless."},
+{id:"c154", s:"How did you get ____ in the end — did the bank lend you the money?", ans:["on","by"], gt:"adv", tags:["pv"], diff:3, exp:"get ON = progress; get BY = manage financially.", trap:"Both accepted; 'get by' is the money idiom."},
+{id:"c155", s:"It’s no good ____ over spilt milk.", ans:["crying"], gt:"vform", tags:["fix","ger"], diff:3, exp:"it's no good + -ING; idiom: cry over spilt milk.", trap:"-ING after 'no good', and the idiom verb is cry."},
+{id:"c156", s:"The escape was planned right ____ the guards’ noses.", ans:["under"], gt:"prep", tags:["fix"], diff:3, exp:"UNDER somebody's nose = in plain sight.", trap:"in front of their noses ✗ — idiom says under."},
+{id:"c157", s:"____ I known about the strike, I would have driven.", ans:["had"], gt:"aux", tags:["cond","inv"], diff:4, exp:"HAD I known = If I had known.", trap:"The inversion replaces IF entirely."},
+];
+var W = [
+{id:"w109", s:"The ____ of the volunteers made the event possible.", stem:"GENEROUS", ans:["generosity"], tags:["wfnoun"], diff:2, exp:"generous → generosity.", trap:"-OSITY: generosity, curiosity."},
+{id:"w110", s:"Her ____ to give up impressed every coach.", stem:"REFUSE", ans:["refusal"], tags:["wfnoun"], diff:2, exp:"refuse → refusal.", trap:"-AL noun like arrival, approval."},
+{id:"w111", s:"The defendant proved his ____ with a single receipt.", stem:"INNOCENT", ans:["innocence"], tags:["wfnoun"], diff:2, exp:"innocent → innocence.", trap:"-ENCE after -ent."},
+{id:"w112", s:"City life offers endless ____ for networking.", stem:"OPPORTUNE", ans:["opportunities"], tags:["wfnoun","spell"], diff:3, exp:"opportune → opportunitIES (plural after 'endless').", trap:"Plural + double P."},
+{id:"w113", s:"He answered with surprising ____ for a beginner.", stem:"MATURE", ans:["maturity"], tags:["wfnoun"], diff:2, exp:"mature → maturity.", trap:"Not 'matureness'."},
+{id:"w114", s:"The instructions were so ____ that everyone got lost.", stem:"CONFUSE", ans:["confusing"], tags:["wfadj"], diff:2, exp:"-ING = what causes the feeling.", trap:"confused people, confusing instructions."},
+{id:"w115", s:"Despite the rain, the fans remained ____ throughout.", stem:"ENTHUSIASM", ans:["enthusiastic"], tags:["wfadj","spell"], diff:3, exp:"enthusiasm → enthusiastic.", trap:"-IASTIC: enthus-iastic."},
+{id:"w116", s:"Sadly, such kindness is highly ____ nowadays.", stem:"USUAL", ans:["unusual"], tags:["wfadj","wfneg"], diff:3, exp:"'Sadly' + 'such kindness' → UNusual.", trap:"Polarity hides in 'sadly'."},
+{id:"w117", s:"The team played ____ in the second half.", stem:"BRILLIANT", ans:["brilliantly"], tags:["wfadv"], diff:1, exp:"brilliant → brilliantly.", trap:"Double L survives: brilliantly."},
+{id:"w118", s:"____ speaking, the project was a failure.", stem:"STRICT", ans:["strictly"], tags:["wfadv"], diff:2, exp:"STRICTLY speaking — fixed discourse adverb.", trap:"Sentence-initial adverb pattern."},
+{id:"w119", s:"There has been a ____ improvement in air quality.", stem:"NOTICE", ans:["noticeable"], tags:["wfadj","spell"], diff:3, exp:"notice → noticeable.", trap:"Keep the E: notice-able."},
+{id:"w120", s:"The hotel pool is for ____ use only.", stem:"RESIDE", ans:["residents'","residents"], tags:["wfnoun"], diff:4, exp:"reside → residents (possessive idea).", trap:"Person noun, plural."},
+{id:"w121", s:"Volunteers worked ____ to clear the beach.", stem:"TIRE", ans:["tirelessly"], tags:["wfadv","wfneg"], diff:4, exp:"tire → tireless → tirelessly: two suffixes.", trap:"Double transformation: -less + -ly."},
+{id:"w122", s:"The ____ between the two reports is striking.", stem:"SIMILAR", ans:["similarity"], tags:["wfnoun"], diff:2, exp:"similar → similarity.", trap:"-ITY noun."},
+{id:"w123", s:"Smoking is strictly ____ on all flights.", stem:"FORBID", ans:["forbidden"], tags:["wfadj","spell"], diff:2, exp:"forbid → forbidden.", trap:"Double D in the participle."},
+{id:"w124", s:"Her ____ smile put the candidates at ease.", stem:"FRIEND", ans:["friendly"], tags:["wfadj"], diff:1, exp:"friend → friendly.", trap:"-LY here makes an ADJECTIVE, not an adverb."},
+{id:"w125", s:"The medicine must be kept out of children’s ____ .", stem:"REACH", ans:["reach"], tags:["wfnoun","fix"], diff:4, exp:"out of REACH — the stem already fits.", trap:"No-change trap inside a fixed phrase."},
+{id:"w126", s:"The committee questioned the ____ of the figures.", stem:"RELY", ans:["reliability"], tags:["wfnoun","spell"], diff:3, exp:"rely → reliable → reliability.", trap:"y→i, then -ability."},
+{id:"w127", s:"____ , the two scientists reached the same conclusion.", stem:"DEPEND", ans:["independently"], tags:["wfadv","wfneg"], diff:4, exp:"depend → independent → independently.", trap:"Prefix + double suffix — triple step."},
+{id:"w128", s:"The story’s ending was completely ____ .", stem:"EXPECT", ans:["unexpected"], tags:["wfadj","wfneg"], diff:2, exp:"'completely' + twist → UNexpected.", trap:"unexpected, not 'inexpected'."},
+];
+var M = [
+{id:"m111", s:"The smell of fresh bread ____ me of my grandmother’s kitchen.", opts:["reminds","remembers","recalls","reflects"], cor:0, tags:["col"], diff:1, exp:"REMIND somebody OF.", trap:"remember can't take an object + of."},
+{id:"m112", s:"Could you keep me ____ of any changes to the schedule?", opts:["informed","known","acquainted","told"], cor:0, tags:["col","pass"], diff:3, exp:"keep somebody INFORMED of.", trap:"'keep me aware' is weak; the collocation is informed."},
+{id:"m113", s:"The committee ____ doubts about the project’s funding.", opts:["raised","rose","lifted","aroused"], cor:0, tags:["col"], diff:3, exp:"RAISE doubts/questions/concerns.", trap:"rise is intransitive; arouse suspicion but raise doubts."},
+{id:"m114", s:"I’m afraid your account doesn’t ____ with the other witness’s.", opts:["agree","accept","admit","approve"], cor:0, tags:["col","prep"], diff:3, exp:"AGREE WITH = be consistent with.", trap:"accounts agree; people accept things."},
+{id:"m115", s:"After the scandal, the minister was forced to ____ down.", opts:["stand","bow","sit","fall"], cor:0, tags:["pv"], diff:3, exp:"STAND DOWN = resign from a position.", trap:"bow OUT also means leave — but bow DOWN means worship."},
+{id:"m116", s:"It took her years to ____ a reputation as a reliable builder.", opts:["build","make","grow","raise"], cor:0, tags:["col"], diff:2, exp:"BUILD a reputation.", trap:"make a name, but build a reputation."},
+{id:"m117", s:"The two countries finally ____ peace after a decade of war.", opts:["made","did","built","created"], cor:0, tags:["col"], diff:1, exp:"MAKE peace.", trap:"make war, make peace — both with make."},
+{id:"m118", s:"I can’t ____ on an empty stomach — let’s eat first.", opts:["concentrate","attend","reflect","think"], cor:0, tags:["col","prep"], diff:2, exp:"CONCENTRATE (on).", trap:"attend TO exists but means deal with."},
+{id:"m119", s:"The ferry service was ____ because of high winds.", opts:["suspended","interrupted","paused","expelled"], cor:0, tags:["col"], diff:3, exp:"services are SUSPENDED.", trap:"formal service verb: suspend."},
+{id:"m120", s:"Her argument simply doesn’t ____ water.", opts:["hold","keep","carry","stand"], cor:0, tags:["fix"], diff:4, exp:"HOLD water = be logically sound.", trap:"Pure idiom — hold."},
+{id:"m121", s:"We need to ____ a balance between price and quality.", opts:["strike","hit","beat","knock"], cor:0, tags:["col"], diff:3, exp:"STRIKE a balance.", trap:"strike a balance / strike a deal."},
+{id:"m122", s:"They’ve put ____ an offer on a house near the coast.", opts:["in","out","up","over"], cor:0, tags:["pv","col"], diff:3, exp:"PUT IN an offer = formally make one.", trap:"put in (submit) vs put up (display/raise) vs put out (extinguish)."},
+{id:"m123", s:"The plan sounds good ____ paper, but it will never work.", opts:["on","in","at","by"], cor:0, tags:["depprep","fix"], diff:2, exp:"ON paper = in theory.", trap:"IN paper is the L1 calque."},
+{id:"m124", s:"He paid the fine rather ____ go to court.", opts:["than","then","that","to"], cor:0, tags:["comp","link"], diff:2, exp:"rather THAN + bare infinitive.", trap:"than/then — one letter, one mark."},
+{id:"m125", s:"The book gives a fascinating ____ into Victorian life.", opts:["insight","outlook","view","sight"], cor:0, tags:["col"], diff:3, exp:"INSIGHT INTO.", trap:"view OF, outlook ON, insight INTO."},
+{id:"m126", s:"My phone is ____ its last legs — the battery dies by noon.", opts:["on","at","in","by"], cor:0, tags:["fix"], diff:3, exp:"ON its last legs = nearly worn out.", trap:"Fixed: on."},
+{id:"m127", s:"____ the circumstances, the team performed admirably.", opts:["Given","Granted","Provided","Supposing"], cor:0, tags:["link"], diff:4, exp:"GIVEN + noun = considering.", trap:"provided/supposing need clauses."},
+{id:"m128", s:"The trainer told us to warm up so as not to ____ a muscle.", opts:["pull","drag","stretch","snap"], cor:0, tags:["col"], diff:2, exp:"PULL a muscle.", trap:"stretch is what you should do; pull is the injury."},
+{id:"m129", s:"Sales ____ a record high in December.", opts:["hit","struck","banged","met"], cor:0, tags:["col"], diff:2, exp:"HIT a record high.", trap:"hit a high, break a record — don't blend."},
+{id:"m130", s:"I only know her ____ sight, not to talk to.", opts:["by","of","from","at"], cor:0, tags:["depprep","fix"], diff:3, exp:"know somebody BY sight.", trap:"BY sight / BY name / BY heart — the by-family."},
+];
+FCE.BANK.kwt = FCE.BANK.kwt.concat(K);
+FCE.BANK.cloze = FCE.BANK.cloze.concat(C);
+FCE.BANK.wf = FCE.BANK.wf.concat(W);
+FCE.BANK.mcc = FCE.BANK.mcc.concat(M);
+})();
+
+
 /* ===== js/data-vocab.js ===== */
 /* Mastery (FCE) — Essay Vocab Lab data.
    Each entry upgrades a "flat" word into band-boosting alternatives, anchored in a real
@@ -2160,6 +2309,16 @@ E.checkBadges = function(runStreak){
   if(cb) E.award('comeback');
 };
 E.level = function(){ return Math.floor(Math.sqrt(E.state.xp/90)) + 1; };
+/* human-readable difficulty tier from average Elo ability */
+E.difficultyTier = function(){
+  var a = E.state.ability;
+  var avg = (a.kwt + a.cloze + a.wf + a.mcc) / 4;
+  if(avg < 1080) return {name:'Foundation',  desc:'easier items while the engine maps you', icon:'•'};
+  if(avg < 1180) return {name:'Developing',  desc:'core B2 difficulty', icon:'••'};
+  if(avg < 1280) return {name:'Exam level',  desc:'true FCE paper difficulty', icon:'•••'};
+  if(avg < 1380) return {name:'Sharp',       desc:'above-paper difficulty — building margin', icon:'••••'};
+  return {name:'Distinction', desc:'C1-leaning items — grade-A training', icon:'•••••'};
+};
 E.levelProgress = function(){
   var lvl = E.level();
   var cur = Math.pow(lvl-1,2)*90, next = Math.pow(lvl,2)*90;
@@ -2464,7 +2623,9 @@ E.spellingSet = function(n){
     .forEach(function(w){
       if(out.length >= Math.min(3,n)) return;
       var entry = FCE.SPELL.filter(function(s){ return s.w === w; })[0] ||
-                  {w:w, bad:[], cue:'One of your own past misspellings — beat it this time.'};
+                  {w:w, bad:[],
+                   def:'WORD · you misspelled this in a recent session. \u201C'+w.charAt(0).toUpperCase()+w.slice(1)+'\u201D — write the correct form.',
+                   cue:'Straight from your own mistake log — burn the correct shape in now.'};
       out.push(entry); used[entry.w]=1;
     });
   // 2) least-practised danger words
@@ -2722,9 +2883,9 @@ E.focusAdd = function(match){
 window.FCE = window.FCE || {};
 FCE.charts = (function(){
 var C = {};
-var T = { ink:'#EAF6F4', sub:'#A9CCC8', faint:'#6E9793', grid:'rgba(189,217,215,.14)',
-          teal:'#5FD3C0', teal2:'#8FBDB9', ok:'#5FD3A6', bad:'#FF6B5C', warn:'#D9A53A',
-          gold:'#F2C94C', sage:'#37B8A4' };
+var T = { ink:'#1B1C21', sub:'#52504A', faint:'#8E8878', grid:'rgba(27,28,33,.12)',
+          teal:'#E0492F', teal2:'#C2371F', ok:'#2E7D4F', bad:'#C2371F', warn:'#C98A2D',
+          gold:'#C98A2D', sage:'#7FA98C' };
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 
 /* Semi-circular score gauge, Cambridge scale 122–190, with CI band */
@@ -2782,7 +2943,7 @@ C.radar = function(data){
     var p2 = pt(j, R*v);
     d2 += (j?'L':'M')+p2[0].toFixed(1)+' '+p2[1].toFixed(1);
   }
-  s += '<path d="'+d2+'Z" fill="rgba(14,94,100,.16)" stroke="'+T.teal+'" stroke-width="2"/>';
+  s += '<path d="'+d2+'Z" fill="rgba(224,73,47,.14)" stroke="'+T.teal+'" stroke-width="2"/>';
   for(var k=0;k<N;k++){
     var v2 = Math.max(0.06, data[k].val);
     var pp = pt(k, R*v2);
@@ -2808,7 +2969,7 @@ C.calibration = function(rows){
   rows.forEach(function(r,i){
     var x = x0 + 22 + i*(bw*2+gap);
     var hc = r.claimed*scaleH;
-    s += '<rect x="'+x+'" y="'+(y0-hc)+'" width="'+bw+'" height="'+hc+'" rx="5" fill="rgba(32,48,58,.16)"/>';
+    s += '<rect x="'+x+'" y="'+(y0-hc)+'" width="'+bw+'" height="'+hc+'" rx="5" fill="rgba(27,28,33,.14)"/>';
     if(r.actual !== null){
       var ha = r.actual*scaleH;
       var col = r.actual >= r.claimed-0.07 ? T.ok : T.bad;
@@ -2819,7 +2980,7 @@ C.calibration = function(rows){
     s += '<text x="'+(x+bw+2)+'" y="'+(y0+16)+'" font-size="10" fill="'+T.sub+'" text-anchor="middle">'+r.icon+' '+esc(r.name)+'</text>';
     if(r.att) s += '<text x="'+(x+bw+2)+'" y="'+(y0+30)+'" font-size="8.5" fill="'+T.faint+'" text-anchor="middle">'+r.att+' answers</text>';
   });
-  s += '<rect x="'+x0+'" y="178" width="9" height="9" rx="2" fill="rgba(32,48,58,.16)"/><text x="'+(x0+14)+'" y="186" font-size="9" fill="'+T.faint+'">what you claim</text>';
+  s += '<rect x="'+x0+'" y="178" width="9" height="9" rx="2" fill="rgba(27,28,33,.14)"/><text x="'+(x0+14)+'" y="186" font-size="9" fill="'+T.faint+'">what you claim</text>';
   s += '<rect x="'+(x0+110)+'" y="178" width="9" height="9" rx="2" fill="'+T.ok+'"/><text x="'+(x0+124)+'" y="186" font-size="9" fill="'+T.faint+'">what you score</text>';
   s += '</svg>';
   return s;
@@ -2835,7 +2996,7 @@ C.spark = function(data, w, h){
   });
   var d = pts.map(function(p,i){ return (i?'L':'M')+p[0]+' '+p[1]; }).join('');
   var s = '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%">';
-  s += '<path d="'+d+' L'+pts[pts.length-1][0]+' '+(h-2)+' L'+pts[0][0]+' '+(h-2)+'Z" fill="rgba(14,94,100,.10)" stroke="none"/>';
+  s += '<path d="'+d+' L'+pts[pts.length-1][0]+' '+(h-2)+' L'+pts[0][0]+' '+(h-2)+'Z" fill="rgba(224,73,47,.10)" stroke="none"/>';
   s += '<path d="'+d+'" fill="none" stroke="'+T.teal+'" stroke-width="2.2" stroke-linecap="round"/>';
   var last = pts[pts.length-1];
   s += '<circle cx="'+last[0]+'" cy="'+last[1]+'" r="3.4" fill="'+T.ink+'"/>';
@@ -2849,7 +3010,7 @@ C.ring = function(frac, label, sub, color){
   var R=34, CIRC=2*Math.PI*R;
   return '<div style="text-align:center">'+
     '<svg viewBox="0 0 84 84" style="width:84px;height:84px">'+
-    '<circle cx="42" cy="42" r="'+R+'" fill="none" stroke="rgba(189,217,215,.14)" stroke-width="7"/>'+
+    '<circle cx="42" cy="42" r="'+R+'" fill="none" stroke="rgba(27,28,33,.12)" stroke-width="7"/>'+
     '<circle cx="42" cy="42" r="'+R+'" fill="none" stroke="'+(color||T.teal)+'" stroke-width="7" stroke-linecap="round" '+
     'stroke-dasharray="'+CIRC.toFixed(1)+'" stroke-dashoffset="'+(CIRC*(1-frac)).toFixed(1)+'" transform="rotate(-90 42 42)" style="transition:stroke-dashoffset 1s cubic-bezier(.22,.9,.26,1)"/>'+
     '<text x="42" y="47" font-size="17" font-weight="700" fill="'+T.ink+'" text-anchor="middle" font-family="Iowan Old Style,Palatino,Georgia,serif">'+esc(label)+'</text>'+
@@ -2859,20 +3020,20 @@ C.ring = function(frac, label, sub, color){
 
 /* heat colors for error rate (deep-water theme) */
 C.heatColor = function(err){
-  if(err === null) return 'rgba(189,217,215,.05)';
-  if(err < 0.15) return 'rgba(95,211,166,.12)';
-  if(err < 0.3)  return 'rgba(95,211,192,.10)';
-  if(err < 0.45) return 'rgba(242,201,76,.12)';
-  if(err < 0.65) return 'rgba(242,153,76,.14)';
-  return 'rgba(255,107,92,.16)';
+  if(err === null) return 'rgba(255,251,241,.55)';
+  if(err < 0.15) return 'rgba(46,125,79,.10)';
+  if(err < 0.3)  return 'rgba(127,169,140,.14)';
+  if(err < 0.45) return 'rgba(201,138,45,.13)';
+  if(err < 0.65) return 'rgba(214,110,40,.16)';
+  return 'rgba(194,55,31,.14)';
 };
 C.heatBorder = function(err){
-  if(err === null) return 'rgba(189,217,215,.16)';
-  if(err < 0.15) return 'rgba(95,211,166,.4)';
-  if(err < 0.3)  return 'rgba(95,211,192,.4)';
-  if(err < 0.45) return 'rgba(242,201,76,.4)';
-  if(err < 0.65) return 'rgba(242,153,76,.45)';
-  return 'rgba(255,107,92,.5)';
+  if(err === null) return 'rgba(27,28,33,.12)';
+  if(err < 0.15) return 'rgba(46,125,79,.4)';
+  if(err < 0.3)  return 'rgba(127,169,140,.5)';
+  if(err < 0.45) return 'rgba(201,138,45,.45)';
+  if(err < 0.65) return 'rgba(214,110,40,.5)';
+  return 'rgba(194,55,31,.5)';
 };
 C.colors = T;
 return C;
@@ -2927,7 +3088,8 @@ U.howModal = function(){
     '<div class="how-sec"><b>3 · Your behaviour talks.</b> The engine watches hesitation before typing, erase-and-rewrite cycles, answer switching and pace. It detects lucky guesses, hidden doubt and “you changed a right answer” — even if you never rate your confidence.</div>'+
     '<div class="how-sec"><b>4 · Errors are diagnosed, not just counted.</b> A wrong answer is classified: spelling slip, wrong word-family form, wrong word class, missing key word… Each diagnosis routes differently — a spelling slip goes to the Spelling Gym, a concept gap floods your next sessions with that concept <i>in new exercises</i>.</div>'+
     '<div class="how-sec"><b>5 · Marks-at-risk economics.</b> Every skill carries its real exam weight. Priority = how often Cambridge tests it × how likely you are to miss it. You always study the highest-value marks first.</div>'+
-    '<div class="how-sec"><b>6 · Honest forecasting.</b> Your predicted grade blends ability ratings, recent accuracy and mock results, corrected for the fact that practice here is harder than the real paper. The confidence interval narrows as evidence grows.</div>'+
+    '<div class="how-sec"><b>6 · The game layer, decoded.</b> <b>XP</b> is effort made visible — every answer earns some, harder items and faster-than-exam answers earn more. <b>Levels</b> grow on a square-root curve, so each one genuinely costs more work; the engine treats a higher level as permission to expect more of you. The <b>🔥 flame</b> counts consecutive days practised (the single best predictor of passing), and <b>×N combos</b> track correct answers in a row within a session — five or more pays bonus XP.</div>'+
+    '<div class="how-sec"><b>7 · Honest forecasting.</b> Your predicted grade blends ability ratings, recent accuracy and mock results, corrected for the fact that practice here is harder than the real paper. The confidence interval narrows as evidence grows.</div>'+
     '<p class="tiny" style="margin-top:14px;text-align:center">All of it runs on this device. No internet, no account, no API.</p>'
   );
 };
@@ -2952,9 +3114,16 @@ U.go = function(name, arg){
   U.$$('.nav-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.v === name); });
   var v = U.views[name] || U.views.dash;
   var host = U.$('#view');
-  host.innerHTML = '';
-  host.appendChild(v(arg));
-  window.scrollTo(0,0);
+  var mount = function(){
+    host.classList.remove('leaving');
+    host.innerHTML = '';
+    host.appendChild(v(arg));
+    window.scrollTo(0,0);
+  };
+  if(host.childNodes.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    host.classList.add('leaving');           // soft exit: fade, lift, blur
+    setTimeout(mount, 190);
+  } else mount();
 };
 function el(html){
   var d = document.createElement('div');
@@ -3034,7 +3203,13 @@ U.views.dash = function(){
   var hasData = pr.n >= 10;
   var nSignals = st.log.length*7 + st.records.total*3;
 
+  var tier = eng.difficultyTier();
+  var streakRisk = st.streak.count > 0 && doneToday === 0 && hour >= 17;
   var html = '';
+  if(streakRisk && !emg){
+    html += '<div class="emg-ribbon">🔥 <b>Your '+st.streak.count+'-day streak ends at midnight.</b> One five-question sprint protects it.'+
+      '<span style="flex:1"></span><button class="btn small primary" data-act="sprint">Protect it · 5 Qs ▸</button></div>';
+  }
   if(emg){
     var d = eng.daysToExam();
     html += '<div class="emg-ribbon">🚨 <b>Emergency Mode</b> — locked onto your highest-value weaknesses.'+
@@ -3043,7 +3218,8 @@ U.views.dash = function(){
   }
   html +=
   '<div class="dash-head">'+
-    '<div><div class="greet">'+greet+', <em>'+U.esc(st.name||'friend')+'</em>.</div>'+
+    '<div><div class="greet">'+greet+', <em>'+U.esc(st.name||'friend')+'</em>.'+
+    '<svg class="ink-stroke" viewBox="0 0 320 14" preserveAspectRatio="none"><path d="M4 9 C 60 3, 120 12, 180 7 S 290 5, 316 8" fill="none" stroke="#E0492F" stroke-width="5" stroke-linecap="round"/></svg></div>'+
     '<div class="ticker" style="margin-top:9px">ENGINE LIVE · <b>'+nSignals.toLocaleString()+'</b> signals · <b>'+Object.keys(FCE.TAGS).length+'</b> skills tracked · <b>'+eng.allItems().length+'</b> exercises · '+(due? '<b>'+due+'</b> reviews due':'queue clear')+'</div></div>'+
     '<div class="row">'+daysChip()+'<button class="btn small ghost" data-go="awards" title="Awards">🏆</button></div>'+
   '</div>'+
@@ -3057,7 +3233,7 @@ U.views.dash = function(){
           '<div style="flex:1;min-width:190px">'+
             '<div class="serif" style="font-size:18px;color:var(--mint)">'+pr.label+'</div>'+
             '<div class="muted" style="margin:4px 0 12px">Cambridge scale '+pr.scale+' ± '+pr.ci+(pr.borderline?' · <span style="color:var(--gold)">on a boundary — every mark moves you</span>':'')+'</div>'+
-            '<div class="gp-row"><span>Chance of passing</span><div class="bar thin"><i class="ok shimmer" style="width:'+Math.round(pr.pass*100)+'%"></i></div><b>'+Math.round(pr.pass*100)+'%</b></div>'+
+            '<div class="gp-row"><span>Chance of passing</span><div class="bar thin"><i class="ok shimmer" data-w="'+Math.round(pr.pass*100)+'" style="width:0%"></i></div><b class="countup" data-n="'+Math.round(pr.pass*100)+'">0%</b></div>'+
             (pr.pA>0.05?'<div class="gp-row" style="margin-top:7px"><span>Chance of grade A</span><div class="bar thin"><i class="gold" style="width:'+Math.round(pr.pA*100)+'%"></i></div><b>'+Math.round(pr.pA*100)+'%</b></div>':'')+
             '<div class="tiny" style="margin-top:9px">From '+pr.n+' answers'+(st.mocks.length? ' + '+st.mocks.length+' mock'+(st.mocks.length>1?'s':''):'')+' · sharpens as you go.</div>'+
           '</div>'+
@@ -3069,10 +3245,10 @@ U.views.dash = function(){
     '<div class="card sp5">'+
       '<h3>Today</h3>'+
       '<div class="row" style="gap:18px">'+
-        FCE.charts.ring(Math.min(1,doneToday/goal), String(doneToday), 'of '+goal+' today', doneToday>=goal?'#5FD3A6':'#5FD3C0')+
+        FCE.charts.ring(Math.min(1,doneToday/goal), String(doneToday), 'of '+goal+' today', doneToday>=goal?'#2E7D4F':'#E0492F')+
         '<div style="flex:1;min-width:0">'+
           '<div class="serif" style="font-size:17.5px;line-height:1.45">'+(doneToday>=goal?'Goal met. Everything else is compound interest.':(goal-doneToday)+' questions between you and today’s win.')+'</div>'+
-          '<div class="row wrap" style="margin-top:8px"><span class="chip gold">🔥 '+st.streak.count+'-day streak</span><span class="chip">LVL '+eng.level()+'</span></div>'+
+          '<div class="row wrap" style="margin-top:8px"><span class="chip gold">🔥 '+st.streak.count+'-day streak</span><span class="chip">LVL '+eng.level()+'</span><span class="chip" title="'+U.esc(tier.desc)+'">'+tier.icon+' '+U.esc(tier.name)+'</span></div>'+
         '</div>'+
       '</div>'+
       '<div class="today-cta">'+
@@ -3112,6 +3288,7 @@ function wireDash(v){
   U.$$('[data-act]', v).forEach(function(b){
     b.addEventListener('click', function(){
       if(b.dataset.act==='smart') FCE.practice.start({mode:'smart'});
+      else if(b.dataset.act==='sprint') FCE.practice.start({mode:'smart', n:5});
       else if(b.dataset.act==='gym') FCE.practice.spellingGym();
     });
   });
@@ -3121,6 +3298,18 @@ function wireDash(v){
   });
   var how = U.$('#how-link', v);
   if(how) how.addEventListener('click', U.howModal);
+  // WOW: bars fill + numbers count up after mount
+  setTimeout(function(){
+    U.$$('[data-w]', v).forEach(function(b){ b.style.width = b.dataset.w + '%'; });
+    U.$$('.countup', v).forEach(function(c){
+      var target = +c.dataset.n, t0 = performance.now();
+      (function tick(t){
+        var f = Math.min(1, (t - t0) / 900);
+        c.textContent = Math.round(target * (1 - Math.pow(1 - f, 3))) + '%';
+        if(f < 1) requestAnimationFrame(tick);
+      })(t0);
+    });
+  }, 350);
 }
 
 /* ---------------- lite (mobile) home ---------------- */
@@ -3579,6 +3768,12 @@ U.views.awards = function(){
   var v = el(
     '<div class="h-page">Awards</div>'+
     '<p class="sub">Earned through learning, never instead of it.</p>'+
+    '<div class="card" style="margin-bottom:16px"><h3>What the numbers mean</h3>'+
+      '<div class="stack" style="gap:7px;font-size:13px;color:var(--ink2)">'+
+      '<div><b style="color:var(--ink)">XP</b> — effort made visible. Correct answers earn 8–28 XP depending on difficulty; beating exam pace adds ⚡ bonuses; combos of 5+ pay extra.</div>'+
+      '<div><b style="color:var(--ink)">Level</b> — total accumulated work on a square-root curve: each level costs more than the last. The engine reads your level + ability and raises the difficulty tier it serves you (shown on every question card).</div>'+
+      '<div><b style="color:var(--ink)">🔥 Streak</b> — consecutive days with at least one answer. Habit is the highest-leverage variable in exam prep; the flame exists to protect it.</div>'+
+      '</div></div>'+
     '<div class="grid g4" style="margin-bottom:16px">'+
       '<div class="stat-tile"><div class="v">'+eng.level()+'</div><div class="l">level</div><div class="bar thin" style="margin-top:8px"><i style="width:'+Math.round(eng.levelProgress()*100)+'%"></i></div></div>'+
       '<div class="stat-tile"><div class="v">'+st.xp+'</div><div class="l">total XP</div></div>'+
@@ -3739,7 +3934,7 @@ P.start = function(cfg){
   if(!queue.length){ U().toast('No questions available for that filter yet.'); return; }
   S = {queue:queue, idx:0, ok:0, run:0, mode:endless?'endless':(cfg.mode||'smart'), cfg:cfg,
        tag:cfg.tag||'', t0:Date.now(), selOpt:-1, conf:'', graded:false, results:[],
-       skippedIds:{}, summarySaved:false, paused:false, levelBefore:eng.level()};
+       skippedIds:{}, requeued:{}, planned:queue.length, summarySaved:false, paused:false, levelBefore:eng.level()};
   render();
 };
 
@@ -3805,7 +4000,8 @@ function qView(){
       (isReview?'<span class="chip warn">🔁 review</span>':'')+
       (tr.skipped?'<span class="chip">↩ skipped earlier</span>':'')+
       (S.mode==='diagnostic'?'<span class="chip">🧪 diagnostic</span>':'')+
-      '<span class="grow"></span><span class="tiny" title="typical exam pace for this question">⏱ pace '+par+'s</span>'+
+      '<span class="grow"></span><span class="chip" style="font-size:10px" title="'+u.esc(eng.difficultyTier().desc)+'">'+eng.difficultyTier().icon+' '+u.esc(eng.difficultyTier().name)+'</span>'+
+      '<span class="tiny" title="typical exam pace for this question">⏱ pace '+par+'s</span>'+
       '</div>'+
       body+
       '<div class="conf-row">'+
@@ -3827,7 +4023,7 @@ function qView(){
   var timerEl = u.$('#q-timer', v);
   var tInt = setInterval(function(){
     if(!document.body.contains(timerEl)){ clearInterval(tInt); return; }
-    if(S.paused) return;
+    if(S.paused || S.graded) return; // clock stops the moment you answer
     var s = Math.floor((Date.now()-tr.t0-tr.pausedMs)/1000);
     timerEl.textContent = Math.floor(s/60)+':'+('0'+s%60).slice(-2);
     if(s > par) timerEl.classList.add('hot');
@@ -3958,6 +4154,12 @@ function grade(v, it, gaveUp){
     var ie = u.$('#ans', v); if(ie) ie.disabled = true;
   }
   S.graded = true;
+  var cbtn = u.$('#q-check', v);
+  if(cbtn){ cbtn.disabled = true; cbtn.classList.add('spent'); cbtn.textContent = 'Checked'; }
+  var tEl = u.$('#q-timer', v); if(tEl) tEl.classList.add('done');
+  var idkB = u.$('#q-idk', v); if(idkB) idkB.disabled = true;
+  var skB = u.$('#q-skip', v); if(skB) skB.disabled = true;
+  u.$$('.conf', v).forEach(function(x){ x.disabled = true; });
   finishTracker(tr, userTxt);
   var firstRight = gradeFirstGuess(it, q, tr);
   var beh = behFromTracker(tr, userTxt, firstRight);
@@ -3971,6 +4173,19 @@ function grade(v, it, gaveUp){
   var autoCause = gaveUp ? 'gap' : (diag && diag.code==='spell' ? 'spell' : '');
   var xpBefore = eng.state.xp;
   var res = eng.record(q, it.type, ok, S.conf, ms, userTxt, autoCause, {runStreak:S.run, beh:beh, diag:diag||undefined});
+  // immediate retrieval practice: a missed item returns once, a few questions later.
+  // The session keeps its planned length: the retry replaces an unseen question at the tail.
+  if(!ok && S.mode !== 'diagnostic' && !S.requeued[q.id]){
+    S.requeued[q.id] = true;
+    var pos = Math.min(S.idx + 3, S.queue.length);
+    S.queue.splice(pos, 0, it);
+    if(S.queue.length > S.planned){
+      var lastId = S.queue[S.queue.length-1].q.id;
+      if(lastId !== q.id && !S.requeued[lastId] && S.queue.length-1 > pos){
+        S.queue.pop();
+      }
+    }
+  }
   var xpGain = eng.state.xp - xpBefore;
   if(FCE.app && FCE.app.buildTopbar) FCE.app.buildTopbar();
   S.results.push({id:q.id, ok:ok});
@@ -4062,12 +4277,12 @@ function grade(v, it, gaveUp){
   }
   wireNext();
   if(ok && xpGain > 0){
-    var qa = u.$('.feedback .q-actions', v);
-    if(qa){
+    var fh = u.$('.feedback .fb-head', v);
+    if(fh){
       var fl = document.createElement('span');
       fl.className = 'xp-float';
       fl.textContent = '+'+xpGain+' XP'+(res.fast?' ⚡':'');
-      qa.appendChild(fl);
+      fh.appendChild(fl);
     }
   }
 }
@@ -4120,6 +4335,16 @@ function summaryView(){
     : acc >= 0.5 ? 'Good work. Each miss just became a chapter in your Grammar Book and a scheduled review.'
     : 'Hard session — on purpose. Struggling at the edge of your ability is where memory is actually made.';
   var wrong = S.results.filter(function(r){ return !r.ok; });
+  var wrongSeen = {}, consol = '';
+  wrong.forEach(function(r){
+    if(wrongSeen[r.id]) return; wrongSeen[r.id] = 1;
+    var it2 = eng.byId[r.id]; if(!it2) return;
+    var corr = it2.type==='mcc' ? it2.q.opts[it2.q.cor] : it2.q.ans[0];
+    var cue = it2.type==='kwt' ? it2.q.key : (it2.q.stem || '');
+    consol += '<div class="consol-row"><span class="tiny" style="flex:1;text-align:left">'+u.esc((it2.q.s1||it2.q.s||'').slice(0,72))+'…'+(cue?' ['+u.esc(cue)+']':'')+'</span><b>'+u.esc(corr)+'</b></div>';
+  });
+  if(S.run >= 5){ eng.state.xp += 15; eng.save(); if(FCE.app) FCE.app.buildTopbar(); }
+  var boostsNow = Object.keys(eng.state.boost).length;
   var v = u.el(
     '<div class="q-shell"><div class="q-card session-done" style="position:relative;overflow:hidden">'+
       '<div id="confetti-zone"></div>'+
@@ -4127,12 +4352,14 @@ function summaryView(){
       '<h2 class="serif" style="margin:12px 0 4px;font-size:28px">'+(S.mode==='diagnostic'?'Diagnostic complete':'Session complete')+'</h2>'+
       '<p class="muted" style="max-width:430px;margin:0 auto">'+msg+'</p>'+
       '<div class="ring-stats">'+
-        FCE.charts.ring(acc, Math.round(acc*100)+'%', 'accuracy', acc>=0.7?'#2e7d5b':acc>=0.45?'#b07c2e':'#b5474d')+
-        FCE.charts.ring(Math.min(1,n/10), String(S.results.length), 'questions', '#0e5e64')+
-        FCE.charts.ring(Math.max(0,Math.min(1,(pr.scale-122)/68)), pr.grade, 'predicted grade', '#c9a227')+
+        FCE.charts.ring(acc, Math.round(acc*100)+'%', 'accuracy', acc>=0.7?'#2E7D4F':acc>=0.45?'#C98A2D':'#C2371F')+
+        FCE.charts.ring(Math.min(1,n/10), String(S.results.length), 'questions', '#1B1C21')+
+        FCE.charts.ring(Math.max(0,Math.min(1,(pr.scale-122)/68)), pr.grade, 'predicted grade', '#C98A2D')+
       '</div>'+
-      (wrong.length ? '<p class="tiny" style="margin-bottom:14px">'+wrong.length+' item'+(wrong.length>1?'s':'')+' scheduled for review — and their <i>concepts</i> will resurface in new disguises.</p>'
+      (S.run >= 5 ? '<div class="chip gold" style="margin-bottom:10px">🔥 combo ×'+S.run+' — +15 bonus XP</div>' : '')+
+      (wrong.length ? '<p class="tiny" style="margin-bottom:6px">'+wrong.length+' miss'+(wrong.length>1?'es':'')+' → scheduled for review · <b>'+boostsNow+'</b> concept reinforcement'+(boostsNow===1?'':'s')+' queued by the engine.</p>'
                     : '<p class="tiny" style="margin-bottom:14px">Clean sweep. Intervals extended on everything you saw.</p>')+
+      (consol ? '<div class="card consol" style="text-align:left;margin:14px auto;max-width:520px"><h3>⚡ 60-second consolidation — read each answer once, aloud</h3>'+consol+'</div>' : '')+
       '<div class="row" style="justify-content:center;flex-wrap:wrap">'+
         '<button class="btn primary" id="ss-again">Another session ▸</button>'+
         '<button class="btn" id="ss-dash">Home</button>'+
@@ -4321,7 +4548,17 @@ function vocabQ(){
   var item = VB.set[VB.idx];
   VB.graded = false;
   var st = eng.state.vocab[item.up[0]];
-  var typed = st && st.box >= 1; // known words must be produced, not recognised
+  var box = st ? st.box : 0;
+  var mode = box >= 2 ? 'recall' : box >= 1 ? 'cued' : 'choose'; // recognition -> cued recall -> free recall
+  var typed = mode !== 'choose';
+  var scaffold = '';
+  if(mode === 'cued'){
+    var w0 = item.up[0];
+    scaffold = '<div class="letterboxes" style="margin-top:14px">'+w0.split('').map(function(ch,i){
+      if(ch === ' ') return '<span style="width:12px"></span>';
+      return '<span class="lbox'+(i===0?'':' hole')+'">'+(i===0?ch:'')+'</span>';
+    }).join('')+'</div>';
+  }
   var opts = [];
   if(!typed){
     opts = [item.up[0]];
@@ -4341,12 +4578,13 @@ function vocabQ(){
         (VB.ok>=3?'<span class="chip gold combo-chip">💎 ×'+VB.ok+'</span>':'')+
       '</div>'+
       '<div class="q-card">'+
-        '<div class="q-type"><span class="chip acc">💎 Essay Vocab Lab · '+(typed?'recall':'recognise')+'</span>'+
+        '<div class="q-type"><span class="chip acc">💎 Essay Vocab Lab · '+(mode==='recall'?'full recall':mode==='cued'?'cued recall':'recognise')+'</span>'+
         '<span class="grow"></span><span class="tiny">writing-paper vocabulary</span></div>'+
         '<div class="vb-basic">upgrade: <b>'+u.esc(item.basic)+'</b></div>'+
         '<div class="q-text">'+u.esc(item.s).replace(/____+/g,'<span class="gap">&nbsp;?&nbsp;</span>')+'</div>'+
+        scaffold+
         (typed
-          ? '<input class="ans-input" id="vb-ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="The stronger word…">'
+          ? '<input class="ans-input" id="vb-ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="'+(mode==='cued'?'Type the word — the skeleton is your cue…':'The stronger word, from memory…')+'">'
           : '<div class="opts">'+opts.map(function(o,i){
               return '<button class="opt" data-w="'+u.esc(o)+'"><span class="letter">'+String.fromCharCode(65+i)+'</span><span>'+u.esc(o)+'</span></button>';
             }).join('')+'</div>')+
@@ -4361,9 +4599,10 @@ function vocabQ(){
     eng.recordVocab(item, ok);
     if(FCE.app && FCE.app.buildTopbar) FCE.app.buildTopbar();
     u.$('#vb-fb', v).innerHTML = '<div class="feedback '+(ok?'ok':'bad')+'">'+
-      (ok ? '<div class="fb-head">✓ '+u.esc(item.up[0])+'</div>'
+      (ok ? '<div class="fb-head">✓ '+u.esc(item.up[0])+(mode!=='choose'?' — produced from memory':'')+'</div>'
           : '<div class="fb-head">Not quite</div><div class="big-answer">'+u.esc(item.up.join('  ·  '))+'</div>')+
-      '<div class="fb-exp">'+u.esc(item.s.replace(/____+/g, item.up[0]))+'</div>'+
+      '<div class="fb-exp"><b>'+u.esc(item.s.replace(/____+/g, item.up[0].toUpperCase()))+'</b></div>'+
+      '<div class="fb-diag">🔒 <b>Lock it in:</b> look away from the screen and say the whole sentence aloud, with <i>'+u.esc(item.up[0])+'</i> in place. Retrieval + production is what plants it for essay day.</div>'+
       '<div class="fb-hook">✍️ <b>Examiner note:</b> '+u.esc(item.why)+(item.up.length>1?' Also accepted: <i>'+u.esc(item.up.slice(1).join(', '))+'</i>.':'')+'</div>'+
       '<div class="q-actions"><button class="btn primary" id="vb-next">'+(VB.idx+1>=VB.set.length?'See results':'Next')+' →</button></div></div>';
     u.$('#vb-next', v).addEventListener('click', function(){ VB.idx++; renderVocab(); });
@@ -4489,12 +4728,14 @@ function gradeMock(v){
   M.done = true;
   var u = U(), eng = E(), s = M.set;
   var score = 0, parts = {p1:0,p2:0,p3:0,p4:0}, errors = [];
+  var marks = {p1:{}, p2:{}, p3:{}, p4:[]};
   s.p1.gaps.forEach(function(g){
     var sel = u.$('select[data-part="p1"][data-n="'+g.n+'"]', v);
     var val = sel ? +sel.value : -1;
     var ok = val === g.cor;
     if(ok){ score++; parts.p1++; }
     else errors.push({part:'Part 1', n:g.n, user: val>=0 ? g.opts[val] : '(blank)', corr:g.opts[g.cor], exp:g.exp});
+    marks.p1[g.n] = {ok:ok, user: val>=0 ? g.opts[val] : '', corr:g.opts[g.cor], exp:g.exp};
     eng.record({id:s.p1.id+'-'+g.n, tags:g.tags, diff:3, ans:[g.opts[g.cor]]}, 'mcc', ok, '', 0, val>=0?g.opts[val]:'', '', {quiet:true});
   });
   s.p2.gaps.forEach(function(g){
@@ -4503,6 +4744,7 @@ function gradeMock(v){
     var ok = eng.gradeOne({id:s.p2.id+'-'+g.n, ans:g.ans}, val);
     if(ok){ score++; parts.p2++; }
     else errors.push({part:'Part 2', n:g.n, user:val||'(blank)', corr:g.ans.join(' / '), exp:g.exp});
+    marks.p2[g.n] = {ok:ok, user:val, corr:g.ans[0], exp:g.exp};
     eng.record({id:s.p2.id+'-'+g.n, tags:g.tags, gt:g.gt, diff:3, ans:g.ans}, 'cloze', ok, '', 0, val, '', {quiet:true});
   });
   s.p3.gaps.forEach(function(g){
@@ -4511,6 +4753,7 @@ function gradeMock(v){
     var ok = eng.gradeOne({id:s.p3.id+'-'+g.n, ans:g.ans}, val);
     if(ok){ score++; parts.p3++; }
     else errors.push({part:'Part 3', n:g.n, user:val||'(blank)', corr:g.ans.join(' / ')+' ('+g.stem+')', exp:g.exp});
+    marks.p3[g.n] = {ok:ok, user:val, corr:g.ans[0], stem:g.stem, exp:g.exp};
     eng.record({id:s.p3.id+'-'+g.n, tags:g.tags, diff:3, ans:g.ans}, 'wf', ok, '', 0, val, '', {quiet:true});
   });
   s.p4.forEach(function(q,i){
@@ -4519,12 +4762,30 @@ function gradeMock(v){
     var g = eng.gradeKWT(q, val);
     score += g.score; parts.p4 += g.score;
     if(!g.ok) errors.push({part:'Part 4', n:i+1, user:val||'(blank)', corr:q.ans[0], exp:q.exp + (g.score===1?' (1 mark earned for a correct half.)':'')});
+    marks.p4.push({q:q, user:val, score:g.score, ok:g.ok});
     eng.record(q, 'kwt', g.ok, '', 0, val, '', {quiet:true});
   });
   eng.checkBadges(0);
   eng.markPassage(s.p1.id); eng.markPassage(s.p2.id); eng.markPassage(s.p3.id);
   var scale = eng.recordMock(score, 36, parts);
   var pr = eng.predict();
+  // render the WHOLE paper back, corrected in place — like a marked exam script
+  function corrected(pass, mode){
+    var txt = u.esc(pass.text);
+    pass.gaps.forEach(function(g){
+      var m = marks[mode][g.n];
+      var inner;
+      if(m.ok){
+        inner = '<span class="pgap"><span class="n">'+g.n+'</span><b class="mk-ok">'+u.esc(m.corr)+'</b></span>';
+      } else {
+        inner = '<span class="pgap"><span class="n">'+g.n+'</span>'+
+                (m.user ? '<s class="mk-bad">'+u.esc(m.user)+'</s>' : '<span class="mk-bad">—</span>')+
+                '<b class="mk-fix" title="'+u.esc(m.exp||'')+'">'+u.esc(m.corr)+'</b></span>';
+      }
+      txt = txt.replace('('+g.n+')'+(mode==='p3'?u.esc(marks.p3[g.n].stem):''), inner);
+    });
+    return '<div class="passage corrected">'+txt+'</div>';
+  }
   var host = u.$('#view');
   host.innerHTML = '';
   host.appendChild(u.el(
@@ -4535,12 +4796,23 @@ function gradeMock(v){
       '<div class="mr-grid">'+
         mr('Part 1', parts.p1, 8)+mr('Part 2', parts.p2, 8)+mr('Part 3', parts.p3, 8)+mr('Part 4', parts.p4, 12)+
       '</div>'+
-      '<p class="tiny">Overall prediction updated: <b>'+pr.grade+'</b> ('+pr.scale+'). Every error is queued for review.</p>'+
+      '<p class="tiny">Overall prediction updated: <b>'+pr.grade+'</b> ('+pr.scale+'). Below is your whole paper, marked — green stays, red gets fixed. Every miss is queued for review.</p>'+
     '</div>'+
-    (errors.length ? '<div class="card" style="margin-top:16px"><h3>🔍 Error autopsy ('+errors.length+')</h3>'+
-      errors.map(function(e2){
-        return '<div class="gb-mistake"><b>'+e2.part+' · '+e2.n+'</b> — you: <span class="yours">'+u.esc(e2.user)+'</span> → <span class="right">'+u.esc(e2.corr)+'</span><br><span class="tiny">'+u.esc(e2.exp||'')+'</span></div>';
-      }).join('')+'</div>' : '')+
+    '<h3 class="sec-label" style="margin-top:22px">Your paper, corrected</h3>'+
+    '<div class="mock-part"><h4>Part 1 · '+u.esc(s.p1.title)+' <span class="chip '+(parts.p1>=6?'ok':'warn')+'">'+parts.p1+'/8</span></h4>'+corrected(s.p1,'p1')+'</div>'+
+    '<div class="mock-part"><h4>Part 2 · '+u.esc(s.p2.title)+' <span class="chip '+(parts.p2>=6?'ok':'warn')+'">'+parts.p2+'/8</span></h4>'+corrected(s.p2,'p2')+'</div>'+
+    '<div class="mock-part"><h4>Part 3 · '+u.esc(s.p3.title)+' <span class="chip '+(parts.p3>=6?'ok':'warn')+'">'+parts.p3+'/8</span></h4>'+corrected(s.p3,'p3')+'</div>'+
+    '<div class="mock-part"><h4>Part 4 · Transformations <span class="chip '+(parts.p4>=9?'ok':'warn')+'">'+parts.p4+'/12</span></h4>'+
+      marks.p4.map(function(m,i){
+        return '<div class="mock-kwt"><div class="ms1">'+(i+1)+'. '+u.esc(m.q.s1)+' <span class="q-key" style="margin:0">[<b>'+u.esc(m.q.key)+'</b>]</span></div>'+
+          '<div class="ms1" style="margin-top:6px">'+u.esc(m.q.s2).replace(/____+/g,
+            m.ok ? '<b class="mk-ok">'+u.esc(m.user)+'</b>'
+                 : (m.user?'<s class="mk-bad">'+u.esc(m.user)+'</s> ':'')+'<b class="mk-fix">'+u.esc(m.q.ans[0])+'</b>')+
+          ' <span class="chip '+(m.score===2?'ok':m.score===1?'warn':'bad')+'" style="font-size:10px">'+m.score+'/2</span></div>'+
+          (!m.ok ? '<div class="tiny" style="margin-top:6px">'+u.esc(m.q.exp||'')+'</div>' : '')+
+        '</div>';
+      }).join('')+
+    '</div>'+
     '<div class="row" style="justify-content:center;margin-top:18px;flex-wrap:wrap">'+
       '<button class="btn primary" id="mk-dash">Home</button>'+
       '<button class="btn" id="mk-again">New mock</button>'+
@@ -4619,18 +4891,19 @@ A.buildTopbar = function(){
   tb.innerHTML =
     '<div class="tb-logo">'+FCE.ui.wordmark()+'</div>'+
     '<div class="tb-spacer"></div>'+
-    '<div class="tb-level"><span class="lvl">LVL '+eng.level()+'</span><div class="bar thin"><i class="shimmer" style="width:'+Math.round(eng.levelProgress()*100)+'%"></i></div><span class="lvl">'+st.xp+' XP</span></div>'+
-    '<span class="tb-chip flame"><span class="fl">🔥</span>'+st.streak.count+'</span>';
+    '<div class="tb-level" title="XP = effort made visible. Levels grow on a square-root curve — each costs more work, and the engine raises its expectations as you climb."><span class="lvl">LVL '+eng.level()+'</span><div class="bar thin"><i class="shimmer" style="width:'+Math.round(eng.levelProgress()*100)+'%"></i></div><span class="lvl">'+st.xp+' XP</span></div>'+
+    '<span class="tb-chip flame" title="Consecutive days practised. Habit is the best predictor of passing — protect the flame."><span class="fl">🔥</span>'+st.streak.count+'</span>';
 };
 
 A.buildNav = function(){
   var sb = document.querySelector('.sidebar');
   var items = FCE.ui.isLite() ? NAV_LITE : NAV_FULL;
   sb.innerHTML =
+    '<div class="rail-card">'+
     items.map(function(n){
       return '<button class="nav-btn" data-v="'+n[0]+'" title="'+n[2]+'"><span class="ic">'+n[1]+'</span><span>'+n[2]+'</span></button>';
     }).join('')+
-    '<div class="nav-spacer"></div>';
+    '</div><div class="nav-spacer"></div>';
   Array.prototype.forEach.call(sb.querySelectorAll('.nav-btn'), function(b){
     b.addEventListener('click', function(){ FCE.ui.go(b.dataset.v); });
   });

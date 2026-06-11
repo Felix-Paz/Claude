@@ -13,6 +13,7 @@ const js = [
   'js/data-bank3.js',
   'js/data-bank4.js',
   'js/data-bank5.js',
+  'js/data-bank6.js',
   'js/data-vocab.js',
   'js/engine.js',
   'js/charts.js',

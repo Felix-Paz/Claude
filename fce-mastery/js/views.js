@@ -45,7 +45,8 @@ U.howModal = function(){
     '<div class="how-sec"><b>3 · Your behaviour talks.</b> The engine watches hesitation before typing, erase-and-rewrite cycles, answer switching and pace. It detects lucky guesses, hidden doubt and “you changed a right answer” — even if you never rate your confidence.</div>'+
     '<div class="how-sec"><b>4 · Errors are diagnosed, not just counted.</b> A wrong answer is classified: spelling slip, wrong word-family form, wrong word class, missing key word… Each diagnosis routes differently — a spelling slip goes to the Spelling Gym, a concept gap floods your next sessions with that concept <i>in new exercises</i>.</div>'+
     '<div class="how-sec"><b>5 · Marks-at-risk economics.</b> Every skill carries its real exam weight. Priority = how often Cambridge tests it × how likely you are to miss it. You always study the highest-value marks first.</div>'+
-    '<div class="how-sec"><b>6 · Honest forecasting.</b> Your predicted grade blends ability ratings, recent accuracy and mock results, corrected for the fact that practice here is harder than the real paper. The confidence interval narrows as evidence grows.</div>'+
+    '<div class="how-sec"><b>6 · The game layer, decoded.</b> <b>XP</b> is effort made visible — every answer earns some, harder items and faster-than-exam answers earn more. <b>Levels</b> grow on a square-root curve, so each one genuinely costs more work; the engine treats a higher level as permission to expect more of you. The <b>🔥 flame</b> counts consecutive days practised (the single best predictor of passing), and <b>×N combos</b> track correct answers in a row within a session — five or more pays bonus XP.</div>'+
+    '<div class="how-sec"><b>7 · Honest forecasting.</b> Your predicted grade blends ability ratings, recent accuracy and mock results, corrected for the fact that practice here is harder than the real paper. The confidence interval narrows as evidence grows.</div>'+
     '<p class="tiny" style="margin-top:14px;text-align:center">All of it runs on this device. No internet, no account, no API.</p>'
   );
 };
@@ -70,9 +71,16 @@ U.go = function(name, arg){
   U.$$('.nav-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.v === name); });
   var v = U.views[name] || U.views.dash;
   var host = U.$('#view');
-  host.innerHTML = '';
-  host.appendChild(v(arg));
-  window.scrollTo(0,0);
+  var mount = function(){
+    host.classList.remove('leaving');
+    host.innerHTML = '';
+    host.appendChild(v(arg));
+    window.scrollTo(0,0);
+  };
+  if(host.childNodes.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    host.classList.add('leaving');           // soft exit: fade, lift, blur
+    setTimeout(mount, 190);
+  } else mount();
 };
 function el(html){
   var d = document.createElement('div');
@@ -152,7 +160,13 @@ U.views.dash = function(){
   var hasData = pr.n >= 10;
   var nSignals = st.log.length*7 + st.records.total*3;
 
+  var tier = eng.difficultyTier();
+  var streakRisk = st.streak.count > 0 && doneToday === 0 && hour >= 17;
   var html = '';
+  if(streakRisk && !emg){
+    html += '<div class="emg-ribbon">🔥 <b>Your '+st.streak.count+'-day streak ends at midnight.</b> One five-question sprint protects it.'+
+      '<span style="flex:1"></span><button class="btn small primary" data-act="sprint">Protect it · 5 Qs ▸</button></div>';
+  }
   if(emg){
     var d = eng.daysToExam();
     html += '<div class="emg-ribbon">🚨 <b>Emergency Mode</b> — locked onto your highest-value weaknesses.'+
@@ -161,7 +175,8 @@ U.views.dash = function(){
   }
   html +=
   '<div class="dash-head">'+
-    '<div><div class="greet">'+greet+', <em>'+U.esc(st.name||'friend')+'</em>.</div>'+
+    '<div><div class="greet">'+greet+', <em>'+U.esc(st.name||'friend')+'</em>.'+
+    '<svg class="ink-stroke" viewBox="0 0 320 14" preserveAspectRatio="none"><path d="M4 9 C 60 3, 120 12, 180 7 S 290 5, 316 8" fill="none" stroke="#E0492F" stroke-width="5" stroke-linecap="round"/></svg></div>'+
     '<div class="ticker" style="margin-top:9px">ENGINE LIVE · <b>'+nSignals.toLocaleString()+'</b> signals · <b>'+Object.keys(FCE.TAGS).length+'</b> skills tracked · <b>'+eng.allItems().length+'</b> exercises · '+(due? '<b>'+due+'</b> reviews due':'queue clear')+'</div></div>'+
     '<div class="row">'+daysChip()+'<button class="btn small ghost" data-go="awards" title="Awards">🏆</button></div>'+
   '</div>'+
@@ -175,7 +190,7 @@ U.views.dash = function(){
           '<div style="flex:1;min-width:190px">'+
             '<div class="serif" style="font-size:18px;color:var(--mint)">'+pr.label+'</div>'+
             '<div class="muted" style="margin:4px 0 12px">Cambridge scale '+pr.scale+' ± '+pr.ci+(pr.borderline?' · <span style="color:var(--gold)">on a boundary — every mark moves you</span>':'')+'</div>'+
-            '<div class="gp-row"><span>Chance of passing</span><div class="bar thin"><i class="ok shimmer" style="width:'+Math.round(pr.pass*100)+'%"></i></div><b>'+Math.round(pr.pass*100)+'%</b></div>'+
+            '<div class="gp-row"><span>Chance of passing</span><div class="bar thin"><i class="ok shimmer" data-w="'+Math.round(pr.pass*100)+'" style="width:0%"></i></div><b class="countup" data-n="'+Math.round(pr.pass*100)+'">0%</b></div>'+
             (pr.pA>0.05?'<div class="gp-row" style="margin-top:7px"><span>Chance of grade A</span><div class="bar thin"><i class="gold" style="width:'+Math.round(pr.pA*100)+'%"></i></div><b>'+Math.round(pr.pA*100)+'%</b></div>':'')+
             '<div class="tiny" style="margin-top:9px">From '+pr.n+' answers'+(st.mocks.length? ' + '+st.mocks.length+' mock'+(st.mocks.length>1?'s':''):'')+' · sharpens as you go.</div>'+
           '</div>'+
@@ -187,10 +202,10 @@ U.views.dash = function(){
     '<div class="card sp5">'+
       '<h3>Today</h3>'+
       '<div class="row" style="gap:18px">'+
-        FCE.charts.ring(Math.min(1,doneToday/goal), String(doneToday), 'of '+goal+' today', doneToday>=goal?'#5FD3A6':'#5FD3C0')+
+        FCE.charts.ring(Math.min(1,doneToday/goal), String(doneToday), 'of '+goal+' today', doneToday>=goal?'#2E7D4F':'#E0492F')+
         '<div style="flex:1;min-width:0">'+
           '<div class="serif" style="font-size:17.5px;line-height:1.45">'+(doneToday>=goal?'Goal met. Everything else is compound interest.':(goal-doneToday)+' questions between you and today’s win.')+'</div>'+
-          '<div class="row wrap" style="margin-top:8px"><span class="chip gold">🔥 '+st.streak.count+'-day streak</span><span class="chip">LVL '+eng.level()+'</span></div>'+
+          '<div class="row wrap" style="margin-top:8px"><span class="chip gold">🔥 '+st.streak.count+'-day streak</span><span class="chip">LVL '+eng.level()+'</span><span class="chip" title="'+U.esc(tier.desc)+'">'+tier.icon+' '+U.esc(tier.name)+'</span></div>'+
         '</div>'+
       '</div>'+
       '<div class="today-cta">'+
@@ -230,6 +245,7 @@ function wireDash(v){
   U.$$('[data-act]', v).forEach(function(b){
     b.addEventListener('click', function(){
       if(b.dataset.act==='smart') FCE.practice.start({mode:'smart'});
+      else if(b.dataset.act==='sprint') FCE.practice.start({mode:'smart', n:5});
       else if(b.dataset.act==='gym') FCE.practice.spellingGym();
     });
   });
@@ -239,6 +255,18 @@ function wireDash(v){
   });
   var how = U.$('#how-link', v);
   if(how) how.addEventListener('click', U.howModal);
+  // WOW: bars fill + numbers count up after mount
+  setTimeout(function(){
+    U.$$('[data-w]', v).forEach(function(b){ b.style.width = b.dataset.w + '%'; });
+    U.$$('.countup', v).forEach(function(c){
+      var target = +c.dataset.n, t0 = performance.now();
+      (function tick(t){
+        var f = Math.min(1, (t - t0) / 900);
+        c.textContent = Math.round(target * (1 - Math.pow(1 - f, 3))) + '%';
+        if(f < 1) requestAnimationFrame(tick);
+      })(t0);
+    });
+  }, 350);
 }
 
 /* ---------------- lite (mobile) home ---------------- */
@@ -697,6 +725,12 @@ U.views.awards = function(){
   var v = el(
     '<div class="h-page">Awards</div>'+
     '<p class="sub">Earned through learning, never instead of it.</p>'+
+    '<div class="card" style="margin-bottom:16px"><h3>What the numbers mean</h3>'+
+      '<div class="stack" style="gap:7px;font-size:13px;color:var(--ink2)">'+
+      '<div><b style="color:var(--ink)">XP</b> — effort made visible. Correct answers earn 8–28 XP depending on difficulty; beating exam pace adds ⚡ bonuses; combos of 5+ pay extra.</div>'+
+      '<div><b style="color:var(--ink)">Level</b> — total accumulated work on a square-root curve: each level costs more than the last. The engine reads your level + ability and raises the difficulty tier it serves you (shown on every question card).</div>'+
+      '<div><b style="color:var(--ink)">🔥 Streak</b> — consecutive days with at least one answer. Habit is the highest-leverage variable in exam prep; the flame exists to protect it.</div>'+
+      '</div></div>'+
     '<div class="grid g4" style="margin-bottom:16px">'+
       '<div class="stat-tile"><div class="v">'+eng.level()+'</div><div class="l">level</div><div class="bar thin" style="margin-top:8px"><i style="width:'+Math.round(eng.levelProgress()*100)+'%"></i></div></div>'+
       '<div class="stat-tile"><div class="v">'+st.xp+'</div><div class="l">total XP</div></div>'+

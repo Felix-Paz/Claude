@@ -475,6 +475,16 @@ E.checkBadges = function(runStreak){
   if(cb) E.award('comeback');
 };
 E.level = function(){ return Math.floor(Math.sqrt(E.state.xp/90)) + 1; };
+/* human-readable difficulty tier from average Elo ability */
+E.difficultyTier = function(){
+  var a = E.state.ability;
+  var avg = (a.kwt + a.cloze + a.wf + a.mcc) / 4;
+  if(avg < 1080) return {name:'Foundation',  desc:'easier items while the engine maps you', icon:'•'};
+  if(avg < 1180) return {name:'Developing',  desc:'core B2 difficulty', icon:'••'};
+  if(avg < 1280) return {name:'Exam level',  desc:'true FCE paper difficulty', icon:'•••'};
+  if(avg < 1380) return {name:'Sharp',       desc:'above-paper difficulty — building margin', icon:'••••'};
+  return {name:'Distinction', desc:'C1-leaning items — grade-A training', icon:'•••••'};
+};
 E.levelProgress = function(){
   var lvl = E.level();
   var cur = Math.pow(lvl-1,2)*90, next = Math.pow(lvl,2)*90;
@@ -779,7 +789,9 @@ E.spellingSet = function(n){
     .forEach(function(w){
       if(out.length >= Math.min(3,n)) return;
       var entry = FCE.SPELL.filter(function(s){ return s.w === w; })[0] ||
-                  {w:w, bad:[], cue:'One of your own past misspellings — beat it this time.'};
+                  {w:w, bad:[],
+                   def:'WORD · you misspelled this in a recent session. \u201C'+w.charAt(0).toUpperCase()+w.slice(1)+'\u201D — write the correct form.',
+                   cue:'Straight from your own mistake log — burn the correct shape in now.'};
       out.push(entry); used[entry.w]=1;
     });
   // 2) least-practised danger words

@@ -23,8 +23,9 @@ const path = require('path');
   await page.waitForSelector('.q-card');
   await shot('02-question');
 
-  // 14 diagnostic questions — confidence now OPTIONAL; use Enter key on some
-  for (let i = 0; i < 14; i++) {
+  // diagnostic questions — loop until the summary appears (retries may reorder)
+  for (let i = 0; i < 30; i++) {
+    if (await page.$('.session-done')) break;
     await page.waitForSelector('.q-card');
     const opt = await page.$('.opt');
     if (opt) {

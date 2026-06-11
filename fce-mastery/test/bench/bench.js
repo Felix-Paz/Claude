@@ -31,7 +31,7 @@ const dir = p => path.join(__dirname, p);
 const VERSIONS = {
   V1: ['v1/data-core.js','v1/data-bank1.js','v1/data-bank2.js','v1/engine.js'].map(f => dir(f)),
   V3: ['v3/data-core.js','v3/data-bank1.js','v3/data-bank2.js','v3/data-bank3.js','v3/engine.js'].map(f => dir(f)),
-  V4: ['../../js/data-core.js','../../js/data-bank1.js','../../js/data-bank2.js','../../js/data-bank3.js','../../js/data-bank4.js','../../js/data-bank5.js','../../js/engine.js'].map(f => dir(f)),
+  V4: ['../../js/data-core.js','../../js/data-bank1.js','../../js/data-bank2.js','../../js/data-bank3.js','../../js/data-bank4.js','../../js/data-bank5.js','../../js/data-bank6.js','../../js/engine.js'].map(f => dir(f)),
 };
 
 /* ---------- synthetic student ---------- */
