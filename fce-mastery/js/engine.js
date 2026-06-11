@@ -20,8 +20,10 @@ E.blank = function(){
     calib:{g:{att:0,cor:0}, f:{att:0,cor:0}, s:{att:0,cor:0}},
     log:[], sessions:[], mocks:[], trend:[],
     passSeen:{},
-    beh:{ n:0, ttfkSum:0, editSum:0, pauseSum:0, changed:0, changedRight:0, selfCorrect:0, hiddenHesit:0, fluentSure:0, skips:0, fastRight:0 },
+    beh:{ n:0, ttfkSum:0, editSum:0, pauseSum:0, changed:0, changedRight:0, selfCorrect:0, hiddenHesit:0, fluentSure:0, skips:0, fastRight:0, keySum:0, typeMsSum:0 },
     boost:{},            // tag -> remaining reinforcement count (error generalization)
+    pos:{},              // open-cloze positional fingerprints: where in the sentence you fail
+    vocab:{},            // essay-vocab Leitner boxes: word -> {box,due,att,cor}
     wants:{},            // itemId -> {t, tag, cleared:0} — "I want to master this"
     accepts:{},          // itemId -> [extra accepted answers] (user reported "I was right")
     reports:[],          // {t,id,user} app-mistake reports
@@ -306,6 +308,7 @@ E.record = function(q, type, ok, conf, ms, user, cause, opts){
     g.att++; if(ok) g.cor++;
     g.recent.push(ok?1:0); if(g.recent.length>14) g.recent.shift();
   }
+  if(type==='cloze' && q.s) E.recPos(q, ok);
   var it = E.itemState(q.id);
   it.att++; if(ok) it.cor++; it.last = now; it.conf = effConf;
   it.hist.push(ok?1:0); if(it.hist.length>10) it.hist.shift();
@@ -320,6 +323,7 @@ E.record = function(q, type, ok, conf, ms, user, cause, opts){
     entry.beh = beh;
     var B = st.beh;
     B.n++; B.ttfkSum += beh.ttfk||0; B.editSum += beh.edits||0; B.pauseSum += beh.pauses||0;
+    B.keySum += beh.keys||0; B.typeMsSum += beh.typeMs||0;
     if(beh.skipped) B.skips++;
     if(beh.changed){
       B.changed++;
@@ -717,9 +721,12 @@ E.pickSession = function(n, filter){
     });
     if(!cands2.length) cands2 = pool.filter(function(it){ return fits(it) && (it.q.tags||[]).indexOf(tagPick.tag) !== -1; });
     if(!cands2.length) continue;
+    var wp = E.worstPos();
     cands2.sort(function(a,b){
+      var pa = (wp && a.type==='cloze' && E.clozeFeatures(a.q).indexOf(wp) !== -1) ? -1e12 : 0;
+      var pb = (wp && b.type==='cloze' && E.clozeFeatures(b.q).indexOf(wp) !== -1) ? -1e12 : 0;
       var ia = st.items[a.q.id], ib = st.items[b.q.id];
-      return (ia?ia.last:0) - (ib?ib.last:0);
+      return (pa + (ia?ia.last:0)) - (pb + (ib?ib.last:0));
     });
     take(cands2[Math.floor(Math.random()*Math.min(3,cands2.length))], tagPick.tag);
   }
@@ -840,6 +847,7 @@ E.behaviorReport = function(){
     n:B.n, avgHesit:B.ttfkSum/B.n/1000, avgEdits:B.editSum/B.n,
     changed:B.changed, changedRight:B.changedRight, selfCorrect:B.selfCorrect,
     hiddenHesit:B.hiddenHesit, fluentSure:B.fluentSure, skips:B.skips, fastRight:B.fastRight,
+    avgKeys: B.n ? B.keySum/B.n : 0, avgTypeMs: B.n ? B.typeMsSum/B.n : 0,
     instinct: flips ? B.changedRight/flips : null,
   };
 };
@@ -890,5 +898,135 @@ E.tipFor = function(q){
     if(meta && meta.tips && meta.tips.length) return meta.tips[Math.floor(Math.random()*meta.tips.length)];
   }
   return '';
+};
+
+/* ---------------- open-cloze positional intelligence ----------------
+   WHERE in a sentence do this student's cloze errors live?
+   start of sentence · after a comma · mid-clause · sentence end · after/before word classes. */
+E.clozeFeatures = function(q){
+  var s = q.s || '';
+  var gi = s.indexOf('____');
+  if(gi < 0) return [];
+  var before = s.slice(0, gi).trim();
+  var after = s.slice(gi+4).replace(/^_+/,'').trim();
+  var f = [];
+  if(!before || /[.!?]$/.test(before)) f.push('start');
+  if(/,$/.test(before)) f.push('afterComma');
+  if(!after || /^[.!?]/.test(after)) f.push('end');
+  if(f.indexOf('start') < 0 && f.indexOf('end') < 0) f.push('mid');
+  var pw = (before.match(/([\w'’]+)[^\w]*$/)||[])[1];
+  var nw = (after.match(/^[^\w]*([\w'’]+)/)||[])[1];
+  var pc = pw ? E.classOf(pw) : null;
+  var nc = nw ? E.classOf(nw) : null;
+  if(pc) f.push('after-'+pc);
+  if(nc) f.push('before-'+nc);
+  if(nw && /ing$/.test(nw)) f.push('before-ing');
+  return f;
+};
+E.POSNAMES = { start:'first word of the sentence', end:'last word of the sentence', mid:'mid-sentence',
+  afterComma:'right after a comma', 'before-ing':'before an -ing form' };
+E.posName = function(k){
+  if(E.POSNAMES[k]) return E.POSNAMES[k];
+  var m = k.match(/^(after|before)-(\w+)$/);
+  if(m) return m[1]+' a '+(FCE.CLASSNAMES[m[2]]||m[2]);
+  return k;
+};
+E.recPos = function(q, ok){
+  E.clozeFeatures(q).forEach(function(k){
+    var p = E.state.pos[k] || (E.state.pos[k] = {att:0, cor:0});
+    p.att++; if(ok) p.cor++;
+  });
+};
+E.posReport = function(){
+  var out = [];
+  Object.keys(E.state.pos).forEach(function(k){
+    var p = E.state.pos[k];
+    if(p.att >= 3) out.push({k:k, name:E.posName(k), att:p.att, err:1 - p.cor/p.att});
+  });
+  out.sort(function(a,b){ return b.err - a.err; });
+  return out;
+};
+E.worstPos = function(){
+  var r = E.posReport().filter(function(p){ return p.att >= 4 && p.err >= 0.4; });
+  return r.length ? r[0].k : null;
+};
+
+/* ---------------- Essay Vocab Lab (Leitner boxes) ---------------- */
+E.vocabState = function(w){
+  var v = E.state.vocab[w];
+  if(!v){ v = E.state.vocab[w] = {box:0, due:0, att:0, cor:0}; }
+  return v;
+};
+E.vocabSet = function(n){
+  n = n || 8;
+  var now = Date.now(), due = [], fresh = [], later = [];
+  FCE.VOCAB.forEach(function(it){
+    var v = E.state.vocab[it.up[0]];
+    if(!v) fresh.push(it);
+    else if(v.due <= now && v.box < 4) due.push(it);
+    else if(v.box < 4) later.push(it);
+  });
+  function shuf(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+  return shuf(due).concat(shuf(fresh)).concat(shuf(later)).slice(0, n);
+};
+E.recordVocab = function(it, ok){
+  var v = E.vocabState(it.up[0]);
+  v.att++;
+  if(ok){ v.cor++; v.box = Math.min(4, v.box+1); }
+  else { v.box = Math.max(0, v.box-1); }
+  var IVL = [0.15, 1, 3, 7, 21];
+  v.due = Date.now() + IVL[v.box]*DAY;
+  E.state.xp += ok ? 7 : 2;
+  E.touchStreak();
+  E.save();
+};
+E.vocabStats = function(){
+  var mastered = 0, learning = 0;
+  Object.keys(E.state.vocab).forEach(function(w){
+    var v = E.state.vocab[w];
+    if(v.box >= 3) mastered++; else if(v.att) learning++;
+  });
+  return {mastered:mastered, learning:learning, total:FCE.VOCAB.length};
+};
+E.gradeVocab = function(it, user){
+  var u = E.norm(user);
+  return it.up.some(function(a){ return E.norm(a) === u; });
+};
+
+/* ---------------- focus search: "feed me more of X" ---------------- */
+E.searchLearnables = function(query){
+  var q = E.norm(query);
+  if(q.length < 2) return [];
+  var out = [], seen = {};
+  Object.keys(FCE.TAGS).forEach(function(t){
+    if(FCE.TAGS[t].name.toLowerCase().indexOf(q) !== -1)
+      out.push({kind:'tag', id:t, label:FCE.TAGS[t].name, sub:'skill — sessions will lean into it'});
+  });
+  FCE.PATTERNS.forEach(function(p){
+    var hit = p.name.toLowerCase().indexOf(q) !== -1 || p.match.some(function(m){ return E.norm(m).indexOf(q) !== -1; });
+    if(hit && !seen['pt'+p.id]){ seen['pt'+p.id]=1; out.push({kind:'pattern', id:p.id, tags:p.tags, label:p.name, sub:'exam pattern ★'.concat('★'.repeat(Math.max(0,p.freq-1)))}); }
+  });
+  E.allItems().forEach(function(it2){
+    if(out.length > 14) return;
+    var hay = (it2.type==='mcc' ? it2.q.opts[it2.q.cor] : it2.q.ans.join(' ')) + ' ' + (it2.q.key||'') + ' ' + (it2.q.stem||'');
+    if(E.norm(hay).indexOf(q) !== -1 && !seen[it2.q.id]){
+      seen[it2.q.id]=1;
+      var label = it2.type==='mcc' ? it2.q.opts[it2.q.cor] : it2.q.ans[0];
+      out.push({kind:'item', id:it2.q.id, tags:it2.q.tags, label:'\u201C'+label+'\u201D', sub:'exact exercise — added to your Mastery List'});
+    }
+  });
+  return out.slice(0, 9);
+};
+E.focusAdd = function(match){
+  if(match.kind === 'tag'){
+    E.state.boost[match.id] = Math.min(10, (E.state.boost[match.id]||0) + 6);
+  } else if(match.kind === 'item'){
+    E.addWant(match.id);
+  } else {
+    (match.tags||[]).slice(0,2).forEach(function(t){
+      E.state.boost[t] = Math.min(10, (E.state.boost[t]||0) + 5);
+    });
+  }
+  E.save();
 };
 })();

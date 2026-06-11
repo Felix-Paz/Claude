@@ -10,7 +10,7 @@ var TYPE_LABEL = {kwt:'Part 4 · Transformation', cloze:'Part 2 · Open Cloze', 
 
 /* ---------- behaviour tracker ---------- */
 function Tracker(t0){
-  return { t0:t0, ttfk:0, edits:0, pauses:0, switches:0, lastInput:0,
+  return { t0:t0, ttfk:0, edits:0, pauses:0, switches:0, lastInput:0, firstInput:0, keys:0,
            firstGuess:'', firstOpt:-1, settled:false, settleTimer:null, maxLen:0,
            skipped:false, pausedMs:0 };
 }
@@ -18,10 +18,12 @@ function trackInput(tr, inp){
   inp.addEventListener('keydown', function(ev){
     var now = Date.now();
     if(!tr.ttfk) tr.ttfk = now - tr.t0 - tr.pausedMs;
+    if(ev.key && ev.key.length === 1) tr.keys++;
     if(ev.key === 'Backspace' || ev.key === 'Delete') tr.edits++;
   });
   inp.addEventListener('input', function(){
     var now = Date.now();
+    if(!tr.firstInput) tr.firstInput = now;
     if(tr.lastInput && now - tr.lastInput > 2000) tr.pauses++;
     tr.lastInput = now;
     if(inp.value.length > tr.maxLen) tr.maxLen = inp.value.length;
@@ -41,6 +43,7 @@ function finishTracker(tr, finalVal){
 function behFromTracker(tr, finalVal, firstRight){
   var changed = tr.firstGuess && E().norm(tr.firstGuess) !== E().norm(finalVal||'');
   return { ttfk:tr.ttfk, edits:tr.edits, pauses:tr.pauses, switches:tr.switches,
+           keys:tr.keys, typeMs: tr.firstInput ? Math.max(0, tr.lastInput - tr.firstInput) : 0,
            changed:!!changed, firstGuess: changed ? tr.firstGuess.slice(0,60) : '',
            firstRight:!!firstRight, skipped:tr.skipped };
 }
@@ -228,7 +231,7 @@ function pauseOverlay(tr){
   var m = document.createElement('div');
   m.className = 'modal-back';
   m.innerHTML = '<div class="modal" style="text-align:center;max-width:380px">'+
-    FCE.ui.mascot('rest', 84)+
+    '<div class="emoji" style="font-size:44px">⏸</div>'+
     '<h2 class="serif" style="font-size:24px;margin:14px 0 6px">Paused</h2>'+
     '<p class="muted" style="margin-bottom:18px">The clock has stopped. Breathe, stretch, come back sharp.</p>'+
     '<button class="btn primary block" id="pz-go">Resume ▸</button></div>';
@@ -309,7 +312,6 @@ function grade(v, it, gaveUp){
 
   var ansText = it.type==='mcc' ? q.opts[q.cor] : q.ans.join('  ·  ');
   var pattern = eng.patternFor(it.type==='mcc' ? q.opts[q.cor] : q.ans[0]);
-  var tip = eng.tipFor(q);
 
   var behNote = '';
   if(beh.changed && beh.firstRight && !ok){
@@ -339,7 +341,6 @@ function grade(v, it, gaveUp){
       (diag && diag.msg ? '<div class="fb-diag">'+u.esc(diag.msg)+'</div>' : '')+
       '<div class="fb-exp">'+u.esc(q.exp||'')+'</div>'+
       (q.trap ? '<div class="fb-trap">⚠️ <b>The trap:</b> '+u.esc(q.trap)+'</div>' : '')+
-      (tip ? '<div class="fb-hook">💡 <b>Keep:</b> '+u.esc(tip)+'</div>' : '')+
       (behNote ? '<div class="fb-beh">'+behNote+'</div>' : '')+
       '<div class="row wrap" style="margin-top:14px;gap:8px">'+
         '<button class="btn small teal" id="fb-want">🎯 I want to master this</button>'+
@@ -453,7 +454,7 @@ function summaryView(){
   var v = u.el(
     '<div class="q-shell"><div class="q-card session-done" style="position:relative;overflow:hidden">'+
       '<div id="confetti-zone"></div>'+
-      FCE.ui.mascot(acc>=0.7?'happy':'normal', 92)+
+      '<div class="emoji">'+(acc>=0.8?'🏆':acc>=0.5?'💪':'🧗')+'</div>'+
       '<h2 class="serif" style="margin:12px 0 4px;font-size:28px">'+(S.mode==='diagnostic'?'Diagnostic complete':'Session complete')+'</h2>'+
       '<p class="muted" style="max-width:430px;margin:0 auto">'+msg+'</p>'+
       '<div class="ring-stats">'+
@@ -477,14 +478,15 @@ function summaryView(){
   return v;
 }
 
-/* ============================ WORD FORGE ============================
-   Spelling, rebuilt on memory science. A wrong spelling is NEVER displayed.
-   Mode A — Memorize: look · cover · write · check (the classic LSCWC method).
-   Mode B — Unscramble: rebuild the word from letter tiles (orthographic chunking). */
+/* ============================ SPELLING GYM ============================
+   Rebuilt on the formats real spelling trainers use:
+   · LETTERS — the word's skeleton with the danger letters missing + a definition clue
+   · FLASH   — look·cover·write: the word flashes, then you rebuild it from the definition
+   A wrong spelling is never shown; the clue never contains the word. */
 var G = null;
 P.spellingGym = function(){
   var eng = E();
-  G = {set: eng.spellingSet(8), idx:0, ok:0, t0:Date.now(), graded:false, phase:'show'};
+  G = {set: eng.spellingSet(8), idx:0, ok:0, t0:Date.now(), graded:false, missed:[]};
   renderGym();
 };
 function renderGym(){
@@ -493,62 +495,79 @@ function renderGym(){
   host.appendChild(G.idx >= G.set.length ? gymDone() : gymQ());
   window.scrollTo(0,0);
 }
-function scramble(w){
-  var a = w.split(''), out = w, guard = 0;
-  while(out === w && guard++ < 12){
-    for(var i = a.length-1; i > 0; i--){
-      var j = Math.floor(Math.random()*(i+1)), t = a[i]; a[i] = a[j]; a[j] = t;
-    }
-    out = a.join('');
+/* choose which letters to hide: where students actually go wrong */
+function holePositions(item){
+  var w = item.w, holes = {};
+  var bad = (item.bad && item.bad[0]) || '';
+  if(bad.length === w.length){
+    for(var i=0;i<w.length;i++) if(w[i] !== bad[i]) holes[i] = 1;
   }
-  return out;
+  // add doubled letters and unstressed vowels until we have enough
+  var want = Math.max(2, Math.min(5, Math.floor(w.length/3)+1));
+  for(var j=1;j<w.length && Object.keys(holes).length<want;j++){
+    if(w[j] === w[j-1]){ holes[j]=1; }
+  }
+  for(var k=1;k<w.length-1 && Object.keys(holes).length<want;k++){
+    if('aeiou'.indexOf(w[k])!==-1 && !holes[k]) holes[k]=1;
+  }
+  delete holes[0]; // first letter always visible
+  if(!Object.keys(holes).length) holes[Math.max(1,Math.floor(w.length/2))]=1;
+  return holes;
+}
+function boxesHTML(word, holes){
+  var u = U();
+  return '<div class="letterboxes">'+word.split('').map(function(ch,i){
+    return '<span class="lbox'+(holes && holes[i] ? ' hole' : '')+'">'+(holes && holes[i] ? '' : u.esc(ch))+'</span>';
+  }).join('')+'</div>';
 }
 function gymQ(){
   var u = U(), eng = E();
   var item = G.set[G.idx];
   G.graded = false;
-  var memorize = G.idx % 2 === 0; // alternate modes
+  var flash = G.idx % 2 === 1; // letters first, flash second
+  var defHTML = '<div class="gym-def"><span class="pos">'+u.esc(item.def.split('·')[0].trim())+'</span>'+
+                u.esc(item.def.split('·').slice(1).join('·').trim())+'</div>';
   var stage;
-  if(memorize){
-    stage = '<p class="muted" style="margin-bottom:4px">Photograph it. It disappears in 3 seconds…</p>'+
-      '<div class="forge-word" id="f-word">'+u.esc(item.w)+'</div>'+
-      '<div class="forge-ring">'+FCE.charts.ring(1, '', '', '#F2C94C')+'</div>';
+  if(flash){
+    stage = '<div class="gym-count" id="g-count">memorize · 3</div>'+
+            '<div class="gym-flash" id="g-flash">'+u.esc(item.w)+'</div>';
   } else {
-    stage = '<p class="muted" style="margin-bottom:10px">Rebuild the word from its letters:</p>'+
-      '<div class="tile-row">'+scramble(item.w).split('').map(function(ch){
-        return '<span class="tile">'+u.esc(ch)+'</span>';
-      }).join('')+'</div>'+
-      '<div class="forge-cue" style="font-size:13.5px;color:var(--tx2);margin-top:10px">'+u.esc(item.cue)+'</div>';
+    stage = defHTML + boxesHTML(item.w, holePositions(item)) +
+            '<div class="gym-count">fill the missing letters — type the whole word</div>';
   }
   var v = u.el(
     '<div class="q-shell">'+
       '<div class="q-top">'+
         '<button class="btn small ghost" id="g-quit">✕ End</button>'+
-        '<div class="q-progress"><div class="bar"><i class="gold" style="width:'+Math.round(100*G.idx/G.set.length)+'%"></i></div></div>'+
+        '<div class="q-progress"><div class="bar"><i class="warn" style="width:'+Math.round(100*G.idx/G.set.length)+'%"></i></div></div>'+
         '<span class="tiny mono">'+(G.idx+1)+' / '+G.set.length+'</span>'+
-        (G.ok>=3?'<span class="chip gold combo-chip">⚒ ×'+G.ok+'</span>':'')+
+        (G.ok>=3?'<span class="chip gold combo-chip">🏋️ ×'+G.ok+'</span>':'')+
       '</div>'+
       '<div class="q-card" style="text-align:center">'+
-        '<div class="q-type" style="justify-content:center"><span class="chip gold">⚒ Word Forge · '+(memorize?'memorize':'unscramble')+'</span></div>'+
-        '<div class="forge-stage" id="f-stage">'+stage+'</div>'+
-        '<input class="ans-input" id="g-ans" style="text-align:center;max-width:360px;margin:14px auto 0;display:'+(memorize?'none':'block')+'" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="'+(memorize?'':'type the word…')+'">'+
-        '<div class="q-actions" style="justify-content:center"><button class="btn primary" id="g-check" style="display:'+(memorize?'none':'inline-flex')+'">Check</button></div>'+
+        '<div class="q-type" style="justify-content:center"><span class="chip gold">🏋️ Spelling Gym · '+(flash?'flash round':'missing letters')+'</span></div>'+
+        '<div class="gym-stage" id="g-stage">'+stage+'</div>'+
+        '<input class="ans-input" id="g-ans" style="text-align:center;max-width:380px;margin:14px auto 0;display:'+(flash?'none':'block')+'" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="type the word…">'+
+        '<div class="q-actions" style="justify-content:center"><button class="btn primary" id="g-check" disabled style="display:'+(flash?'none':'inline-flex')+'">Check</button></div>'+
         '<div id="g-fb"></div>'+
       '</div>'+
     '</div>'
   );
   var inp = u.$('#g-ans', v);
-  if(memorize){
-    // look (3s) -> cover -> write
-    setTimeout(function(){
-      if(!document.body.contains(v) || G.graded) return;
-      var stageEl = u.$('#f-stage', v);
-      stageEl.innerHTML = '<p class="muted" style="margin-bottom:6px">Now write it from memory:</p>'+
-        '<div class="forge-cue">'+u.esc(item.cue)+'</div>';
+  var checkBtn = u.$('#g-check', v);
+  inp.addEventListener('input', function(){ checkBtn.disabled = !inp.value.trim(); });
+  if(flash){
+    var left = 3;
+    var cd = setInterval(function(){
+      if(!document.body.contains(v) || G.graded){ clearInterval(cd); return; }
+      left--;
+      var ce = u.$('#g-count', v);
+      if(left > 0){ if(ce) ce.textContent = 'memorize · '+left; return; }
+      clearInterval(cd);
+      u.$('#g-stage', v).innerHTML = defHTML + '<div class="gym-count">now write it from memory</div>';
       inp.style.display = 'block';
-      u.$('#g-check', v).style.display = 'inline-flex';
+      checkBtn.style.display = 'inline-flex';
       inp.focus();
-    }, 3000);
+    }, 1000);
   } else {
     setTimeout(function(){ inp.focus(); }, 150);
   }
@@ -556,20 +575,25 @@ function gymQ(){
     if(G.graded || !inp.value.trim()) return;
     G.graded = true;
     var ok = eng.norm(inp.value) === item.w;
-    if(ok) G.ok++;
+    if(ok) G.ok++; else G.missed.push(item.w);
     eng.recordSpell(item.w, ok);
     inp.disabled = true;
+    checkBtn.style.display = 'none';                  // no dead button after checking
     var fbEl = u.$('#g-fb', v);
     fbEl.innerHTML = '<div class="feedback '+(ok?'ok':'bad')+'" style="text-align:left">'+
-      (ok ? '<div class="fb-head">✓ Forged. <span class="chip gold" style="margin-left:auto">+6 XP</span></div>'
-          : '<div class="fb-head">Not yet —</div><div class="big-answer">'+u.esc(item.w)+'</div>')+
+      (ok ? '<div class="fb-head">✓ Nailed it <span class="chip gold" style="margin-left:auto">+6 XP</span></div>'+
+            '<div style="margin:6px 0">'+boxesHTML(item.w, null)+'</div>'
+          : '<div class="fb-head">Not this time</div>'+
+            '<div class="big-answer" style="text-align:center">'+u.esc(item.w)+'</div>'+
+            '<div style="margin:6px 0">'+boxesHTML(item.w, null)+'</div>'+
+            '<div class="fb-exp">Trace it once with your eyes — it will come back later in the round queue.</div>')+
       '<div class="fb-hook">🔑 '+u.esc(item.cue)+'</div>'+
-      (!ok ? '<div class="fb-exp">Trace it with your eyes, then it returns later in the round of life — spaced until it sticks.</div>' : '')+
-      '<div class="q-actions"><button class="btn primary" id="g-next">'+(G.idx+1>=G.set.length?'See results':'Next')+' →</button></div></div>';
+      '<div class="q-actions"><button class="btn primary" id="g-next">'+(G.idx+1>=G.set.length?'See results':'Next word')+' →</button></div></div>';
     u.$('#g-next', v).addEventListener('click', function(){ G.idx++; renderGym(); });
+    u.$('#g-next', v).focus();
     if(FCE.app && FCE.app.buildTopbar) FCE.app.buildTopbar();
   }
-  u.$('#g-check', v).addEventListener('click', check);
+  checkBtn.addEventListener('click', check);
   u.$('#g-quit', v).addEventListener('click', function(){ setKeys(null); FCE.ui.go('practice'); });
   setKeys(function(ev){
     if(ev.key !== 'Enter') return;
@@ -587,9 +611,10 @@ function gymDone(){
   var rep = eng.spellReport();
   var v = u.el(
     '<div class="q-shell"><div class="q-card session-done">'+
-      FCE.ui.mascot(G.ok>=6?'happy':'normal', 92)+
-      '<h2 class="serif" style="margin:12px 0 4px;font-size:27px">'+G.ok+' / '+G.set.length+' forged clean</h2>'+
-      '<p class="muted">'+(G.ok===G.set.length?'Flawless. Cambridge cannot touch your spelling today.':'Missed words return next round — spaced, until they stick.')+'</p>'+
+      '<div class="emoji">'+(G.ok>=7?'🏆':G.ok>=5?'💪':'🏋️')+'</div>'+
+      '<h2 class="serif" style="margin:12px 0 4px;font-size:27px">'+G.ok+' / '+G.set.length+' spelled clean</h2>'+
+      '<p class="muted">'+(G.ok===G.set.length?'Flawless. Cambridge cannot touch your spelling today.':'Missed words come back in future rounds — spaced, until they stick.')+'</p>'+
+      (G.missed.length ? '<div class="row wrap" style="justify-content:center;margin-top:10px">'+G.missed.map(function(w){ return '<span class="chip bad">'+u.esc(w)+'</span>'; }).join('')+'</div>' : '')+
       (rep.patterns.length ? '<div class="card" style="text-align:left;margin:20px auto;max-width:430px"><h3>Your spelling fingerprint</h3>'+
         rep.patterns.slice(0,3).map(function(p2){
           var names = {double:'double letters', ie:'ie/ei order', tion:'-tion vs -sion', vowel:'weak vowels', silente:'dropped letters', other:'letter order'};
@@ -606,6 +631,128 @@ function gymDone(){
   setKeys(function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); setKeys(null); P.spellingGym(); } });
   return v;
 }
+/* ============================ ESSAY VOCAB LAB ============================
+   Upgrade flat words into band-boosting vocabulary inside real essay frames.
+   New words: recognise among 4. Known words: full typed recall. Leitner-spaced. */
+var VB = null;
+P.vocabLab = function(){
+  var eng = E();
+  VB = {set: eng.vocabSet(8), idx:0, ok:0, graded:false};
+  if(!VB.set.length){ U().toast('Vocab Lab is fully mastered for now — come back when reviews are due.'); return; }
+  renderVocab();
+};
+function renderVocab(){
+  var u = U(), host = u.$('#view');
+  host.innerHTML = '';
+  host.appendChild(VB.idx >= VB.set.length ? vocabDone() : vocabQ());
+  window.scrollTo(0,0);
+}
+function vocabQ(){
+  var u = U(), eng = E();
+  var item = VB.set[VB.idx];
+  VB.graded = false;
+  var st = eng.state.vocab[item.up[0]];
+  var typed = st && st.box >= 1; // known words must be produced, not recognised
+  var opts = [];
+  if(!typed){
+    opts = [item.up[0]];
+    var pool = FCE.VOCAB.filter(function(o){ return o !== item; });
+    while(opts.length < 4 && pool.length){
+      var pick = pool.splice(Math.floor(Math.random()*pool.length),1)[0].up[0];
+      if(opts.indexOf(pick) === -1) opts.push(pick);
+    }
+    opts.sort(function(){ return Math.random()-0.5; });
+  }
+  var v = u.el(
+    '<div class="q-shell">'+
+      '<div class="q-top">'+
+        '<button class="btn small ghost" id="vb-quit">✕ End</button>'+
+        '<div class="q-progress"><div class="bar"><i style="width:'+Math.round(100*VB.idx/VB.set.length)+'%"></i></div></div>'+
+        '<span class="tiny mono">'+(VB.idx+1)+' / '+VB.set.length+'</span>'+
+        (VB.ok>=3?'<span class="chip gold combo-chip">💎 ×'+VB.ok+'</span>':'')+
+      '</div>'+
+      '<div class="q-card">'+
+        '<div class="q-type"><span class="chip acc">💎 Essay Vocab Lab · '+(typed?'recall':'recognise')+'</span>'+
+        '<span class="grow"></span><span class="tiny">writing-paper vocabulary</span></div>'+
+        '<div class="vb-basic">upgrade: <b>'+u.esc(item.basic)+'</b></div>'+
+        '<div class="q-text">'+u.esc(item.s).replace(/____+/g,'<span class="gap">&nbsp;?&nbsp;</span>')+'</div>'+
+        (typed
+          ? '<input class="ans-input" id="vb-ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="The stronger word…">'
+          : '<div class="opts">'+opts.map(function(o,i){
+              return '<button class="opt" data-w="'+u.esc(o)+'"><span class="letter">'+String.fromCharCode(65+i)+'</span><span>'+u.esc(o)+'</span></button>';
+            }).join('')+'</div>')+
+        '<div class="q-actions">'+(typed?'<button class="btn primary" id="vb-check" disabled>Check</button>':'')+'</div>'+
+        '<div id="vb-fb"></div>'+
+      '</div>'+
+    '</div>'
+  );
+  function feedback(ok, chosen){
+    VB.graded = true;
+    if(ok) VB.ok++;
+    eng.recordVocab(item, ok);
+    if(FCE.app && FCE.app.buildTopbar) FCE.app.buildTopbar();
+    u.$('#vb-fb', v).innerHTML = '<div class="feedback '+(ok?'ok':'bad')+'">'+
+      (ok ? '<div class="fb-head">✓ '+u.esc(item.up[0])+'</div>'
+          : '<div class="fb-head">Not quite</div><div class="big-answer">'+u.esc(item.up.join('  ·  '))+'</div>')+
+      '<div class="fb-exp">'+u.esc(item.s.replace(/____+/g, item.up[0]))+'</div>'+
+      '<div class="fb-hook">✍️ <b>Examiner note:</b> '+u.esc(item.why)+(item.up.length>1?' Also accepted: <i>'+u.esc(item.up.slice(1).join(', '))+'</i>.':'')+'</div>'+
+      '<div class="q-actions"><button class="btn primary" id="vb-next">'+(VB.idx+1>=VB.set.length?'See results':'Next')+' →</button></div></div>';
+    u.$('#vb-next', v).addEventListener('click', function(){ VB.idx++; renderVocab(); });
+    u.$('#vb-next', v).focus();
+  }
+  if(typed){
+    var inp = u.$('#vb-ans', v), btn = u.$('#vb-check', v);
+    inp.addEventListener('input', function(){ btn.disabled = !inp.value.trim(); });
+    btn.addEventListener('click', function(){ if(!VB.graded && inp.value.trim()){ inp.disabled = true; btn.style.display='none'; feedback(eng.gradeVocab(item, inp.value), inp.value); } });
+    setTimeout(function(){ inp.focus(); }, 140);
+    setKeys(function(ev){
+      if(ev.key !== 'Enter') return;
+      ev.preventDefault();
+      if(VB.graded){ var nb = u.$('#vb-next'); if(nb) nb.click(); }
+      else if(inp.value.trim()){ inp.disabled = true; btn.style.display='none'; feedback(eng.gradeVocab(item, inp.value), inp.value); }
+    });
+  } else {
+    u.$$('.opt', v).forEach(function(b){
+      b.addEventListener('click', function(){
+        if(VB.graded) return;
+        var w = b.dataset.w;
+        var ok = eng.norm(w) === eng.norm(item.up[0]);
+        u.$$('.opt', v).forEach(function(x){
+          if(eng.norm(x.dataset.w) === eng.norm(item.up[0])) x.classList.add('right');
+          else if(x === b) x.classList.add('wrong');
+          x.disabled = true;
+        });
+        feedback(ok, w);
+      });
+    });
+    setKeys(function(ev){
+      if(ev.key === 'Enter' && VB.graded){ ev.preventDefault(); var nb = u.$('#vb-next'); if(nb) nb.click(); }
+    });
+  }
+  u.$('#vb-quit', v).addEventListener('click', function(){ setKeys(null); FCE.ui.go('practice'); });
+  return v;
+}
+function vocabDone(){
+  var u = U(), eng = E();
+  setKeys(null);
+  var vs = eng.vocabStats();
+  var v = u.el(
+    '<div class="q-shell"><div class="q-card session-done">'+
+      '<div class="emoji">'+(VB.ok>=7?'💎':VB.ok>=5?'✨':'📚')+'</div>'+
+      '<h2 class="serif" style="margin:12px 0 4px;font-size:27px">'+VB.ok+' / '+VB.set.length+' upgraded</h2>'+
+      '<p class="muted">Essay arsenal: <b>'+vs.mastered+'</b> words mastered · '+vs.learning+' in training · '+vs.total+' total. Words you produce from memory twice move into long-term rotation.</p>'+
+      '<div class="row" style="justify-content:center;flex-wrap:wrap;margin-top:14px">'+
+        '<button class="btn primary" id="vb-again">Another round ▸</button>'+
+        '<button class="btn" id="vb-home">Home</button>'+
+      '</div>'+
+    '</div></div>'
+  );
+  u.$('#vb-again', v).addEventListener('click', function(){ P.vocabLab(); });
+  u.$('#vb-home', v).addEventListener('click', function(){ FCE.ui.go('dash'); });
+  setKeys(function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); setKeys(null); P.vocabLab(); } });
+  return v;
+}
+
 /* ============================ MOCK TEST ============================ */
 var M = null;
 P.mock = function(){
@@ -628,7 +775,7 @@ function mockView(){
         inner = '<select data-part="p1" data-n="'+g.n+'"><option value="-1">— '+g.n+' —</option>'+
           g.opts.map(function(o,i){ return '<option value="'+i+'">'+String.fromCharCode(65+i)+'. '+u.esc(o)+'</option>'; }).join('')+'</select>';
       } else if(mode==='p3'){
-        inner = '<span class="pgap"><span class="n">'+g.n+'</span><input data-part="p3" data-n="'+g.n+'" autocomplete="off" spellcheck="false" placeholder="'+u.esc(g.stem)+'"></span>';
+        inner = '<span class="pgap"><span class="n">'+g.n+'</span><span class="stem-chip">'+u.esc(g.stem)+'</span><input data-part="p3" data-n="'+g.n+'" class="p3in" autocomplete="off" spellcheck="false"></span>';
       } else {
         inner = '<span class="pgap"><span class="n">'+g.n+'</span><input data-part="p2" data-n="'+g.n+'" autocomplete="off" spellcheck="false"></span>';
       }
@@ -713,7 +860,7 @@ function gradeMock(v){
   host.innerHTML = '';
   host.appendChild(u.el(
     '<div class="q-shell"><div class="q-card session-done">'+
-      FCE.ui.mascot(score>=27?'happy':'normal', 88)+
+      '<div class="emoji">'+(score>=30?'🏆':score>=22?'🎯':'🧗')+'</div>'+
       '<div class="mock-result-score">'+score+'<span style="font-size:26px;color:var(--ink3)"> / 36</span></div>'+
       '<p class="muted" style="margin-top:6px">≈ Cambridge scale <b>'+scale+'</b> · '+(scale>=180?'Grade A':scale>=173?'Grade B':scale>=160?'Grade C — pass':'below pass')+' on this paper</p>'+
       '<div class="mr-grid">'+

@@ -25,14 +25,18 @@ node fce-mastery/test/ui.js        # Playwright walk-through (needs chromium)
 | Error generalization | A miss boosts the *concept*: the engine feeds that skill back through **different** exercises until it sticks; wobbly items (right-wrong-right) get extra pressure |
 | "I want to master this" | One tap floods future sessions with that concept; two clean wins clear it from the Mastery List |
 | Answer disputes | "My answer was actually right" repairs the stats, whitelists the answer for that item, and stores a report in the backup |
-| Spelling intelligence | Slips are fingerprinted (double letters, ie/ei, -tion/-sion, weak vowels…) and feed a separate **Word Forge** — look·cover·write and letter-tile rounds seeded with the user's own victims + 43 Cambridge danger words (a wrong spelling is never displayed) |
+| Spelling intelligence | Slips are fingerprinted (double letters, ie/ei, -tion/-sion, weak vowels…) and feed the **Spelling Gym** — missing-letters skeletons + flash-and-write rounds with definition clues, seeded with the user's own victims + 43 danger words (a wrong spelling is never displayed) |
 | Grade prediction | Ability + recent accuracy + mocks, corrected for practice-is-harder-than-exam bias → clear output: predicted **grade letter**, scale ± CI, **pass probability** |
 | Coaching | marks-at-risk = exam weight × personal risk; Mastery List; stubborn items; auto 7-Day Emergency Mode |
-| Content | 345 hand-written Cambridge-style items + 9 full passages (2× Part 1, 6× Part 2, 2× Part 3 — passages appear in mocks), pattern DB with real-paper frequency stars |
+| Content | **465 hand-written Cambridge-style items** + 12 full passages (3× Part 1, 6× Part 2, 4× Part 3 — passages appear in mocks), pattern DB with real-paper frequency stars |
+| Positional intelligence | Every Open Cloze answer is fingerprinted by WHERE the gap sits (sentence start/end, after a comma, neighbouring word classes); weak positions get served more |
+| Focus search | Type anything — "had better", "provided that", inversions — and the engine floods future sessions with it |
+| Essay Vocab Lab | 58 basic→band-boosting upgrades inside real essay frames, Leitner-spaced from recognition to full recall |
+| Telemetry, in the open | Every captured signal (keystrokes, hesitation, typing time, rewrites, abandoned right answers…) displayed in Progress → Habits |
 
-## Brand — "Deep Water"
+## Brand — "Red Ink on Paper"
 
-Petrol `#03363D` + mint `#BDD9D7` + coral signal red. Liquid-glass cards over animated light blobs, noise + grid textures, editorial Didot/Playfair-class display type with engine-room mono readouts, a real logo mark (rising steps + coral summit dot) and **Memo** — the chubby graduate blob mascot (pure SVG, squish-animated). Top bar with live level/XP shimmer, icon dock navigation, bento dashboard, XP floats, combo flames, confetti where deserved.
+Modern liquid-glass paper: warm beige (`#F4EDDF`), deep ink (`#1B1C21`), vermilion red signal (`#E0492F`). Frosted glass cards over drifting warm light blobs + paper grain, sturdy Georgia/Charter display type (no hairline fonts), bold sans exercise text, a text lockup logo (Mastery · FCE tab · USE OF ENGLISH), red-dot rail navigation, live XP topbar, bento dashboard, XP floats, combo flames.
 
 ## Benchmarks
 

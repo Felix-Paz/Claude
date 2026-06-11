@@ -5,6 +5,9 @@ require('../js/data-core.js');
 require('../js/data-bank1.js');
 require('../js/data-bank2.js');
 require('../js/data-bank3.js');
+require('../js/data-bank4.js');
+require('../js/data-bank5.js');
+require('../js/data-vocab.js');
 require('../js/engine.js');
 require('../js/charts.js');
 
@@ -15,7 +18,7 @@ function ok(cond, msg){ if(cond){ console.log('  ✓ ' + msg); } else { fails++;
 console.log('— bank integrity —');
 E.load(); E.indexBank();
 const all = E.allItems();
-ok(all.length >= 340, `bank has ${all.length} items (>=340)`);
+ok(all.length >= 460, `bank has ${all.length} items (>=460)`);
 const ids = new Set();
 let dup = null;
 all.forEach(it => { if(ids.has(it.q.id)) dup = it.q.id; ids.add(it.q.id); });
@@ -54,6 +57,15 @@ ok(pBad.length === 0, 'passage markers match text ('+FCE.BANK.passages.p2.length
 let spellBad = [];
 FCE.SPELL.forEach(s => { s.bad.forEach(b => { if(b === s.w) spellBad.push(s.w); }); });
 ok(spellBad.length === 0 && FCE.SPELL.length >= 40, `spelling bank ok (${FCE.SPELL.length} words)`);
+let defBad = [];
+FCE.SPELL.forEach(sp => {
+  if(!sp.def || !sp.cue) defBad.push(sp.w+' missing def/cue');
+  else if(sp.def.toLowerCase().includes(sp.w)) defBad.push(sp.w+' leaks into def');
+});
+ok(defBad.length === 0, 'gym clues never reveal the word' + (defBad.length? ' | '+defBad.join(', '):''));
+let vBad = [];
+FCE.VOCAB.forEach(vx => { if(!vx.basic || !vx.up || !vx.s || vx.s.indexOf('____')===-1) vBad.push(vx.up); });
+ok(FCE.VOCAB.length >= 54 && vBad.length === 0, `essay vocab bank ok (${FCE.VOCAB.length} upgrades)`);
 
 console.log('— grading & diagnosis —');
 const k01 = FCE.BANK.kwt.find(q => q.id==='k01');
@@ -123,6 +135,29 @@ E.record(cl, 'cloze', false, 'f', 5000, 'during', '', {quiet:true});
 ok(E.amend('c01') === true, 'amend (user was right) accepted');
 ok(E.gradeOne(cl, 'during') === true, 'amended answer now grades correct');
 ok(E.state.reports.length === 1, 'dispute report stored');
+// positional intelligence
+const feats = E.clozeFeatures({s:'____ being tired, she carried on.'});
+ok(feats.indexOf('start') !== -1, 'positional: sentence-start gap detected');
+const feats2 = E.clozeFeatures({s:'He went to work even ____ he felt ill.'});
+ok(feats2.indexOf('mid') !== -1, 'positional: mid-sentence gap detected');
+const startBefore = (E.state.pos.start || {att:0}).att;
+E.recPos({s:'____ being tired, she carried on.'}, false);
+E.recPos({s:'____ matter how hard I try, I fail.'}, false);
+E.recPos({s:'____ long as you try, you pass.'}, false);
+E.recPos({s:'____ though it rained, we played.'}, false);
+ok(E.state.pos.start.att === startBefore + 4, 'positional tracker accumulates sentence-start data');
+ok(E.posReport().some(p => p.k === 'start'), 'positional report includes sentence-start');
+ok(typeof E.worstPos() === 'string' && E.worstPos().length > 0, 'worst position identified for selection ('+E.worstPos()+')');
+// vocab lab
+const vset = E.vocabSet(8);
+ok(vset.length === 8, 'vocab lab builds a round');
+E.recordVocab(vset[0], true);
+ok(E.state.vocab[vset[0].up[0]].box === 1, 'vocab Leitner box advances');
+ok(E.gradeVocab(vset[0], vset[0].up[0].toUpperCase()+' ') === true, 'vocab grading tolerant');
+const fs2 = E.searchLearnables('had better');
+ok(fs2.length > 0, 'focus search finds "had better" ('+fs2.length+' hits)');
+E.focusAdd(fs2[0]);
+ok(Object.keys(E.state.boost).length > 0 || Object.keys(E.state.wants).length > 0, 'focus search feeds the engine');
 // spelling gym
 const gym = E.spellingSet(8);
 ok(gym.length === 8, 'spelling gym builds a round');

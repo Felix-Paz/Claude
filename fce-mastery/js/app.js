@@ -55,7 +55,7 @@ A.buildTopbar = function(){
   if(!tb) return;
   var eng = FCE.engine, st = eng.state;
   tb.innerHTML =
-    '<div class="tb-logo">'+FCE.ui.logoSVG(34)+FCE.ui.wordmark()+'</div>'+
+    '<div class="tb-logo">'+FCE.ui.wordmark()+'</div>'+
     '<div class="tb-spacer"></div>'+
     '<div class="tb-level"><span class="lvl">LVL '+eng.level()+'</span><div class="bar thin"><i class="shimmer" style="width:'+Math.round(eng.levelProgress()*100)+'%"></i></div><span class="lvl">'+st.xp+' XP</span></div>'+
     '<span class="tb-chip flame"><span class="fl">🔥</span>'+st.streak.count+'</span>';

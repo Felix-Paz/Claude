@@ -4,32 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Mastery (FCE Edition) — the on-device adaptive trainer for Cambridge B2 First Use of English. No internet, no account, no AI API.">
-<meta name="theme-color" content="#03363D">
+<meta name="theme-color" content="#F4EDDF">
 <title>Mastery · FCE — Use of English Trainer</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><rect width='48' height='48' rx='14' fill='%2303363D'/><rect x='10' y='28' width='7' height='10' rx='3.5' fill='%23BDD9D7' opacity='.55'/><rect x='20.5' y='21' width='7' height='17' rx='3.5' fill='%23BDD9D7' opacity='.8'/><rect x='31' y='13' width='7' height='25' rx='3.5' fill='%23BDD9D7'/><circle cx='34.5' cy='8.5' r='3.4' fill='%23FF6B5C'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><rect width='48' height='48' rx='12' fill='%23FFFBF1'/><text x='22' y='34' font-size='30' font-weight='bold' text-anchor='middle' fill='%231B1C21' font-family='Georgia,serif'>M</text><circle cx='38' cy='31' r='4' fill='%23E0492F'/></svg>"><rect width='48' height='48' rx='14' fill='%2303363D'/><rect x='10' y='28' width='7' height='10' rx='3.5' fill='%23BDD9D7' opacity='.55'/><rect x='20.5' y='21' width='7' height='17' rx='3.5' fill='%23BDD9D7' opacity='.8'/><rect x='31' y='13' width='7' height='25' rx='3.5' fill='%23BDD9D7'/><circle cx='34.5' cy='8.5' r='3.4' fill='%23FF6B5C'/></svg>">
 <style>
 /* ============================================================
-   MASTERY · FCE — design system v4 "DEEP WATER"
-   Petrol #03363D · mint #BDD9D7 · coral signal red · liquid glass,
-   floating light blobs, editorial display serif + engine-room mono.
+   MASTERY · FCE — design system v5 "RED INK ON PAPER"
+   Warm beige paper · deep ink · vermilion red signal.
+   Liquid glass over warm light blobs; sturdy editorial type.
    ============================================================ */
 :root{
-  --deep:#03363D; --deep2:#022A30; --deep3:#01191E; --abyss:#021418;
-  --mint:#BDD9D7; --mint2:#8FBDB9; --aqua:#5FD3C0; --aqua2:#37B8A4;
-  --tx:#EAF6F4; --tx2:#A9CCC8; --tx3:#6E9793;
-  --coral:#FF6B5C; --coral2:#E84A3F; --coralsoft:rgba(255,107,92,.13);
-  --gold:#F2C94C; --goldsoft:rgba(242,201,76,.13);
-  --ok:#5FD3A6; --oksoft:rgba(95,211,166,.12);
-  --bad:#FF6B5C; --badsoft:rgba(255,107,92,.10);
-  --warn:#F2C94C; --warnsoft:rgba(242,201,76,.10);
-  --glass:rgba(189,217,215,.055); --glass2:rgba(189,217,215,.09); --glass3:rgba(2,26,30,.72);
-  --gb:rgba(189,217,215,.16); --gb2:rgba(189,217,215,.30);
-  --r:24px; --rs:15px;
-  --shadow:0 2px 6px rgba(1,12,14,.35),0 22px 60px -18px rgba(1,12,14,.7);
-  --glow-mint:0 0 0 1px rgba(189,217,215,.14),0 10px 44px -10px rgba(95,211,192,.28);
-  --glow-coral:0 6px 30px -8px rgba(255,107,92,.55);
+  --paper:#F4EDDF; --paper2:#EDE3CF; --paper3:#E6DAC2; --cream:#FFFBF1;
+  --ink:#1B1C21; --ink2:#52504A; --ink3:#8E8878;
+  --red:#E0492F; --red2:#C2371F; --redsoft:rgba(224,73,47,.10); --redline:rgba(224,73,47,.35);
+  --amber:#C98A2D; --ambersoft:rgba(201,138,45,.12);
+  --ok:#2E7D4F; --oksoft:rgba(46,125,79,.10);
+  --bad:#C2371F; --badsoft:rgba(194,55,31,.08);
+  --glass:rgba(255,251,241,.55); --glass2:rgba(255,251,241,.72); --glass3:rgba(255,251,241,.9);
+  --gb:rgba(255,255,255,.9); --edge:rgba(27,28,33,.10); --edge2:rgba(27,28,33,.20);
+  --r:22px; --rs:14px;
+  --shadow:0 1px 2px rgba(27,28,33,.06),0 16px 44px -16px rgba(27,28,33,.25);
+  --shadow-lift:0 2px 4px rgba(27,28,33,.07),0 26px 60px -18px rgba(27,28,33,.33);
+  --glow-red:0 8px 30px -8px rgba(224,73,47,.55);
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Avenir Next",Roboto,"Helvetica Neue",sans-serif;
-  --disp:"Didot","Bodoni MT","Playfair Display","Iowan Old Style",Palatino,Georgia,serif;
+  --disp:Georgia,"Charter","Iowan Old Style","Times New Roman",serif;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
   --ease:cubic-bezier(.22,.9,.26,1);
   --spring:cubic-bezier(.34,1.45,.5,1);
@@ -37,126 +35,113 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{
-  font-family:var(--sans);color:var(--tx);min-height:100vh;line-height:1.6;
+  font-family:var(--sans);color:var(--ink);min-height:100vh;line-height:1.6;
   -webkit-font-smoothing:antialiased;overflow-x:hidden;
-  background:radial-gradient(1200px 800px at 70% -10%,#06464F 0%,var(--deep) 38%,var(--deep2) 72%,var(--deep3) 100%);
+  background:linear-gradient(165deg,var(--cream) 0%,var(--paper) 34%,var(--paper2) 78%,var(--paper3) 100%);
   background-attachment:fixed;
+  font-weight:450;
 }
-/* liquid light blobs */
-.blob{position:fixed;border-radius:50%;filter:blur(90px);z-index:-2;pointer-events:none;opacity:.55;mix-blend-mode:screen}
-.blob.b1{width:560px;height:560px;background:radial-gradient(circle,rgba(95,211,192,.34),transparent 65%);top:-180px;right:-120px;animation:drift1 26s ease-in-out infinite}
-.blob.b2{width:480px;height:480px;background:radial-gradient(circle,rgba(189,217,215,.20),transparent 65%);bottom:-160px;left:-140px;animation:drift2 32s ease-in-out infinite}
-.blob.b3{width:380px;height:380px;background:radial-gradient(circle,rgba(255,107,92,.16),transparent 65%);top:38%;left:55%;animation:drift3 38s ease-in-out infinite}
-@keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-90px,70px) scale(1.15)}}
+/* warm liquid blobs */
+.blob{position:fixed;border-radius:50%;filter:blur(80px);z-index:-2;pointer-events:none;opacity:.6}
+.blob.b1{width:540px;height:540px;background:radial-gradient(circle,rgba(224,73,47,.16),transparent 64%);top:-160px;right:-120px;animation:drift1 28s ease-in-out infinite}
+.blob.b2{width:460px;height:460px;background:radial-gradient(circle,rgba(201,138,45,.15),transparent 64%);bottom:-150px;left:-130px;animation:drift2 34s ease-in-out infinite}
+.blob.b3{width:380px;height:380px;background:radial-gradient(circle,rgba(140,160,120,.13),transparent 64%);top:40%;left:58%;animation:drift3 40s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-90px,70px) scale(1.14)}}
 @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(110px,-60px) scale(.9)}}
-@keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-70px,-90px) scale(1.2)}66%{transform:translate(60px,40px) scale(.95)}}
-/* fine noise + faint grid texture */
+@keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-70px,-90px) scale(1.18)}66%{transform:translate(60px,40px) scale(.95)}}
+/* paper grain */
 body::after{
-  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.16;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
-  mix-blend-mode:overlay;
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.07;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-body::before{
-  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.05;
-  background-image:linear-gradient(rgba(189,217,215,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(189,217,215,.5) 1px,transparent 1px);
-  background-size:56px 56px;
-  mask-image:radial-gradient(900px 600px at 50% 0%,#000 0%,transparent 75%);
-  -webkit-mask-image:radial-gradient(900px 600px at 50% 0%,#000 0%,transparent 75%);
-}
-::selection{background:rgba(95,211,192,.30)}
+::selection{background:rgba(224,73,47,.22)}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(189,217,215,.18);border-radius:99px;border:3px solid var(--deep2)}
+::-webkit-scrollbar-thumb{background:rgba(27,28,33,.22);border-radius:99px;border:3px solid var(--paper)}
 button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer}
-input,select,textarea{font-family:inherit;font-size:1rem;color:var(--tx)}
-a{color:var(--aqua)}
-h1,h2,.h-page,.big,.serif{font-family:var(--disp);font-weight:600;letter-spacing:.01em}
+input,select,textarea{font-family:inherit;font-size:1rem;color:var(--ink)}
+a{color:var(--red)}
+h1,h2,.h-page,.big,.serif{font-family:var(--disp);font-weight:700;letter-spacing:-.01em}
 
-/* ---------------- shell: topbar + dock + main ---------------- */
+/* ---------------- shell: topbar + rail + main ---------------- */
 #topbar{
-  position:fixed;top:0;left:0;right:0;z-index:50;height:62px;
-  display:flex;align-items:center;gap:18px;padding:0 clamp(14px,2.5vw,28px);
-  background:linear-gradient(180deg,rgba(2,26,30,.85),rgba(2,26,30,.55));
-  backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);
-  border-bottom:1px solid var(--gb);
+  position:fixed;top:0;left:0;right:0;z-index:50;height:64px;
+  display:flex;align-items:center;gap:18px;padding:0 clamp(16px,2.6vw,30px);
+  background:rgba(255,251,241,.72);
+  backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);
+  border-bottom:1px solid var(--edge);
 }
-.tb-logo{display:flex;align-items:center;gap:11px}
-.wordmark{font-family:var(--disp);font-weight:700;font-size:21px;letter-spacing:.02em;color:var(--tx)}
-.wordmark .ed{
-  display:inline-block;vertical-align:middle;font-size:9.5px;font-weight:800;letter-spacing:1.8px;
-  color:#fff;background:linear-gradient(120deg,var(--coral),var(--coral2));border-radius:7px;
-  padding:2.5px 8px;margin-left:9px;font-family:var(--sans);transform:translateY(-2px);
-  box-shadow:var(--glow-coral);
+.tb-logo{display:flex;align-items:center}
+.wm{line-height:1}
+.wm .wm-top{display:flex;align-items:baseline;gap:8px}
+.wm .wm-name{font-family:var(--disp);font-weight:800;font-size:22px;letter-spacing:-.02em;color:var(--ink)}
+.wm .ed{
+  font-size:9.5px;font-weight:800;letter-spacing:1.6px;color:#fff;
+  background:linear-gradient(125deg,var(--red),var(--red2));border-radius:6px;padding:2.5px 7px;
+  font-family:var(--sans);transform:translateY(-7px);display:inline-block;box-shadow:var(--glow-red);
 }
+.wm .wm-sub{font-family:var(--sans);font-size:7.5px;font-weight:800;letter-spacing:3.2px;color:var(--ink3);text-transform:uppercase;margin-top:2px}
+.wm.big .wm-name{font-size:clamp(40px,7vw,58px)}
+.wm.big .ed{font-size:12px;padding:4px 10px;transform:translateY(-18px)}
+.wm.big .wm-sub{font-size:10px;letter-spacing:5px;margin-top:6px}
 .tb-spacer{flex:1}
 .tb-level{display:flex;align-items:center;gap:10px;min-width:150px}
-.tb-level .lvl{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--mint);letter-spacing:1px;white-space:nowrap}
+.tb-level .lvl{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink2);letter-spacing:1px;white-space:nowrap}
 .tb-level .bar{flex:1;min-width:70px}
 .tb-chip{
   display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:99px;
-  font-size:12px;font-weight:700;background:var(--glass2);border:1px solid var(--gb);
-  white-space:nowrap;
+  font-size:12px;font-weight:700;background:var(--glass2);border:1px solid var(--edge);white-space:nowrap;
 }
-.tb-chip.flame{color:var(--gold);border-color:rgba(242,201,76,.35)}
+.tb-chip.flame{color:var(--red2);border-color:var(--redline)}
 .tb-chip.flame .fl{display:inline-block;animation:flick 1.6s ease-in-out infinite}
 @keyframes flick{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.18) rotate(4deg)}}
 
-#app{display:flex;min-height:100vh;padding-top:62px}
+#app{display:flex;min-height:100vh;padding-top:64px}
 .sidebar{
-  width:86px;flex-shrink:0;position:sticky;top:62px;height:calc(100vh - 62px);
-  display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 0 14px;
-  z-index:40;
-}
-.sidebar::before{
-  content:"";position:absolute;inset:12px 16px;border-radius:26px;z-index:-1;
-  background:linear-gradient(180deg,rgba(189,217,215,.08),rgba(189,217,215,.03));
-  border:1px solid var(--gb);box-shadow:var(--shadow);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  width:168px;flex-shrink:0;position:sticky;top:64px;height:calc(100vh - 64px);
+  display:flex;flex-direction:column;gap:2px;padding:30px 0 16px clamp(10px,1.6vw,22px);
 }
 .nav-btn{
-  width:56px;display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:9px 0;border-radius:16px;color:var(--tx3);font-size:8.5px;font-weight:700;
-  letter-spacing:.4px;text-transform:uppercase;
-  transition:all .25s var(--spring);
+  display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:11px;
+  color:var(--ink3);font-size:11.5px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;
+  text-align:left;position:relative;transition:color .2s,transform .22s var(--spring);
 }
-.nav-btn .ic{font-size:19px;line-height:1;transition:transform .25s var(--spring)}
-.nav-btn:hover{color:var(--mint);background:var(--glass2)}
-.nav-btn:hover .ic{transform:translateY(-2px) scale(1.12)}
-.nav-btn.active{
-  color:var(--deep3);background:linear-gradient(150deg,var(--mint),var(--aqua));
-  box-shadow:var(--glow-mint),0 8px 22px -8px rgba(95,211,192,.6);
+.nav-btn::before{
+  content:"";width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;
+  opacity:0;transform:scale(.3);transition:all .25s var(--spring);
 }
+.nav-btn .ic{display:none}
+.nav-btn:hover{color:var(--ink);transform:translateX(2px)}
+.nav-btn.active{color:var(--ink)}
+.nav-btn.active::before{opacity:1;transform:scale(1)}
 .nav-spacer{flex:1}
 .nav-foot{display:none}
 .logo{display:none}
-.main{flex:1;min-width:0;padding:30px clamp(16px,3.4vw,46px) 130px;max-width:1180px;margin:0 auto}
+.main{flex:1;min-width:0;padding:32px clamp(16px,3.4vw,46px) 130px;max-width:1120px;margin:0 auto}
 
 .emg-ribbon{
   display:flex;align-items:center;gap:10px;margin:0 0 20px;padding:12px 18px;border-radius:16px;
-  background:linear-gradient(100deg,rgba(255,107,92,.16),rgba(242,201,76,.08));
-  border:1px solid rgba(255,107,92,.35);font-size:13px;font-weight:600;color:#FFC9C2;
-  backdrop-filter:blur(8px);box-shadow:var(--glow-coral);
+  background:linear-gradient(100deg,var(--redsoft),var(--ambersoft));
+  border:1px solid var(--redline);font-size:13px;font-weight:600;color:var(--red2);
 }
-.emg-ribbon b{color:#fff}
+.emg-ribbon b{color:var(--ink)}
 
 /* ---------------- motion ---------------- */
-.view>*{opacity:0;animation:lift .55s var(--ease) forwards}
+.view>*{opacity:0;animation:lift .5s var(--ease) forwards}
 .view>*:nth-child(1){animation-delay:.02s}.view>*:nth-child(2){animation-delay:.08s}
 .view>*:nth-child(3){animation-delay:.14s}.view>*:nth-child(4){animation-delay:.2s}
 .view>*:nth-child(5){animation-delay:.26s}.view>*:nth-child(n+6){animation-delay:.32s}
-@keyframes lift{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
-@keyframes pop{0%{transform:scale(.93);opacity:0}100%{transform:scale(1);opacity:1}}
-@keyframes glowOk{0%{box-shadow:0 0 0 0 rgba(95,211,166,.4)}100%{box-shadow:0 0 0 16px rgba(95,211,166,0)}}
+@keyframes lift{from{opacity:0;transform:translateY(14px) scale(.99)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.94);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes glowOk{0%{box-shadow:0 0 0 0 rgba(46,125,79,.35)}100%{box-shadow:0 0 0 16px rgba(46,125,79,0)}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-@keyframes floatup{0%{opacity:0;transform:translateY(6px) scale(.8)}15%{opacity:1;transform:translateY(0) scale(1.05)}80%{opacity:1}100%{opacity:0;transform:translateY(-46px) scale(1)}}
-@keyframes squish{0%,100%{transform:scaleY(1) scaleX(1)}50%{transform:scaleY(.94) scaleX(1.05)}}
-@keyframes ripple{0%{transform:scale(.4);opacity:.6}100%{transform:scale(2.4);opacity:0}}
+@keyframes floatup{0%{opacity:0;transform:translateY(6px) scale(.8)}15%{opacity:1;transform:translateY(0) scale(1.05)}80%{opacity:1}100%{opacity:0;transform:translateY(-46px)}}
 
 /* ---------------- primitives ---------------- */
-.h-page{font-size:clamp(28px,3.6vw,38px);color:var(--tx);margin-bottom:6px}
-.h-page em{font-style:italic;color:var(--aqua)}
-.sub{color:var(--tx2);font-size:14px;margin-bottom:24px;max-width:680px}
+.h-page{font-size:clamp(30px,3.8vw,40px);color:var(--ink);margin-bottom:6px;font-weight:800}
+.h-page em{font-style:italic;color:var(--red)}
+.sub{color:var(--ink2);font-size:14px;margin-bottom:24px;max-width:680px}
 .grid{display:grid;gap:16px}
 .g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
 .g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
@@ -165,393 +150,377 @@ h1,h2,.h-page,.big,.serif{font-family:var(--disp);font-weight:600;letter-spacing
 .sp12{grid-column:span 12}.sp8{grid-column:span 8}.sp7{grid-column:span 7}
 .sp6{grid-column:span 6}.sp5{grid-column:span 5}.sp4{grid-column:span 4}.sp3{grid-column:span 3}
 .card{
-  background:linear-gradient(165deg,var(--glass2),var(--glass));
-  border:1px solid var(--gb);border-radius:var(--r);
+  background:var(--glass);border:1px solid var(--gb);border-radius:var(--r);
   padding:22px;position:relative;box-shadow:var(--shadow);
-  backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);
-  transition:transform .3s var(--spring),box-shadow .3s var(--ease),border-color .3s;
+  backdrop-filter:blur(20px) saturate(1.35);-webkit-backdrop-filter:blur(20px) saturate(1.35);
+  transition:transform .28s var(--spring),box-shadow .28s var(--ease);
 }
-.card::before{ /* liquid top light */
-  content:"";position:absolute;inset:0 0 auto 0;height:1px;border-radius:99px;
-  background:linear-gradient(90deg,transparent,rgba(189,217,215,.45),transparent);
-}
-.card.hoverable:hover{transform:translateY(-3px);border-color:var(--gb2);box-shadow:var(--shadow),var(--glow-mint)}
+.card.hoverable:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift)}
 .card h3{
-  font-size:10.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--tx3);
+  font-size:10.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--ink3);
   margin-bottom:15px;display:flex;align-items:center;gap:8px;font-family:var(--sans);
 }
 .card h3 .grow{flex:1}
 .big{font-size:clamp(30px,4vw,44px);line-height:1.02}
-.muted{color:var(--tx2);font-size:13.5px}
-.tiny{color:var(--tx3);font-size:11.5px}
+.muted{color:var(--ink2);font-size:13.5px}
+.tiny{color:var(--ink3);font-size:11.5px}
 .mono{font-family:var(--mono)}
-.ticker{font-family:var(--mono);font-size:10.5px;letter-spacing:.6px;color:var(--tx3)}
-.ticker b{color:var(--aqua);font-weight:700}
+.ticker{font-family:var(--mono);font-size:10.5px;letter-spacing:.5px;color:var(--ink3)}
+.ticker b{color:var(--red);font-weight:700}
 
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:9px;
-  padding:11px 21px;border-radius:14px;font-weight:700;font-size:14px;
-  background:var(--glass2);border:1px solid var(--gb);color:var(--tx);
-  transition:transform .25s var(--spring),box-shadow .25s var(--ease),background .2s,border-color .2s;
+  padding:11px 21px;border-radius:13px;font-weight:700;font-size:14px;
+  background:var(--glass2);border:1px solid var(--gb);color:var(--ink);
+  box-shadow:0 1px 2px rgba(27,28,33,.07),0 8px 20px -10px rgba(27,28,33,.25);
+  transition:transform .22s var(--spring),box-shadow .22s,background .2s;
   position:relative;overflow:hidden;white-space:nowrap;backdrop-filter:blur(10px);
 }
-.btn:hover{transform:translateY(-2px);background:rgba(189,217,215,.14);border-color:var(--gb2);box-shadow:var(--glow-mint)}
+.btn:hover{transform:translateY(-2px);background:var(--glass3);box-shadow:var(--shadow-lift)}
 .btn:active{transform:translateY(0) scale(.98)}
 .btn.primary{
-  background:linear-gradient(120deg,var(--coral),var(--coral2));border-color:transparent;color:#fff;
-  box-shadow:var(--glow-coral);
+  background:linear-gradient(125deg,var(--red),var(--red2));border-color:transparent;color:#fff;
+  box-shadow:var(--glow-red);
 }
-.btn.primary:hover{box-shadow:0 10px 38px -8px rgba(255,107,92,.75);filter:brightness(1.06)}
+.btn.primary:hover{box-shadow:0 12px 38px -8px rgba(224,73,47,.7);filter:brightness(1.05)}
 .btn.primary::after{
   content:"";position:absolute;top:0;left:-80%;width:50%;height:100%;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
   transition:left .55s var(--ease);
 }
 .btn.primary:hover::after{left:140%}
-.btn.teal{background:linear-gradient(120deg,var(--aqua2),#2A9D8C);border-color:transparent;color:#02282D}
-.btn.teal:hover{filter:brightness(1.08)}
-.btn.ghost{background:transparent;border-color:transparent}
-.btn.ghost:hover{background:var(--glass2);box-shadow:none}
+.btn.teal{background:var(--ink);border-color:var(--ink);color:var(--cream)}
+.btn.teal:hover{background:#000}
+.btn.ghost{background:transparent;border-color:transparent;box-shadow:none}
+.btn.ghost:hover{background:var(--glass2)}
 .btn.small{padding:7px 14px;font-size:12.5px;border-radius:11px}
-.btn.danger{color:var(--coral);border-color:rgba(255,107,92,.4)}
+.btn.danger{color:var(--red2);border-color:var(--redline)}
 .btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
 .btn.block{width:100%}
 
 .chip{
   display:inline-flex;align-items:center;gap:6px;padding:4.5px 12px;border-radius:99px;
-  font-size:11.5px;font-weight:700;background:var(--glass2);border:1px solid var(--gb);color:var(--tx2);
+  font-size:11.5px;font-weight:700;background:var(--glass2);border:1px solid var(--edge);color:var(--ink2);
 }
-.chip.ok{color:var(--ok);border-color:rgba(95,211,166,.35);background:var(--oksoft)}
-.chip.bad{color:var(--coral);border-color:rgba(255,107,92,.35);background:var(--badsoft)}
-.chip.warn{color:var(--gold);border-color:rgba(242,201,76,.35);background:var(--warnsoft)}
-.chip.acc{color:var(--aqua);border-color:rgba(95,211,192,.4);background:rgba(95,211,192,.10)}
-.chip.gold{color:var(--gold);border-color:rgba(242,201,76,.4);background:var(--goldsoft)}
+.chip.ok{color:var(--ok);border-color:rgba(46,125,79,.35);background:var(--oksoft)}
+.chip.bad{color:var(--red2);border-color:var(--redline);background:var(--badsoft)}
+.chip.warn{color:var(--amber);border-color:rgba(201,138,45,.4);background:var(--ambersoft)}
+.chip.acc{color:var(--red2);border-color:var(--redline);background:var(--redsoft)}
+.chip.gold{color:var(--amber);border-color:rgba(201,138,45,.45);background:var(--ambersoft)}
 
-.bar{height:7px;border-radius:99px;background:rgba(2,20,24,.55);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.4)}
-.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--aqua2),var(--aqua));transition:width .8s var(--ease)}
+.bar{height:7px;border-radius:99px;background:rgba(27,28,33,.10);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--red2),var(--red));transition:width .8s var(--ease)}
 .bar.thin{height:5px}
-.bar i.ok{background:linear-gradient(90deg,#3FBF8F,var(--ok))}
-.bar i.bad{background:linear-gradient(90deg,var(--coral2),var(--coral))}
-.bar i.warn{background:linear-gradient(90deg,#D9A53A,var(--gold))}
-.bar i.gold{background:linear-gradient(90deg,#D9A53A,var(--gold))}
-.bar i.shimmer{background-image:linear-gradient(90deg,var(--aqua2),var(--aqua),var(--mint),var(--aqua),var(--aqua2));background-size:200% 100%;animation:shimmer 3s linear infinite}
-.divider{height:1px;background:var(--gb);margin:16px 0}
+.bar i.ok{background:linear-gradient(90deg,#256B43,var(--ok))}
+.bar i.bad{background:linear-gradient(90deg,var(--red2),var(--red))}
+.bar i.warn,.bar i.gold{background:linear-gradient(90deg,#B07722,var(--amber))}
+.bar i.shimmer{background-image:linear-gradient(90deg,var(--red2),var(--red),#F08A6F,var(--red),var(--red2));background-size:200% 100%;animation:shimmer 3s linear infinite}
+.divider{height:1px;background:var(--edge);margin:16px 0}
 .row{display:flex;align-items:center;gap:10px}
 .row.between{justify-content:space-between}
 .wrap{flex-wrap:wrap}
 .stack{display:flex;flex-direction:column;gap:10px}
-.sec-label{font-size:10.5px;font-weight:800;letter-spacing:2.2px;text-transform:uppercase;color:var(--tx3);margin:6px 0 12px;font-family:var(--sans)}
-.sec-label b{color:var(--aqua)}
+.sec-label{font-size:10.5px;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:var(--ink3);margin:6px 0 12px}
+.sec-label b{color:var(--red)}
 
-/* ---------------- dashboard bento ---------------- */
+/* ---------------- dashboard ---------------- */
 .dash-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px}
-.dash-head .greet{font-family:var(--disp);font-size:clamp(30px,4vw,44px);font-weight:600;line-height:1.04}
-.dash-head .greet em{font-style:italic;color:var(--aqua)}
+.dash-head .greet{font-family:var(--disp);font-size:clamp(30px,4vw,44px);font-weight:800;line-height:1.05}
+.dash-head .greet em{font-style:italic;color:var(--red)}
 .grade-card{overflow:hidden}
 .grade-card .halo{
   position:absolute;right:-70px;top:-70px;width:240px;height:240px;border-radius:50%;
-  background:radial-gradient(circle,rgba(95,211,192,.28),transparent 68%);pointer-events:none;
-  animation:drift3 18s ease-in-out infinite;
+  background:radial-gradient(circle,rgba(224,73,47,.14),transparent 68%);pointer-events:none;
 }
 .grade-big{
-  font-family:var(--disp);font-size:clamp(72px,9vw,108px);font-weight:700;line-height:.9;
-  background:linear-gradient(160deg,#fff 10%,var(--mint) 55%,var(--aqua));
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(0 6px 24px rgba(95,211,192,.35));
+  font-family:var(--disp);font-size:clamp(72px,9vw,104px);font-weight:800;line-height:.9;color:var(--ink);
+  position:relative;display:inline-block;padding-right:14px;
 }
-.gp-row{display:grid;grid-template-columns:minmax(86px,auto) 1fr 44px;align-items:center;gap:10px;font-size:12.5px;font-weight:600;color:var(--tx2)}
-.gp-row b{color:var(--tx);text-align:right;font-variant-numeric:tabular-nums}
+.grade-big::after{content:"";position:absolute;right:0;bottom:10px;width:11px;height:11px;border-radius:50%;background:var(--red);box-shadow:var(--glow-red)}
+.gp-row{display:grid;grid-template-columns:minmax(86px,auto) 1fr 44px;align-items:center;gap:10px;font-size:12.5px;font-weight:600;color:var(--ink2)}
+.gp-row b{color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
 .today-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 .focus-card{padding:18px;display:flex;flex-direction:column}
-.focus-card .fk{font-size:9.5px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--coral)}
-.focus-card .fn{font-family:var(--disp);font-size:19px;font-weight:600;margin:7px 0 2px}
-.focus-card .fw{font-size:12px;color:var(--tx2);line-height:1.55;flex:1}
+.focus-card .fk{font-size:9.5px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--red)}
+.focus-card .fn{font-family:var(--disp);font-size:19px;font-weight:700;margin:7px 0 2px}
+.focus-card .fw{font-size:12px;color:var(--ink2);line-height:1.55;flex:1}
 .focus-card .fg{display:flex;align-items:baseline;gap:6px;margin:12px 0}
 .focus-card .fg b{font-family:var(--disp);font-size:26px;color:var(--ok)}
-.focus-card .fg span{font-size:9.5px;color:var(--tx3);text-transform:uppercase;letter-spacing:1px}
+.focus-card .fg span{font-size:9.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px}
 .stat-tile{padding:16px 18px;border-radius:var(--rs);background:var(--glass);border:1px solid var(--gb);box-shadow:var(--shadow)}
-.stat-tile .v{font-family:var(--disp);font-size:27px;font-weight:650}
-.stat-tile .l{font-size:10px;color:var(--tx3);font-weight:800;text-transform:uppercase;letter-spacing:1.2px;margin-top:2px}
-.memo-tip{background:linear-gradient(150deg,rgba(95,211,192,.10),var(--glass))}
-.memo-tip .serif{color:var(--mint)}
+.stat-tile .v{font-family:var(--disp);font-size:27px;font-weight:800}
+.stat-tile .l{font-size:10px;color:var(--ink3);font-weight:800;text-transform:uppercase;letter-spacing:1.2px;margin-top:2px}
+.memo-tip{background:linear-gradient(150deg,var(--ambersoft),var(--glass))}
 
 /* ---------------- practice ---------------- */
 .qa{
-  padding:18px;border-radius:20px;border:1px solid var(--gb);
-  background:linear-gradient(165deg,var(--glass2),var(--glass));
+  padding:18px;border-radius:20px;border:1px solid var(--gb);background:var(--glass);
   text-align:left;box-shadow:var(--shadow);backdrop-filter:blur(14px);
-  transition:transform .28s var(--spring),box-shadow .28s,border-color .2s;position:relative;overflow:hidden;
+  transition:transform .26s var(--spring),box-shadow .26s;position:relative;overflow:hidden;
 }
-.qa:hover{transform:translateY(-4px) rotate(-.3deg);border-color:var(--gb2);box-shadow:var(--shadow),var(--glow-mint)}
-.qa .ic{font-size:24px;color:var(--aqua)}
-.qa .t{font-family:var(--disp);font-weight:650;font-size:17.5px;margin-top:9px}
-.qa .d{font-size:12px;color:var(--tx2);margin-top:3px;line-height:1.5}
+.qa:hover{transform:translateY(-4px);box-shadow:var(--shadow-lift)}
+.qa .ic{font-size:23px;color:var(--red)}
+.qa .t{font-family:var(--disp);font-weight:700;font-size:17.5px;margin-top:9px}
+.qa .d{font-size:12px;color:var(--ink2);margin-top:3px;line-height:1.5}
 .pick{
-  padding:9px 15px;border-radius:99px;font-size:12.5px;font-weight:700;color:var(--tx2);
-  background:var(--glass);border:1.5px solid var(--gb);transition:all .2s var(--spring);
+  padding:9px 15px;border-radius:99px;font-size:12.5px;font-weight:700;color:var(--ink2);
+  background:var(--glass);border:1.5px solid var(--edge);transition:all .2s var(--spring);
 }
-.pick:hover{border-color:var(--gb2);color:var(--tx)}
-.pick.sel{background:linear-gradient(140deg,var(--mint),var(--aqua));border-color:transparent;color:var(--deep3);box-shadow:0 4px 16px -4px rgba(95,211,192,.5)}
+.pick:hover{border-color:var(--edge2);color:var(--ink)}
+.pick.sel{background:var(--ink);border-color:var(--ink);color:var(--cream)}
 .pick.len{min-width:46px}
 
 .q-shell{max-width:790px;margin:0 auto}
 .q-top{display:flex;align-items:center;gap:11px;margin-bottom:18px;flex-wrap:wrap}
 .q-progress{flex:1;min-width:120px}
-.q-timer{font-family:var(--mono);font-weight:700;font-size:12.5px;color:var(--tx2);background:var(--glass2);border:1px solid var(--gb);padding:5px 12px;border-radius:99px}
-.q-timer.hot{color:var(--coral);border-color:rgba(255,107,92,.45);animation:flick 1s ease-in-out infinite}
+.q-timer{font-family:var(--mono);font-weight:700;font-size:12.5px;color:var(--ink2);background:var(--glass2);border:1px solid var(--edge);padding:5px 12px;border-radius:99px}
+.q-timer.hot{color:var(--red2);border-color:var(--redline)}
 .q-card{
-  background:linear-gradient(168deg,rgba(189,217,215,.10),rgba(189,217,215,.04));
-  border:1px solid var(--gb2);border-radius:28px;
-  padding:clamp(22px,3.6vw,40px);box-shadow:var(--shadow),var(--glow-mint);
-  backdrop-filter:blur(24px) saturate(1.7);animation:pop .4s var(--spring);position:relative;
+  background:var(--glass2);border:1px solid var(--gb);border-radius:26px;
+  padding:clamp(22px,3.6vw,40px);box-shadow:var(--shadow-lift);
+  backdrop-filter:blur(24px) saturate(1.35);animation:pop .35s var(--spring);position:relative;
 }
 .q-type{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
-.q-text{font-family:var(--disp);font-size:clamp(19px,2.4vw,22px);font-weight:500;line-height:1.85;color:var(--tx)}
+/* exercise text: bold, big, SANS — built to be read fast */
+.q-text{font-size:clamp(17.5px,2.2vw,20px);font-weight:600;line-height:1.8;color:var(--ink);letter-spacing:.001em}
 .q-text .gap{
-  display:inline-block;min-width:88px;border-bottom:2px dotted rgba(95,211,192,.65);
-  text-align:center;color:var(--aqua);font-weight:650;padding:0 8px;
+  display:inline-block;min-width:88px;border-bottom:2.5px solid var(--redline);
+  text-align:center;color:var(--red2);font-weight:800;padding:0 8px;
 }
-.q-key{margin:16px 0 4px;font-size:13.5px;color:var(--tx2)}
-.q-key b{font-family:var(--mono);background:rgba(95,211,192,.12);border:1px solid rgba(95,211,192,.4);padding:2px 11px;border-radius:8px;color:var(--aqua);letter-spacing:1.6px;font-size:13px}
-.q-stem{font-family:var(--mono);font-weight:700;letter-spacing:2px;color:var(--gold);background:var(--goldsoft);border:1px solid rgba(242,201,76,.4);padding:2px 11px;border-radius:8px;font-size:13px}
+.q-key{margin:16px 0 4px;font-size:13.5px;color:var(--ink2);font-weight:600}
+.q-key b{font-family:var(--mono);background:var(--redsoft);border:1px solid var(--redline);padding:2px 11px;border-radius:8px;color:var(--red2);letter-spacing:1.6px;font-size:13px}
+.q-stem{font-family:var(--mono);font-weight:800;letter-spacing:2px;color:var(--amber);background:var(--ambersoft);border:1px solid rgba(201,138,45,.4);padding:2px 11px;border-radius:8px;font-size:13px}
 .ans-input{
-  width:100%;margin-top:20px;padding:15px 18px;font-size:18px;border-radius:16px;
-  background:rgba(2,20,24,.5);border:1.5px solid var(--gb2);outline:none;
-  transition:border-color .2s,box-shadow .2s;font-family:var(--disp);color:var(--tx);
-  box-shadow:inset 0 2px 8px rgba(0,0,0,.3);
+  width:100%;margin-top:20px;padding:15px 18px;font-size:17.5px;font-weight:600;border-radius:15px;
+  background:#fff;border:2px solid var(--edge2);outline:none;
+  transition:border-color .2s,box-shadow .2s;color:var(--ink);
 }
-.ans-input::placeholder{color:var(--tx3)}
-.ans-input:focus{border-color:var(--aqua);box-shadow:inset 0 2px 8px rgba(0,0,0,.3),0 0 0 4px rgba(95,211,192,.15)}
-.ans-input.slim{margin:0;font-size:14.5px;padding:11px 14px;font-family:var(--sans)}
+.ans-input::placeholder{color:var(--ink3);font-weight:500}
+.ans-input:focus{border-color:var(--red);box-shadow:0 0 0 4px rgba(224,73,47,.13)}
+.ans-input.slim{margin:0;font-size:14.5px;padding:11px 14px;font-weight:500}
 .opts{display:grid;gap:10px;margin-top:20px}
 .opt{
-  display:flex;align-items:center;gap:13px;padding:14px 17px;border-radius:16px;text-align:left;
-  background:var(--glass);border:1.5px solid var(--gb);font-size:16.5px;font-weight:500;
-  font-family:var(--disp);transition:all .22s var(--spring);
+  display:flex;align-items:center;gap:13px;padding:14px 17px;border-radius:15px;text-align:left;
+  background:rgba(255,251,241,.65);border:2px solid var(--edge);font-size:16px;font-weight:650;
+  transition:all .2s var(--spring);
 }
-.opt:hover{border-color:rgba(95,211,192,.5);background:var(--glass2);transform:translateX(4px)}
+.opt:hover{border-color:var(--edge2);background:var(--glass3);transform:translateX(4px)}
 .opt .letter{
-  width:29px;height:29px;border-radius:10px;background:rgba(2,20,24,.55);border:1px solid var(--gb);
-  display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--tx2);flex-shrink:0;font-family:var(--sans);
+  width:29px;height:29px;border-radius:10px;background:rgba(27,28,33,.06);border:1px solid var(--edge);
+  display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--ink2);flex-shrink:0;
 }
-.opt.sel{border-color:var(--aqua);background:rgba(95,211,192,.12)}
-.opt.sel .letter{background:linear-gradient(140deg,var(--mint),var(--aqua));color:var(--deep3);border:0}
-.opt.right{border-color:rgba(95,211,166,.6);background:var(--oksoft);animation:glowOk .9s var(--ease)}
-.opt.right .letter{background:var(--ok);color:var(--deep3);border:0}
-.opt.wrong{border-color:rgba(255,107,92,.55);background:var(--badsoft);animation:shake .35s}
-.opt.wrong .letter{background:var(--coral);color:#fff;border:0}
+.opt.sel{border-color:var(--ink);background:#fff}
+.opt.sel .letter{background:var(--ink);color:var(--cream);border:0}
+.opt.right{border-color:rgba(46,125,79,.6);background:var(--oksoft);animation:glowOk .9s var(--ease)}
+.opt.right .letter{background:var(--ok);color:#fff;border:0}
+.opt.wrong{border-color:var(--redline);background:var(--badsoft);animation:shake .35s}
+.opt.wrong .letter{background:var(--red2);color:#fff;border:0}
 .conf-row{display:flex;gap:9px;margin-top:20px;flex-wrap:wrap;align-items:center}
-.conf-label{font-size:10px;color:var(--tx3);font-weight:800;text-transform:uppercase;letter-spacing:1.4px;width:100%}
+.conf-label{font-size:10px;color:var(--ink3);font-weight:800;text-transform:uppercase;letter-spacing:1.4px;width:100%}
 .conf{
   flex:1;min-width:104px;padding:9px 12px;border-radius:12px;font-size:12.5px;font-weight:700;
-  background:var(--glass);border:1.5px solid var(--gb);color:var(--tx2);transition:all .2s var(--spring);
+  background:var(--glass);border:1.5px solid var(--edge);color:var(--ink2);transition:all .18s var(--spring);
 }
-.conf:hover{border-color:var(--gb2);color:var(--tx)}
-.conf.sel{border-color:var(--aqua);background:rgba(95,211,192,.12);color:var(--aqua)}
+.conf:hover{border-color:var(--edge2);color:var(--ink)}
+.conf.sel{border-color:var(--ink);background:#fff;color:var(--ink)}
 .q-actions{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;align-items:center;position:relative}
 .xp-float{
   position:absolute;right:8px;top:-6px;font-family:var(--mono);font-weight:800;font-size:15px;
-  color:var(--gold);pointer-events:none;animation:floatup 1.4s var(--ease) forwards;
-  text-shadow:0 2px 12px rgba(242,201,76,.6);
+  color:var(--amber);pointer-events:none;animation:floatup 1.4s var(--ease) forwards;
 }
-.feedback{margin-top:22px;border-radius:20px;padding:20px;border:1px solid;animation:pop .35s var(--spring)}
-.feedback.ok{background:var(--oksoft);border-color:rgba(95,211,166,.35)}
-.feedback.bad{background:var(--badsoft);border-color:rgba(255,107,92,.3)}
-.fb-head{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:650;font-size:17px;margin-bottom:8px}
+.feedback{margin-top:22px;border-radius:20px;padding:20px;border:1.5px solid;animation:pop .3s var(--spring)}
+.feedback.ok{background:var(--oksoft);border-color:rgba(46,125,79,.35)}
+.feedback.bad{background:var(--badsoft);border-color:var(--redline)}
+.fb-head{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;font-size:17px;margin-bottom:8px}
 .big-answer{
-  font-family:var(--disp);font-style:italic;font-weight:650;font-size:clamp(22px,3.2vw,30px);
-  color:var(--ok);background:rgba(2,26,30,.55);border:1.5px solid rgba(95,211,166,.4);
-  border-radius:16px;padding:14px 20px;margin:10px 0;line-height:1.4;
-  box-shadow:inset 0 1px 0 rgba(189,217,215,.12),0 8px 28px -10px rgba(95,211,166,.35);
+  font-family:var(--disp);font-weight:800;font-size:clamp(22px,3.2vw,30px);
+  color:var(--ok);background:#fff;border:2px solid rgba(46,125,79,.4);
+  border-radius:15px;padding:14px 20px;margin:10px 0;line-height:1.4;
+  box-shadow:0 8px 28px -12px rgba(46,125,79,.35);
 }
 .fb-ans{font-size:14px;margin:8px 0;line-height:1.6}
-.fb-ans code{font-family:var(--disp);font-style:italic;background:rgba(2,26,30,.5);padding:2px 10px;border-radius:7px;font-size:14px;border:1px solid var(--gb);color:var(--mint)}
-.fb-exp{font-size:13.5px;color:var(--tx2);line-height:1.65;margin-top:8px}
+.fb-ans code{font-weight:700;background:#fff;padding:2px 10px;border-radius:7px;font-size:13.5px;border:1px solid var(--edge);color:var(--ink)}
+.fb-exp{font-size:13.5px;color:var(--ink2);line-height:1.65;margin-top:8px}
 .fb-diag{
   margin:10px 0 2px;padding:12px 15px;border-radius:13px;font-size:13.5px;line-height:1.6;
-  background:rgba(95,211,192,.08);border:1px solid rgba(95,211,192,.3);color:var(--mint);font-weight:550;
+  background:#fff;border:1.5px solid var(--edge2);color:var(--ink);font-weight:600;
 }
-.fb-trap{margin-top:12px;padding:12px 15px;border-radius:13px;background:var(--warnsoft);border:1px solid rgba(242,201,76,.32);font-size:13px;color:#F8DFA0;line-height:1.6}
-.fb-pattern{margin-top:10px;font-size:12px;color:var(--tx2);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.fb-pattern .stars{color:var(--gold);letter-spacing:1px}
-.fb-hook{margin-top:12px;padding:13px 15px;border-radius:13px;background:rgba(189,217,215,.07);border:1px solid var(--gb2);font-size:13.5px;color:var(--mint);line-height:1.65}
-.fb-beh{margin-top:12px;padding:12px 15px;border-radius:13px;background:rgba(2,26,30,.45);border:1px solid var(--gb);font-size:13px;color:var(--tx2);line-height:1.6}
-.fb-beh b{color:var(--tx)}
+.fb-trap{margin-top:12px;padding:12px 15px;border-radius:13px;background:var(--ambersoft);border:1px solid rgba(201,138,45,.4);font-size:13px;color:#7A5418;line-height:1.6;font-weight:550}
+.fb-pattern{margin-top:10px;font-size:12px;color:var(--ink2);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.fb-pattern .stars{color:var(--amber);letter-spacing:1px}
+.fb-hook{margin-top:12px;padding:13px 15px;border-radius:13px;background:var(--glass3);border:1px solid var(--edge);font-size:13.5px;color:var(--ink2);line-height:1.65}
+.fb-beh{margin-top:12px;padding:12px 15px;border-radius:13px;background:rgba(27,28,33,.05);border:1px solid var(--edge);font-size:13px;color:var(--ink2);line-height:1.6}
+.fb-beh b{color:var(--ink)}
 .cause-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.cause{padding:7px 13px;border-radius:10px;font-size:12px;font-weight:700;background:var(--glass);border:1px solid var(--gb);color:var(--tx2);transition:all .15s}
-.cause:hover{border-color:var(--gb2)}
-.cause.sel{border-color:rgba(255,107,92,.5);background:var(--badsoft);color:var(--coral)}
+.cause{padding:7px 13px;border-radius:10px;font-size:12px;font-weight:700;background:var(--glass);border:1px solid var(--edge);color:var(--ink2);transition:all .15s}
+.cause:hover{border-color:var(--edge2)}
+.cause.sel{border-color:var(--redline);background:var(--badsoft);color:var(--red2)}
 .session-done{text-align:center;padding:42px 22px}
+.session-done .emoji{font-size:54px;filter:drop-shadow(0 6px 16px rgba(27,28,33,.2))}
 .ring-stats{display:flex;justify-content:center;gap:36px;margin:28px 0;flex-wrap:wrap}
 .combo-chip{animation:pop .3s var(--spring)}
 
 /* passage (mock) */
 .passage{
-  font-family:var(--disp);font-size:16.5px;line-height:2.2;color:var(--tx);
-  background:var(--glass);border:1px solid var(--gb);border-radius:20px;padding:clamp(18px,3vw,30px);
+  font-size:16px;font-weight:550;line-height:2.15;color:var(--ink);
+  background:var(--glass2);border:1px solid var(--gb);border-radius:20px;padding:clamp(18px,3vw,30px);
   box-shadow:var(--shadow);backdrop-filter:blur(14px);
 }
-.passage .ptitle{font-size:21px;font-weight:650;margin-bottom:10px;display:block;color:var(--mint)}
+.passage .ptitle{font-family:var(--disp);font-size:21px;font-weight:800;margin-bottom:10px;display:block}
 .passage .pgap{display:inline-flex;align-items:center;gap:5px;margin:0 3px;white-space:nowrap}
-.passage .pgap .n{font-family:var(--sans);font-size:9.5px;font-weight:800;color:var(--aqua);background:rgba(95,211,192,.13);border-radius:6px;padding:1px 6px}
+.passage .pgap .n{font-size:9.5px;font-weight:800;color:var(--red2);background:var(--redsoft);border-radius:6px;padding:1px 6px}
 .passage input{
-  width:112px;padding:4px 9px;font-size:15px;font-family:var(--disp);border-radius:9px;
-  background:rgba(2,20,24,.55);border:1.5px solid var(--gb2);outline:none;text-align:center;color:var(--tx);
+  width:112px;padding:4px 9px;font-size:15px;font-weight:650;border-radius:9px;
+  background:#fff;border:1.5px solid var(--edge2);outline:none;text-align:center;color:var(--ink);
 }
-.passage input:focus{border-color:var(--aqua);box-shadow:0 0 0 3px rgba(95,211,192,.14)}
-.passage input.pi-ok{border-color:var(--ok);background:var(--oksoft);color:var(--ok);font-weight:650}
-.passage input.pi-bad{border-color:var(--coral);background:var(--badsoft);color:var(--coral);text-decoration:line-through}
-.passage select{padding:4px 9px;font-size:14px;border-radius:9px;background:var(--deep2);border:1.5px solid var(--gb2);outline:none;color:var(--tx);font-family:var(--sans)}
-.pi-corr{font-family:var(--sans);font-size:11.5px;font-weight:700;color:var(--ok);background:var(--oksoft);border:1px solid rgba(95,211,166,.35);border-radius:7px;padding:1px 8px}
+.passage input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(224,73,47,.12)}
+.passage input.pi-ok{border-color:var(--ok);background:var(--oksoft);color:var(--ok)}
+.passage input.pi-bad{border-color:var(--red);background:var(--badsoft);color:var(--red2);text-decoration:line-through}
+.passage select{padding:4px 9px;font-size:14px;border-radius:9px;background:#fff;border:1.5px solid var(--edge2);outline:none;color:var(--ink)}
+.pi-corr{font-size:11.5px;font-weight:800;color:var(--ok);background:var(--oksoft);border:1px solid rgba(46,125,79,.35);border-radius:7px;padding:1px 8px}
 
 /* mock */
-.mock-timer{position:sticky;top:74px;z-index:30;display:flex;justify-content:center;margin-bottom:20px}
+.mock-timer{position:sticky;top:76px;z-index:30;display:flex;justify-content:center;margin-bottom:20px}
 .mock-timer .inner{
-  background:rgba(2,26,30,.85);backdrop-filter:blur(16px);border:1px solid var(--gb2);
+  background:rgba(255,251,241,.92);backdrop-filter:blur(16px);border:1px solid var(--edge2);
   border-radius:99px;padding:9px 24px;font-family:var(--mono);font-weight:700;font-size:15px;
-  display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);
+  display:flex;gap:14px;align-items:center;box-shadow:var(--shadow-lift);
 }
 .mock-part{margin-bottom:28px}
-.mock-part h4{font-family:var(--disp);font-size:20px;font-weight:650;margin-bottom:4px;color:var(--mint)}
-.mock-part .pd{font-size:12.5px;color:var(--tx2);margin-bottom:14px}
-.mock-kwt{background:var(--glass);border:1px solid var(--gb);border-radius:18px;padding:18px;margin-bottom:12px;backdrop-filter:blur(12px);box-shadow:var(--shadow)}
-.mock-kwt .ms1{font-family:var(--disp);font-size:15.5px}
-.mock-result-score{font-family:var(--disp);font-size:72px;font-weight:700;letter-spacing:-2px;line-height:1;
-  background:linear-gradient(150deg,#fff,var(--mint) 60%,var(--aqua));-webkit-background-clip:text;background-clip:text;color:transparent}
+.mock-part h4{font-family:var(--disp);font-size:20px;font-weight:800;margin-bottom:4px}
+.mock-part .pd{font-size:12.5px;color:var(--ink2);margin-bottom:14px}
+.mock-kwt{background:var(--glass);border:1px solid var(--gb);border-radius:18px;padding:18px;margin-bottom:12px;box-shadow:var(--shadow)}
+.mock-kwt .ms1{font-size:15px;font-weight:600}
+.mock-result-score{font-family:var(--disp);font-size:72px;font-weight:800;letter-spacing:-2px;line-height:1;color:var(--ink)}
 .mr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:24px 0}
 
-/* ---------------- progress / stats ---------------- */
+/* ---------------- progress ---------------- */
 .tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
 .tab{
-  padding:9px 18px;border-radius:99px;font-size:13px;font-weight:700;color:var(--tx2);
-  background:var(--glass);border:1px solid var(--gb);transition:all .22s var(--spring);
+  padding:9px 18px;border-radius:99px;font-size:13px;font-weight:700;color:var(--ink2);
+  background:var(--glass);border:1px solid var(--edge);transition:all .2s var(--spring);
 }
-.tab:hover{color:var(--tx);border-color:var(--gb2)}
-.tab.active{background:linear-gradient(140deg,var(--mint),var(--aqua));border-color:transparent;color:var(--deep3);box-shadow:0 6px 20px -6px rgba(95,211,192,.5)}
-.ins-line{font-family:var(--disp);font-size:17px;line-height:1.7;color:var(--tx)}
-.ins-line b{color:var(--aqua)}
-.ins-note{font-size:12.5px;color:var(--tx2);margin-top:8px;line-height:1.6}
+.tab:hover{color:var(--ink);border-color:var(--edge2)}
+.tab.active{background:var(--ink);border-color:var(--ink);color:var(--cream)}
+.ins-line{font-family:var(--disp);font-size:17.5px;font-weight:600;line-height:1.65;color:var(--ink)}
+.ins-line b{color:var(--red)}
+.ins-note{font-size:12.5px;color:var(--ink2);margin-top:8px;line-height:1.6}
 .heat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px}
-.heat-cell{padding:14px;border-radius:15px;border:1px solid;position:relative;background-clip:padding-box}
+.heat-cell{padding:14px;border-radius:15px;border:1.5px solid;position:relative}
 .heat-cell .hn{font-size:12px;font-weight:700}
-.heat-cell .hv{font-family:var(--disp);font-size:22px;font-weight:650;margin-top:4px}
-.heat-cell .hs{font-size:10.5px;color:var(--tx2);margin-top:2px}
-.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:11px;color:var(--tx3)}
-.skill-row{display:grid;grid-template-columns:minmax(120px,185px) 1fr 48px 66px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--gb);font-size:13px}
+.heat-cell .hv{font-family:var(--disp);font-size:22px;font-weight:800;margin-top:4px}
+.heat-cell .hs{font-size:10.5px;color:var(--ink2);margin-top:2px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:11px;color:var(--ink3)}
+.skill-row{display:grid;grid-template-columns:minmax(120px,185px) 1fr 48px 66px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--edge);font-size:13px;font-weight:550}
 .skill-row:last-child{border:0}
-.skill-row .pct{font-weight:700;text-align:right;font-variant-numeric:tabular-nums;font-family:var(--disp)}
+.skill-row .pct{font-weight:800;text-align:right;font-variant-numeric:tabular-nums;font-family:var(--disp)}
 .dna-bar{display:grid;grid-template-columns:150px 1fr 38px;gap:12px;align-items:center;font-size:13px;padding:7px 0}
 .calib-row{display:grid;grid-template-columns:110px 1fr 44px auto;gap:12px;align-items:center;font-size:13px;padding:8px 0}
 svg text{font-family:var(--sans)}
 .coach-item{
   display:flex;gap:14px;padding:15px;border-radius:18px;background:var(--glass);
-  border:1px solid var(--gb);align-items:flex-start;box-shadow:var(--shadow);backdrop-filter:blur(10px);
-  transition:transform .22s var(--spring),border-color .2s;
+  border:1px solid var(--gb);align-items:flex-start;box-shadow:var(--shadow);
+  transition:transform .2s var(--spring);
 }
-.coach-item:hover{transform:translateX(4px);border-color:var(--gb2)}
+.coach-item:hover{transform:translateX(4px)}
 .coach-rank{
-  width:33px;height:33px;border-radius:11px;background:linear-gradient(140deg,var(--coral),var(--coral2));
-  color:#fff;display:grid;place-items:center;font-family:var(--disp);font-weight:700;font-size:14px;flex-shrink:0;
-  box-shadow:var(--glow-coral);
+  width:33px;height:33px;border-radius:11px;background:linear-gradient(135deg,var(--red),var(--red2));
+  color:#fff;display:grid;place-items:center;font-family:var(--disp);font-weight:800;font-size:14px;flex-shrink:0;
+  box-shadow:var(--glow-red);
 }
-.coach-item .t{font-family:var(--disp);font-weight:650;font-size:16px}
-.coach-item .d{font-size:12.5px;color:var(--tx2);margin-top:2px}
+.coach-item .t{font-family:var(--disp);font-weight:700;font-size:16px}
+.coach-item .d{font-size:12.5px;color:var(--ink2);margin-top:2px}
 .coach-item .gain{margin-left:auto;text-align:right;flex-shrink:0}
 .coach-item .gain b{color:var(--ok);font-family:var(--disp);font-size:18px}
-.coach-item .gain span{display:block;font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.8px}
+.coach-item .gain span{display:block;font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px}
 
 /* ---------------- grammar book ---------------- */
-.gb-chapter{border:1px solid var(--gb);border-radius:20px;background:var(--glass);margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+.gb-chapter{border:1px solid var(--gb);border-radius:20px;background:var(--glass);margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
 .gb-head{display:flex;align-items:center;gap:13px;padding:17px 19px;cursor:pointer;transition:background .2s}
 .gb-head:hover{background:var(--glass2)}
-.gb-head .num{width:37px;height:37px;border-radius:12px;background:linear-gradient(140deg,var(--mint),var(--aqua));color:var(--deep3);display:grid;place-items:center;font-family:var(--disp);font-weight:700;font-size:15px;flex-shrink:0}
-.gb-head .t{font-family:var(--disp);font-weight:650;font-size:17.5px}
-.gb-head .m{font-size:12px;color:var(--tx2)}
-.gb-arrow{color:var(--tx3);transition:transform .3s var(--spring)}
+.gb-head .num{width:37px;height:37px;border-radius:12px;background:var(--ink);color:var(--cream);display:grid;place-items:center;font-family:var(--disp);font-weight:800;font-size:15px;flex-shrink:0}
+.gb-head .t{font-family:var(--disp);font-weight:700;font-size:17.5px}
+.gb-head .m{font-size:12px;color:var(--ink2)}
+.gb-arrow{color:var(--ink3);transition:transform .3s var(--spring)}
 .gb-chapter.open .gb-arrow{transform:rotate(180deg)}
 .gb-body{padding:0 19px 19px;display:none}
 .gb-chapter.open .gb-body{display:block}
-.gb-rule{font-size:14px;line-height:1.75;color:var(--tx2);background:rgba(2,26,30,.45);border:1px solid var(--gb);border-radius:15px;padding:15px 17px;font-family:var(--disp)}
-.gb-rule b{color:var(--aqua)}
-.gb-mistake{padding:11px 15px;border-radius:13px;background:rgba(2,26,30,.4);border:1px solid var(--gb);margin-top:9px;font-size:13px;line-height:1.65}
-.gb-mistake .yours{color:var(--coral);text-decoration:line-through}
-.gb-mistake .right{color:var(--ok);font-weight:700}
+.gb-rule{font-size:14px;line-height:1.75;color:var(--ink2);background:#fff;border:1px solid var(--edge);border-radius:15px;padding:15px 17px;font-weight:500}
+.gb-rule b{color:var(--red2)}
+.gb-mistake{padding:11px 15px;border-radius:13px;background:var(--glass3);border:1px solid var(--edge);margin-top:9px;font-size:13px;line-height:1.65}
+.gb-mistake .yours{color:var(--red2);text-decoration:line-through}
+.gb-mistake .right{color:var(--ok);font-weight:800}
 
 /* ---------------- onboarding ---------------- */
 .onb{max-width:560px;margin:4vh auto 0;text-align:center}
-.onb h1{font-size:clamp(34px,5.4vw,52px);line-height:1.06}
-.onb-tag{font-size:15px;color:var(--tx2);line-height:1.75;margin:16px auto 0;max-width:440px;font-family:var(--disp)}
+.onb-tag{font-size:15px;color:var(--ink2);line-height:1.75;margin:18px auto 0;max-width:450px;font-weight:500}
 .onb .field{text-align:left;margin-top:18px}
-.onb label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;color:var(--tx3);display:block;margin-bottom:7px}
+.onb label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;color:var(--ink3);display:block;margin-bottom:7px}
 .onb input{
-  width:100%;padding:14px 17px;border-radius:15px;background:rgba(2,20,24,.5);
-  border:1.5px solid var(--gb2);outline:none;font-size:16px;font-family:var(--disp);color:var(--tx);
+  width:100%;padding:14px 17px;border-radius:14px;background:#fff;
+  border:2px solid var(--edge2);outline:none;font-size:16px;font-weight:600;color:var(--ink);
 }
-.onb input:focus{border-color:var(--aqua);box-shadow:0 0 0 4px rgba(95,211,192,.13)}
-.diag-intro{font-size:13.5px;color:var(--tx2);line-height:1.7}
+.onb input:focus{border-color:var(--red);box-shadow:0 0 0 4px rgba(224,73,47,.12)}
+.diag-intro{font-size:13.5px;color:var(--ink2);line-height:1.7}
 
 /* ---------------- badges ---------------- */
 .badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:13px}
-.badge{padding:18px 12px;border-radius:18px;border:1px solid var(--gb);background:var(--glass);text-align:center;box-shadow:var(--shadow);transition:transform .25s var(--spring)}
-.badge.earned{border-color:rgba(242,201,76,.45);background:linear-gradient(165deg,var(--goldsoft),var(--glass))}
+.badge{padding:18px 12px;border-radius:18px;border:1px solid var(--gb);background:var(--glass);text-align:center;box-shadow:var(--shadow);transition:transform .22s var(--spring)}
+.badge.earned{border-color:rgba(201,138,45,.5);background:linear-gradient(165deg,var(--ambersoft),var(--glass))}
 .badge.earned:hover{transform:translateY(-4px) rotate(-1deg)}
 .badge .bi{font-size:28px;filter:grayscale(1);opacity:.3}
 .badge.earned .bi{filter:none;opacity:1}
-.badge .bt{font-family:var(--disp);font-weight:650;font-size:13.5px;margin-top:8px}
-.badge .bd{font-size:10.5px;color:var(--tx3);margin-top:3px;line-height:1.45}
+.badge .bt{font-family:var(--disp);font-weight:700;font-size:13.5px;margin-top:8px}
+.badge .bd{font-size:10.5px;color:var(--ink3);margin-top:3px;line-height:1.45}
 
 /* ---------------- toast / modal ---------------- */
 #toasts{position:fixed;bottom:26px;right:26px;z-index:99;display:flex;flex-direction:column;gap:10px;max-width:340px}
 .toast{
-  background:rgba(2,26,30,.92);backdrop-filter:blur(18px);border:1px solid var(--gb2);
-  border-radius:16px;padding:13px 17px;font-size:13.5px;font-weight:600;color:var(--tx);
-  box-shadow:var(--shadow);animation:slidein .5s var(--spring);
+  background:rgba(255,251,241,.95);backdrop-filter:blur(18px);border:1px solid var(--edge2);
+  border-radius:16px;padding:13px 17px;font-size:13.5px;font-weight:600;color:var(--ink);
+  box-shadow:var(--shadow-lift);animation:slidein .45s var(--spring);
   display:flex;gap:10px;align-items:flex-start;line-height:1.5;
 }
-.toast.gold{border-color:rgba(242,201,76,.55);box-shadow:var(--shadow),0 0 30px -8px rgba(242,201,76,.4)}
+.toast.gold{border-color:rgba(201,138,45,.6)}
 @keyframes slidein{from{opacity:0;transform:translateX(50px) scale(.95)}to{opacity:1;transform:none}}
-.modal-back{position:fixed;inset:0;background:rgba(1,12,14,.6);backdrop-filter:blur(12px);z-index:80;display:grid;place-items:center;padding:18px;animation:fade .25s}
+.modal-back{position:fixed;inset:0;background:rgba(27,28,33,.35);backdrop-filter:blur(10px);z-index:80;display:grid;place-items:center;padding:18px;animation:fade .22s}
 @keyframes fade{from{opacity:0}to{opacity:1}}
-.modal{background:linear-gradient(170deg,#06434C,var(--deep2));border:1px solid var(--gb2);border-radius:24px;padding:28px;max-width:540px;width:100%;max-height:86vh;overflow:auto;box-shadow:var(--shadow);animation:pop .4s var(--spring)}
-.how-sec{font-size:13.5px;line-height:1.7;color:var(--tx2);padding:11px 0;border-bottom:1px solid var(--gb)}
+.modal{background:var(--cream);border:1px solid var(--gb);border-radius:24px;padding:28px;max-width:540px;width:100%;max-height:86vh;overflow:auto;box-shadow:var(--shadow-lift);animation:pop .35s var(--spring)}
+.how-sec{font-size:13.5px;line-height:1.7;color:var(--ink2);padding:11px 0;border-bottom:1px solid var(--edge)}
 .how-sec:last-of-type{border-bottom:0}
-.how-sec b{color:var(--tx);font-family:var(--disp);font-size:14.5px}
-
-/* ---------------- mascot & logo ---------------- */
-.mascot{filter:drop-shadow(0 10px 22px rgba(1,12,14,.5))}
-.session-done .mascot,.onb .mascot,.lite-home .mascot{animation:squish 3s ease-in-out infinite;transform-origin:bottom center}
-.logo-mark{filter:drop-shadow(0 4px 14px rgba(95,211,192,.35))}
+.how-sec b{color:var(--ink);font-family:var(--disp);font-size:14.5px}
 
 /* ---------------- lite (phone) ---------------- */
 .lite-home{max-width:430px;margin:3vh auto 0}
 .lite-big{font-size:17px;padding:19px;border-radius:20px;flex-direction:column;gap:3px}
-.lite-big small{font-size:11px;font-weight:500;opacity:.85;letter-spacing:.3px}
+.lite-big small{font-size:11px;font-weight:500;opacity:.85}
 .lite-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .lite-grid .btn{padding:14px}
 
-/* ---------------- word forge ---------------- */
-.forge-stage{min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
-.forge-word{
-  font-family:var(--disp);font-size:clamp(30px,6vw,44px);font-weight:650;letter-spacing:.04em;color:var(--mint);
-  text-shadow:0 4px 30px rgba(95,211,192,.4);
+/* ---------------- spelling gym ---------------- */
+.gym-stage{min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:8px 0}
+.gym-def{font-size:clamp(15px,2.2vw,18px);font-weight:600;line-height:1.65;color:var(--ink);max-width:520px}
+.gym-def .pos{font-size:10.5px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:var(--red);display:block;margin-bottom:6px}
+.gym-flash{
+  font-family:var(--disp);font-size:clamp(32px,6vw,46px);font-weight:800;letter-spacing:.05em;color:var(--ink);
 }
-.forge-ring{position:relative;width:46px;height:46px;margin-top:4px}
-.forge-cue{font-family:var(--disp);font-size:clamp(16px,2.4vw,20px);line-height:1.6;color:var(--tx);max-width:480px}
-.tile-row{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
-.tile{
-  width:42px;height:46px;border-radius:11px;display:grid;place-items:center;
-  font-family:var(--disp);font-weight:700;font-size:20px;color:var(--deep3);
-  background:linear-gradient(160deg,#fff,var(--mint));box-shadow:0 4px 14px -4px rgba(1,12,14,.6),inset 0 1px 0 #fff;
-  animation:pop .35s var(--spring) backwards;
+.letterboxes{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.lbox{
+  min-width:30px;height:42px;padding:0 4px;border-radius:9px;display:grid;place-items:center;
+  font-family:var(--disp);font-weight:800;font-size:21px;color:var(--ink);
+  background:#fff;border:1.5px solid var(--edge2);box-shadow:0 2px 6px -2px rgba(27,28,33,.18);
+  animation:pop .3s var(--spring) backwards;
 }
-.tile:nth-child(2){animation-delay:.04s}.tile:nth-child(3){animation-delay:.08s}
-.tile:nth-child(4){animation-delay:.12s}.tile:nth-child(5){animation-delay:.16s}
-.tile:nth-child(6){animation-delay:.2s}.tile:nth-child(7){animation-delay:.24s}
-.tile:nth-child(8){animation-delay:.28s}.tile:nth-child(n+9){animation-delay:.32s}
-.forge-streak{position:absolute;top:14px;right:18px}
+.lbox.hole{background:var(--redsoft);border-color:var(--redline);color:transparent}
+.lbox.hole::after{content:"·";color:var(--red);font-size:24px}
+.lbox:nth-child(2){animation-delay:.03s}.lbox:nth-child(3){animation-delay:.06s}
+.lbox:nth-child(4){animation-delay:.09s}.lbox:nth-child(5){animation-delay:.12s}
+.lbox:nth-child(6){animation-delay:.15s}.lbox:nth-child(7){animation-delay:.18s}
+.lbox:nth-child(8){animation-delay:.21s}.lbox:nth-child(n+9){animation-delay:.24s}
+.gym-count{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:1px}
 
-select{padding:10px 13px;border-radius:12px;background:rgba(2,20,24,.6);border:1.5px solid var(--gb);outline:none;color:var(--tx);font-size:13.5px}
-select:focus{border-color:var(--aqua)}
+select{padding:10px 13px;border-radius:12px;background:#fff;border:1.5px solid var(--edge);outline:none;color:var(--ink);font-size:13.5px}
+select:focus{border-color:var(--red)}
 .lab{display:block;margin-bottom:5px;font-weight:800;letter-spacing:1.4px}
 
 /* confetti */
@@ -564,36 +533,50 @@ select:focus{border-color:var(--aqua)}
   .sp8,.sp7,.sp6,.sp5,.sp4,.sp3{grid-column:span 12}
 }
 @media (max-width:860px){
-  #topbar{height:54px;gap:10px}
+  #topbar{height:56px;gap:10px}
   .tb-level{display:none}
-  #app{flex-direction:column;padding-top:54px}
+  .wm .wm-sub{display:none}
+  .wm .wm-name{font-size:19px}
+  #app{flex-direction:column;padding-top:56px}
   .sidebar{
     width:100%;height:auto;position:fixed;bottom:0;top:auto;z-index:60;flex-direction:row;
-    justify-content:space-around;padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px;
+    justify-content:space-around;padding:8px 8px calc(8px + env(safe-area-inset-bottom));gap:2px;
+    background:rgba(255,251,241,.94);backdrop-filter:blur(16px);border-top:1px solid var(--edge);
   }
-  .sidebar::before{inset:4px 8px;border-radius:20px;background:rgba(2,20,24,.92)}
-  .nav-btn{width:auto;min-width:52px;padding:7px 6px;font-size:8px}
-  .nav-btn .ic{font-size:18px}
+  .nav-btn{flex-direction:column;gap:2px;font-size:8px;letter-spacing:.6px;padding:6px 8px;align-items:center}
+  .nav-btn::before{display:none}
+  .nav-btn .ic{display:block;font-size:18px}
+  .nav-btn.active{color:var(--red2)}
+  .nav-btn:hover{transform:none}
   .main{padding:20px 14px 120px}
   .grade-big{font-size:64px}
   .calib-row{grid-template-columns:90px 1fr 38px auto;gap:8px;font-size:12px}
   .skill-row{grid-template-columns:minmax(90px,130px) 1fr 40px 54px;gap:8px;font-size:12px}
-  .mock-timer{top:62px}
+  .mock-timer{top:64px}
 }
 @media print{
   body{background:#fff;color:#111}
-  body::before,body::after,.blob,#topbar,.sidebar,#toasts,.btn{display:none!important}
+  body::after,.blob,#topbar,.sidebar,#toasts,.btn{display:none!important}
   #app{padding-top:0}
   .card,.gb-chapter{border-color:#ddd;background:#fff;box-shadow:none}
   .gb-body{display:block!important}
-  .gb-rule{color:#333;background:#f4f8f7}
-  .gb-head .m,.gb-mistake,.muted,.tiny{color:#444}
-  .gb-head .t,.h-page{color:#111}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
   .view>*{opacity:1}
 }
+.wm{display:inline-flex;flex-direction:column;align-items:flex-start}
+.wm.big{align-items:center;margin-bottom:6px}
+/* v5.1: vocab lab, focus search, telemetry grid, mock P3 stem chip */
+.vb-basic{font-size:11px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:var(--red);margin-bottom:10px}
+.vb-basic b{font-size:14px;letter-spacing:.2px;text-transform:none;color:var(--red2);background:var(--redsoft);border:1px solid var(--redline);border-radius:8px;padding:2px 10px;margin-left:6px}
+.focus-hit{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:13px;background:var(--glass3);border:1px solid var(--edge);font-size:13.5px;animation:pop .25s var(--spring)}
+.tele-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
+.tele-cell{padding:12px;border-radius:13px;background:var(--glass3);border:1px solid var(--edge);text-align:center}
+.tele-cell .tv{font-family:var(--disp);font-size:20px;font-weight:800}
+.tele-cell .tl{font-size:10px;color:var(--ink3);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-top:3px;line-height:1.4}
+.stem-chip{font-family:var(--mono);font-weight:800;letter-spacing:1.2px;font-size:11px;color:var(--amber);background:var(--ambersoft);border:1px solid rgba(201,138,45,.4);border-radius:7px;padding:2px 7px}
+.passage input.p3in{width:128px}
 
 </style>
 </head>
@@ -799,51 +782,52 @@ FCE.makeHook = function(word, context){
 };
 
 /* ---------- Spelling intelligence ----------
-   FCE danger words with the misspellings students actually produce, plus a cue. */
+   FCE danger words. def = the in-game clue (NEVER contains the word or its stem).
+   cue = the memory tip, shown only AFTER answering. bad = misspellings students produce. */
 FCE.SPELL = [
- {w:'pronunciation', bad:['pronounciation','pronuntiation'], cue:'pronounce drops its O: pron-UN-ciation'},
- {w:'explanation', bad:['explaination','explenation'], cue:'explain loses its I: expl-A-nation'},
- {w:'argument', bad:['arguement','argumment'], cue:'argue drops the E before -ment'},
- {w:'maintenance', bad:['maintainance','maintenence'], cue:'main-TEN-ance — the "tain" becomes "ten"'},
- {w:'truly', bad:['truely'], cue:'true loses its E: tru-ly'},
- {w:'repetition', bad:['repeatition','repitition'], cue:'rep-E-tition — no "eat" inside'},
- {w:'curiosity', bad:['curiousity'], cue:'curious drops the U of -ous'},
- {w:'anxiety', bad:['anxiousity','anxity'], cue:'anxious changes shape completely: anx-I-ety'},
- {w:'height', bad:['hight','heigth'], cue:'high + T, but spelled h-e-i-g-h-t'},
- {w:'weight', bad:['weigth','wieght'], cue:'weigh + T — keep the GH before the T'},
- {w:'belief', bad:['beleif','believe'], cue:'the noun has no V-E: belie-F (and I before E)'},
- {w:'choice', bad:['choise','choize'], cue:'choose → choice with -ICE like ice'},
- {w:'strength', bad:['strenght','strenth'], cue:'strong → streng-TH: the TH comes last'},
- {w:'length', bad:['lenght','lenth'], cue:'long → leng-TH, same family as strength'},
- {w:'depth', bad:['deepth','dept'], cue:'deep shrinks: d-e-p-t-h'},
- {w:'knowledge', bad:['knowlege','nowledge'], cue:'know + LEDGE — a ledge of knowing'},
- {w:'environment', bad:['enviroment','enviornment'], cue:'environ-MENT: keep the N before -ment'},
- {w:'government', bad:['goverment'], cue:'govern + ment: the N stays'},
- {w:'beginning', bad:['begining'], cue:'begin doubles the N: begi-NN-ing'},
- {w:'accommodation', bad:['accomodation','acommodation'], cue:'two C, two M — room for doubles'},
- {w:'achievement', bad:['acheivement','achivement'], cue:'I before E: ach-IE-vement'},
- {w:'beautiful', bad:['beutiful','beautifull'], cue:'b-e-a-u + one final L'},
- {w:'business', bad:['buisness','bussiness'], cue:'busy → busi-ness'},
- {w:'comfortable', bad:['confortable','comfortble'], cue:'coMfort — M, not N'},
- {w:'convenient', bad:['convinient','conveniant'], cue:'conven-IENT ends -ient'},
- {w:'definitely', bad:['definately','definetly'], cue:'fin-ITE inside: def-INITE-ly'},
- {w:'embarrassment', bad:['embarassment','embarrasment'], cue:'double R AND double S'},
- {w:'existence', bad:['existance'], cue:'-ENCE, not -ance: exist-ence'},
- {w:'experience', bad:['experiance','expirience'], cue:'exper-IENCE ends -ience'},
- {w:'foreign', bad:['foriegn','forein'], cue:'rule-breaker: E before I — for-EI-gn'},
- {w:'forty', bad:['fourty'], cue:'four loses its U at forty'},
- {w:'grateful', bad:['greatful'], cue:'from gratitude, not great: GRATE-ful'},
- {w:'immediately', bad:['inmediately','immediatly'], cue:'IMM- start, -ELY end'},
- {w:'necessary', bad:['neccessary','necesary'], cue:'one C, double S — a shirt has one Collar, two Sleeves'},
- {w:'occasion', bad:['ocassion','occassion'], cue:'double C, single S'},
- {w:'opportunity', bad:['oportunity','opportunaty'], cue:'double P: o-PP-ortunity'},
- {w:'recommend', bad:['reccomend','recomend'], cue:'one C, double M: re-co-MM-end'},
- {w:'restaurant', bad:['restaurante','restorant'], cue:'rest-AU-rant — French middle'},
- {w:'rhythm', bad:['rythm','rithym'], cue:'Rhythm Helps Your Two Hips Move'},
- {w:'separate', bad:['seperate'], cue:'there is A RAT in sep-A-RAT-e'},
- {w:'successful', bad:['succesful','sucessful'], cue:'double C, double S, one L'},
- {w:'until', bad:['untill'], cue:'one L (but "till" has two!)'},
- {w:'writing', bad:['writting'], cue:'one T: writing (written has two)'},
+ {w:'pronunciation', bad:['pronounciation','pronuntiation'], def:'NOUN · the way a word sounds when you say it. “Her ____ of English is almost perfect.”', cue:'the verb has “nounce”, the noun drops the O: pron-UN-ciation'},
+ {w:'explanation', bad:['explaination','explenation'], def:'NOUN · a statement that makes something clear. “The teacher gave a clear ____ of the rule.”', cue:'the verb’s AI disappears: expl-A-nation'},
+ {w:'argument', bad:['arguement','argumment'], def:'NOUN · an angry discussion; a reason given for an opinion. “They had a heated ____ about money.”', cue:'the E of “argue” drops before -ment'},
+ {w:'maintenance', bad:['maintainance','maintenence'], def:'NOUN · the work of keeping something in good condition. “The lift is closed for ____.”', cue:'main-TEN-ance — the “tain” becomes “ten”'},
+ {w:'truly', bad:['truely'], def:'ADVERB · really, sincerely. “I am ____ sorry for the delay.”', cue:'“true” loses its E before -ly'},
+ {w:'repetition', bad:['repeatition','repitition'], def:'NOUN · doing or saying the same thing again. “Learning needs constant ____.”', cue:'no “eat” inside: rep-E-tition'},
+ {w:'curiosity', bad:['curiousity'], def:'NOUN · the desire to know or discover things. “Pure ____ made her open the box.”', cue:'the U of -ous drops: curi-O-sity'},
+ {w:'anxiety', bad:['anxiousity','anxity'], def:'NOUN · a feeling of worry or nervousness. “Exams give many students ____.”', cue:'the adjective’s -ous vanishes: anx-I-ety'},
+ {w:'height', bad:['hight','heigth'], def:'NOUN · how tall something is. “The ____ of the tower is 90 metres.”', cue:'spelled like “eight” with an H: h-EIGHT'},
+ {w:'weight', bad:['weigth','wieght'], def:'NOUN · how heavy something is. “The bridge supports a ____ of 40 tonnes.”', cue:'keep the GH before the T, like “eight”'},
+ {w:'belief', bad:['beleif','believe'], def:'NOUN · a feeling that something is true. “It is my firm ____ that practice beats talent.”', cue:'I before E, and the noun has no V: belie-F'},
+ {w:'choice', bad:['choise','choize'], def:'NOUN · the act of picking between options. “Going freelance was a brave ____.”', cue:'-ICE ending, like “ice”'},
+ {w:'strength', bad:['strenght','strenth'], def:'NOUN · physical or mental power. “Exercise builds ____ and confidence.”', cue:'the GTH comes last: stren-GTH'},
+ {w:'length', bad:['lenght','lenth'], def:'NOUN · how long something is. “The ____ of the film is two hours.”', cue:'same family as strength: len-GTH'},
+ {w:'depth', bad:['deepth','dept'], def:'NOUN · how deep something is. “Divers measured the ____ of the lake.”', cue:'the long EE shrinks: d-e-p-t-h'},
+ {w:'knowledge', bad:['knowlege','nowledge'], def:'NOUN · the information and understanding you have. “She has a deep ____ of history.”', cue:'a silent K, then a LEDGE: know-LEDGE'},
+ {w:'environment', bad:['enviroment','enviornment'], def:'NOUN · the natural world around us. “Plastic waste damages the ____.”', cue:'the quiet N survives: enviro-N-ment'},
+ {w:'government', bad:['goverment'], def:'NOUN · the group of people who run a country. “The ____ announced new taxes.”', cue:'govern + ment: the N of “govern” stays'},
+ {w:'beginning', bad:['begining'], def:'NOUN · the first part of something. “The ____ of the story is slow.”', cue:'the N doubles: begi-NN-ing'},
+ {w:'accommodation', bad:['accomodation','acommodation'], def:'NOUN · a place to stay or live. “The job offers free ____.”', cue:'generous house: two C, two M'},
+ {w:'achievement', bad:['acheivement','achivement'], def:'NOUN · something done successfully after effort. “Passing FCE is a real ____.”', cue:'I before E: ach-IE-vement'},
+ {w:'beautiful', bad:['beutiful','beautifull'], def:'ADJECTIVE · very pleasing to look at. “The view from the cliff is ____.”', cue:'b-e-a-u start, ONE final L'},
+ {w:'business', bad:['buisness','bussiness'], def:'NOUN · commercial activity; a company. “She runs a small ____ in town.”', cue:'“busy” changes Y to I: busi-ness'},
+ {w:'comfortable', bad:['confortable','comfortble'], def:'ADJECTIVE · making you feel physically relaxed. “This sofa is incredibly ____.”', cue:'coMfort with M, never N'},
+ {w:'convenient', bad:['convinient','conveniant'], def:'ADJECTIVE · easy to use; causing no difficulty. “The hotel is ____ for the station.”', cue:'-IENT ending: conven-IENT'},
+ {w:'definitely', bad:['definately','definetly'], def:'ADVERB · certainly, without doubt. “I will ____ come to your party.”', cue:'“finite” lives inside: de-FINITE-ly'},
+ {w:'embarrassment', bad:['embarassment','embarrasment'], def:'NOUN · the feeling of being ashamed or shy. “Forgetting her name caused real ____.”', cue:'double R AND double S'},
+ {w:'existence', bad:['existance'], def:'NOUN · the state of being real. “Scientists doubt the creature’s ____.”', cue:'-ENCE, not -ance'},
+ {w:'experience', bad:['experiance','expirience'], def:'NOUN · knowledge from doing things. “The job requires sales ____.”', cue:'-IENCE ending: exper-IENCE'},
+ {w:'foreign', bad:['foriegn','forein'], def:'ADJECTIVE · from another country. “She speaks three ____ languages.”', cue:'a rule-breaker: E before I, with a silent G'},
+ {w:'forty', bad:['fourty'], def:'NUMBER · the number after thirty-nine. “The course lasts ____ hours.”', cue:'“four” loses its U here'},
+ {w:'grateful', bad:['greatful'], def:'ADJECTIVE · feeling thankful. “I am deeply ____ for your help.”', cue:'from gratitude, not from “great”: GRATE-ful'},
+ {w:'immediately', bad:['inmediately','immediatly'], def:'ADVERB · at once, without delay. “Call the doctor ____.”', cue:'IMM- at the start, -ELY at the end'},
+ {w:'necessary', bad:['neccessary','necesary'], def:'ADJECTIVE · needed, essential. “Booking is not ____.”', cue:'one Collar, two Sleeves: one C, double S'},
+ {w:'occasion', bad:['ocassion','occassion'], def:'NOUN · a particular time or special event. “The dinner was a formal ____.”', cue:'double C, single S'},
+ {w:'opportunity', bad:['oportunity','opportunaty'], def:'NOUN · a chance to do something. “The course is a great ____ to improve.”', cue:'double P at the door: o-PP-ortunity'},
+ {w:'recommend', bad:['reccomend','recomend'], def:'VERB · to suggest something as good. “Can you ____ a restaurant?”', cue:'one C, double M'},
+ {w:'restaurant', bad:['restaurante','restorant'], def:'NOUN · a place where meals are served. “We booked a table at the new ____.”', cue:'French middle: rest-AU-rant'},
+ {w:'rhythm', bad:['rythm','rithym'], def:'NOUN · a regular repeated pattern of sound. “Drummers must keep the ____.”', cue:'Rhythm Helps Your Two Hips Move'},
+ {w:'separate', bad:['seperate'], def:'VERB/ADJECTIVE · to divide; not joined. “Please ____ the recycling from the rubbish.”', cue:'there is A RAT in sep-A-RAT-e'},
+ {w:'successful', bad:['succesful','sucessful'], def:'ADJECTIVE · achieving what you wanted. “Her third attempt was finally ____.”', cue:'double C, double S, one L'},
+ {w:'until', bad:['untill'], def:'PREPOSITION · up to a time. “Wait here ____ six o’clock.”', cue:'one L (although “till” has two)'},
+ {w:'writing', bad:['writting'], def:'NOUN · the activity of producing text. “Her ____ has improved this term.”', cue:'one T (but “written” has two)'},
 ];
 
 /* Closed-class word lists — lets the engine diagnose WHAT KIND of word the student
@@ -1431,6 +1415,273 @@ FCE.BANK.mcc = FCE.BANK.mcc.concat(M);
 })();
 
 
+/* ===== js/data-bank4.js ===== */
+/* Mastery (FCE) — question bank IV: expansion pack 2 (k81–k95, c108–c122, w79–w93, m81–m95). */
+window.FCE = window.FCE || {};
+FCE.BANK = FCE.BANK || {};
+(function(){
+var K = [
+{id:"k81", s1:"Sara never takes the motorway during rush hour.", key:"AVOIDS", s2:"Sara always ____ the motorway during rush hour.", ans:["avoids taking","avoids using","avoids driving on"], halves:[["avoids"],["taking","using","driving on"]], tags:["ger"], diff:2, exp:"AVOID + -ing.", trap:"'avoids to take' — avoid never accepts a to-infinitive."},
+{id:"k82", s1:"I suddenly thought of the answer during dinner.", key:"OCCURRED", s2:"The answer suddenly ____ during dinner.", ans:["occurred to me"], halves:[["occurred"],["to me"]], tags:["fix","prep"], diff:4, exp:"An idea OCCURS TO somebody.", trap:"The preposition is TO — 'occurred me' or 'occurred in me' both fail."},
+{id:"k83", s1:"“I didn’t touch your laptop,” said Ben.", key:"DENIED", s2:"Ben ____ my laptop.", ans:["denied touching","denied having touched"], halves:[["denied"],["touching","having touched"]], tags:["rep","ger"], diff:3, exp:"DENY + -ing (deny doing / having done).", trap:"'denied to touch' is impossible; deny pairs with -ing."},
+{id:"k84", s1:"“Don’t swim past the buoy,” the lifeguard said to us.", key:"WARNED", s2:"The lifeguard ____ past the buoy.", ans:["warned us not to swim"], halves:[["warned us"],["not to swim"]], tags:["rep"], diff:3, exp:"WARN somebody NOT TO do.", trap:"Order matters: warned us not to swim — 'warned to us' or 'warned us to not swim' lose marks."},
+{id:"k85", s1:"My journey to work lasts about an hour.", key:"TAKES", s2:"It ____ an hour to get to work.", ans:["takes me about","takes about","takes me around"], halves:[["takes"],["about","around"]], tags:["fix"], diff:2, exp:"IT TAKES (sb) + time + to do.", trap:"Keep the dummy IT construction."},
+{id:"k86", s1:"Tom started learning the cello six months ago.", key:"BEEN", s2:"Tom ____ the cello for six months.", ans:["has been learning"], halves:[["has been"],["learning"]], tags:["aux"], diff:2, exp:"started ago ↔ present perfect continuous + FOR.", trap:"HAS been learning — the continuous shows it’s still happening."},
+{id:"k87", s1:"I regret not booking the flights earlier.", key:"ONLY", s2:"If ____ the flights earlier.", ans:["only i had booked","only i'd booked"], halves:[["only i had","only i'd"],["booked"]], tags:["wish"], diff:3, exp:"IF ONLY + past perfect = strong past regret (same grammar as wish).", trap:"Past regret needs HAD booked, not 'booked' alone."},
+{id:"k88", s1:"Everyone enjoyed the trip, and I enjoyed it too.", key:"DID", s2:"Everyone enjoyed the trip, and so ____ .", ans:["did i"], halves:[["did"],["i"]], tags:["aux"], diff:2, exp:"SO + auxiliary + subject (echo agreement).", trap:"'so I did' reverses the meaning (= admission); SO DID I = me too."},
+{id:"k89", s1:"The printer stopped working, so we dismantled it.", key:"TOOK", s2:"The printer stopped working, so we ____ .", ans:["took it apart"], halves:[["took it"],["apart"]], tags:["pv"], diff:3, exp:"TAKE something APART = dismantle.", trap:"Pronoun goes in the middle: took IT apart, never 'took apart it'."},
+{id:"k90", s1:"Look at those clouds — rain is certain.", key:"GOING", s2:"It ____ — look at those clouds.", ans:["is going to rain","'s going to rain"], halves:[["is going","'s going"],["to rain"]], tags:["aux"], diff:1, exp:"Evidence-based prediction → BE GOING TO.", trap:"'it will rain' fits meaning but doesn’t use the key word naturally."},
+{id:"k91", s1:"It is forbidden to use phones in the laboratory.", key:"MUST", s2:"Phones ____ in the laboratory.", ans:["must not be used","mustn't be used"], halves:[["must not","mustn't"],["be used"]], tags:["pass","modal"], diff:3, exp:"Prohibition in the passive: MUST NOT BE + participle.", trap:"Don’t drop BE: 'must not used' is the classic loss."},
+{id:"k92", s1:"She isn’t old enough to vote yet.", key:"TOO", s2:"She is still ____ .", ans:["too young to vote"], halves:[["too young"],["to vote"]], tags:["comp"], diff:2, exp:"not old enough ↔ TOO + opposite adjective + to-infinitive.", trap:"The adjective flips: young, not old."},
+{id:"k93", s1:"“Are you coming to the party?” Lia asked me.", key:"WHETHER", s2:"Lia asked me ____ to the party.", ans:["whether i was coming","whether i was going"], halves:[["whether i"],["was coming","was going"]], tags:["rep"], diff:3, exp:"Reported yes/no question: WHETHER + backshifted tense, statement order.", trap:"No 'was I coming' — keep statement order after whether."},
+{id:"k94", s1:"Please continue with your work while I’m away.", key:"CARRY", s2:"Please ____ your work while I’m away.", ans:["carry on with"], halves:[["carry on"],["with"]], tags:["pv"], diff:1, exp:"CARRY ON WITH + noun = continue.", trap:"WITH is needed before the noun."},
+{id:"k95", s1:"I find his handwriting impossible to read.", key:"OUT", s2:"I simply cannot make ____ .", ans:["out his handwriting"], halves:[["out"],["his handwriting"]], tags:["pv"], diff:4, exp:"MAKE OUT = manage to read/see/hear.", trap:"make out ≠ make up (invent) ≠ make for (head towards)."},
+];
+var C = [
+{id:"c108", s:"She comes ____ a small village high in the Alps.", ans:["from"], gt:"prep", tags:["prep"], diff:1, exp:"come FROM = origin.", trap:"come OF exists only in old idioms."},
+{id:"c109", s:"I’d rather walk home ____ wait half an hour for the bus.", ans:["than"], gt:"comp", tags:["comp","wish"], diff:2, exp:"would rather X THAN Y.", trap:"'rather...that' or 'rather...to' both fail."},
+{id:"c110", s:"____ of the twins plays the violin; the other prefers football.", ans:["one"], gt:"det", tags:["det","pron"], diff:2, exp:"ONE of the twins … the other.", trap:"'Each of the twins' would clash with 'the other'."},
+{id:"c111", s:"We haven’t seen our cousins ____ ages.", ans:["for","in"], gt:"prep", tags:["prep","aux"], diff:1, exp:"FOR ages (BrE) / IN ages (AmE) = for a long time.", trap:"SINCE ages — since needs a starting point, not a length."},
+{id:"c112", s:"Could you turn the music ____ a little? The baby is asleep.", ans:["down"], gt:"adv", tags:["pv"], diff:1, exp:"turn DOWN = reduce volume.", trap:"turn OFF kills it completely — the sentence asks for 'a little'."},
+{id:"c113", s:"He is severely allergic ____ nuts, so always check the label.", ans:["to"], gt:"prep", tags:["prep"], diff:2, exp:"allergic TO.", trap:"allergic OF/AT — the partner is to."},
+{id:"c114", s:"The coast road was closed ____ to flooding.", ans:["due","owing"], gt:"link", tags:["link","prep"], diff:3, exp:"DUE TO / OWING TO = because of.", trap:"'because to' doesn’t exist; the TO after the gap is the clue."},
+{id:"c115", s:"Dinner will be ready in a couple ____ minutes.", ans:["of"], gt:"prep", tags:["prep","det"], diff:1, exp:"a couple OF + plural.", trap:"Dropping OF is informal American — Cambridge wants it."},
+{id:"c116", s:"It was ____ first time anyone had beaten the champion on clay.", ans:["the"], gt:"art", tags:["art","fix"], diff:2, exp:"THE first time + past perfect.", trap:"Ordinals take THE."},
+{id:"c117", s:"All students must hand ____ their essays by Friday noon.", ans:["in"], gt:"adv", tags:["pv"], diff:2, exp:"hand IN = submit.", trap:"hand OUT = distribute — the direction reverses."},
+{id:"c118", s:"____ you ever visit Seville, the cathedral is unmissable.", ans:["should","if"], gt:"aux", tags:["cond","inv"], diff:4, exp:"SHOULD you ever visit = if you ever visit (formal inversion).", trap:"Both work; the elegant exam answer is SHOULD."},
+{id:"c119", s:"The harder the exam, ____ sweeter the success.", ans:["the"], gt:"comp", tags:["comp","art"], diff:2, exp:"the + comparative, THE + comparative.", trap:"Both halves need THE."},
+{id:"c120", s:"Listen carefully, because this affects each and ____ one of you.", ans:["every"], gt:"det", tags:["det","fix"], diff:3, exp:"each and EVERY one = absolutely everyone (fixed).", trap:"'each and all' isn’t the idiom."},
+{id:"c121", s:"The documentary is well ____ watching, despite its length.", ans:["worth"], gt:"fixphrase", tags:["fix","ger"], diff:3, exp:"well WORTH + -ing.", trap:"'well worthy watching' confuses worth/worthy."},
+{id:"c122", s:"Many people now work ____ home at least one day a week.", ans:["from"], gt:"prep", tags:["prep"], diff:1, exp:"work FROM home.", trap:"work AT home is location; the set phrase for remote work is from."},
+];
+var W = [
+{id:"w79", s:"The ____ of the night train has been delayed by an hour.", stem:"ARRIVE", ans:["arrival"], tags:["wfnoun"], diff:2, exp:"arrive → arrival (-al noun).", trap:"One R, one L: arrival."},
+{id:"w80", s:"Always wear a helmet — for your own ____ .", stem:"SAFE", ans:["safety"], tags:["wfnoun"], diff:1, exp:"safe → safety.", trap:"Not 'safeness'."},
+{id:"w81", s:"The ____ of their welcome took us by surprise.", stem:"WARM", ans:["warmth"], tags:["wfnoun","spell"], diff:2, exp:"warm → warmth.", trap:"Just add -TH: warmth (no E)."},
+{id:"w82", s:"Her parents watched the graduation with enormous ____ .", stem:"PROUD", ans:["pride"], tags:["wfnoun","spell"], diff:3, exp:"proud → pride (vowel change).", trap:"Irregular: not 'proudness' — PRIDE."},
+{id:"w83", s:"Children are taught never to accept lifts from a complete ____ .", stem:"STRANGE", ans:["stranger"], tags:["wfnoun"], diff:2, exp:"strange → stranger (person).", trap:"'a complete strange' misses the person-noun."},
+{id:"w84", s:"After ten years abroad, he finally tasted ____ again at home.", stem:"FREE", ans:["freedom"], tags:["wfnoun"], diff:1, exp:"free → freedom (-dom).", trap:"-DOM family: freedom, wisdom, boredom."},
+{id:"w85", s:"In his ____ , my grandfather cycled everywhere.", stem:"YOUNG", ans:["youth"], tags:["wfnoun","spell"], diff:3, exp:"young → youth.", trap:"Irregular vowel: y-OU-th."},
+{id:"w86", s:"The novel closes with the hero’s quiet ____ .", stem:"DIE", ans:["death"], tags:["wfnoun","spell"], diff:2, exp:"die → death.", trap:"death (noun) / dead (adjective) / died (verb) — three forms."},
+{id:"w87", s:"Her closing argument was extremely ____ .", stem:"PERSUADE", ans:["persuasive"], tags:["wfadj"], diff:3, exp:"persuade → persuasive.", trap:"-SIVE: persuasive, not 'persuadive'."},
+{id:"w88", s:"This role rewards ____ and fresh thinking.", stem:"CREATE", ans:["creativity"], tags:["wfnoun"], diff:2, exp:"create → creativity.", trap:"'creation' is the thing made; the quality is creativity."},
+{id:"w89", s:"There is a world of ____ between hearing and listening.", stem:"DIFFER", ans:["difference"], tags:["wfnoun"], diff:1, exp:"differ → difference.", trap:"-ENCE: difference."},
+{id:"w90", s:"We received over fifty ____ for the summer internship.", stem:"APPLY", ans:["applications"], tags:["wfnoun"], diff:3, exp:"apply → applicationS (plural needed after 'fifty').", trap:"The grammar demands plural — singular loses the mark."},
+{id:"w91", s:"Thank you so much for the ____ to your wedding.", stem:"INVITE", ans:["invitation"], tags:["wfnoun"], diff:1, exp:"invite → invitation.", trap:"'invitement' doesn’t exist."},
+{id:"w92", s:"The museum’s coin ____ is among the finest in Europe.", stem:"COLLECT", ans:["collection"], tags:["wfnoun"], diff:1, exp:"collect → collection.", trap:"Double L? No — one L, double... neither: c-o-l-l-e-c-t-i-o-n keeps the stem’s LL."},
+{id:"w93", s:"Take a deep ____ and begin your answer slowly.", stem:"BREATHE", ans:["breath"], tags:["wfnoun","spell"], diff:3, exp:"breathe (verb) → breath (noun) — the final E disappears.", trap:"breath/breathe: the E changes the word class AND the sound."},
+];
+var M = [
+{id:"m81", s:"The two reports differ ____ several important ways.", opts:["in","on","at","by"], cor:0, tags:["prep"], diff:2, exp:"differ IN ways/respects.", trap:"differ FROM something, but differ IN a way."},
+{id:"m82", s:"Could you ____ me a favour and post this letter?", opts:["do","make","give","hold"], cor:0, tags:["col","fix"], diff:1, exp:"DO somebody a favour.", trap:"make a favour — the eternal make/do trap, reversed."},
+{id:"m83", s:"The squad is ____ up of eleven players and five reserves.", opts:["made","built","formed","set"], cor:0, tags:["pv","col"], diff:2, exp:"be MADE UP OF = consist of.", trap:"'set up' = establish; only MADE pairs with 'up of'."},
+{id:"m84", s:"I’m sorry — I never meant to ____ your feelings.", opts:["hurt","harm","damage","injure"], cor:0, tags:["col"], diff:2, exp:"HURT somebody’s feelings.", trap:"damage/injure are physical; feelings are hurt."},
+{id:"m85", s:"Let’s ____ a short break and continue after lunch.", opts:["take","make","do","put"], cor:0, tags:["col"], diff:1, exp:"TAKE a break.", trap:"make a break = escape (idiom) — different meaning."},
+{id:"m86", s:"The price of fuel has ____ sharply since January.", opts:["risen","raised","arisen","lifted"], cor:0, tags:["col"], diff:3, exp:"RISE (rose, risen) is intransitive — prices rise.", trap:"RAISE needs an object: someone raises prices."},
+{id:"m87", s:"It later ____ out that the rumour was completely false.", opts:["turned","ended","came","found"], cor:0, tags:["pv"], diff:2, exp:"it TURNED OUT that… = it was discovered.", trap:"came out = was published/revealed, but 'it came out that' is weaker exam English here."},
+{id:"m88", s:"We are ____ forward to hearing from you.", opts:["looking","waiting","hoping","planning"], cor:0, tags:["pv","ger"], diff:1, exp:"LOOK forward to + -ing.", trap:"wait/hope never take 'forward'."},
+{id:"m89", s:"He couldn’t ____ the temptation to check his phone.", opts:["resist","refuse","reject","avoid"], cor:0, tags:["col"], diff:3, exp:"RESIST temptation — fixed partnership.", trap:"refuse an offer, reject a proposal, avoid a person — temptation is resisted."},
+{id:"m90", s:"____ my opinion, the ending was far too sudden.", opts:["In","On","From","By"], cor:0, tags:["depprep"], diff:1, exp:"IN my opinion.", trap:"'On my opinion' / 'According to my opinion' are the classic misses."},
+{id:"m91", s:"The manager ____ us through the new procedure step by step.", opts:["talked","spoke","told","explained"], cor:0, tags:["pv","col"], diff:4, exp:"TALK somebody THROUGH something = explain step by step.", trap:"explain takes 'to us', tell takes object+noun — only talk works with 'through'."},
+{id:"m92", s:"Honestly, I’m ____ of doing the same thing every single day.", opts:["tired","angry","annoyed","upset"], cor:0, tags:["prep","col"], diff:2, exp:"TIRED OF + -ing = bored with.", trap:"angry/annoyed take AT/WITH/ABOUT, never OF + -ing."},
+{id:"m93", s:"The storm caused serious ____ to the coastal road.", opts:["damage","hurt","injury","break"], cor:0, tags:["col"], diff:2, exp:"cause DAMAGE TO things (injury is for people).", trap:"injury to a road is impossible — roads aren’t alive."},
+{id:"m94", s:"Please remain ____ until the seatbelt sign is switched off.", opts:["seated","stood","laid","risen"], cor:0, tags:["col","pass"], diff:3, exp:"remain SEATED — formal announcement language.", trap:"'remain sat' is regional/informal; the exam form is seated."},
+{id:"m95", s:"She works weekends to ____ her studies.", opts:["support","earn","win","gain"], cor:0, tags:["col"], diff:3, exp:"SUPPORT your studies/family = pay for.", trap:"earn money, win prizes, gain experience — studies are supported."},
+];
+FCE.BANK.kwt = FCE.BANK.kwt.concat(K);
+FCE.BANK.cloze = FCE.BANK.cloze.concat(C);
+FCE.BANK.wf = FCE.BANK.wf.concat(W);
+FCE.BANK.mcc = FCE.BANK.mcc.concat(M);
+})();
+
+
+/* ===== js/data-bank5.js ===== */
+/* Mastery (FCE) — question bank V: hard pack (k96–k110, c123–c137, w94–w108, m96–m110)
+   + 3 extra mock passages. Focus: structures students statistically fail. */
+window.FCE = window.FCE || {};
+FCE.BANK = FCE.BANK || {};
+(function(){
+var K = [
+{id:"k96", s1:"They say the castle is over a thousand years old.", key:"SAID", s2:"The castle is ____ over a thousand years old.", ans:["said to be"], halves:[["said"],["to be"]], tags:["pass","rep"], diff:5, exp:"Impersonal passive: X is SAID TO BE…", trap:"'is said that' needs IT as subject — with 'the castle', use said to be."},
+{id:"k97", s1:"It was wrong of you to read my diary.", key:"SHOULD", s2:"You ____ my diary.", ans:["should not have read","shouldn't have read"], halves:[["should not have","shouldn't have"],["read"]], tags:["modal"], diff:4, exp:"Past criticism: SHOULD NOT HAVE + participle.", trap:"'shouldn't read' criticises the future, not the past."},
+{id:"k98", s1:"The thief got away although the alarm went off.", key:"SPITE", s2:"The thief got away in ____ going off.", ans:["spite of the alarm","spite of the alarm's"], halves:[["spite of"],["the alarm"]], tags:["link","ger"], diff:5, exp:"in SPITE OF + noun + -ing.", trap:"The -ing after the gap forces a noun phrase, not a clause."},
+{id:"k99", s1:"I only recognised her when she took off her glasses.", key:"UNTIL", s2:"It was not ____ off her glasses that I recognised her.", ans:["until she took"], halves:[["until"],["she took"]], tags:["inv","link"], diff:5, exp:"Cleft: It was not UNTIL … THAT …", trap:"Keep normal order inside the cleft: until she took."},
+{id:"k100", s1:"“Let’s split the bill,” said Marco.", key:"SUGGESTED", s2:"Marco ____ the bill.", ans:["suggested splitting","suggested that they split","suggested they split"], halves:[["suggested"],["splitting","they split"]], tags:["rep","ger"], diff:3, exp:"suggest + -ing / that-clause.", trap:"Never 'suggested to split'."},
+{id:"k101", s1:"Maybe Ana didn’t get my message.", key:"MIGHT", s2:"Ana ____ my message.", ans:["might not have got","might not have received","mightn't have got"], halves:[["might not have","mightn't have"],["got","received"]], tags:["modal"], diff:4, exp:"Past possibility: MIGHT NOT HAVE + participle.", trap:"'might not get' moves it to the future."},
+{id:"k102", s1:"Tina finds noisy offices difficult to work in.", key:"IT", s2:"Tina finds ____ work in noisy offices.", ans:["it difficult to","it hard to"], halves:[["it difficult","it hard"],["to"]], tags:["pron","fix"], diff:4, exp:"find IT + adjective + to-infinitive.", trap:"The dummy IT cannot be skipped."},
+{id:"k103", s1:"Booking early is advisable because seats sell out.", key:"BETTER", s2:"You had ____ because seats sell out.", ans:["better book early"], halves:[["better"],["book early"]], tags:["modal"], diff:3, exp:"HAD better + bare infinitive.", trap:"No TO after had better."},
+{id:"k104", s1:"The two paintings are practically identical.", key:"DIFFERENCE", s2:"There is hardly ____ the two paintings.", ans:["any difference between"], halves:[["any difference"],["between"]], tags:["det","col"], diff:4, exp:"hardly ANY difference BETWEEN.", trap:"BETWEEN two things, AMONG more."},
+{id:"k105", s1:"Everyone must obey the safety rules, with no exceptions.", key:"EXCEPTION", s2:"Everyone must obey the safety rules ____ .", ans:["without exception","without any exception"], halves:[["without"],["exception"]], tags:["fix"], diff:3, exp:"WITHOUT EXCEPTION = no exceptions allowed.", trap:"Singular, no article: without exception."},
+{id:"k106", s1:"Hard work was the reason for her promotion.", key:"RESULT", s2:"She was promoted as ____ her hard work.", ans:["a result of"], halves:[["a result"],["of"]], tags:["depprep"], diff:2, exp:"as A RESULT OF + noun.", trap:"All three little words count: a + result + of."},
+{id:"k107", s1:"I started writing this report two hours ago and I haven’t finished.", key:"BEEN", s2:"I ____ this report for two hours.", ans:["have been writing"], halves:[["have been"],["writing"]], tags:["aux"], diff:3, exp:"Unfinished action: present perfect continuous.", trap:"'have written' suggests it's finished — contradicts the sentence."},
+{id:"k108", s1:"“Why didn’t you call me, Leo?” asked Mia.", key:"WHY", s2:"Mia asked Leo ____ called her.", ans:["why he had not","why he hadn't"], halves:[["why he"],["had not","hadn't"]], tags:["rep"], diff:4, exp:"Reported question + backshift to past perfect negative.", trap:"Statement order and HAD NOT — two traps in one."},
+{id:"k109", s1:"If you hadn’t helped me, I wouldn’t have passed.", key:"FOR", s2:"Had it not been ____ , I wouldn’t have passed.", ans:["for your help"], halves:[["for"],["your help"]], tags:["cond","inv"], diff:5, exp:"Inverted third conditional idiom: Had it not been FOR + noun.", trap:"The most advanced conditional Cambridge tests — learn it whole."},
+{id:"k110", s1:"This is the most boring film I have ever seen.", key:"NEVER", s2:"I have ____ boring film.", ans:["never seen such a","never watched such a"], halves:[["never seen","never watched"],["such a"]], tags:["det","comp"], diff:4, exp:"superlative ↔ NEVER + such a + adjective + noun.", trap:"SUCH A — both words needed."},
+];
+var C = [
+{id:"c123", s:"____ having apologised twice, he still felt guilty.", ans:["despite"], gt:"link", tags:["link","ger"], diff:4, exp:"DESPITE + having + participle.", trap:"Capital position + -ing → despite, not although."},
+{id:"c124", s:"Seldom ____ such a young player won the tournament.", ans:["has"], gt:"aux", tags:["inv","aux"], diff:5, exp:"Negative adverb start → inversion: Seldom HAS X won.", trap:"'Seldom a young player has' misses the inversion."},
+{id:"c125", s:"The instructions were difficult to make sense ____ .", ans:["of"], gt:"prep", tags:["fix","prep"], diff:4, exp:"make sense OF something — the preposition strands at the end.", trap:"Easy to miss the stranded OF entirely."},
+{id:"c126", s:"____ it not been for the map, we would still be lost.", ans:["had"], gt:"aux", tags:["cond","inv"], diff:5, exp:"HAD it not been for = without (inverted conditional).", trap:"The H-word is the whole grammar here."},
+{id:"c127", s:"You can borrow the car, ____ condition that you refuel it.", ans:["on"], gt:"prep", tags:["depprep","cond"], diff:3, exp:"ON condition that = only if.", trap:"IN condition is the near-miss."},
+{id:"c128", s:"The meeting dragged ____ for nearly three hours.", ans:["on"], gt:"adv", tags:["pv"], diff:2, exp:"drag ON = continue tediously.", trap:"drag OUT needs an object."},
+{id:"c129", s:"Little ____ she know what was waiting at home.", ans:["did"], gt:"aux", tags:["inv","aux"], diff:5, exp:"LITTLE did she know — fixed inverted opener.", trap:"Story-telling inversion; literal 'she knew little' breaks it."},
+{id:"c130", s:"We’d better leave now, ____ we’ll miss the last train.", ans:["otherwise","or"], gt:"link", tags:["link","cond"], diff:2, exp:"OTHERWISE = if not.", trap:"'unless' can't sit between two full clauses like this."},
+{id:"c131", s:"He’s not so much shy ____ extremely careful with strangers.", ans:["as"], gt:"comp", tags:["comp","fix"], diff:5, exp:"not so much X AS Y = more Y than X.", trap:"Rare but loved by examiners: the partner is AS."},
+{id:"c132", s:"There were far ____ applicants than expected this year.", ans:["fewer","more"], gt:"det", tags:["det","comp"], diff:2, exp:"far FEWER/MORE + plural countable + than.", trap:"'less applicants' is the famous countable error."},
+{id:"c133", s:"____ whom should I address the complaint?", ans:["to"], gt:"prep", tags:["prep","rel"], diff:4, exp:"Formal fronting: TO whom.", trap:"address something TO somebody."},
+{id:"c134", s:"The patient is well ____ the way to a full recovery.", ans:["on"], gt:"fixphrase", tags:["fix"], diff:3, exp:"be (well) ON the way to.", trap:"IN the way = blocking; ON the way = progressing."},
+{id:"c135", s:"I’m not used to ____ spoken to like that.", ans:["being"], gt:"vform", tags:["ger","pass"], diff:5, exp:"used to + BEING + participle (passive gerund).", trap:"'to be spoken' fails — after used to, the -ing form."},
+{id:"c136", s:"Rarely have I tasted ____ delicious a meal.", ans:["so"], gt:"comp", tags:["comp","inv"], diff:5, exp:"SO + adjective + A + noun (literary).", trap:"'such delicious a meal' is the wrong frame; with this order it's SO."},
+{id:"c137", s:"He gave up smoking once and ____ all last year.", ans:["for"], gt:"fixphrase", tags:["fix"], diff:3, exp:"once and FOR all = definitively.", trap:"Fixed phrase — no variations."},
+];
+var W = [
+{id:"w94", s:"Job ____ among graduates fell again last month.", stem:"EMPLOY", ans:["unemployment"], tags:["wfnoun","wfneg"], diff:3, exp:"'fell' + good news → UNemployment.", trap:"Read the logic: employment falling would be bad news."},
+{id:"w95", s:"The hotel was luxurious ____ comparison with our usual campsite.", stem:"BY", ans:["by"], tags:["depprep"], diff:3, exp:"BY/IN comparison with.", trap:"This one is a preposition disguised as word formation — stay alert."},
+{id:"w96", s:"Her ____ to detail makes her reports outstanding.", stem:"ATTENTIVE", ans:["attentiveness","attention"], tags:["wfnoun"], diff:4, exp:"attentive → attentiveness (also accepted: attention).", trap:"-NESS builds nouns from adjectives."},
+{id:"w97", s:"The witness gave a ____ account of the accident.", stem:"DETAIL", ans:["detailed"], tags:["wfadj"], diff:2, exp:"detail → detailed (adjective).", trap:"'detailful' doesn't exist."},
+{id:"w98", s:"Some critics found the ending deeply ____ .", stem:"SATISFY", ans:["unsatisfying","dissatisfying","satisfying"], tags:["wfadj","wfneg"], diff:4, exp:"critics + 'deeply' → likely UNsatisfying; positive also grammatical.", trap:"unsatisfying (thing) vs dissatisfied (person)."},
+{id:"w99", s:"Thanks to GPS, getting lost is now largely ____ .", stem:"AVOID", ans:["avoidable"], tags:["wfadj"], diff:3, exp:"avoid → avoidable.", trap:"'avoidible' — it's -ABLE here."},
+{id:"w100", s:"The sheer ____ of the bridge takes visitors’ breath away.", stem:"HIGH", ans:["height"], tags:["wfnoun","spell"], diff:2, exp:"high → height.", trap:"h-e-i-g-h-t — five letters people scramble."},
+{id:"w101", s:"Critics praised the film’s stunning ____ .", stem:"PHOTOGRAPH", ans:["photography"], tags:["wfnoun"], diff:2, exp:"photograph → photography (the art).", trap:"photographS would be the pictures, not the craft."},
+{id:"w102", s:"It would be ____ to ignore the warning signs.", stem:"RESPONSIBLE", ans:["irresponsible"], tags:["wfadj","wfneg"], diff:3, exp:"ignore warnings = IRresponsible (ir- before r).", trap:"unresponsible doesn't exist."},
+{id:"w103", s:"The library has ____ access to online journals.", stem:"LIMIT", ans:["unlimited"], tags:["wfadj","wfneg"], diff:3, exp:"libraries boast UNlimited access.", trap:"Polarity: 'limited access' would rarely be advertised."},
+{id:"w104", s:"We apologise for any ____ this delay may cause.", stem:"CONVENIENT", ans:["inconvenience"], tags:["wfnoun","wfneg"], diff:3, exp:"apologise for → INconvenience.", trap:"Prefix + suffix: in-convenien-ce."},
+{id:"w105", s:"The team showed great ____ in the final minutes.", stem:"DETERMINE", ans:["determination"], tags:["wfnoun"], diff:2, exp:"determine → determination.", trap:"Keep the full -ATION."},
+{id:"w106", s:"Old appliances are far less energy-____ than new ones.", stem:"EFFICIENT", ans:["efficient"], tags:["wfadj"], diff:2, exp:"energy-EFFICIENT — compound adjective keeps base form.", trap:"Sometimes the 'transformation' is recognising no change is needed."},
+{id:"w107", s:"The court ruled the contract ____ and void.", stem:"NULL", ans:["null"], tags:["wfadj","fix"], diff:5, exp:"null and void — fixed legal doublet.", trap:"Another no-change trap inside a fixed phrase."},
+{id:"w108", s:"She answered every question with complete ____ .", stem:"CONFIDENT", ans:["confidence"], tags:["wfnoun"], diff:1, exp:"confident → confidence.", trap:"-ENCE noun."},
+];
+var M = [
+{id:"m96", s:"The committee finally ____ to a decision at midnight.", opts:["came","reached","arrived","got"], cor:0, tags:["col","prep"], diff:3, exp:"COME TO a decision (reach takes no 'to').", trap:"The TO in the sentence eliminates reach."},
+{id:"m97", s:"His new novel ____ on his childhood in Cádiz.", opts:["draws","pulls","drags","picks"], cor:0, tags:["pv","col"], diff:4, exp:"DRAW ON = use as a source.", trap:"draw on experience/memories — high-band collocation."},
+{id:"m98", s:"____ but a miracle can save the team now.", opts:["Nothing","Anything","Something","All"], cor:0, tags:["fix","det"], diff:4, exp:"NOTHING BUT = only.", trap:"anything but = definitely not — the exact opposite."},
+{id:"m99", s:"The CEO refused to ____ on the takeover rumours.", opts:["comment","mention","discuss","refer"], cor:0, tags:["prep","col"], diff:3, exp:"COMMENT ON.", trap:"mention/discuss take a direct object; refer needs TO."},
+{id:"m100", s:"They ____ the picnic until the following Sunday.", opts:["put off","put away","put down","put out"], cor:0, tags:["pv"], diff:1, exp:"PUT OFF = postpone.", trap:"The other particles change everything: away=store, down=insult, out=extinguish."},
+{id:"m101", s:"I was ____ the impression that the tickets were free.", opts:["under","in","on","at"], cor:0, tags:["depprep","fix"], diff:4, exp:"be UNDER the impression = believe (wrongly).", trap:"IN the impression is the standard miss."},
+{id:"m102", s:"The trip was cancelled, much to our ____ .", opts:["disappointment","disappointed","disappointing","disappoint"], cor:0, tags:["wfnoun","fix"], diff:3, exp:"much to our + NOUN (disappointment/surprise/relief).", trap:"The frame demands a noun."},
+{id:"m103", s:"You ____ as well take the early train — the late one is full.", opts:["might","could","would","should"], cor:0, tags:["modal","fix"], diff:4, exp:"MIGHT as well = there's no better option.", trap:"Fixed: might as well, not 'could as well'."},
+{id:"m104", s:"The festival attracts visitors from all ____ the world.", opts:["over","around","across","along"], cor:0, tags:["prep","fix"], diff:1, exp:"all OVER the world.", trap:"'around the world' works alone, but ALL pairs with OVER."},
+{id:"m105", s:"It’s high time we ____ this old printer.", opts:["replaced","replace","will replace","have replaced"], cor:0, tags:["wish"], diff:4, exp:"It's high time + PAST simple.", trap:"Past form, present meaning — the eternal trap."},
+{id:"m106", s:"The lecture was so dull that half the audience ____ off.", opts:["dozed","slept","dreamt","passed"], cor:0, tags:["pv","col"], diff:3, exp:"DOZE OFF = fall asleep gradually.", trap:"sleep off = cure by sleeping; pass off = (of events) take place."},
+{id:"m107", s:"Could you ____ the children while I’m at the dentist?", opts:["see to","look at","watch out","care"], cor:0, tags:["pv"], diff:4, exp:"SEE TO = take care of.", trap:"look AFTER would work — look AT does not; see to is the tested gem."},
+{id:"m108", s:"Her version of events doesn’t quite ____ up with his.", opts:["tie","match","fit","go"], cor:0, tags:["pv","col"], diff:5, exp:"TIE UP WITH = be consistent with.", trap:"match needs no 'up with'; the frame decides."},
+{id:"m109", s:"I’ll take the job — the salary is too good to ____ down.", opts:["turn","put","let","take"], cor:0, tags:["pv"], diff:2, exp:"TURN DOWN = reject.", trap:"too good to turn down — semi-fixed."},
+{id:"m110", s:"We got completely soaked — it was raining cats and ____ .", opts:["dogs","cows","frogs","buckets"], cor:0, tags:["fix"], diff:1, exp:"raining cats and DOGS.", trap:"A gift question — never overthink an idiom you know."},
+];
+FCE.BANK.kwt = FCE.BANK.kwt.concat(K);
+FCE.BANK.cloze = FCE.BANK.cloze.concat(C);
+FCE.BANK.wf = FCE.BANK.wf.concat(W);
+FCE.BANK.mcc = FCE.BANK.mcc.concat(M);
+
+/* ---- extra mock passages ---- */
+FCE.BANK.passages.p1.push({ id:"pp1c", title:"The man who walks every street",
+ text:"Ten years ago, Matt Green (1) up his job as an engineer to walk every single street in New York — more than 13,000 kilometres of them. He survives on a tiny budget, (2) on friends’ sofas and occasionally house-sitting. What began as a personal challenge has (3) into something closer to a vocation. Green photographs hand-painted shop signs, churchyards and community gardens, and his blog has built up a devoted (4) . He insists he is in no (5) to finish: the point, he says, is to notice things. Most of us, he argues, (6) our own neighbourhoods for granted and could not describe the buildings we pass daily. Walking forces him to pay close (7) to detail. “Every street,” he says, “contains something worth stopping (8) .”",
+ gaps:[
+  {n:1, opts:["gave","put","took","set"], cor:0, exp:"GIVE UP a job = quit.", tags:["pv"]},
+  {n:2, opts:["crashing","landing","falling","dropping"], cor:0, exp:"CRASH ON a sofa = sleep there (informal).", tags:["pv","col"]},
+  {n:3, opts:["grown","turned","changed","moved"], cor:0, exp:"GROW INTO = develop into.", tags:["pv"]},
+  {n:4, opts:["following","audience","crowd","attendance"], cor:0, exp:"build up a FOLLOWING.", tags:["col"]},
+  {n:5, opts:["hurry","speed","urgency","haste"], cor:0, exp:"in no HURRY to.", tags:["fix"]},
+  {n:6, opts:["take","get","hold","keep"], cor:0, exp:"TAKE something for granted.", tags:["fix"]},
+  {n:7, opts:["attention","notice","care","interest"], cor:0, exp:"PAY ATTENTION TO.", tags:["col"]},
+  {n:8, opts:["for","at","by","to"], cor:0, exp:"worth stopping FOR.", tags:["prep"]},
+ ]});
+FCE.BANK.passages.p3.push({ id:"pp3c", title:"The teenage brain",
+ text:"Adolescence has a poor reputation, but neuroscientists now offer a more (1)SYMPATHY view. The teenage brain is not a faulty adult brain; it is a highly (2)FLEX learning machine. Risk-taking, often seen as simple (3)MATURE, is partly the cost of a brain wired for (4)EXPLORE. Teenagers respond far more strongly to social reward, which explains their deep (5)SENSE to peer opinion. The same wiring, however, brings real (6)ADVANTAGE: teenagers learn languages and instruments with remarkable (7)EASY. Schools that understand this can turn a stormy period into one of extraordinary (8)ACHIEVE.",
+ gaps:[
+  {n:1, stem:"SYMPATHY", ans:["sympathetic"], exp:"sympathy → sympathetic.", tags:["wfadj"]},
+  {n:2, stem:"FLEX", ans:["flexible"], exp:"flex → flexible.", tags:["wfadj"]},
+  {n:3, stem:"MATURE", ans:["immaturity"], exp:"negative noun: IMmaturity.", tags:["wfnoun","wfneg"]},
+  {n:4, stem:"EXPLORE", ans:["exploration"], exp:"explore → exploration.", tags:["wfnoun"]},
+  {n:5, stem:"SENSE", ans:["sensitivity"], exp:"sense → sensitivity.", tags:["wfnoun"]},
+  {n:6, stem:"ADVANTAGE", ans:["advantages"], exp:"plural: real advantageS.", tags:["wfnoun"]},
+  {n:7, stem:"EASY", ans:["ease"], exp:"easy → ease (noun).", tags:["wfnoun","spell"]},
+  {n:8, stem:"ACHIEVE", ans:["achievement"], exp:"achieve → achievement.", tags:["wfnoun"]},
+ ]});
+FCE.BANK.passages.p3.push({ id:"pp3d", title:"Why maps lie",
+ text:"Every flat map of the world is, strictly speaking, a (1)DECEIVE. Turning a sphere into a rectangle is a mathematical (2)POSSIBLE, so every projection makes a compromise. The famous Mercator map, prized by sailors for its (3)USE, makes Greenland look (4)ENORMOUS larger than it really is. Such distortions are not always innocent: critics argue they have shaped our (5)PERCEIVE of which countries matter. Newer projections aim for greater (6)FAIR, showing areas in true proportion. The lesson is not to abandon maps but to read them with healthy (7)SUSPECT — and to remember that even the most (8)SCIENCE image of the world contains a point of view.",
+ gaps:[
+  {n:1, stem:"DECEIVE", ans:["deception"], exp:"deceive → deception.", tags:["wfnoun","spell"]},
+  {n:2, stem:"POSSIBLE", ans:["impossibility"], exp:"prefix + suffix: impossibility.", tags:["wfnoun","wfneg"]},
+  {n:3, stem:"USE", ans:["usefulness"], exp:"use → usefulness.", tags:["wfnoun"]},
+  {n:4, stem:"ENORMOUS", ans:["enormously"], exp:"adverb before comparative: enormously larger.", tags:["wfadv"]},
+  {n:5, stem:"PERCEIVE", ans:["perception"], exp:"perceive → perception.", tags:["wfnoun","spell"]},
+  {n:6, stem:"FAIR", ans:["fairness"], exp:"fair → fairness.", tags:["wfnoun"]},
+  {n:7, stem:"SUSPECT", ans:["suspicion"], exp:"suspect → suspicion.", tags:["wfnoun","spell"]},
+  {n:8, stem:"SCIENCE", ans:["scientific"], exp:"science → scientific.", tags:["wfadj"]},
+ ]});
+})();
+
+
+/* ===== js/data-vocab.js ===== */
+/* Mastery (FCE) — Essay Vocab Lab data.
+   Each entry upgrades a "flat" word into band-boosting alternatives, anchored in a real
+   essay sentence (the strongest retrieval cue). basic = the weak word; up = accepted
+   upgrades (first = headline); s = essay frame with ____; why = examiner note. */
+window.FCE = window.FCE || {};
+FCE.VOCAB = [
+{basic:"very important", up:["crucial","vital","essential"], s:"Reducing plastic waste is ____ if coastal cities are to survive.", why:"B2 writing scores jump when 'very + adjective' becomes one precise word."},
+{basic:"good", up:["beneficial"], s:"Regular exercise is highly ____ to concentration and mood.", why:"beneficial TO — collocates like a dream in essays."},
+{basic:"bad", up:["detrimental","harmful"], s:"Excessive screen time can be ____ to teenagers’ sleep.", why:"detrimental TO = formal, precise damage."},
+{basic:"big", up:["considerable","substantial","significant"], s:"Hosting the games requires a ____ amount of public money.", why:"the three official 'big numbers' words of academic English."},
+{basic:"think", up:["argue","maintain","contend"], s:"Many experts ____ that homework should be limited.", why:"reporting verbs make your essay sound researched, not personal."},
+{basic:"show", up:["demonstrate","illustrate","reveal"], s:"Recent studies clearly ____ the link between sleep and memory.", why:"demonstrate/illustrate = evidence language examiners reward."},
+{basic:"say", up:["claim","state","assert"], s:"Supporters of the ban ____ that it will reduce accidents.", why:"claim adds healthy distance from an opinion."},
+{basic:"get", up:["obtain","acquire","gain"], s:"Students ____ valuable experience through part-time work.", why:"gain experience / acquire skills / obtain qualifications."},
+{basic:"give", up:["provide","offer","supply"], s:"Volunteering can ____ young people with a sense of purpose.", why:"provide somebody WITH something — full B2 frame."},
+{basic:"help", up:["contribute to","facilitate"], s:"Green spaces ____ residents’ wellbeing in measurable ways.", why:"contribute to = cause-language without overclaiming."},
+{basic:"use", up:["employ","utilise","utilize"], s:"Schools should ____ technology more imaginatively.", why:"employ a method/strategy — instant register lift."},
+{basic:"start", up:["launch","initiate","establish"], s:"The council plans to ____ a free bike-sharing scheme.", why:"launch schemes, initiate programmes, establish systems."},
+{basic:"stop (something)", up:["prevent","prohibit","ban"], s:"Stricter rules would ____ companies from misleading consumers.", why:"prevent X FROM -ing — examiner catnip."},
+{basic:"make worse", up:["aggravate","worsen","exacerbate"], s:"Building more roads may actually ____ congestion.", why:"exacerbate = C1-flavour; aggravate is the safe B2+ pick."},
+{basic:"make better", up:["enhance","improve","boost"], s:"Cultural exchanges ____ mutual understanding between countries.", why:"enhance understanding / boost confidence."},
+{basic:"a lot of", up:["a great deal of","numerous"], s:"Tourism brings ____ money into the local economy.", why:"a great deal of + uncountable; numerous + plural."},
+{basic:"more and more", up:["increasingly"], s:"Remote work is becoming ____ common across Europe.", why:"one adverb replaces a clunky phrase — instant precision."},
+{basic:"but", up:["however","nevertheless","nonetheless"], s:"The plan is expensive; ____ , its long-term benefits are clear.", why:"sentence-linking contrast = structure marks in Writing."},
+{basic:"so", up:["consequently","therefore","as a result"], s:"Fuel prices rose sharply; ____ , bus use increased.", why:"consequence linkers organise paragraphs."},
+{basic:"also", up:["furthermore","moreover","in addition"], s:"____ , cycling reduces noise pollution in city centres.", why:"paragraph-opening adders signal essay architecture."},
+{basic:"because of", up:["owing to","due to"], s:"The match was postponed ____ torrential rain.", why:"owing to + noun = formal cause."},
+{basic:"about (a topic)", up:["regarding","concerning"], s:"Opinions differ widely ____ the voting age.", why:"regarding/concerning = topic language for introductions."},
+{basic:"now", up:["currently","at present","nowadays"], s:"____ , over half of humanity lives in cities.", why:"essay-opening time frames."},
+{basic:"in the end", up:["ultimately","eventually"], s:"____ , the decision rests with individual families.", why:"ultimately signals your conclusion is coming."},
+{basic:"clearly", up:["evidently","undoubtedly","undeniably"], s:"____ , social media has transformed how teenagers communicate.", why:"stance adverbs — confident, examiner-friendly."},
+{basic:"people think", up:["it is widely believed"], s:"____ that exams cause unnecessary stress.", why:"impersonal passive = the single most useful essay frame at B2."},
+{basic:"I think", up:["from my perspective","in my view"], s:"____ , the advantages clearly outweigh the drawbacks.", why:"vary 'In my opinion' — examiners read it 200 times a day."},
+{basic:"problem", up:["issue","challenge","drawback"], s:"The main ____ of online learning is the lack of real contact.", why:"drawback pairs with advantage; issue sounds analytical."},
+{basic:"advantage", up:["benefit","merit"], s:"A key ____ of public transport is its low cost per passenger.", why:"rotate advantage/benefit/merit to avoid repetition."},
+{basic:"disadvantage", up:["drawback","downside"], s:"One serious ____ of tourism is the pressure on housing.", why:"drawback/downside — natural, precise."},
+{basic:"important issue", up:["pressing issue","burning issue"], s:"Climate change remains the most ____ of our time.", why:"pressing/burning = urgency collocations."},
+{basic:"effect", up:["impact","consequence"], s:"Advertising has a powerful ____ on children’s eating habits.", why:"impact ON — strong noun, strong preposition."},
+{basic:"reason", up:["motive","grounds"], s:"There are strong ____ for investing in rail rather than roads.", why:"grounds FOR -ing = high-band noun."},
+{basic:"way", up:["approach","method","means"], s:"Car-sharing is an effective ____ of cutting emissions.", why:"means OF -ing; approach TO."},
+{basic:"young people", up:["adolescents","the younger generation"], s:"____ are often unfairly portrayed in the media.", why:"vary 'teenagers' across an essay."},
+{basic:"old people", up:["the elderly","senior citizens"], s:"____ often possess experience that workplaces undervalue.", why:"respectful, formal register."},
+{basic:"everyone", up:["the general public","society as a whole"], s:"Museums should be free to ____ .", why:"audience nouns beat vague 'everyone'."},
+{basic:"poor people", up:["disadvantaged groups","low-income families"], s:"Rising rents hit ____ hardest.", why:"precise, neutral, essay-appropriate."},
+{basic:"rich", up:["affluent","wealthy"], s:"The festival mainly attracts visitors from ____ backgrounds.", why:"affluent backgrounds/areas — classic collocation."},
+{basic:"cheap", up:["affordable","economical"], s:"Cities need more ____ housing for key workers.", why:"affordable = cheap without the negative tone."},
+{basic:"expensive", up:["costly"], s:"Repairing the damage later will prove far more ____ than preventing it.", why:"costly works for money AND consequences."},
+{basic:"famous", up:["renowned","celebrated"], s:"The region is ____ for its medieval festivals.", why:"renowned FOR — prestige collocation."},
+{basic:"interesting", up:["fascinating","compelling"], s:"The documentary offers a ____ insight into city life.", why:"kill 'interesting' in essays; it says nothing."},
+{basic:"boring", up:["monotonous","tedious"], s:"Without variety, even a dream job becomes ____ .", why:"monotonous = boring with a reason."},
+{basic:"happy", up:["content","satisfied"], s:"Workers with flexible hours report feeling more ____ .", why:"content/satisfied = measured, adult emotion words."},
+{basic:"sad", up:["regrettable","disheartening"], s:"It is ____ that so few residents attend local meetings.", why:"'It is regrettable that' — formal evaluation frame."},
+{basic:"angry", up:["frustrated","outraged"], s:"Commuters are increasingly ____ by constant delays.", why:"graded anger: frustrated < outraged."},
+{basic:"scared", up:["apprehensive","alarmed"], s:"Many parents feel ____ about their children’s online safety.", why:"apprehensive ABOUT — precise worry."},
+{basic:"tired", up:["exhausted","drained"], s:"Shift workers often arrive home utterly ____ .", why:"intensify properly: utterly exhausted."},
+{basic:"sure", up:["convinced","certain"], s:"I am ____ that small changes can have national effects.", why:"convinced THAT — conviction frame for conclusions."},
+{basic:"wrong", up:["mistaken","flawed"], s:"The assumption that growth is endless is deeply ____ .", why:"flawed arguments, mistaken beliefs."},
+{basic:"enough", up:["sufficient","adequate"], s:"Few schools devote ____ time to financial education.", why:"sufficient/adequate = measured judgement."},
+{basic:"too much", up:["excessive"], s:"____ packaging remains the supermarkets’ dirty secret.", why:"excessive + noun beats 'too much' in formal writing."},
+{basic:"need (verb)", up:["require","call for"], s:"Tackling obesity will ____ action on many fronts.", why:"call for = demand — editorial register."},
+{basic:"want", up:["be eager to","be keen to"], s:"Most graduates ____ gain international experience.", why:"eager/keen TO — motivated, formal."},
+{basic:"deal with", up:["address","tackle"], s:"Governments must ____ the housing shortage urgently.", why:"address/tackle problems — the essay verbs."},
+{basic:"happen", up:["occur","take place","arise"], s:"Misunderstandings often ____ when instructions are vague.", why:"arise for problems, occur for events."},
+{basic:"change (noun)", up:["shift","transformation"], s:"The last decade has seen a dramatic ____ in shopping habits.", why:"a shift IN — analytical change-language."},
+];
+
+
 /* ===== js/engine.js ===== */
 /* Mastery (FCE Edition) — adaptive engine. 100% on-device.
    Elo ability · skill mastery with forgetting · spaced repetition · answer diagnosis
@@ -1454,8 +1705,10 @@ E.blank = function(){
     calib:{g:{att:0,cor:0}, f:{att:0,cor:0}, s:{att:0,cor:0}},
     log:[], sessions:[], mocks:[], trend:[],
     passSeen:{},
-    beh:{ n:0, ttfkSum:0, editSum:0, pauseSum:0, changed:0, changedRight:0, selfCorrect:0, hiddenHesit:0, fluentSure:0, skips:0, fastRight:0 },
+    beh:{ n:0, ttfkSum:0, editSum:0, pauseSum:0, changed:0, changedRight:0, selfCorrect:0, hiddenHesit:0, fluentSure:0, skips:0, fastRight:0, keySum:0, typeMsSum:0 },
     boost:{},            // tag -> remaining reinforcement count (error generalization)
+    pos:{},              // open-cloze positional fingerprints: where in the sentence you fail
+    vocab:{},            // essay-vocab Leitner boxes: word -> {box,due,att,cor}
     wants:{},            // itemId -> {t, tag, cleared:0} — "I want to master this"
     accepts:{},          // itemId -> [extra accepted answers] (user reported "I was right")
     reports:[],          // {t,id,user} app-mistake reports
@@ -1740,6 +1993,7 @@ E.record = function(q, type, ok, conf, ms, user, cause, opts){
     g.att++; if(ok) g.cor++;
     g.recent.push(ok?1:0); if(g.recent.length>14) g.recent.shift();
   }
+  if(type==='cloze' && q.s) E.recPos(q, ok);
   var it = E.itemState(q.id);
   it.att++; if(ok) it.cor++; it.last = now; it.conf = effConf;
   it.hist.push(ok?1:0); if(it.hist.length>10) it.hist.shift();
@@ -1754,6 +2008,7 @@ E.record = function(q, type, ok, conf, ms, user, cause, opts){
     entry.beh = beh;
     var B = st.beh;
     B.n++; B.ttfkSum += beh.ttfk||0; B.editSum += beh.edits||0; B.pauseSum += beh.pauses||0;
+    B.keySum += beh.keys||0; B.typeMsSum += beh.typeMs||0;
     if(beh.skipped) B.skips++;
     if(beh.changed){
       B.changed++;
@@ -2151,9 +2406,12 @@ E.pickSession = function(n, filter){
     });
     if(!cands2.length) cands2 = pool.filter(function(it){ return fits(it) && (it.q.tags||[]).indexOf(tagPick.tag) !== -1; });
     if(!cands2.length) continue;
+    var wp = E.worstPos();
     cands2.sort(function(a,b){
+      var pa = (wp && a.type==='cloze' && E.clozeFeatures(a.q).indexOf(wp) !== -1) ? -1e12 : 0;
+      var pb = (wp && b.type==='cloze' && E.clozeFeatures(b.q).indexOf(wp) !== -1) ? -1e12 : 0;
       var ia = st.items[a.q.id], ib = st.items[b.q.id];
-      return (ia?ia.last:0) - (ib?ib.last:0);
+      return (pa + (ia?ia.last:0)) - (pb + (ib?ib.last:0));
     });
     take(cands2[Math.floor(Math.random()*Math.min(3,cands2.length))], tagPick.tag);
   }
@@ -2274,6 +2532,7 @@ E.behaviorReport = function(){
     n:B.n, avgHesit:B.ttfkSum/B.n/1000, avgEdits:B.editSum/B.n,
     changed:B.changed, changedRight:B.changedRight, selfCorrect:B.selfCorrect,
     hiddenHesit:B.hiddenHesit, fluentSure:B.fluentSure, skips:B.skips, fastRight:B.fastRight,
+    avgKeys: B.n ? B.keySum/B.n : 0, avgTypeMs: B.n ? B.typeMsSum/B.n : 0,
     instinct: flips ? B.changedRight/flips : null,
   };
 };
@@ -2324,6 +2583,136 @@ E.tipFor = function(q){
     if(meta && meta.tips && meta.tips.length) return meta.tips[Math.floor(Math.random()*meta.tips.length)];
   }
   return '';
+};
+
+/* ---------------- open-cloze positional intelligence ----------------
+   WHERE in a sentence do this student's cloze errors live?
+   start of sentence · after a comma · mid-clause · sentence end · after/before word classes. */
+E.clozeFeatures = function(q){
+  var s = q.s || '';
+  var gi = s.indexOf('____');
+  if(gi < 0) return [];
+  var before = s.slice(0, gi).trim();
+  var after = s.slice(gi+4).replace(/^_+/,'').trim();
+  var f = [];
+  if(!before || /[.!?]$/.test(before)) f.push('start');
+  if(/,$/.test(before)) f.push('afterComma');
+  if(!after || /^[.!?]/.test(after)) f.push('end');
+  if(f.indexOf('start') < 0 && f.indexOf('end') < 0) f.push('mid');
+  var pw = (before.match(/([\w'’]+)[^\w]*$/)||[])[1];
+  var nw = (after.match(/^[^\w]*([\w'’]+)/)||[])[1];
+  var pc = pw ? E.classOf(pw) : null;
+  var nc = nw ? E.classOf(nw) : null;
+  if(pc) f.push('after-'+pc);
+  if(nc) f.push('before-'+nc);
+  if(nw && /ing$/.test(nw)) f.push('before-ing');
+  return f;
+};
+E.POSNAMES = { start:'first word of the sentence', end:'last word of the sentence', mid:'mid-sentence',
+  afterComma:'right after a comma', 'before-ing':'before an -ing form' };
+E.posName = function(k){
+  if(E.POSNAMES[k]) return E.POSNAMES[k];
+  var m = k.match(/^(after|before)-(\w+)$/);
+  if(m) return m[1]+' a '+(FCE.CLASSNAMES[m[2]]||m[2]);
+  return k;
+};
+E.recPos = function(q, ok){
+  E.clozeFeatures(q).forEach(function(k){
+    var p = E.state.pos[k] || (E.state.pos[k] = {att:0, cor:0});
+    p.att++; if(ok) p.cor++;
+  });
+};
+E.posReport = function(){
+  var out = [];
+  Object.keys(E.state.pos).forEach(function(k){
+    var p = E.state.pos[k];
+    if(p.att >= 3) out.push({k:k, name:E.posName(k), att:p.att, err:1 - p.cor/p.att});
+  });
+  out.sort(function(a,b){ return b.err - a.err; });
+  return out;
+};
+E.worstPos = function(){
+  var r = E.posReport().filter(function(p){ return p.att >= 4 && p.err >= 0.4; });
+  return r.length ? r[0].k : null;
+};
+
+/* ---------------- Essay Vocab Lab (Leitner boxes) ---------------- */
+E.vocabState = function(w){
+  var v = E.state.vocab[w];
+  if(!v){ v = E.state.vocab[w] = {box:0, due:0, att:0, cor:0}; }
+  return v;
+};
+E.vocabSet = function(n){
+  n = n || 8;
+  var now = Date.now(), due = [], fresh = [], later = [];
+  FCE.VOCAB.forEach(function(it){
+    var v = E.state.vocab[it.up[0]];
+    if(!v) fresh.push(it);
+    else if(v.due <= now && v.box < 4) due.push(it);
+    else if(v.box < 4) later.push(it);
+  });
+  function shuf(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+  return shuf(due).concat(shuf(fresh)).concat(shuf(later)).slice(0, n);
+};
+E.recordVocab = function(it, ok){
+  var v = E.vocabState(it.up[0]);
+  v.att++;
+  if(ok){ v.cor++; v.box = Math.min(4, v.box+1); }
+  else { v.box = Math.max(0, v.box-1); }
+  var IVL = [0.15, 1, 3, 7, 21];
+  v.due = Date.now() + IVL[v.box]*DAY;
+  E.state.xp += ok ? 7 : 2;
+  E.touchStreak();
+  E.save();
+};
+E.vocabStats = function(){
+  var mastered = 0, learning = 0;
+  Object.keys(E.state.vocab).forEach(function(w){
+    var v = E.state.vocab[w];
+    if(v.box >= 3) mastered++; else if(v.att) learning++;
+  });
+  return {mastered:mastered, learning:learning, total:FCE.VOCAB.length};
+};
+E.gradeVocab = function(it, user){
+  var u = E.norm(user);
+  return it.up.some(function(a){ return E.norm(a) === u; });
+};
+
+/* ---------------- focus search: "feed me more of X" ---------------- */
+E.searchLearnables = function(query){
+  var q = E.norm(query);
+  if(q.length < 2) return [];
+  var out = [], seen = {};
+  Object.keys(FCE.TAGS).forEach(function(t){
+    if(FCE.TAGS[t].name.toLowerCase().indexOf(q) !== -1)
+      out.push({kind:'tag', id:t, label:FCE.TAGS[t].name, sub:'skill — sessions will lean into it'});
+  });
+  FCE.PATTERNS.forEach(function(p){
+    var hit = p.name.toLowerCase().indexOf(q) !== -1 || p.match.some(function(m){ return E.norm(m).indexOf(q) !== -1; });
+    if(hit && !seen['pt'+p.id]){ seen['pt'+p.id]=1; out.push({kind:'pattern', id:p.id, tags:p.tags, label:p.name, sub:'exam pattern ★'.concat('★'.repeat(Math.max(0,p.freq-1)))}); }
+  });
+  E.allItems().forEach(function(it2){
+    if(out.length > 14) return;
+    var hay = (it2.type==='mcc' ? it2.q.opts[it2.q.cor] : it2.q.ans.join(' ')) + ' ' + (it2.q.key||'') + ' ' + (it2.q.stem||'');
+    if(E.norm(hay).indexOf(q) !== -1 && !seen[it2.q.id]){
+      seen[it2.q.id]=1;
+      var label = it2.type==='mcc' ? it2.q.opts[it2.q.cor] : it2.q.ans[0];
+      out.push({kind:'item', id:it2.q.id, tags:it2.q.tags, label:'\u201C'+label+'\u201D', sub:'exact exercise — added to your Mastery List'});
+    }
+  });
+  return out.slice(0, 9);
+};
+E.focusAdd = function(match){
+  if(match.kind === 'tag'){
+    E.state.boost[match.id] = Math.min(10, (E.state.boost[match.id]||0) + 6);
+  } else if(match.kind === 'item'){
+    E.addWant(match.id);
+  } else {
+    (match.tags||[]).slice(0,2).forEach(function(t){
+      E.state.boost[t] = Math.min(10, (E.state.boost[t]||0) + 5);
+    });
+  }
+  E.save();
 };
 })();
 
@@ -2501,65 +2890,14 @@ U.esc = function(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/
 U.$ = function(sel, root){ return (root||document).querySelector(sel); };
 U.$$ = function(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); };
 
-/* ---------- Memo, the chubby study blob ---------- */
-U.mascot = function(mood, size){
-  size = size || 72;
-  var eyes, mouth;
-  if(mood === 'happy'){
-    eyes = '<path d="M40 52 q6 -8 12 0" stroke="#03363D" stroke-width="4" fill="none" stroke-linecap="round"/>'+
-           '<path d="M68 52 q6 -8 12 0" stroke="#03363D" stroke-width="4" fill="none" stroke-linecap="round"/>';
-    mouth = '<path d="M50 66 q10 11 20 0" stroke="#03363D" stroke-width="4" fill="none" stroke-linecap="round"/>';
-  } else if(mood === 'rest'){
-    eyes = '<path d="M40 53 h12" stroke="#03363D" stroke-width="4" stroke-linecap="round"/>'+
-           '<path d="M68 53 h12" stroke="#03363D" stroke-width="4" stroke-linecap="round"/>';
-    mouth = '<path d="M54 67 q6 4 12 0" stroke="#03363D" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
-  } else if(mood === 'think'){
-    eyes = '<circle cx="46" cy="52" r="4.6" fill="#03363D"/><circle cx="74" cy="50" r="4.6" fill="#03363D"/>'+
-           '<circle cx="47.6" cy="50.4" r="1.6" fill="#fff"/><circle cx="75.6" cy="48.4" r="1.6" fill="#fff"/>';
-    mouth = '<path d="M54 68 q7 -3 13 1" stroke="#03363D" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
-  } else {
-    eyes = '<circle cx="46" cy="52" r="5" fill="#03363D"/><circle cx="74" cy="52" r="5" fill="#03363D"/>'+
-           '<circle cx="47.8" cy="50.2" r="1.8" fill="#fff"/><circle cx="75.8" cy="50.2" r="1.8" fill="#fff"/>';
-    mouth = '<path d="M52 65 q8 8 16 0" stroke="#03363D" stroke-width="4" fill="none" stroke-linecap="round"/>';
-  }
-  return '<svg class="mascot" viewBox="0 0 120 110" style="width:'+size+'px;height:'+Math.round(size*0.92)+'px" aria-label="Memo">'+
-    '<defs><linearGradient id="memog" x1="0" y1="0" x2="0.4" y2="1">'+
-    '<stop offset="0" stop-color="#D8EEEC"/><stop offset="0.55" stop-color="#BDD9D7"/><stop offset="1" stop-color="#8FBDB9"/></linearGradient></defs>'+
-    /* chubby pear body */
-    '<path d="M60 14 C84 14 100 32 102 56 C104 82 88 98 60 98 C32 98 16 82 18 56 C20 32 36 14 60 14 Z" fill="url(#memog)"/>'+
-    '<ellipse cx="60" cy="96" rx="34" ry="5" fill="rgba(1,12,14,.25)"/>'+
-    /* stubby arms */
-    '<path d="M19 62 q-8 4 -6 12 q8 2 12 -5" fill="#8FBDB9"/>'+
-    '<path d="M101 62 q8 4 6 12 q-8 2 -12 -5" fill="#8FBDB9"/>'+
-    /* belly shine */
-    '<ellipse cx="46" cy="36" rx="14" ry="9" fill="rgba(255,255,255,.5)" transform="rotate(-18 46 36)"/>'+
-    /* blush */
-    '<ellipse cx="36" cy="62" rx="6.5" ry="4" fill="rgba(255,107,92,.55)"/>'+
-    '<ellipse cx="84" cy="62" rx="6.5" ry="4" fill="rgba(255,107,92,.55)"/>'+
-    eyes + mouth +
-    /* tiny graduation cap, tilted */
-    '<g transform="rotate(-10 60 14)">'+
-    '<path d="M38 16 L60 6 L82 16 L60 26 Z" fill="#03363D"/>'+
-    '<path d="M48 20 v8 q12 6 24 0 v-8" fill="#02282D"/>'+
-    '<line x1="82" y1="16" x2="86" y2="30" stroke="#FF6B5C" stroke-width="2.6" stroke-linecap="round"/>'+
-    '<circle cx="86" cy="32" r="3" fill="#FF6B5C"/></g>'+
-  '</svg>';
-};
-/* the Mastery mark: three rising steps + a coral summit dot */
-U.logoSVG = function(size){
-  size = size || 36;
-  return '<svg class="logo-mark" viewBox="0 0 48 48" style="width:'+size+'px;height:'+size+'px" aria-label="Mastery">'+
-    '<defs><linearGradient id="lgm" x1="0" y1="1" x2="1" y2="0">'+
-    '<stop offset="0" stop-color="#8FBDB9"/><stop offset="1" stop-color="#5FD3C0"/></linearGradient></defs>'+
-    '<rect width="48" height="48" rx="14" fill="rgba(189,217,215,.10)" stroke="rgba(189,217,215,.25)"/>'+
-    '<rect x="10" y="28" width="7" height="10" rx="3.5" fill="url(#lgm)" opacity=".55"/>'+
-    '<rect x="20.5" y="21" width="7" height="17" rx="3.5" fill="url(#lgm)" opacity=".8"/>'+
-    '<rect x="31" y="13" width="7" height="25" rx="3.5" fill="url(#lgm)"/>'+
-    '<circle cx="34.5" cy="8.5" r="3.4" fill="#FF6B5C"/>'+
-  '</svg>';
-};
-U.wordmark = function(small){
-  return '<span class="wordmark'+(small?' small':'')+'">mastery<span class="ed">FCE</span></span>';
+/* mascot removed by design — keep the no-op so old call sites render nothing */
+U.mascot = function(){ return ''; };
+/* text lockup: Mastery + FCE tab + USE OF ENGLISH subline */
+U.wordmark = function(big){
+  return '<span class="wm'+(big?' big':'')+'">'+
+    '<span class="wm-top"><span class="wm-name">Mastery</span><span class="ed">FCE</span></span>'+
+    '<span class="wm-sub">Use of English</span>'+
+  '</span>';
 };
 
 U.toast = function(html, cls){
@@ -2583,12 +2921,11 @@ U.modal = function(html){
 /* ---------- "How the engine works" ---------- */
 U.howModal = function(){
   U.modal(
-    '<div style="text-align:center">'+U.mascot('think',64)+'</div>'+
-    '<h2 class="serif" style="font-size:24px;margin:10px 0 14px;text-align:center">What’s under the hood</h2>'+
+    '<h2 class="serif" style="font-size:24px;margin:4px 0 14px;text-align:center">What’s under the hood</h2>'+
     '<div class="how-sec"><b>1 · A rating, like chess.</b> You and every question hold an Elo rating per exam part. Each answer moves yours; questions are then chosen so you succeed 25–92% of the time — the science-backed “learning zone” where memory forms fastest.</div>'+
     '<div class="how-sec"><b>2 · Forgetting is modelled, not ignored.</b> Every skill decays on a forgetting curve the longer you ignore it. Spaced repetition schedules each item just before you’d lose it; lapses shrink the interval, fast fluent answers stretch it.</div>'+
     '<div class="how-sec"><b>3 · Your behaviour talks.</b> The engine watches hesitation before typing, erase-and-rewrite cycles, answer switching and pace. It detects lucky guesses, hidden doubt and “you changed a right answer” — even if you never rate your confidence.</div>'+
-    '<div class="how-sec"><b>4 · Errors are diagnosed, not just counted.</b> A wrong answer is classified: spelling slip, wrong word-family form, wrong word class, missing key word… Each diagnosis routes differently — a spelling slip goes to the Word Forge, a concept gap floods your next sessions with that concept <i>in new exercises</i>.</div>'+
+    '<div class="how-sec"><b>4 · Errors are diagnosed, not just counted.</b> A wrong answer is classified: spelling slip, wrong word-family form, wrong word class, missing key word… Each diagnosis routes differently — a spelling slip goes to the Spelling Gym, a concept gap floods your next sessions with that concept <i>in new exercises</i>.</div>'+
     '<div class="how-sec"><b>5 · Marks-at-risk economics.</b> Every skill carries its real exam weight. Priority = how often Cambridge tests it × how likely you are to miss it. You always study the highest-value marks first.</div>'+
     '<div class="how-sec"><b>6 · Honest forecasting.</b> Your predicted grade blends ability ratings, recent accuracy and mock results, corrected for the fact that practice here is harder than the real paper. The confidence interval narrows as evidence grows.</div>'+
     '<p class="tiny" style="margin-top:14px;text-align:center">All of it runs on this device. No internet, no account, no API.</p>'
@@ -2652,8 +2989,7 @@ var MEMO_TIPS = [
 U.views.onboard = function(){
   var v = el(
   '<div class="onb">'+
-    '<div style="display:flex;justify-content:center">'+U.mascot('normal', 96)+'</div>'+
-    '<h1 style="margin-top:10px">'+U.wordmark()+'</h1>'+
+    '<div style="display:flex;justify-content:center">'+U.wordmark(true)+'</div>'+
     '<p class="onb-tag">Your personal war-room for B2 First <em>Use of English</em>.<br>An on-device engine learns exactly how you fail — then makes those failures impossible to repeat.</p>'+
     '<div class="field"><label>Your name</label><input id="ob-name" placeholder="e.g. Felix" maxlength="24"></div>'+
     '<div class="field"><label>Exam date <span style="text-transform:none;letter-spacing:0">(optional — powers the countdown & Emergency Mode)</span></label><input id="ob-date" type="date"></div>'+
@@ -2673,7 +3009,7 @@ U.views.onboard = function(){
   U.$('#ob-go', v).addEventListener('click', function(){ saveBasics(); FCE.practice.start({mode:'diagnostic'}); });
   U.$('#ob-skip', v).addEventListener('click', function(){
     saveBasics(); E().award('first'); E().save();
-    U.toast('Welcome aboard, '+U.esc(E().state.name)+'. Memo will calibrate as you go.');
+    U.toast('Welcome aboard, '+U.esc(E().state.name)+'. The engine calibrates with every answer.');
     U.go('dash');
   });
   v.addEventListener('keydown', function(ev){
@@ -2742,7 +3078,7 @@ U.views.dash = function(){
       '<div class="today-cta">'+
         '<button class="btn primary" data-act="smart">▸ Smart Session</button>'+
         '<button class="btn" data-go="mock">Mock</button>'+
-        '<button class="btn" data-act="gym">⚒ Forge</button>'+
+        '<button class="btn" data-act="gym">🏋️ Spelling</button>'+
       '</div>'+
     '</div>'+
   '</div>'+
@@ -2765,7 +3101,7 @@ U.views.dash = function(){
       '<div class="muted" style="margin-bottom:10px">'+ch.ch.desc+' — this week’s challenge.</div>'+
       '<div class="bar"><i class="gold" style="width:'+Math.round(100*ch.prog/ch.ch.n)+'%"></i></div></div>'+
     '<div class="card memo-tip sp6"><div class="row" style="align-items:flex-start;gap:14px">'+U.mascot('normal',56)+
-      '<div style="flex:1"><h3 style="margin-bottom:6px">Memo says</h3><div class="serif" style="font-size:14.5px;line-height:1.65">'+tip+'</div></div></div></div>'+
+      '<div style="flex:1"><h3 style="margin-bottom:6px">✦ Field notes</h3><div class="serif" style="font-size:14.5px;line-height:1.65">'+tip+'</div></div></div></div>'+
   '</div>';
 
   var v = el(html);
@@ -2806,7 +3142,8 @@ U.views.lite = function(){
         '<button class="btn" data-t="wf">Part 3</button>'+
         '<button class="btn" data-t="kwt">Part 4</button>'+
       '</div>'+
-      '<button class="btn block" data-m="gym" style="margin-top:10px">⚒ Word Forge</button>'+
+      '<button class="btn block" data-m="gym" style="margin-top:10px">🏋️ Spelling Gym</button>'+
+      '<button class="btn block" data-m="vocab" style="margin-top:10px">💎 Essay Vocab</button>'+
       '<button class="btn block" data-m="endless" style="margin-top:10px">∞ Endless practice</button>'+
       '<div class="row" style="justify-content:center;margin-top:22px">'+
         '<button class="btn ghost small" id="lite-full">Open full app →</button>'+
@@ -2815,6 +3152,7 @@ U.views.lite = function(){
   );
   U.$$('[data-m]', v).forEach(function(b){ b.addEventListener('click', function(){
     if(b.dataset.m==='gym') FCE.practice.spellingGym();
+    else if(b.dataset.m==='vocab') FCE.practice.vocabLab();
     else FCE.practice.start({mode:b.dataset.m==='endless'?'endless':'smart'});
   }); });
   U.$$('[data-t]', v).forEach(function(b){ b.addEventListener('click', function(){ FCE.practice.start({mode:'smart', type:b.dataset.t}); }); });
@@ -2855,10 +3193,15 @@ U.views.practice = function(){
         '<button class="btn primary" id="custom-go">Start ▸</button>'+
       '</div></div>'+
 
-    '<div class="grid g2">'+
-      '<div class="card"><h3>⚒ Word Forge</h3>'+
+    '<div class="grid g2" style="margin-bottom:18px">'+
+      '<div class="card"><h3>💎 Essay Vocab Lab</h3>'+
+        '<p class="muted" style="margin-bottom:12px">Upgrade flat words (<i>good, big, think…</i>) into band-boosting vocabulary inside real essay sentences. Leitner-spaced until you produce them from memory — your Writing paper will thank you.</p>'+
+        '<button class="btn primary" id="vocab-go">Enter the Lab ▸</button></div>'+
+      '<div class="card"><h3>🏋️ Spelling Gym</h3>'+
         '<p class="muted" style="margin-bottom:12px">Look-cover-write and letter-forging rounds built from <b>your own</b> misspellings plus Cambridge’s favourite trap words. You never see a wrong spelling — only the right one, burned in.</p>'+
-        '<button class="btn teal" id="gym-go">Enter the Forge ▸</button></div>'+
+        '<button class="btn teal" id="gym-go">Enter the Gym ▸</button></div>'+
+    '</div>'+
+    '<div class="grid g2">'+
       '<div class="card"><h3>🎯 Drill one skill</h3>'+
         '<p class="muted" style="margin-bottom:12px">Hammer a single weakness — conditionals, prepositions, passives…</p>'+
         '<div class="row wrap"><select id="drill-tag">'+tagOpts+'</select>'+
@@ -2884,6 +3227,7 @@ U.views.practice = function(){
     FCE.practice.start({mode:'smart', types:parts, n:+(nBtn?nBtn.dataset.n:10)});
   });
   U.$('#gym-go', v).addEventListener('click', function(){ FCE.practice.spellingGym(); });
+  U.$('#vocab-go', v).addEventListener('click', function(){ FCE.practice.vocabLab(); });
   U.$('#drill-go', v).addEventListener('click', function(){
     FCE.practice.start({mode:'smart', tag:U.$('#drill-tag', v).value});
   });
@@ -2970,6 +3314,26 @@ U.views.progress = function(arg){
     } else {
       html += '<div class="card"><div class="row">'+U.mascot('think',56)+'<div class="muted" style="flex:1">Answer ~8 more questions and I’ll show what your typing reveals: hesitation, abandoned right answers, hidden doubt…</div></div></div>';
     }
+    if(br && br.n >= 4){
+      html += '<div class="card" style="margin-bottom:16px"><h3>Everything the engine is recording about how you answer</h3>'+
+        '<div class="ins-note" style="margin-bottom:10px">Captured silently on every question, processed into the decisions above. Your data, in the open:</div>'+
+        '<div class="tele-grid">'+
+        [['answers instrumented', br.n],
+         ['avg. hesitation before acting', br.avgHesit.toFixed(1)+'s'],
+         ['avg. keystrokes per answer', br.avgKeys.toFixed(1)],
+         ['avg. active typing time', (br.avgTypeMs/1000).toFixed(1)+'s'],
+         ['rewrites (backspace cycles)', br.avgEdits.toFixed(1)+'/q'],
+         ['answers changed mid-question', br.changed],
+         ['right answers abandoned', br.changedRight],
+         ['successful self-corrections', br.selfCorrect],
+         ['hidden-doubt flags', br.hiddenHesit],
+         ['fluent “guesses” (you knew it)', br.fluentSure],
+         ['faster-than-exam answers', br.fastRight],
+         ['questions skipped & returned', br.skips]].map(function(row){
+          return '<div class="tele-cell"><div class="tv">'+row[1]+'</div><div class="tl">'+row[0]+'</div></div>';
+        }).join('')+
+        '</div></div>';
+    }
     html += '</div>';
     var anyCal = calib.some(function(r){ return r.att >= 4; });
     html += '<div class="card"><h3>When you rate your confidence, can it be trusted?</h3>';
@@ -2997,6 +3361,7 @@ U.views.progress = function(arg){
     var unseen = eng.heatmap().filter(function(h){ return !h.att; });
     var rep = eng.spellReport();
     var dna = eng.dna();
+    var posR = eng.posReport();
     html += '<div class="card" style="margin-bottom:16px"><h3>Open Cloze — the little words</h3>'+
       '<div class="ins-note" style="margin-bottom:12px">Part 2 gaps are almost always function words. This shows which kinds cost you marks (sorted by danger = your error rate × how often Cambridge uses that kind).</div>'+
       (heat.length ? '<div class="heat-grid">'+heat.map(function(h){
@@ -3008,6 +3373,12 @@ U.views.progress = function(arg){
       }).join('')+'</div>' : '<div class="muted">Answer some Open Cloze questions and this map lights up.</div>')+
       (unseen.length ? '<div class="tiny" style="margin-top:10px">Not yet tested: '+unseen.map(function(h){return h.name;}).join(' · ')+'</div>' : '')+
     '</div>'+
+    (posR.length ? '<div class="card" style="margin-bottom:16px"><h3>WHERE in the sentence you fall</h3>'+
+      '<div class="ins-note" style="margin-bottom:10px">The engine maps every Open Cloze gap by its position and neighbours. High bars = positions that beat you — and sessions are already serving more gaps exactly there.</div>'+
+      posR.slice(0,6).map(function(p){
+        var pct = Math.round(p.err*100);
+        return '<div class="dna-bar"><span style="text-transform:capitalize">'+U.esc(p.name)+'</span><div class="bar thin"><i class="'+(p.err>0.5?'bad':p.err>0.3?'warn':'ok')+'" style="width:'+pct+'%"></i></div><b>'+pct+'%</b></div>';
+      }).join('')+'</div>' : '')+
     '<div class="grid g2">'+
       '<div class="card"><h3>Spelling fingerprint</h3>'+
         (rep.total ? rep.patterns.slice(0,4).map(function(p2){
@@ -3015,7 +3386,7 @@ U.views.progress = function(arg){
             return '<div class="dna-bar"><span>'+(names[p2.id]||p2.id)+'</span><div class="bar thin"><i class="warn" style="width:'+Math.round(100*p2.n/rep.total)+'%"></i></div><b>'+p2.n+'</b></div>';
           }).join('')+
           (rep.words.length?'<div class="ins-note">Words that beat you: '+rep.words.slice(0,5).map(function(w){return '<b>'+U.esc(w.w)+'</b>';}).join(', ')+'. The Gym serves these first.</div>':'')+
-          '<button class="btn teal small" id="pg-gym" style="margin-top:10px">⚒ Forge them now</button>'
+          '<button class="btn teal small" id="pg-gym" style="margin-top:10px">🏋️ Train them now</button>'
         : '<div class="muted">No spelling slips recorded yet. When they happen, the engine classifies the <i>kind</i> of slip and builds your antidote here.</div>')+
       '</div>'+
       '<div class="card"><h3>Why you miss things</h3>'+
@@ -3045,9 +3416,32 @@ U.views.coach = function(){
   var plan = eng.emergencyPlan();
   var wants = Object.keys(st.wants).filter(function(id){ return eng.byId[id]; });
   var leeches = eng.leeches().slice(0,6);
+  // today's plan: three concrete actions computed from live state
+  var plan3 = [];
+  var due = eng.dueItems().length;
+  if(due >= 3) plan3.push({t:'Clear your '+due+' due reviews', d:'Memory is timing. These are scheduled at the edge of forgetting — do them first.', act:'smart'});
+  if(recs[0]) plan3.push({t:'Drill '+recs[0].name, d:'Your most expensive weakness right now (≈'+(Math.round(recs[0].cost*2)/2).toFixed(1)+' marks at stake).', act:'drill', tag:recs[0].tag});
+  var spRep = eng.spellReport();
+  if(spRep.total >= 3) plan3.push({t:'One Spelling Gym round', d:spRep.total+' spelling slips logged — each one is a silent mark lost in Parts 2–3.', act:'gym'});
+  var lastMock = st.mocks.length ? (Date.now()-st.mocks[st.mocks.length-1].t)/86400000 : 99;
+  if(plan3.length < 3 && lastMock > 4) plan3.push({t:'Sit a mock test', d:st.mocks.length?'Your last full paper was '+Math.round(lastMock)+' days ago — the predictor needs fresh exam-condition data.':'No mock yet — one full paper massively sharpens your prediction.', act:'mock'});
+  if(plan3.length < 3) plan3.push({t:'10 minutes of Essay Vocab', d:'Writing-paper vocabulary compounds: a few upgraded words per essay lift the band.', act:'vocab'});
+  plan3 = plan3.slice(0,3);
   var v = el(
     '<div class="h-page">Coach</div>'+
     '<p class="sub">One question, answered continuously: <i>what is the next most valuable thing you can do?</i> Ranked by real exam weight × your risk of missing it.</p>'+
+    '<h3 class="sec-label">Today, in order</h3>'+
+    '<div class="stack" style="margin-bottom:20px">'+
+      plan3.map(function(p,i){
+        return '<div class="coach-item"><div class="coach-rank">'+(i+1)+'</div>'+
+          '<div style="flex:1;min-width:0"><div class="t">'+U.esc(p.t)+'</div><div class="d">'+U.esc(p.d)+'</div></div>'+
+          '<button class="btn small primary" data-plan="'+p.act+'"'+(p.tag?' data-tag="'+p.tag+'"':'')+'>Go ▸</button></div>';
+      }).join('')+
+    '</div>'+
+    '<div class="card" style="margin-bottom:20px"><h3>🔎 Tell the engine what to feed you</h3>'+
+      '<p class="muted" style="margin-bottom:10px">Type anything you want to master — <i>had better</i>, <i>provided that</i>, <i>inversions</i>, <i>put up with</i> — and sessions will start serving it heavily.</p>'+
+      '<input class="ans-input slim" id="focus-q" placeholder="Search structures, phrases, skills…" autocomplete="off">'+
+      '<div id="focus-res" class="stack" style="margin-top:10px"></div></div>'+
 
     '<h3 class="sec-label">Next three wins</h3>'+
     '<div class="stack" style="margin-bottom:20px">'+
@@ -3101,6 +3495,31 @@ U.views.coach = function(){
   });
   U.$$('[data-drill]', v).forEach(function(b){ b.addEventListener('click', function(){ FCE.practice.start({mode:'smart', tag:b.dataset.drill}); }); });
   U.$$('[data-retest]', v).forEach(function(b){ b.addEventListener('click', function(){ FCE.practice.start({mode:'ids', ids:[b.dataset.retest]}); }); });
+  U.$$('[data-plan]', v).forEach(function(b){
+    b.addEventListener('click', function(){
+      var a = b.dataset.plan;
+      if(a==='smart') FCE.practice.start({mode:'smart'});
+      else if(a==='drill') FCE.practice.start({mode:'smart', tag:b.dataset.tag});
+      else if(a==='gym') FCE.practice.spellingGym();
+      else if(a==='vocab') FCE.practice.vocabLab();
+      else if(a==='mock') U.go('mock');
+    });
+  });
+  var fq = U.$('#focus-q', v), fr = U.$('#focus-res', v);
+  fq.addEventListener('input', function(){
+    var res = eng.searchLearnables(fq.value);
+    fr.innerHTML = res.map(function(r,i){
+      return '<div class="focus-hit"><div style="flex:1;min-width:0"><b>'+r.label+'</b><div class="tiny">'+r.sub+'</div></div>'+
+        '<button class="btn small teal" data-fi="'+i+'">+ Feed me this</button></div>';
+    }).join('') || (fq.value.length>=2 ? '<div class="tiny">Nothing matched — try another word of the phrase.</div>' : '');
+    U.$$('[data-fi]', fr).forEach(function(b){
+      b.addEventListener('click', function(){
+        eng.focusAdd(res[+b.dataset.fi]);
+        b.disabled = true; b.textContent = '✓ Coming up';
+        U.toast('🎯 Locked in. Expect <b>'+res[+b.dataset.fi].label+'</b> all over your next sessions.');
+      });
+    });
+  });
   return v;
 };
 
@@ -3112,7 +3531,10 @@ U.views.book = function(){
   var v = el(
     '<div class="row between wrap" style="margin-bottom:4px"><div class="h-page">Your Grammar Book</div>'+
     '<button class="btn small" onclick="window.print()">🖨 Print / PDF</button></div>'+
-    '<p class="sub">A book that writes itself from your mistakes. Each chapter exists because <i>you</i> needed it; the worst offenders sit on top. Read it the night before the exam.</p>'+
+    '<p class="sub">Your personal grammar reference, <b>written automatically by your own mistakes</b>.</p>'+
+    '<div class="card" style="margin-bottom:16px"><div class="row" style="align-items:flex-start;gap:14px"><div style="font-size:26px">📖</div><div>'+
+    '<b>How this works:</b> <span class="muted">every time you miss a question, the rule behind it becomes a chapter here — with the official explanation, quick tips, and <i>your actual wrong answers</i> next to the correct ones. Chapters are ordered by how many marks they’re costing you. Skim the top three before every session; print the whole thing the night before the exam.</span>'+
+    '</div></div></div>'+
     (chapters.length ? chapters.map(function(c,i){
       return '<div class="gb-chapter'+(i===0?' open':'')+'">'+
         '<div class="gb-head"><div class="num">'+(i+1)+'</div>'+
@@ -3134,7 +3556,7 @@ U.views.book = function(){
           '<button class="btn small teal" data-drill="'+c.tag+'" style="margin-top:12px">Drill this chapter ▸</button>'+
         '</div></div>';
     }).join('')
-    : '<div class="card session-done">'+U.mascot('rest',80)+'<h2 class="serif" style="margin:12px 0 6px;font-size:24px">Blank, for now</h2><p class="muted">Every mistake you make writes a page here. By exam week this is your single most valuable document.</p><button class="btn primary" style="margin-top:14px" id="bk-go">Go make some mistakes ▸</button></div>')
+    : '<div class="card session-done"><div class="emoji">📖</div><h2 class="serif" style="margin:12px 0 6px;font-size:24px">Blank, for now</h2><p class="muted">Every mistake you make writes a page here. By exam week this is your single most valuable document.</p><button class="btn primary" style="margin-top:14px" id="bk-go">Go make some mistakes ▸</button></div>')
   );
   U.$$('.gb-head', v).forEach(function(h){
     h.addEventListener('click', function(){ h.parentElement.classList.toggle('open'); });
@@ -3257,7 +3679,7 @@ var TYPE_LABEL = {kwt:'Part 4 · Transformation', cloze:'Part 2 · Open Cloze', 
 
 /* ---------- behaviour tracker ---------- */
 function Tracker(t0){
-  return { t0:t0, ttfk:0, edits:0, pauses:0, switches:0, lastInput:0,
+  return { t0:t0, ttfk:0, edits:0, pauses:0, switches:0, lastInput:0, firstInput:0, keys:0,
            firstGuess:'', firstOpt:-1, settled:false, settleTimer:null, maxLen:0,
            skipped:false, pausedMs:0 };
 }
@@ -3265,10 +3687,12 @@ function trackInput(tr, inp){
   inp.addEventListener('keydown', function(ev){
     var now = Date.now();
     if(!tr.ttfk) tr.ttfk = now - tr.t0 - tr.pausedMs;
+    if(ev.key && ev.key.length === 1) tr.keys++;
     if(ev.key === 'Backspace' || ev.key === 'Delete') tr.edits++;
   });
   inp.addEventListener('input', function(){
     var now = Date.now();
+    if(!tr.firstInput) tr.firstInput = now;
     if(tr.lastInput && now - tr.lastInput > 2000) tr.pauses++;
     tr.lastInput = now;
     if(inp.value.length > tr.maxLen) tr.maxLen = inp.value.length;
@@ -3288,6 +3712,7 @@ function finishTracker(tr, finalVal){
 function behFromTracker(tr, finalVal, firstRight){
   var changed = tr.firstGuess && E().norm(tr.firstGuess) !== E().norm(finalVal||'');
   return { ttfk:tr.ttfk, edits:tr.edits, pauses:tr.pauses, switches:tr.switches,
+           keys:tr.keys, typeMs: tr.firstInput ? Math.max(0, tr.lastInput - tr.firstInput) : 0,
            changed:!!changed, firstGuess: changed ? tr.firstGuess.slice(0,60) : '',
            firstRight:!!firstRight, skipped:tr.skipped };
 }
@@ -3475,7 +3900,7 @@ function pauseOverlay(tr){
   var m = document.createElement('div');
   m.className = 'modal-back';
   m.innerHTML = '<div class="modal" style="text-align:center;max-width:380px">'+
-    FCE.ui.mascot('rest', 84)+
+    '<div class="emoji" style="font-size:44px">⏸</div>'+
     '<h2 class="serif" style="font-size:24px;margin:14px 0 6px">Paused</h2>'+
     '<p class="muted" style="margin-bottom:18px">The clock has stopped. Breathe, stretch, come back sharp.</p>'+
     '<button class="btn primary block" id="pz-go">Resume ▸</button></div>';
@@ -3556,7 +3981,6 @@ function grade(v, it, gaveUp){
 
   var ansText = it.type==='mcc' ? q.opts[q.cor] : q.ans.join('  ·  ');
   var pattern = eng.patternFor(it.type==='mcc' ? q.opts[q.cor] : q.ans[0]);
-  var tip = eng.tipFor(q);
 
   var behNote = '';
   if(beh.changed && beh.firstRight && !ok){
@@ -3586,7 +4010,6 @@ function grade(v, it, gaveUp){
       (diag && diag.msg ? '<div class="fb-diag">'+u.esc(diag.msg)+'</div>' : '')+
       '<div class="fb-exp">'+u.esc(q.exp||'')+'</div>'+
       (q.trap ? '<div class="fb-trap">⚠️ <b>The trap:</b> '+u.esc(q.trap)+'</div>' : '')+
-      (tip ? '<div class="fb-hook">💡 <b>Keep:</b> '+u.esc(tip)+'</div>' : '')+
       (behNote ? '<div class="fb-beh">'+behNote+'</div>' : '')+
       '<div class="row wrap" style="margin-top:14px;gap:8px">'+
         '<button class="btn small teal" id="fb-want">🎯 I want to master this</button>'+
@@ -3700,7 +4123,7 @@ function summaryView(){
   var v = u.el(
     '<div class="q-shell"><div class="q-card session-done" style="position:relative;overflow:hidden">'+
       '<div id="confetti-zone"></div>'+
-      FCE.ui.mascot(acc>=0.7?'happy':'normal', 92)+
+      '<div class="emoji">'+(acc>=0.8?'🏆':acc>=0.5?'💪':'🧗')+'</div>'+
       '<h2 class="serif" style="margin:12px 0 4px;font-size:28px">'+(S.mode==='diagnostic'?'Diagnostic complete':'Session complete')+'</h2>'+
       '<p class="muted" style="max-width:430px;margin:0 auto">'+msg+'</p>'+
       '<div class="ring-stats">'+
@@ -3724,14 +4147,15 @@ function summaryView(){
   return v;
 }
 
-/* ============================ WORD FORGE ============================
-   Spelling, rebuilt on memory science. A wrong spelling is NEVER displayed.
-   Mode A — Memorize: look · cover · write · check (the classic LSCWC method).
-   Mode B — Unscramble: rebuild the word from letter tiles (orthographic chunking). */
+/* ============================ SPELLING GYM ============================
+   Rebuilt on the formats real spelling trainers use:
+   · LETTERS — the word's skeleton with the danger letters missing + a definition clue
+   · FLASH   — look·cover·write: the word flashes, then you rebuild it from the definition
+   A wrong spelling is never shown; the clue never contains the word. */
 var G = null;
 P.spellingGym = function(){
   var eng = E();
-  G = {set: eng.spellingSet(8), idx:0, ok:0, t0:Date.now(), graded:false, phase:'show'};
+  G = {set: eng.spellingSet(8), idx:0, ok:0, t0:Date.now(), graded:false, missed:[]};
   renderGym();
 };
 function renderGym(){
@@ -3740,62 +4164,79 @@ function renderGym(){
   host.appendChild(G.idx >= G.set.length ? gymDone() : gymQ());
   window.scrollTo(0,0);
 }
-function scramble(w){
-  var a = w.split(''), out = w, guard = 0;
-  while(out === w && guard++ < 12){
-    for(var i = a.length-1; i > 0; i--){
-      var j = Math.floor(Math.random()*(i+1)), t = a[i]; a[i] = a[j]; a[j] = t;
-    }
-    out = a.join('');
+/* choose which letters to hide: where students actually go wrong */
+function holePositions(item){
+  var w = item.w, holes = {};
+  var bad = (item.bad && item.bad[0]) || '';
+  if(bad.length === w.length){
+    for(var i=0;i<w.length;i++) if(w[i] !== bad[i]) holes[i] = 1;
   }
-  return out;
+  // add doubled letters and unstressed vowels until we have enough
+  var want = Math.max(2, Math.min(5, Math.floor(w.length/3)+1));
+  for(var j=1;j<w.length && Object.keys(holes).length<want;j++){
+    if(w[j] === w[j-1]){ holes[j]=1; }
+  }
+  for(var k=1;k<w.length-1 && Object.keys(holes).length<want;k++){
+    if('aeiou'.indexOf(w[k])!==-1 && !holes[k]) holes[k]=1;
+  }
+  delete holes[0]; // first letter always visible
+  if(!Object.keys(holes).length) holes[Math.max(1,Math.floor(w.length/2))]=1;
+  return holes;
+}
+function boxesHTML(word, holes){
+  var u = U();
+  return '<div class="letterboxes">'+word.split('').map(function(ch,i){
+    return '<span class="lbox'+(holes && holes[i] ? ' hole' : '')+'">'+(holes && holes[i] ? '' : u.esc(ch))+'</span>';
+  }).join('')+'</div>';
 }
 function gymQ(){
   var u = U(), eng = E();
   var item = G.set[G.idx];
   G.graded = false;
-  var memorize = G.idx % 2 === 0; // alternate modes
+  var flash = G.idx % 2 === 1; // letters first, flash second
+  var defHTML = '<div class="gym-def"><span class="pos">'+u.esc(item.def.split('·')[0].trim())+'</span>'+
+                u.esc(item.def.split('·').slice(1).join('·').trim())+'</div>';
   var stage;
-  if(memorize){
-    stage = '<p class="muted" style="margin-bottom:4px">Photograph it. It disappears in 3 seconds…</p>'+
-      '<div class="forge-word" id="f-word">'+u.esc(item.w)+'</div>'+
-      '<div class="forge-ring">'+FCE.charts.ring(1, '', '', '#F2C94C')+'</div>';
+  if(flash){
+    stage = '<div class="gym-count" id="g-count">memorize · 3</div>'+
+            '<div class="gym-flash" id="g-flash">'+u.esc(item.w)+'</div>';
   } else {
-    stage = '<p class="muted" style="margin-bottom:10px">Rebuild the word from its letters:</p>'+
-      '<div class="tile-row">'+scramble(item.w).split('').map(function(ch){
-        return '<span class="tile">'+u.esc(ch)+'</span>';
-      }).join('')+'</div>'+
-      '<div class="forge-cue" style="font-size:13.5px;color:var(--tx2);margin-top:10px">'+u.esc(item.cue)+'</div>';
+    stage = defHTML + boxesHTML(item.w, holePositions(item)) +
+            '<div class="gym-count">fill the missing letters — type the whole word</div>';
   }
   var v = u.el(
     '<div class="q-shell">'+
       '<div class="q-top">'+
         '<button class="btn small ghost" id="g-quit">✕ End</button>'+
-        '<div class="q-progress"><div class="bar"><i class="gold" style="width:'+Math.round(100*G.idx/G.set.length)+'%"></i></div></div>'+
+        '<div class="q-progress"><div class="bar"><i class="warn" style="width:'+Math.round(100*G.idx/G.set.length)+'%"></i></div></div>'+
         '<span class="tiny mono">'+(G.idx+1)+' / '+G.set.length+'</span>'+
-        (G.ok>=3?'<span class="chip gold combo-chip">⚒ ×'+G.ok+'</span>':'')+
+        (G.ok>=3?'<span class="chip gold combo-chip">🏋️ ×'+G.ok+'</span>':'')+
       '</div>'+
       '<div class="q-card" style="text-align:center">'+
-        '<div class="q-type" style="justify-content:center"><span class="chip gold">⚒ Word Forge · '+(memorize?'memorize':'unscramble')+'</span></div>'+
-        '<div class="forge-stage" id="f-stage">'+stage+'</div>'+
-        '<input class="ans-input" id="g-ans" style="text-align:center;max-width:360px;margin:14px auto 0;display:'+(memorize?'none':'block')+'" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="'+(memorize?'':'type the word…')+'">'+
-        '<div class="q-actions" style="justify-content:center"><button class="btn primary" id="g-check" style="display:'+(memorize?'none':'inline-flex')+'">Check</button></div>'+
+        '<div class="q-type" style="justify-content:center"><span class="chip gold">🏋️ Spelling Gym · '+(flash?'flash round':'missing letters')+'</span></div>'+
+        '<div class="gym-stage" id="g-stage">'+stage+'</div>'+
+        '<input class="ans-input" id="g-ans" style="text-align:center;max-width:380px;margin:14px auto 0;display:'+(flash?'none':'block')+'" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="type the word…">'+
+        '<div class="q-actions" style="justify-content:center"><button class="btn primary" id="g-check" disabled style="display:'+(flash?'none':'inline-flex')+'">Check</button></div>'+
         '<div id="g-fb"></div>'+
       '</div>'+
     '</div>'
   );
   var inp = u.$('#g-ans', v);
-  if(memorize){
-    // look (3s) -> cover -> write
-    setTimeout(function(){
-      if(!document.body.contains(v) || G.graded) return;
-      var stageEl = u.$('#f-stage', v);
-      stageEl.innerHTML = '<p class="muted" style="margin-bottom:6px">Now write it from memory:</p>'+
-        '<div class="forge-cue">'+u.esc(item.cue)+'</div>';
+  var checkBtn = u.$('#g-check', v);
+  inp.addEventListener('input', function(){ checkBtn.disabled = !inp.value.trim(); });
+  if(flash){
+    var left = 3;
+    var cd = setInterval(function(){
+      if(!document.body.contains(v) || G.graded){ clearInterval(cd); return; }
+      left--;
+      var ce = u.$('#g-count', v);
+      if(left > 0){ if(ce) ce.textContent = 'memorize · '+left; return; }
+      clearInterval(cd);
+      u.$('#g-stage', v).innerHTML = defHTML + '<div class="gym-count">now write it from memory</div>';
       inp.style.display = 'block';
-      u.$('#g-check', v).style.display = 'inline-flex';
+      checkBtn.style.display = 'inline-flex';
       inp.focus();
-    }, 3000);
+    }, 1000);
   } else {
     setTimeout(function(){ inp.focus(); }, 150);
   }
@@ -3803,20 +4244,25 @@ function gymQ(){
     if(G.graded || !inp.value.trim()) return;
     G.graded = true;
     var ok = eng.norm(inp.value) === item.w;
-    if(ok) G.ok++;
+    if(ok) G.ok++; else G.missed.push(item.w);
     eng.recordSpell(item.w, ok);
     inp.disabled = true;
+    checkBtn.style.display = 'none';                  // no dead button after checking
     var fbEl = u.$('#g-fb', v);
     fbEl.innerHTML = '<div class="feedback '+(ok?'ok':'bad')+'" style="text-align:left">'+
-      (ok ? '<div class="fb-head">✓ Forged. <span class="chip gold" style="margin-left:auto">+6 XP</span></div>'
-          : '<div class="fb-head">Not yet —</div><div class="big-answer">'+u.esc(item.w)+'</div>')+
+      (ok ? '<div class="fb-head">✓ Nailed it <span class="chip gold" style="margin-left:auto">+6 XP</span></div>'+
+            '<div style="margin:6px 0">'+boxesHTML(item.w, null)+'</div>'
+          : '<div class="fb-head">Not this time</div>'+
+            '<div class="big-answer" style="text-align:center">'+u.esc(item.w)+'</div>'+
+            '<div style="margin:6px 0">'+boxesHTML(item.w, null)+'</div>'+
+            '<div class="fb-exp">Trace it once with your eyes — it will come back later in the round queue.</div>')+
       '<div class="fb-hook">🔑 '+u.esc(item.cue)+'</div>'+
-      (!ok ? '<div class="fb-exp">Trace it with your eyes, then it returns later in the round of life — spaced until it sticks.</div>' : '')+
-      '<div class="q-actions"><button class="btn primary" id="g-next">'+(G.idx+1>=G.set.length?'See results':'Next')+' →</button></div></div>';
+      '<div class="q-actions"><button class="btn primary" id="g-next">'+(G.idx+1>=G.set.length?'See results':'Next word')+' →</button></div></div>';
     u.$('#g-next', v).addEventListener('click', function(){ G.idx++; renderGym(); });
+    u.$('#g-next', v).focus();
     if(FCE.app && FCE.app.buildTopbar) FCE.app.buildTopbar();
   }
-  u.$('#g-check', v).addEventListener('click', check);
+  checkBtn.addEventListener('click', check);
   u.$('#g-quit', v).addEventListener('click', function(){ setKeys(null); FCE.ui.go('practice'); });
   setKeys(function(ev){
     if(ev.key !== 'Enter') return;
@@ -3834,9 +4280,10 @@ function gymDone(){
   var rep = eng.spellReport();
   var v = u.el(
     '<div class="q-shell"><div class="q-card session-done">'+
-      FCE.ui.mascot(G.ok>=6?'happy':'normal', 92)+
-      '<h2 class="serif" style="margin:12px 0 4px;font-size:27px">'+G.ok+' / '+G.set.length+' forged clean</h2>'+
-      '<p class="muted">'+(G.ok===G.set.length?'Flawless. Cambridge cannot touch your spelling today.':'Missed words return next round — spaced, until they stick.')+'</p>'+
+      '<div class="emoji">'+(G.ok>=7?'🏆':G.ok>=5?'💪':'🏋️')+'</div>'+
+      '<h2 class="serif" style="margin:12px 0 4px;font-size:27px">'+G.ok+' / '+G.set.length+' spelled clean</h2>'+
+      '<p class="muted">'+(G.ok===G.set.length?'Flawless. Cambridge cannot touch your spelling today.':'Missed words come back in future rounds — spaced, until they stick.')+'</p>'+
+      (G.missed.length ? '<div class="row wrap" style="justify-content:center;margin-top:10px">'+G.missed.map(function(w){ return '<span class="chip bad">'+u.esc(w)+'</span>'; }).join('')+'</div>' : '')+
       (rep.patterns.length ? '<div class="card" style="text-align:left;margin:20px auto;max-width:430px"><h3>Your spelling fingerprint</h3>'+
         rep.patterns.slice(0,3).map(function(p2){
           var names = {double:'double letters', ie:'ie/ei order', tion:'-tion vs -sion', vowel:'weak vowels', silente:'dropped letters', other:'letter order'};
@@ -3853,6 +4300,128 @@ function gymDone(){
   setKeys(function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); setKeys(null); P.spellingGym(); } });
   return v;
 }
+/* ============================ ESSAY VOCAB LAB ============================
+   Upgrade flat words into band-boosting vocabulary inside real essay frames.
+   New words: recognise among 4. Known words: full typed recall. Leitner-spaced. */
+var VB = null;
+P.vocabLab = function(){
+  var eng = E();
+  VB = {set: eng.vocabSet(8), idx:0, ok:0, graded:false};
+  if(!VB.set.length){ U().toast('Vocab Lab is fully mastered for now — come back when reviews are due.'); return; }
+  renderVocab();
+};
+function renderVocab(){
+  var u = U(), host = u.$('#view');
+  host.innerHTML = '';
+  host.appendChild(VB.idx >= VB.set.length ? vocabDone() : vocabQ());
+  window.scrollTo(0,0);
+}
+function vocabQ(){
+  var u = U(), eng = E();
+  var item = VB.set[VB.idx];
+  VB.graded = false;
+  var st = eng.state.vocab[item.up[0]];
+  var typed = st && st.box >= 1; // known words must be produced, not recognised
+  var opts = [];
+  if(!typed){
+    opts = [item.up[0]];
+    var pool = FCE.VOCAB.filter(function(o){ return o !== item; });
+    while(opts.length < 4 && pool.length){
+      var pick = pool.splice(Math.floor(Math.random()*pool.length),1)[0].up[0];
+      if(opts.indexOf(pick) === -1) opts.push(pick);
+    }
+    opts.sort(function(){ return Math.random()-0.5; });
+  }
+  var v = u.el(
+    '<div class="q-shell">'+
+      '<div class="q-top">'+
+        '<button class="btn small ghost" id="vb-quit">✕ End</button>'+
+        '<div class="q-progress"><div class="bar"><i style="width:'+Math.round(100*VB.idx/VB.set.length)+'%"></i></div></div>'+
+        '<span class="tiny mono">'+(VB.idx+1)+' / '+VB.set.length+'</span>'+
+        (VB.ok>=3?'<span class="chip gold combo-chip">💎 ×'+VB.ok+'</span>':'')+
+      '</div>'+
+      '<div class="q-card">'+
+        '<div class="q-type"><span class="chip acc">💎 Essay Vocab Lab · '+(typed?'recall':'recognise')+'</span>'+
+        '<span class="grow"></span><span class="tiny">writing-paper vocabulary</span></div>'+
+        '<div class="vb-basic">upgrade: <b>'+u.esc(item.basic)+'</b></div>'+
+        '<div class="q-text">'+u.esc(item.s).replace(/____+/g,'<span class="gap">&nbsp;?&nbsp;</span>')+'</div>'+
+        (typed
+          ? '<input class="ans-input" id="vb-ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="The stronger word…">'
+          : '<div class="opts">'+opts.map(function(o,i){
+              return '<button class="opt" data-w="'+u.esc(o)+'"><span class="letter">'+String.fromCharCode(65+i)+'</span><span>'+u.esc(o)+'</span></button>';
+            }).join('')+'</div>')+
+        '<div class="q-actions">'+(typed?'<button class="btn primary" id="vb-check" disabled>Check</button>':'')+'</div>'+
+        '<div id="vb-fb"></div>'+
+      '</div>'+
+    '</div>'
+  );
+  function feedback(ok, chosen){
+    VB.graded = true;
+    if(ok) VB.ok++;
+    eng.recordVocab(item, ok);
+    if(FCE.app && FCE.app.buildTopbar) FCE.app.buildTopbar();
+    u.$('#vb-fb', v).innerHTML = '<div class="feedback '+(ok?'ok':'bad')+'">'+
+      (ok ? '<div class="fb-head">✓ '+u.esc(item.up[0])+'</div>'
+          : '<div class="fb-head">Not quite</div><div class="big-answer">'+u.esc(item.up.join('  ·  '))+'</div>')+
+      '<div class="fb-exp">'+u.esc(item.s.replace(/____+/g, item.up[0]))+'</div>'+
+      '<div class="fb-hook">✍️ <b>Examiner note:</b> '+u.esc(item.why)+(item.up.length>1?' Also accepted: <i>'+u.esc(item.up.slice(1).join(', '))+'</i>.':'')+'</div>'+
+      '<div class="q-actions"><button class="btn primary" id="vb-next">'+(VB.idx+1>=VB.set.length?'See results':'Next')+' →</button></div></div>';
+    u.$('#vb-next', v).addEventListener('click', function(){ VB.idx++; renderVocab(); });
+    u.$('#vb-next', v).focus();
+  }
+  if(typed){
+    var inp = u.$('#vb-ans', v), btn = u.$('#vb-check', v);
+    inp.addEventListener('input', function(){ btn.disabled = !inp.value.trim(); });
+    btn.addEventListener('click', function(){ if(!VB.graded && inp.value.trim()){ inp.disabled = true; btn.style.display='none'; feedback(eng.gradeVocab(item, inp.value), inp.value); } });
+    setTimeout(function(){ inp.focus(); }, 140);
+    setKeys(function(ev){
+      if(ev.key !== 'Enter') return;
+      ev.preventDefault();
+      if(VB.graded){ var nb = u.$('#vb-next'); if(nb) nb.click(); }
+      else if(inp.value.trim()){ inp.disabled = true; btn.style.display='none'; feedback(eng.gradeVocab(item, inp.value), inp.value); }
+    });
+  } else {
+    u.$$('.opt', v).forEach(function(b){
+      b.addEventListener('click', function(){
+        if(VB.graded) return;
+        var w = b.dataset.w;
+        var ok = eng.norm(w) === eng.norm(item.up[0]);
+        u.$$('.opt', v).forEach(function(x){
+          if(eng.norm(x.dataset.w) === eng.norm(item.up[0])) x.classList.add('right');
+          else if(x === b) x.classList.add('wrong');
+          x.disabled = true;
+        });
+        feedback(ok, w);
+      });
+    });
+    setKeys(function(ev){
+      if(ev.key === 'Enter' && VB.graded){ ev.preventDefault(); var nb = u.$('#vb-next'); if(nb) nb.click(); }
+    });
+  }
+  u.$('#vb-quit', v).addEventListener('click', function(){ setKeys(null); FCE.ui.go('practice'); });
+  return v;
+}
+function vocabDone(){
+  var u = U(), eng = E();
+  setKeys(null);
+  var vs = eng.vocabStats();
+  var v = u.el(
+    '<div class="q-shell"><div class="q-card session-done">'+
+      '<div class="emoji">'+(VB.ok>=7?'💎':VB.ok>=5?'✨':'📚')+'</div>'+
+      '<h2 class="serif" style="margin:12px 0 4px;font-size:27px">'+VB.ok+' / '+VB.set.length+' upgraded</h2>'+
+      '<p class="muted">Essay arsenal: <b>'+vs.mastered+'</b> words mastered · '+vs.learning+' in training · '+vs.total+' total. Words you produce from memory twice move into long-term rotation.</p>'+
+      '<div class="row" style="justify-content:center;flex-wrap:wrap;margin-top:14px">'+
+        '<button class="btn primary" id="vb-again">Another round ▸</button>'+
+        '<button class="btn" id="vb-home">Home</button>'+
+      '</div>'+
+    '</div></div>'
+  );
+  u.$('#vb-again', v).addEventListener('click', function(){ P.vocabLab(); });
+  u.$('#vb-home', v).addEventListener('click', function(){ FCE.ui.go('dash'); });
+  setKeys(function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); setKeys(null); P.vocabLab(); } });
+  return v;
+}
+
 /* ============================ MOCK TEST ============================ */
 var M = null;
 P.mock = function(){
@@ -3875,7 +4444,7 @@ function mockView(){
         inner = '<select data-part="p1" data-n="'+g.n+'"><option value="-1">— '+g.n+' —</option>'+
           g.opts.map(function(o,i){ return '<option value="'+i+'">'+String.fromCharCode(65+i)+'. '+u.esc(o)+'</option>'; }).join('')+'</select>';
       } else if(mode==='p3'){
-        inner = '<span class="pgap"><span class="n">'+g.n+'</span><input data-part="p3" data-n="'+g.n+'" autocomplete="off" spellcheck="false" placeholder="'+u.esc(g.stem)+'"></span>';
+        inner = '<span class="pgap"><span class="n">'+g.n+'</span><span class="stem-chip">'+u.esc(g.stem)+'</span><input data-part="p3" data-n="'+g.n+'" class="p3in" autocomplete="off" spellcheck="false"></span>';
       } else {
         inner = '<span class="pgap"><span class="n">'+g.n+'</span><input data-part="p2" data-n="'+g.n+'" autocomplete="off" spellcheck="false"></span>';
       }
@@ -3960,7 +4529,7 @@ function gradeMock(v){
   host.innerHTML = '';
   host.appendChild(u.el(
     '<div class="q-shell"><div class="q-card session-done">'+
-      FCE.ui.mascot(score>=27?'happy':'normal', 88)+
+      '<div class="emoji">'+(score>=30?'🏆':score>=22?'🎯':'🧗')+'</div>'+
       '<div class="mock-result-score">'+score+'<span style="font-size:26px;color:var(--ink3)"> / 36</span></div>'+
       '<p class="muted" style="margin-top:6px">≈ Cambridge scale <b>'+scale+'</b> · '+(scale>=180?'Grade A':scale>=173?'Grade B':scale>=160?'Grade C — pass':'below pass')+' on this paper</p>'+
       '<div class="mr-grid">'+
@@ -4048,7 +4617,7 @@ A.buildTopbar = function(){
   if(!tb) return;
   var eng = FCE.engine, st = eng.state;
   tb.innerHTML =
-    '<div class="tb-logo">'+FCE.ui.logoSVG(34)+FCE.ui.wordmark()+'</div>'+
+    '<div class="tb-logo">'+FCE.ui.wordmark()+'</div>'+
     '<div class="tb-spacer"></div>'+
     '<div class="tb-level"><span class="lvl">LVL '+eng.level()+'</span><div class="bar thin"><i class="shimmer" style="width:'+Math.round(eng.levelProgress()*100)+'%"></i></div><span class="lvl">'+st.xp+' XP</span></div>'+
     '<span class="tb-chip flame"><span class="fl">🔥</span>'+st.streak.count+'</span>';

@@ -93,7 +93,7 @@ const path = require('path');
   await page.click('.nav-btn[data-v="practice"]');
   await page.waitForSelector('#gym-go');
   await page.click('#gym-go');
-  await page.waitForSelector('#f-word, .tile-row');
+  await page.waitForSelector('.letterboxes, .gym-flash');
   await shot('14-forge-look');
   await page.waitForSelector('#g-ans', { state: 'visible', timeout: 8000 });
   await shot('14b-forge-write');
@@ -103,6 +103,15 @@ const path = require('path');
   await page.keyboard.press('Enter');
   await page.waitForTimeout(300);
   await page.click('#g-quit');
+
+  // essay vocab lab — one recognise round
+  await page.waitForSelector('#vocab-go');
+  await page.click('#vocab-go');
+  await page.waitForSelector('.vb-basic');
+  await shot('14c-vocab');
+  await page.click('.opt');
+  await page.waitForSelector('#vb-next');
+  await page.click('#vb-quit');
 
   // mock
   await page.click('.nav-btn[data-v="mock"]');
