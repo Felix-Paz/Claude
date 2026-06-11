@@ -2,9 +2,9 @@
 window.FCE = window.FCE || {};
 FCE.charts = (function(){
 var C = {};
-var T = { ink:'#20303a', sub:'#54646e', faint:'#8a958f', grid:'rgba(32,48,58,.10)',
-          teal:'#0e5e64', teal2:'#177e74', ok:'#2e7d5b', bad:'#b5474d', warn:'#b07c2e',
-          gold:'#c9a227', sage:'#7fa98c' };
+var T = { ink:'#EAF6F4', sub:'#A9CCC8', faint:'#6E9793', grid:'rgba(189,217,215,.14)',
+          teal:'#5FD3C0', teal2:'#8FBDB9', ok:'#5FD3A6', bad:'#FF6B5C', warn:'#D9A53A',
+          gold:'#F2C94C', sage:'#37B8A4' };
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 
 /* Semi-circular score gauge, Cambridge scale 122–190, with CI band */
@@ -129,7 +129,7 @@ C.ring = function(frac, label, sub, color){
   var R=34, CIRC=2*Math.PI*R;
   return '<div style="text-align:center">'+
     '<svg viewBox="0 0 84 84" style="width:84px;height:84px">'+
-    '<circle cx="42" cy="42" r="'+R+'" fill="none" stroke="rgba(32,48,58,.10)" stroke-width="7"/>'+
+    '<circle cx="42" cy="42" r="'+R+'" fill="none" stroke="rgba(189,217,215,.14)" stroke-width="7"/>'+
     '<circle cx="42" cy="42" r="'+R+'" fill="none" stroke="'+(color||T.teal)+'" stroke-width="7" stroke-linecap="round" '+
     'stroke-dasharray="'+CIRC.toFixed(1)+'" stroke-dashoffset="'+(CIRC*(1-frac)).toFixed(1)+'" transform="rotate(-90 42 42)" style="transition:stroke-dashoffset 1s cubic-bezier(.22,.9,.26,1)"/>'+
     '<text x="42" y="47" font-size="17" font-weight="700" fill="'+T.ink+'" text-anchor="middle" font-family="Iowan Old Style,Palatino,Georgia,serif">'+esc(label)+'</text>'+
@@ -137,22 +137,22 @@ C.ring = function(frac, label, sub, color){
     '<div class="tiny" style="margin-top:2px">'+esc(sub||'')+'</div></div>';
 };
 
-/* heat colors for error rate (light theme) */
+/* heat colors for error rate (deep-water theme) */
 C.heatColor = function(err){
-  if(err === null) return 'rgba(255,255,255,.45)';
-  if(err < 0.15) return 'rgba(46,125,91,.12)';
-  if(err < 0.3)  return 'rgba(127,169,140,.16)';
-  if(err < 0.45) return 'rgba(201,162,39,.14)';
-  if(err < 0.65) return 'rgba(176,124,46,.18)';
-  return 'rgba(181,71,77,.16)';
+  if(err === null) return 'rgba(189,217,215,.05)';
+  if(err < 0.15) return 'rgba(95,211,166,.12)';
+  if(err < 0.3)  return 'rgba(95,211,192,.10)';
+  if(err < 0.45) return 'rgba(242,201,76,.12)';
+  if(err < 0.65) return 'rgba(242,153,76,.14)';
+  return 'rgba(255,107,92,.16)';
 };
 C.heatBorder = function(err){
-  if(err === null) return 'rgba(255,255,255,.85)';
-  if(err < 0.15) return 'rgba(46,125,91,.35)';
-  if(err < 0.3)  return 'rgba(127,169,140,.45)';
-  if(err < 0.45) return 'rgba(201,162,39,.4)';
-  if(err < 0.65) return 'rgba(176,124,46,.45)';
-  return 'rgba(181,71,77,.45)';
+  if(err === null) return 'rgba(189,217,215,.16)';
+  if(err < 0.15) return 'rgba(95,211,166,.4)';
+  if(err < 0.3)  return 'rgba(95,211,192,.4)';
+  if(err < 0.45) return 'rgba(242,201,76,.4)';
+  if(err < 0.65) return 'rgba(242,153,76,.45)';
+  return 'rgba(255,107,92,.5)';
 };
 C.colors = T;
 return C;

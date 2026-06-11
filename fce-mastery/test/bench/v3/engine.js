@@ -189,34 +189,10 @@ E.recordTag = function(tag, ok, weight){
   t.att++; if(ok) t.cor++;
   var alpha = Math.min(0.5, Math.max(0.12, 1/(t.att)) * (weight||1));
   t.m = Math.max(0, Math.min(1, t.m + alpha*((ok?1:0) - t.m)));
-  // Bayesian track: Beta(a,b) posterior — gives the coach calibrated uncertainty
-  t.a = (t.a||1) + (weight||1)*(ok?1:0);
-  t.b = (t.b||1) + (weight||1)*(ok?0:1);
   if(!ok) t.lapses++;
   t.last = Date.now();
   t.hist.push(ok?1:0); if(t.hist.length>30) t.hist.shift();
 };
-/* Beta posterior with time-decay toward the prior (unused skills become uncertain again) */
-E.mBeta = function(tag){
-  var t = E.state.tags[tag];
-  if(!t || !t.att) return {mean:0.5, sd:0.29, n:0};
-  var days = (Date.now()-t.last)/DAY;
-  var f = Math.exp(-days/14);
-  var a = 1 + ((t.a||1)-1)*f, b = 1 + ((t.b||1)-1)*f;
-  var mean = a/(a+b);
-  var sd = Math.sqrt(a*b/((a+b)*(a+b)*(a+b+1)));
-  return {mean:mean, sd:sd, n:t.att};
-};
-var gaussSpare = null;
-function gauss(){
-  if(gaussSpare !== null){ var s = gaussSpare; gaussSpare = null; return s; }
-  var u = 0, v = 0;
-  while(u === 0) u = Math.random();
-  while(v === 0) v = Math.random();
-  var r = Math.sqrt(-2*Math.log(u));
-  gaussSpare = r*Math.sin(2*Math.PI*v);
-  return r*Math.cos(2*Math.PI*v);
-}
 E.mEff = function(tag){
   var t = E.state.tags[tag];
   if(!t || !t.att) return null;
@@ -347,7 +323,7 @@ E.record = function(q, type, ok, conf, ms, user, cause, opts){
   /* error generalization: a miss boosts the CONCEPT, so the idea returns in NEW exercises */
   if(!ok){
     (q.tags||[]).slice(0,2).forEach(function(t){
-      st.boost[t] = Math.min(9, (st.boost[t]||0) + (E.isWobbly(q.id) ? 4 : 3));
+      st.boost[t] = Math.min(8, (st.boost[t]||0) + (E.isWobbly(q.id) ? 3 : 2));
     });
   } else {
     // wants clearing: a wanted item answered correctly twice in a row clears
@@ -488,28 +464,10 @@ function toScale(p){
   }
   return 126;
 }
-/* Integrate ability over the item bank's real difficulty distribution (self-calibrating) */
-var diffHist = null;
-function bankDiffHist(){
-  if(diffHist) return diffHist;
-  diffHist = {kwt:{}, cloze:{}, wf:{}, mcc:{}};
-  var counts = {kwt:0, cloze:0, wf:0, mcc:0};
-  E.allItems().forEach(function(it){
-    var d = it.q.diff||3;
-    diffHist[it.type][d] = (diffHist[it.type][d]||0)+1;
-    counts[it.type]++;
-  });
-  Object.keys(diffHist).forEach(function(t){
-    Object.keys(diffHist[t]).forEach(function(d){ diffHist[t][d] /= counts[t]||1; });
-  });
-  return diffHist;
-}
 E.expectedAccuracy = function(){
-  var a = E.state.ability, acc = {}, H = bankDiffHist();
+  var a = E.state.ability, acc = {};
   ['kwt','cloze','wf','mcc'].forEach(function(t){
-    var s = 0, h = H[t];
-    Object.keys(h).forEach(function(d){ s += h[d]*E.pWin(a[t], 950 + (+d)*110); });
-    acc[t] = s || E.pWin(a[t], 950+3*110);
+    acc[t] = E.pWin(a[t], 950+2.8*110); // real exam sits slightly below our practice difficulty
   });
   return {p:(8*acc.mcc + 8*acc.cloze + 8*acc.wf + 12*acc.kwt)/36, per:acc};
 };
@@ -554,35 +512,24 @@ E.predict = function(){
 };
 
 /* ---------------- coach ---------------- */
-E.coach = function(sampled){
+E.coach = function(){
   var recs = [];
   Object.keys(FCE.TAGS).forEach(function(tag){
     var meta = FCE.TAGS[tag];
     var m = E.mEff(tag);
     var t = E.state.tags[tag];
-    var mb = E.mBeta(tag);
-    var why, seen = !!(t && t.att);
-    // risk: Bayesian. Selection THOMPSON-SAMPLES the posterior (smart exploration);
-    // the displayed coach is deterministic, and a CONFIRMED weakness must outrank a merely
-    // unexplored skill — so unseen risk is capped below evidence-backed risk.
-    var risk;
-    if(sampled){
-      risk = Math.max(0, Math.min(1, 1 - (mb.mean + mb.sd*gauss())));
-    } else if(!seen){
-      risk = 0.46;
-    } else {
-      risk = Math.max(0, Math.min(1, (1 - mb.mean) + 0.22*mb.sd));
-    }
-    if(!seen){ why = 'Not tested yet — unknown territory is risk.'; }
+    var risk, why, seen = !!(t && t.att);
+    if(!seen){ risk = 0.45; why = 'Not tested yet — unknown territory is risk.'; }
     else{
+      risk = 1 - m;
       var days = (Date.now()-t.last)/DAY;
       if(days > 3 && t.m > 0.6){ risk += 0.12; why = 'Was solid, but untouched for '+Math.round(days)+' days — forgetting has started.'; }
       else if(t.lapses >= 4 && risk > 0.35){ why = 'A stubborn weakness ('+t.lapses+' misses so far).'; }
       else if(risk > 0.5){ why = Math.round((t.cor/t.att)*100)+'% over '+t.att+' tries — below exam-safe.'; }
       else why = 'Close to mastery — cheap marks still on the table.';
     }
-    var boost = E.state.boost[tag] ? 0.35 : 0;
-    var cost = meta.weight * Math.max(0, risk - 0.12) + boost;
+    var boost = E.state.boost[tag] ? 0.3 : 0;
+    var cost = meta.weight * Math.max(0, risk - 0.15) + boost;
     recs.push({tag:tag, name:meta.name, risk:risk, cost:cost, why:why, seen:seen, m:m, boosted:!!E.state.boost[tag]});
   });
   recs.sort(function(a,b){ return b.cost - a.cost; });
@@ -628,32 +575,14 @@ E.pickSession = function(n, filter){
     return true;
   });
   var nTypes = types ? types.length : 4;
-  // part quotas: equal until ~40 answers, then weighted toward your weaker parts
-  var quotas = {};
-  var base = Math.max(1, Math.ceil(n/nTypes));
-  var allT = types || ['kwt','cloze','wf','mcc'];
-  if(!types && !filter.tag && st.records.total >= 40 && isFinite(n)){
-    // gently tilt quotas toward weaker parts, never more than one extra question
-    var abil = st.ability;
-    var meanA = (abil.kwt+abil.cloze+abil.wf+abil.mcc)/4;
-    allT.forEach(function(t){
-      quotas[t] = base + ((meanA - abil[t]) > 35 ? 1 : 0) - ((abil[t] - meanA) > 60 ? 1 : 0);
-      quotas[t] = Math.max(1, quotas[t]);
-    });
-  } else {
-    allT.forEach(function(t){ quotas[t] = base; });
-  }
-  var extra = {kwt:0,cloze:0,wf:0,mcc:0};
-  function fits(it, allowExtra){
+  var quota = Math.max(1, Math.ceil(n/nTypes));
+  function fits(it){
     if(usedIds[it.q.id]) return false;
     if(types || filter.tag) return true;
-    if(typeCount[it.type] < (quotas[it.type]||base)) return true;
-    if(allowExtra && extra[it.type] < 1) return true; // boosts may exceed by at most one
-    return false;
+    return typeCount[it.type] < quota;
   }
   function take(it, tag){
     picked.push(it); usedIds[it.q.id]=1; typeCount[it.type]++;
-    if(typeCount[it.type] > (quotas[it.type]||base)) extra[it.type]++;
     if(tag) usedTags.push(tag);
   }
   // 1) due reviews
@@ -670,10 +599,10 @@ E.pickSession = function(n, filter){
     if(picked.length >= n) return;
     if(filter.tag && tag !== filter.tag) return;
     var cands = pool.filter(function(it){
-      return fits(it, true) && (it.q.tags||[]).indexOf(tag) !== -1 &&
+      return fits(it) && (it.q.tags||[]).indexOf(tag) !== -1 &&
              (!st.items[it.q.id] || st.items[it.q.id].att === 0 || E.isWobbly(it.q.id));
     });
-    if(!cands.length) cands = pool.filter(function(it){ return fits(it, true) && (it.q.tags||[]).indexOf(tag) !== -1; });
+    if(!cands.length) cands = pool.filter(function(it){ return fits(it) && (it.q.tags||[]).indexOf(tag) !== -1; });
     if(cands.length){
       take(shuffle(cands)[0], tag);
       st.boost[tag]--;
@@ -686,16 +615,15 @@ E.pickSession = function(n, filter){
     var wid = shuffle(wantIds)[0];
     if(!types || types.indexOf(E.byId[wid].type) !== -1) take(E.byId[wid]);
   }
-  // 4) weak × valuable via Thompson sampling, interleaved, learning zone; 5) explore least-seen
-  var recs = E.coach(true).filter(function(r){ return !filter.tag || r.tag === filter.tag; });
-  var weakTags = recs.slice(0, E.emergencyOn() ? 5 : 6).map(function(r){ return r.tag; });
+  // 4) weak × valuable, interleaved, in the learning zone; 5) explore least-seen
+  var recs = E.coach().filter(function(r){ return !filter.tag || r.tag === filter.tag; });
+  var weakTags = recs.slice(0, E.emergencyOn() ? 5 : 8).map(function(r){ return r.tag; });
   var tries = 0;
   while(picked.length < n && tries < 500){
     tries++;
     var roll = Math.random();
-    var explorize = st.records.total < 60 ? 0.25 : 0.15; // early on, prioritise mapping the student
     var tagPick;
-    if(roll < explorize){ // coverage: least practised skill
+    if(roll < 0.15){ // coverage: least practised skill
       var unseen = recs.filter(function(r){ return !r.seen; });
       var leastSeen = unseen.length ? unseen : recs.slice().sort(function(a,b){
         return (st.tags[a.tag]?st.tags[a.tag].att:0) - (st.tags[b.tag]?st.tags[b.tag].att:0);

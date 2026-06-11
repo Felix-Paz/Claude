@@ -8,38 +8,65 @@ U.esc = function(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/
 U.$ = function(sel, root){ return (root||document).querySelector(sel); };
 U.$$ = function(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); };
 
-/* ---------- Quill, the Mastery owl ---------- */
+/* ---------- Memo, the chubby study blob ---------- */
 U.mascot = function(mood, size){
   size = size || 72;
-  var eyes;
+  var eyes, mouth;
   if(mood === 'happy'){
-    eyes = '<path d="M31 45 q5 -6 10 0" stroke="#20303a" stroke-width="3" fill="none" stroke-linecap="round"/>'+
-           '<path d="M55 45 q5 -6 10 0" stroke="#20303a" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    eyes = '<path d="M40 52 q6 -8 12 0" stroke="#03363D" stroke-width="4" fill="none" stroke-linecap="round"/>'+
+           '<path d="M68 52 q6 -8 12 0" stroke="#03363D" stroke-width="4" fill="none" stroke-linecap="round"/>';
+    mouth = '<path d="M50 66 q10 11 20 0" stroke="#03363D" stroke-width="4" fill="none" stroke-linecap="round"/>';
   } else if(mood === 'rest'){
-    eyes = '<path d="M31 46 h10" stroke="#20303a" stroke-width="3" stroke-linecap="round"/>'+
-           '<path d="M55 46 h10" stroke="#20303a" stroke-width="3" stroke-linecap="round"/>';
+    eyes = '<path d="M40 53 h12" stroke="#03363D" stroke-width="4" stroke-linecap="round"/>'+
+           '<path d="M68 53 h12" stroke="#03363D" stroke-width="4" stroke-linecap="round"/>';
+    mouth = '<path d="M54 67 q6 4 12 0" stroke="#03363D" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
   } else if(mood === 'think'){
-    eyes = '<circle cx="37" cy="44" r="3.6" fill="#20303a"/><circle cx="61" cy="44" r="3.6" fill="#20303a"/>'+
-           '<circle cx="38.5" cy="42.5" r="1.2" fill="#fff"/><circle cx="62.5" cy="42.5" r="1.2" fill="#fff"/>';
+    eyes = '<circle cx="46" cy="52" r="4.6" fill="#03363D"/><circle cx="74" cy="50" r="4.6" fill="#03363D"/>'+
+           '<circle cx="47.6" cy="50.4" r="1.6" fill="#fff"/><circle cx="75.6" cy="48.4" r="1.6" fill="#fff"/>';
+    mouth = '<path d="M54 68 q7 -3 13 1" stroke="#03363D" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
   } else {
-    eyes = '<circle cx="36" cy="45" r="4" fill="#20303a"/><circle cx="60" cy="45" r="4" fill="#20303a"/>'+
-           '<circle cx="37.5" cy="43.5" r="1.4" fill="#fff"/><circle cx="61.5" cy="43.5" r="1.4" fill="#fff"/>';
+    eyes = '<circle cx="46" cy="52" r="5" fill="#03363D"/><circle cx="74" cy="52" r="5" fill="#03363D"/>'+
+           '<circle cx="47.8" cy="50.2" r="1.8" fill="#fff"/><circle cx="75.8" cy="50.2" r="1.8" fill="#fff"/>';
+    mouth = '<path d="M52 65 q8 8 16 0" stroke="#03363D" stroke-width="4" fill="none" stroke-linecap="round"/>';
   }
-  return '<svg class="mascot" viewBox="0 0 96 96" style="width:'+size+'px;height:'+size+'px" aria-label="Quill the owl">'+
-    '<path d="M27 26 L33 12 L40 24 Z" fill="#20303a"/><path d="M69 26 L63 12 L56 24 Z" fill="#20303a"/>'+
-    '<ellipse cx="48" cy="55" rx="31" ry="33" fill="#20303a"/>'+
-    '<ellipse cx="48" cy="64" rx="19" ry="20" fill="#f2eee4"/>'+
-    '<path d="M37 62 q4 7 11 7 q7 0 11 -7" stroke="rgba(32,48,58,.25)" stroke-width="1.5" fill="none"/>'+
-    '<circle cx="36" cy="45" r="11" fill="#f2eee4" stroke="#0e5e64" stroke-width="2.6"/>'+
-    '<circle cx="60" cy="45" r="11" fill="#f2eee4" stroke="#0e5e64" stroke-width="2.6"/>'+
-    '<path d="M47 45 h2" stroke="#0e5e64" stroke-width="2.6"/>'+
-    eyes+
-    '<path d="M48 52 L43.5 58 L52.5 58 Z" fill="#c9a227"/>'+
-    '<path d="M40 87 v4 M48 88 v4 M56 87 v4" stroke="#c9a227" stroke-width="2.6" stroke-linecap="round"/>'+
+  return '<svg class="mascot" viewBox="0 0 120 110" style="width:'+size+'px;height:'+Math.round(size*0.92)+'px" aria-label="Memo">'+
+    '<defs><linearGradient id="memog" x1="0" y1="0" x2="0.4" y2="1">'+
+    '<stop offset="0" stop-color="#D8EEEC"/><stop offset="0.55" stop-color="#BDD9D7"/><stop offset="1" stop-color="#8FBDB9"/></linearGradient></defs>'+
+    /* chubby pear body */
+    '<path d="M60 14 C84 14 100 32 102 56 C104 82 88 98 60 98 C32 98 16 82 18 56 C20 32 36 14 60 14 Z" fill="url(#memog)"/>'+
+    '<ellipse cx="60" cy="96" rx="34" ry="5" fill="rgba(1,12,14,.25)"/>'+
+    /* stubby arms */
+    '<path d="M19 62 q-8 4 -6 12 q8 2 12 -5" fill="#8FBDB9"/>'+
+    '<path d="M101 62 q8 4 6 12 q-8 2 -12 -5" fill="#8FBDB9"/>'+
+    /* belly shine */
+    '<ellipse cx="46" cy="36" rx="14" ry="9" fill="rgba(255,255,255,.5)" transform="rotate(-18 46 36)"/>'+
+    /* blush */
+    '<ellipse cx="36" cy="62" rx="6.5" ry="4" fill="rgba(255,107,92,.55)"/>'+
+    '<ellipse cx="84" cy="62" rx="6.5" ry="4" fill="rgba(255,107,92,.55)"/>'+
+    eyes + mouth +
+    /* tiny graduation cap, tilted */
+    '<g transform="rotate(-10 60 14)">'+
+    '<path d="M38 16 L60 6 L82 16 L60 26 Z" fill="#03363D"/>'+
+    '<path d="M48 20 v8 q12 6 24 0 v-8" fill="#02282D"/>'+
+    '<line x1="82" y1="16" x2="86" y2="30" stroke="#FF6B5C" stroke-width="2.6" stroke-linecap="round"/>'+
+    '<circle cx="86" cy="32" r="3" fill="#FF6B5C"/></g>'+
+  '</svg>';
+};
+/* the Mastery mark: three rising steps + a coral summit dot */
+U.logoSVG = function(size){
+  size = size || 36;
+  return '<svg class="logo-mark" viewBox="0 0 48 48" style="width:'+size+'px;height:'+size+'px" aria-label="Mastery">'+
+    '<defs><linearGradient id="lgm" x1="0" y1="1" x2="1" y2="0">'+
+    '<stop offset="0" stop-color="#8FBDB9"/><stop offset="1" stop-color="#5FD3C0"/></linearGradient></defs>'+
+    '<rect width="48" height="48" rx="14" fill="rgba(189,217,215,.10)" stroke="rgba(189,217,215,.25)"/>'+
+    '<rect x="10" y="28" width="7" height="10" rx="3.5" fill="url(#lgm)" opacity=".55"/>'+
+    '<rect x="20.5" y="21" width="7" height="17" rx="3.5" fill="url(#lgm)" opacity=".8"/>'+
+    '<rect x="31" y="13" width="7" height="25" rx="3.5" fill="url(#lgm)"/>'+
+    '<circle cx="34.5" cy="8.5" r="3.4" fill="#FF6B5C"/>'+
   '</svg>';
 };
 U.wordmark = function(small){
-  return '<span class="wordmark'+(small?' small':'')+'">Mastery<span class="ed">FCE</span></span>';
+  return '<span class="wordmark'+(small?' small':'')+'">mastery<span class="ed">FCE</span></span>';
 };
 
 U.toast = function(html, cls){
@@ -68,7 +95,7 @@ U.howModal = function(){
     '<div class="how-sec"><b>1 · A rating, like chess.</b> You and every question hold an Elo rating per exam part. Each answer moves yours; questions are then chosen so you succeed 25–92% of the time — the science-backed “learning zone” where memory forms fastest.</div>'+
     '<div class="how-sec"><b>2 · Forgetting is modelled, not ignored.</b> Every skill decays on a forgetting curve the longer you ignore it. Spaced repetition schedules each item just before you’d lose it; lapses shrink the interval, fast fluent answers stretch it.</div>'+
     '<div class="how-sec"><b>3 · Your behaviour talks.</b> The engine watches hesitation before typing, erase-and-rewrite cycles, answer switching and pace. It detects lucky guesses, hidden doubt and “you changed a right answer” — even if you never rate your confidence.</div>'+
-    '<div class="how-sec"><b>4 · Errors are diagnosed, not just counted.</b> A wrong answer is classified: spelling slip, wrong word-family form, wrong word class, missing key word… Each diagnosis routes differently — a spelling slip goes to the Spelling Gym, a concept gap floods your next sessions with that concept <i>in new exercises</i>.</div>'+
+    '<div class="how-sec"><b>4 · Errors are diagnosed, not just counted.</b> A wrong answer is classified: spelling slip, wrong word-family form, wrong word class, missing key word… Each diagnosis routes differently — a spelling slip goes to the Word Forge, a concept gap floods your next sessions with that concept <i>in new exercises</i>.</div>'+
     '<div class="how-sec"><b>5 · Marks-at-risk economics.</b> Every skill carries its real exam weight. Priority = how often Cambridge tests it × how likely you are to miss it. You always study the highest-value marks first.</div>'+
     '<div class="how-sec"><b>6 · Honest forecasting.</b> Your predicted grade blends ability ratings, recent accuracy and mock results, corrected for the fact that practice here is harder than the real paper. The confidence interval narrows as evidence grows.</div>'+
     '<p class="tiny" style="margin-top:14px;text-align:center">All of it runs on this device. No internet, no account, no API.</p>'
@@ -118,7 +145,7 @@ function daysChip(){
   if(d === 0) return '<span class="chip bad">🚨 exam day</span>';
   return '<span class="chip '+(d<=7?'bad':'acc')+'">'+d+' day'+(d>1?'s':'')+' to exam</span>';
 }
-var QUILL_TIPS = [
+var MEMO_TIPS = [
   'Recall beats re-reading: closing your eyes and retrieving a rule strengthens it three times more than seeing it again.',
   'Miss a question? Perfect. Errors followed by correction are remembered better than easy successes — psychologists call it the hypercorrection effect.',
   'Ten minutes today beats seventy on Sunday. Spacing is the single most replicated finding in memory science.',
@@ -153,7 +180,7 @@ U.views.onboard = function(){
   U.$('#ob-go', v).addEventListener('click', function(){ saveBasics(); FCE.practice.start({mode:'diagnostic'}); });
   U.$('#ob-skip', v).addEventListener('click', function(){
     saveBasics(); E().award('first'); E().save();
-    U.toast('Welcome aboard, '+U.esc(E().state.name)+'. Quill will calibrate as you go.');
+    U.toast('Welcome aboard, '+U.esc(E().state.name)+'. Memo will calibrate as you go.');
     U.go('dash');
   });
   v.addEventListener('keydown', function(ev){
@@ -162,7 +189,7 @@ U.views.onboard = function(){
   return v;
 };
 
-/* ---------------- dashboard (full) ---------------- */
+/* ---------------- dashboard (bento) ---------------- */
 U.views.dash = function(){
   var eng = E(), st = eng.state;
   var pr = eng.predict();
@@ -172,63 +199,66 @@ U.views.dash = function(){
   var due = eng.dueItems().length;
   var goal = st.settings.dailyGoal || 20;
   var doneToday = answeredToday();
-  var tip = QUILL_TIPS[(new Date().getDate()) % QUILL_TIPS.length];
+  var tip = MEMO_TIPS[(new Date().getDate()) % MEMO_TIPS.length];
   var hour = new Date().getHours();
   var greet = hour < 12 ? 'Good morning' : hour < 19 ? 'Good afternoon' : 'Good evening';
   var hasData = pr.n >= 10;
+  var nSignals = st.log.length*7 + st.records.total*3;
 
   var html = '';
   if(emg){
     var d = eng.daysToExam();
-    html += '<div class="emg-ribbon">🚨 <b>Emergency Mode</b> — sessions locked onto your highest-value weaknesses.'+
+    html += '<div class="emg-ribbon">🚨 <b>Emergency Mode</b> — locked onto your highest-value weaknesses.'+
       (d!==null && d>=0 ? ' <b>'+(d===0?'Exam day — go gently.':d+' day'+(d>1?'s':'')+' left.')+'</b>' : '')+
       '<span style="flex:1"></span><button class="btn small ghost" data-go="coach">Plan →</button></div>';
   }
   html +=
   '<div class="dash-head">'+
     '<div><div class="greet">'+greet+', <em>'+U.esc(st.name||'friend')+'</em>.</div>'+
-    '<div class="row wrap" style="margin-top:8px">'+
-      '<span class="chip gold">🔥 '+st.streak.count+'-day streak</span>'+
-      '<span class="chip">Level '+eng.level()+'</span>'+daysChip()+
-    '</div></div>'+
-    '<button class="btn small ghost" data-go="awards" title="Awards">🏆</button>'+
+    '<div class="ticker" style="margin-top:9px">ENGINE LIVE · <b>'+nSignals.toLocaleString()+'</b> signals · <b>'+Object.keys(FCE.TAGS).length+'</b> skills tracked · <b>'+eng.allItems().length+'</b> exercises · '+(due? '<b>'+due+'</b> reviews due':'queue clear')+'</div></div>'+
+    '<div class="row">'+daysChip()+'<button class="btn small ghost" data-go="awards" title="Awards">🏆</button></div>'+
   '</div>'+
 
-  '<div class="grid g2" style="margin-bottom:18px">'+
-    '<div class="card hoverable grade-card">'+
+  '<div class="bento" style="margin-bottom:16px">'+
+    '<div class="card hoverable grade-card sp7"><div class="halo"></div>'+
       '<h3>Predicted FCE grade <span class="grow"></span><button class="btn small ghost" id="how-link">how? ⓘ</button></h3>'+
       (hasData ?
-        '<div class="row" style="gap:22px;flex-wrap:wrap">'+
+        '<div class="row" style="gap:26px;flex-wrap:wrap;align-items:center">'+
           '<div class="grade-big">'+pr.grade+'</div>'+
-          '<div style="flex:1;min-width:170px">'+
-            '<div class="serif" style="font-size:17px">'+pr.label+'</div>'+
-            '<div class="muted" style="margin:4px 0 10px">Scale '+pr.scale+' ± '+pr.ci+(pr.borderline?' · <span style="color:var(--warn)">borderline — every mark counts</span>':'')+'</div>'+
-            '<div class="gp-row"><span>Chance of passing</span><div class="bar thin"><i class="ok" style="width:'+Math.round(pr.pass*100)+'%"></i></div><b>'+Math.round(pr.pass*100)+'%</b></div>'+
-            '<div class="tiny" style="margin-top:8px">From '+pr.n+' answers'+(st.mocks.length? ' + '+st.mocks.length+' mock'+(st.mocks.length>1?'s':''):'')+'. Gets sharper as you practise.</div>'+
+          '<div style="flex:1;min-width:190px">'+
+            '<div class="serif" style="font-size:18px;color:var(--mint)">'+pr.label+'</div>'+
+            '<div class="muted" style="margin:4px 0 12px">Cambridge scale '+pr.scale+' ± '+pr.ci+(pr.borderline?' · <span style="color:var(--gold)">on a boundary — every mark moves you</span>':'')+'</div>'+
+            '<div class="gp-row"><span>Chance of passing</span><div class="bar thin"><i class="ok shimmer" style="width:'+Math.round(pr.pass*100)+'%"></i></div><b>'+Math.round(pr.pass*100)+'%</b></div>'+
+            (pr.pA>0.05?'<div class="gp-row" style="margin-top:7px"><span>Chance of grade A</span><div class="bar thin"><i class="gold" style="width:'+Math.round(pr.pA*100)+'%"></i></div><b>'+Math.round(pr.pA*100)+'%</b></div>':'')+
+            '<div class="tiny" style="margin-top:9px">From '+pr.n+' answers'+(st.mocks.length? ' + '+st.mocks.length+' mock'+(st.mocks.length>1?'s':''):'')+' · sharpens as you go.</div>'+
           '</div>'+
+          '<div style="margin:0 auto">'+FCE.charts.gauge(pr.scale, pr.ci)+'</div>'+
         '</div>'
         :
-        '<div class="row" style="gap:18px"><div>'+U.mascot('think',64)+'</div><div class="muted" style="flex:1">Too early to call. Give me ~10 answers and I’ll show your predicted grade, scale score and pass probability — honestly.</div></div>')+
+        '<div class="row" style="gap:18px">'+U.mascot('think',72)+'<div class="muted" style="flex:1;font-size:14.5px">Too early to call — give me ~10 answers and I’ll show your predicted grade, Cambridge scale and pass probability. Honestly, with error bars.</div></div>')+
     '</div>'+
-    '<div class="card today">'+
-      '<div>'+FCE.charts.ring(Math.min(1,doneToday/goal), String(doneToday), 'of '+goal+' today', doneToday>=goal?'#2e7d5b':'#0e5e64')+'</div>'+
-      '<div>'+
-        '<div class="serif" style="font-size:18px;font-weight:650">'+(doneToday>=goal?'Goal met. Anything more is compound interest.':(goal-doneToday)+' questions to today’s goal.')+'</div>'+
-        '<div class="muted" style="margin-top:3px">'+(due? due+' review'+(due>1?'s':'')+' due — they come first.':'No reviews due — fresh territory today.')+'</div>'+
-        '<div class="today-cta">'+
-          '<button class="btn primary" data-act="smart">▸ Smart Session</button>'+
-          '<button class="btn" data-go="mock">Mock test</button>'+
-          '<button class="btn" data-act="gym">🐝 Spelling</button>'+
+    '<div class="card sp5">'+
+      '<h3>Today</h3>'+
+      '<div class="row" style="gap:18px">'+
+        FCE.charts.ring(Math.min(1,doneToday/goal), String(doneToday), 'of '+goal+' today', doneToday>=goal?'#5FD3A6':'#5FD3C0')+
+        '<div style="flex:1;min-width:0">'+
+          '<div class="serif" style="font-size:17.5px;line-height:1.45">'+(doneToday>=goal?'Goal met. Everything else is compound interest.':(goal-doneToday)+' questions between you and today’s win.')+'</div>'+
+          '<div class="row wrap" style="margin-top:8px"><span class="chip gold">🔥 '+st.streak.count+'-day streak</span><span class="chip">LVL '+eng.level()+'</span></div>'+
         '</div>'+
+      '</div>'+
+      '<div class="today-cta">'+
+        '<button class="btn primary" data-act="smart">▸ Smart Session</button>'+
+        '<button class="btn" data-go="mock">Mock</button>'+
+        '<button class="btn" data-act="gym">⚒ Forge</button>'+
       '</div>'+
     '</div>'+
   '</div>'+
 
-  '<h3 class="sec-label">Where your marks are leaking</h3>'+
-  '<div class="focus-strip">'+
+  '<h3 class="sec-label">Where your marks are <b>leaking</b></h3>'+
+  '<div class="bento" style="margin-bottom:16px">'+
     recs.map(function(r,i){
-      return '<div class="card hoverable focus-card">'+
-        '<div class="fk">Focus '+(i+1)+(r.boosted?' · 🔁 reinforcing':'')+'</div>'+
+      return '<div class="card hoverable focus-card sp4">'+
+        '<div class="fk">Target '+(i+1)+(r.boosted?' · reinforcing':'')+'</div>'+
         '<div class="fn">'+U.esc(r.name)+'</div>'+
         '<div class="fw">'+U.esc(r.why)+'</div>'+
         '<div class="fg"><b>≈'+(Math.round(r.cost*2)/2).toFixed(1)+'</b><span>marks at stake</span></div>'+
@@ -237,12 +267,12 @@ U.views.dash = function(){
     }).join('')+
   '</div>'+
 
-  '<div class="grid g2">'+
-    '<div class="card"><h3>'+ch.ch.name+' <span class="grow"></span><span class="chip '+(ch.done?'ok':'acc')+'">'+ch.prog+' / '+ch.ch.n+'</span></h3>'+
+  '<div class="bento">'+
+    '<div class="card sp6"><h3>'+ch.ch.name+' <span class="grow"></span><span class="chip '+(ch.done?'ok':'acc')+'">'+ch.prog+' / '+ch.ch.n+'</span></h3>'+
       '<div class="muted" style="margin-bottom:10px">'+ch.ch.desc+' — this week’s challenge.</div>'+
       '<div class="bar"><i class="gold" style="width:'+Math.round(100*ch.prog/ch.ch.n)+'%"></i></div></div>'+
-    '<div class="card quill-tip"><div class="row" style="align-items:flex-start">'+U.mascot('normal',52)+
-      '<div style="flex:1"><h3 style="margin-bottom:6px">Quill’s note</h3><div class="serif" style="font-size:14.5px;line-height:1.65">'+tip+'</div></div></div></div>'+
+    '<div class="card memo-tip sp6"><div class="row" style="align-items:flex-start;gap:14px">'+U.mascot('normal',56)+
+      '<div style="flex:1"><h3 style="margin-bottom:6px">Memo says</h3><div class="serif" style="font-size:14.5px;line-height:1.65">'+tip+'</div></div></div></div>'+
   '</div>';
 
   var v = el(html);
@@ -283,7 +313,7 @@ U.views.lite = function(){
         '<button class="btn" data-t="wf">Part 3</button>'+
         '<button class="btn" data-t="kwt">Part 4</button>'+
       '</div>'+
-      '<button class="btn block" data-m="gym" style="margin-top:10px">🐝 Spelling Gym</button>'+
+      '<button class="btn block" data-m="gym" style="margin-top:10px">⚒ Word Forge</button>'+
       '<button class="btn block" data-m="endless" style="margin-top:10px">∞ Endless practice</button>'+
       '<div class="row" style="justify-content:center;margin-top:22px">'+
         '<button class="btn ghost small" id="lite-full">Open full app →</button>'+
@@ -333,9 +363,9 @@ U.views.practice = function(){
       '</div></div>'+
 
     '<div class="grid g2">'+
-      '<div class="card"><h3>🐝 Spelling Gym</h3>'+
-        '<p class="muted" style="margin-bottom:12px">A fast word-fixing game built from <b>your own</b> misspellings plus Cambridge’s favourite spelling traps. Marks die on spelling — this is where you stop that.</p>'+
-        '<button class="btn teal" id="gym-go">Enter the Gym ▸</button></div>'+
+      '<div class="card"><h3>⚒ Word Forge</h3>'+
+        '<p class="muted" style="margin-bottom:12px">Look-cover-write and letter-forging rounds built from <b>your own</b> misspellings plus Cambridge’s favourite trap words. You never see a wrong spelling — only the right one, burned in.</p>'+
+        '<button class="btn teal" id="gym-go">Enter the Forge ▸</button></div>'+
       '<div class="card"><h3>🎯 Drill one skill</h3>'+
         '<p class="muted" style="margin-bottom:12px">Hammer a single weakness — conditionals, prepositions, passives…</p>'+
         '<div class="row wrap"><select id="drill-tag">'+tagOpts+'</select>'+
@@ -492,7 +522,7 @@ U.views.progress = function(arg){
             return '<div class="dna-bar"><span>'+(names[p2.id]||p2.id)+'</span><div class="bar thin"><i class="warn" style="width:'+Math.round(100*p2.n/rep.total)+'%"></i></div><b>'+p2.n+'</b></div>';
           }).join('')+
           (rep.words.length?'<div class="ins-note">Words that beat you: '+rep.words.slice(0,5).map(function(w){return '<b>'+U.esc(w.w)+'</b>';}).join(', ')+'. The Gym serves these first.</div>':'')+
-          '<button class="btn teal small" id="pg-gym" style="margin-top:10px">🐝 Train them now</button>'
+          '<button class="btn teal small" id="pg-gym" style="margin-top:10px">⚒ Forge them now</button>'
         : '<div class="muted">No spelling slips recorded yet. When they happen, the engine classifies the <i>kind</i> of slip and builds your antidote here.</div>')+
       '</div>'+
       '<div class="card"><h3>Why you miss things</h3>'+

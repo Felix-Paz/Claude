@@ -89,17 +89,19 @@ const path = require('path');
   await page.waitForTimeout(300);
   await shot('13-book');
 
-  // spelling gym — 2 rounds
+  // word forge — memorize mode hides the input for ~3s (look-cover-write)
   await page.click('.nav-btn[data-v="practice"]');
   await page.waitForSelector('#gym-go');
   await page.click('#gym-go');
-  await page.waitForSelector('#g-ans');
-  await shot('14-gym');
-  await page.fill('#g-ans', 'pronunciation');
+  await page.waitForSelector('#f-word, .tile-row');
+  await shot('14-forge-look');
+  await page.waitForSelector('#g-ans', { state: 'visible', timeout: 8000 });
+  await shot('14b-forge-write');
+  await page.fill('#g-ans', 'xyz');
   await page.keyboard.press('Enter');
   await page.waitForSelector('#g-next');
   await page.keyboard.press('Enter');
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(300);
   await page.click('#g-quit');
 
   // mock

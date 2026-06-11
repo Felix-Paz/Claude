@@ -146,7 +146,7 @@ function qView(){
         '<button class="btn primary" id="q-check" disabled>Check</button>'+
         '<button class="btn ghost small" id="q-idk">I don’t know — show me</button>'+
         (S.queue.length - S.idx > 1 ? '<button class="btn ghost small" id="q-skip">Skip ↷</button>' : '')+
-        '<span class="key-hint"><kbd>Enter</kbd> checks</span>'+
+        
       '</div>'+
       '<div id="fb"></div>'+
     '</div>'+
@@ -297,7 +297,10 @@ function grade(v, it, gaveUp){
   if(ok){ S.ok++; S.run++; if(S.run > eng.state.records.bestRun) eng.state.records.bestRun = S.run; }
   else S.run = 0;
   var autoCause = gaveUp ? 'gap' : (diag && diag.code==='spell' ? 'spell' : '');
+  var xpBefore = eng.state.xp;
   var res = eng.record(q, it.type, ok, S.conf, ms, userTxt, autoCause, {runStreak:S.run, beh:beh, diag:diag||undefined});
+  var xpGain = eng.state.xp - xpBefore;
+  if(FCE.app && FCE.app.buildTopbar) FCE.app.buildTopbar();
   S.results.push({id:q.id, ok:ok});
   if(eng.level() > S.levelBefore){
     S.levelBefore = eng.level();
@@ -353,7 +356,7 @@ function grade(v, it, gaveUp){
     return '<div class="q-actions"><button class="btn primary" id="q-next">'+
       (S.mode!=='endless' && S.idx+1>=S.queue.length ? 'Finish session' : 'Next')+' →</button>'+
       (S.mode==='endless' ? '<button class="btn ghost small" id="q-end-endless">Stop & see results</button>' : '')+
-      '<span class="key-hint"><kbd>Enter</kbd> continues</span></div>';
+      '</div>';
   }
   u.$('#fb', v).innerHTML = fb;
   u.$$('.cause', v).forEach(function(b){
@@ -388,6 +391,15 @@ function grade(v, it, gaveUp){
     if(ee) ee.addEventListener('click', function(){ finishSession(false); });
   }
   wireNext();
+  if(ok && xpGain > 0){
+    var qa = u.$('.feedback .q-actions', v);
+    if(qa){
+      var fl = document.createElement('span');
+      fl.className = 'xp-float';
+      fl.textContent = '+'+xpGain+' XP'+(res.fast?' ⚡':'');
+      qa.appendChild(fl);
+    }
+  }
 }
 
 function saveSummary(){
@@ -465,11 +477,14 @@ function summaryView(){
   return v;
 }
 
-/* ============================ SPELLING GYM ============================ */
+/* ============================ WORD FORGE ============================
+   Spelling, rebuilt on memory science. A wrong spelling is NEVER displayed.
+   Mode A — Memorize: look · cover · write · check (the classic LSCWC method).
+   Mode B — Unscramble: rebuild the word from letter tiles (orthographic chunking). */
 var G = null;
 P.spellingGym = function(){
   var eng = E();
-  G = {set: eng.spellingSet(8), idx:0, ok:0, t0:Date.now(), graded:false};
+  G = {set: eng.spellingSet(8), idx:0, ok:0, t0:Date.now(), graded:false, phase:'show'};
   renderGym();
 };
 function renderGym(){
@@ -478,35 +493,65 @@ function renderGym(){
   host.appendChild(G.idx >= G.set.length ? gymDone() : gymQ());
   window.scrollTo(0,0);
 }
+function scramble(w){
+  var a = w.split(''), out = w, guard = 0;
+  while(out === w && guard++ < 12){
+    for(var i = a.length-1; i > 0; i--){
+      var j = Math.floor(Math.random()*(i+1)), t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    out = a.join('');
+  }
+  return out;
+}
 function gymQ(){
   var u = U(), eng = E();
   var item = G.set[G.idx];
   G.graded = false;
-  // show a corrupted version to fix, or a cue to spell from
-  var fixMode = item.bad && item.bad.length && Math.random() < 0.6;
-  var shown = fixMode ? item.bad[Math.floor(Math.random()*item.bad.length)] : null;
+  var memorize = G.idx % 2 === 0; // alternate modes
+  var stage;
+  if(memorize){
+    stage = '<p class="muted" style="margin-bottom:4px">Photograph it. It disappears in 3 seconds…</p>'+
+      '<div class="forge-word" id="f-word">'+u.esc(item.w)+'</div>'+
+      '<div class="forge-ring">'+FCE.charts.ring(1, '', '', '#F2C94C')+'</div>';
+  } else {
+    stage = '<p class="muted" style="margin-bottom:10px">Rebuild the word from its letters:</p>'+
+      '<div class="tile-row">'+scramble(item.w).split('').map(function(ch){
+        return '<span class="tile">'+u.esc(ch)+'</span>';
+      }).join('')+'</div>'+
+      '<div class="forge-cue" style="font-size:13.5px;color:var(--tx2);margin-top:10px">'+u.esc(item.cue)+'</div>';
+  }
   var v = u.el(
     '<div class="q-shell">'+
       '<div class="q-top">'+
         '<button class="btn small ghost" id="g-quit">✕ End</button>'+
         '<div class="q-progress"><div class="bar"><i class="gold" style="width:'+Math.round(100*G.idx/G.set.length)+'%"></i></div></div>'+
         '<span class="tiny mono">'+(G.idx+1)+' / '+G.set.length+'</span>'+
-        (G.ok>=3?'<span class="chip gold">🐝 ×'+G.ok+'</span>':'')+
+        (G.ok>=3?'<span class="chip gold combo-chip">⚒ ×'+G.ok+'</span>':'')+
       '</div>'+
       '<div class="q-card" style="text-align:center">'+
-        '<div class="q-type" style="justify-content:center"><span class="chip gold">🐝 Spelling Gym</span></div>'+
-        (fixMode
-          ? '<p class="muted" style="margin-bottom:6px">This word is spelled <b>wrong</b>. Fix it:</p><div class="gym-word">'+u.esc(shown)+'</div>'
-          : '<p class="muted" style="margin-bottom:6px">Spell the word that means:</p><div class="gym-cue serif">'+u.esc(item.cue)+'</div>')+
-        '<input class="ans-input" id="g-ans" style="text-align:center;max-width:340px;margin:18px auto 0;display:block" autocomplete="off" autocapitalize="off" spellcheck="false">'+
-        '<div class="q-actions" style="justify-content:center"><button class="btn primary" id="g-check">Check</button>'+
-        '<span class="key-hint"><kbd>Enter</kbd></span></div>'+
+        '<div class="q-type" style="justify-content:center"><span class="chip gold">⚒ Word Forge · '+(memorize?'memorize':'unscramble')+'</span></div>'+
+        '<div class="forge-stage" id="f-stage">'+stage+'</div>'+
+        '<input class="ans-input" id="g-ans" style="text-align:center;max-width:360px;margin:14px auto 0;display:'+(memorize?'none':'block')+'" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="'+(memorize?'':'type the word…')+'">'+
+        '<div class="q-actions" style="justify-content:center"><button class="btn primary" id="g-check" style="display:'+(memorize?'none':'inline-flex')+'">Check</button></div>'+
         '<div id="g-fb"></div>'+
       '</div>'+
     '</div>'
   );
   var inp = u.$('#g-ans', v);
-  setTimeout(function(){ inp.focus(); }, 120);
+  if(memorize){
+    // look (3s) -> cover -> write
+    setTimeout(function(){
+      if(!document.body.contains(v) || G.graded) return;
+      var stageEl = u.$('#f-stage', v);
+      stageEl.innerHTML = '<p class="muted" style="margin-bottom:6px">Now write it from memory:</p>'+
+        '<div class="forge-cue">'+u.esc(item.cue)+'</div>';
+      inp.style.display = 'block';
+      u.$('#g-check', v).style.display = 'inline-flex';
+      inp.focus();
+    }, 3000);
+  } else {
+    setTimeout(function(){ inp.focus(); }, 150);
+  }
   function check(){
     if(G.graded || !inp.value.trim()) return;
     G.graded = true;
@@ -516,12 +561,13 @@ function gymQ(){
     inp.disabled = true;
     var fbEl = u.$('#g-fb', v);
     fbEl.innerHTML = '<div class="feedback '+(ok?'ok':'bad')+'" style="text-align:left">'+
-      (ok ? '<div class="fb-head">✓ '+u.esc(item.w)+'</div>'
-          : '<div class="fb-head">✗ Almost</div><div class="big-answer">'+u.esc(item.w)+'</div>')+
+      (ok ? '<div class="fb-head">✓ Forged. <span class="chip gold" style="margin-left:auto">+6 XP</span></div>'
+          : '<div class="fb-head">Not yet —</div><div class="big-answer">'+u.esc(item.w)+'</div>')+
       '<div class="fb-hook">🔑 '+u.esc(item.cue)+'</div>'+
-      '<div class="q-actions"><button class="btn primary" id="g-next">'+(G.idx+1>=G.set.length?'See results':'Next')+' →</button>'+
-      '<span class="key-hint"><kbd>Enter</kbd></span></div></div>';
+      (!ok ? '<div class="fb-exp">Trace it with your eyes, then it returns later in the round of life — spaced until it sticks.</div>' : '')+
+      '<div class="q-actions"><button class="btn primary" id="g-next">'+(G.idx+1>=G.set.length?'See results':'Next')+' →</button></div></div>';
     u.$('#g-next', v).addEventListener('click', function(){ G.idx++; renderGym(); });
+    if(FCE.app && FCE.app.buildTopbar) FCE.app.buildTopbar();
   }
   u.$('#g-check', v).addEventListener('click', check);
   u.$('#g-quit', v).addEventListener('click', function(){ setKeys(null); FCE.ui.go('practice'); });
@@ -541,9 +587,9 @@ function gymDone(){
   var rep = eng.spellReport();
   var v = u.el(
     '<div class="q-shell"><div class="q-card session-done">'+
-      FCE.ui.mascot(G.ok>=6?'happy':'normal', 88)+
-      '<h2 class="serif" style="margin:12px 0 4px;font-size:26px">'+G.ok+' / '+G.set.length+' spelled perfectly</h2>'+
-      '<p class="muted">'+(G.ok===G.set.length?'Flawless. Cambridge can’t touch you on spelling today.':'Every word you missed returns next round — spaced, until it sticks.')+'</p>'+
+      FCE.ui.mascot(G.ok>=6?'happy':'normal', 92)+
+      '<h2 class="serif" style="margin:12px 0 4px;font-size:27px">'+G.ok+' / '+G.set.length+' forged clean</h2>'+
+      '<p class="muted">'+(G.ok===G.set.length?'Flawless. Cambridge cannot touch your spelling today.':'Missed words return next round — spaced, until they stick.')+'</p>'+
       (rep.patterns.length ? '<div class="card" style="text-align:left;margin:20px auto;max-width:430px"><h3>Your spelling fingerprint</h3>'+
         rep.patterns.slice(0,3).map(function(p2){
           var names = {double:'double letters', ie:'ie/ei order', tion:'-tion vs -sion', vowel:'weak vowels', silente:'dropped letters', other:'letter order'};
@@ -560,7 +606,6 @@ function gymDone(){
   setKeys(function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); setKeys(null); P.spellingGym(); } });
   return v;
 }
-
 /* ============================ MOCK TEST ============================ */
 var M = null;
 P.mock = function(){

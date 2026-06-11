@@ -79,6 +79,8 @@ ok(E.inferConf({ttfk:9000, edits:8, pauses:3, changed:true}, 60000, 35000) === '
 console.log('— learning loop —');
 E.reset(); E.load();
 ok(E.diagnosticSet().length === 14, 'diagnostic resolves');
+let seed = 1234567;
+const srnd = () => { seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
 let n = 0;
 for(let round = 0; round < 8; round++){
   const sess = E.pickSession(12);
@@ -90,10 +92,10 @@ for(let round = 0; round < 8; round++){
   }
   sess.forEach(it => {
     const isPrep = (it.q.tags||[]).some(t => t==='prep'||t==='depprep');
-    const correct = isPrep ? Math.random() < 0.25 : Math.random() < 0.85;
-    E.record(it.q, it.type, correct, Math.random()<0.5?'f':'', 20000, 'x', '', {quiet:true,
+    const correct = isPrep ? srnd() < 0.25 : srnd() < 0.85;
+    E.record(it.q, it.type, correct, srnd()<0.5?'f':'', 20000, 'x', '', {quiet:true,
       beh:{ttfk:2000, edits:correct?0:4, pauses:0, switches:0, changed:false, firstGuess:'', firstRight:false, skipped:false}});
-    if(!correct) E.setCause(Math.random()<0.5 ? 'gap' : 'mix');
+    if(!correct) E.setCause(srnd()<0.5 ? 'gap' : 'mix');
     n++;
   });
 }

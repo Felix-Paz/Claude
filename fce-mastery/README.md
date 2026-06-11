@@ -25,14 +25,18 @@ node fce-mastery/test/ui.js        # Playwright walk-through (needs chromium)
 | Error generalization | A miss boosts the *concept*: the engine feeds that skill back through **different** exercises until it sticks; wobbly items (right-wrong-right) get extra pressure |
 | "I want to master this" | One tap floods future sessions with that concept; two clean wins clear it from the Mastery List |
 | Answer disputes | "My answer was actually right" repairs the stats, whitelists the answer for that item, and stores a report in the backup |
-| Spelling intelligence | Slips are fingerprinted (double letters, ie/ei, -tion/-sion, weak vowels…) and feed a separate **Spelling Gym** game seeded with the user's own victims + 43 Cambridge danger words |
+| Spelling intelligence | Slips are fingerprinted (double letters, ie/ei, -tion/-sion, weak vowels…) and feed a separate **Word Forge** — look·cover·write and letter-tile rounds seeded with the user's own victims + 43 Cambridge danger words (a wrong spelling is never displayed) |
 | Grade prediction | Ability + recent accuracy + mocks, corrected for practice-is-harder-than-exam bias → clear output: predicted **grade letter**, scale ± CI, **pass probability** |
 | Coaching | marks-at-risk = exam weight × personal risk; Mastery List; stubborn items; auto 7-Day Emergency Mode |
 | Content | 345 hand-written Cambridge-style items + 9 full passages (2× Part 1, 6× Part 2, 2× Part 3 — passages appear in mocks), pattern DB with real-paper frequency stars |
 
-## Brand
+## Brand — "Deep Water"
 
-"Mastery", FCE edition. Ivory paper + glass cards, ink serif display type, Cambridge-sage/teal/brass palette, and **Quill** — the owl mascot (pure SVG). Sessions are deliberately finite (start → win → break) with streaks, XP, levels, weekly challenges, confetti where deserved — gamified but professional.
+Petrol `#03363D` + mint `#BDD9D7` + coral signal red. Liquid-glass cards over animated light blobs, noise + grid textures, editorial Didot/Playfair-class display type with engine-room mono readouts, a real logo mark (rising steps + coral summit dot) and **Memo** — the chubby graduate blob mascot (pure SVG, squish-animated). Top bar with live level/XP shimmer, icon dock navigation, bento dashboard, XP floats, combo flames, confetti where deserved.
+
+## Benchmarks
+
+The adaptive engine is benchmarked against its own previous versions on synthetic students (weakness discovery, targeting share, coverage, part fairness, learning gain, prediction error). See [`BENCHMARKS.md`](BENCHMARKS.md) and run `node fce-mastery/test/bench/bench.js`.
 
 ## Source layout
 
