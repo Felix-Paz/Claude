@@ -24,6 +24,17 @@ FCE.ui.views.mock = function(){
   var v = FCE.ui.el(
     '<div class="h-page">Mock <em>Test</em></div>'+
     '<p class="sub">The full 36-mark Use of English paper: real passages, four parts, 35 minutes, official-style scoring. No feedback until you submit — just like the real room.</p>'+
+    (function(){
+      var P = FCE.BANK.passages, seen = eng.state.passSeen;
+      var fresh = P.p1.concat(P.p2, P.p3).filter(function(p){ return !seen[p.id]; }).length;
+      var combos = P.p1.length * P.p2.length * P.p3.length;
+      return '<div class="row wrap" style="margin-bottom:16px">'+
+        '<span class="chip acc">'+combos.toLocaleString()+' paper combinations</span>'+
+        '<span class="chip">'+P.p1.length+'× Part 1 · '+P.p2.length+'× Part 2 · '+P.p3.length+'× Part 3 texts</span>'+
+        (fresh ? '<span class="chip ok">'+fresh+' passages you have never seen</span>' : '<span class="chip warn">all passages seen — least-recent rotate back in</span>')+
+        '<span class="chip">Part 4: 6 random of '+FCE.BANK.kwt.length+' transformations</span>'+
+      '</div>';
+    })()+
     '<div class="grid g2" style="margin-bottom:16px">'+
       '<div class="card"><h3>What you’ll face</h3>'+
         '<div class="stack" style="gap:7px;font-size:13.5px">'+
