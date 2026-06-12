@@ -15,6 +15,8 @@ const js = [
   'js/data-bank5.js',
   'js/data-bank6.js',
   'js/data-bank7.js',
+  'js/data-bank8.js',
+  'js/data-bank9.js',
   'js/data-mocks2.js',
   'js/data-mocks3.js',
   'js/data-papers.js',

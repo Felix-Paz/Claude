@@ -28,7 +28,7 @@ node fce-mastery/test/ui.js        # Playwright walk-through (needs chromium)
 | Spelling intelligence | Slips are fingerprinted (double letters, ie/ei, -tion/-sion, weak vowels…) and feed the **Spelling Gym** — missing-letters skeletons + flash-and-write rounds with definition clues, seeded with the user's own victims + 73 danger words (a wrong spelling is never displayed) |
 | Grade prediction | Ability + recent accuracy + mocks, corrected for practice-is-harder-than-exam bias → clear output: predicted **grade letter**, scale ± CI, **pass probability** |
 | Coaching | marks-at-risk = exam weight × personal risk; Mastery List; stubborn items; auto 7-Day Emergency Mode |
-| Content | **642 hand-written Cambridge-style items** (incl. a 97-item "Spelling Minefield" pack built around the words students actually misspell) + **12 fixed mock papers** (36 exclusive passages + 72 exclusive transformations), pattern DB with real-paper frequency stars |
+| Content | **782 hand-written Cambridge-style items** (incl. a 97-item "Spelling Minefield" pack built around the words students actually misspell) + **12 fixed mock papers** (36 exclusive passages + 72 exclusive transformations), pattern DB with real-paper frequency stars |
 | Fixed mock papers | Like a book of past papers: each of the 12 papers owns its three passages and six Part 4 items outright — no rotation, no repeats between papers, never served in practice. Papers 9–12 are **Challenge** (B2+/C1-edge); they are graded with an explicit **+12% difficulty allowance** and the result screen states exactly how many scale points it was worth. The engine recommends the next unseen paper at your level; a picker lets you choose any paper, with completed scores shown |
 | Positional intelligence | Every Open Cloze answer is fingerprinted by WHERE the gap sits (sentence start/end, after a comma, neighbouring word classes); weak positions get served more |
 | Focus search | Type anything — "had better", "provided that", inversions — and the engine floods future sessions with it |
@@ -57,8 +57,13 @@ fce-mastery/
   js/data-bank4.js   expansion pack (+100 items)
   js/data-bank5.js   expansion pack (+100 items, +3 passages)
   js/data-bank6.js   hard-tier pack (+100 items)
+  js/data-bank7.js   spelling minefield pack (+97 items, +30 gym words)
+  js/data-bank8.js   idioms & chunks pack (+60 items)
+  js/data-bank9.js   confusables & false-friends pack (+80 items)
   js/data-mocks2.js  mock-paper pack (+8 passages)
-  js/data-vocab.js   essay vocab upgrades (58)
+  js/data-mocks3.js  fixed-paper pack (+15 passages, 4 challenge papers)
+  js/data-papers.js  the 12 fixed mock papers (+72 exclusive KWTs)
+  js/data-vocab.js   essay vocab upgrades (58 + 72 in data-vocab2.js)
   js/engine.js       the adaptive engine
   js/charts.js       dependency-free SVG charts
   js/views.js        all screens + Quill
