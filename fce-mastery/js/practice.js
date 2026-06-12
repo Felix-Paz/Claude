@@ -803,9 +803,9 @@ function vocabDone(){
 
 /* ============================ MOCK TEST ============================ */
 var M = null;
-P.mock = function(){
+P.mock = function(paperN){
   var eng = E();
-  M = {set: eng.mockSet(), t0: Date.now(), limit: 35*60, done:false};
+  M = {set: eng.pickPaper(paperN), t0: Date.now(), limit: 35*60, done:false};
   var u = U();
   var host = u.$('#view');
   host.innerHTML = '';
@@ -831,10 +831,13 @@ function mockView(){
     });
     return '<div class="passage">'+txt+'</div>';
   }
+  var pp = s.paper, isCh = pp.level === 'challenge';
   var html =
-  '<div class="mock-timer"><div class="inner">⏱️ <span id="mt">35:00</span><span class="tiny">Use of English · 36 marks</span><button class="btn small danger" id="m-abort">Abandon</button></div></div>'+
-  '<div class="h-page">Mock Test</div>'+
-  '<p class="sub">Real format, real timing, feedback only at the end. Part 4 is marked 0 / 1 / 2 — exactly like Cambridge.</p>'+
+  '<div class="mock-timer"><div class="inner">⏱️ <span id="mt">35:00</span><span class="tiny">Paper '+pp.n+' · 36 marks</span><button class="btn small danger" id="m-abort">Abandon</button></div></div>'+
+  '<div class="h-page">Paper '+pp.n+(isCh?' <em>· Challenge</em>':'')+'</div>'+
+  '<p class="sub">Real format, real timing, feedback only at the end. Part 4 is marked 0 / 1 / 2 — exactly like Cambridge.'+
+  (isCh ? ' <b>This is a CHALLENGE paper</b> — set above exam level. Your result will be graded with a stated difficulty allowance, so don’t panic if it feels harder: it is.' : '')+
+  (s.retake ? ' <b>Retake</b> — you have sat this paper before; treat it as revision, not prediction.' : '')+'</p>'+
   '<div class="mock-part"><h4>Part 1 — Multiple-Choice Cloze · '+u.esc(s.p1.title)+'</h4><div class="pd">Choose A–D for each gap. 8 marks.</div>'+passageHTML(s.p1,'p1')+'</div>'+
   '<div class="mock-part"><h4>Part 2 — Open Cloze · '+u.esc(s.p2.title)+'</h4><div class="pd">ONE word per gap. 8 marks.</div>'+passageHTML(s.p2,'p2')+'</div>'+
   '<div class="mock-part"><h4>Part 3 — Word Formation · '+u.esc(s.p3.title)+'</h4><div class="pd">Form a word from each stem. 8 marks.</div>'+passageHTML(s.p3,'p3')+'</div>'+
@@ -869,6 +872,7 @@ function gradeMock(v){
   var u = U(), eng = E(), s = M.set;
   var score = 0, parts = {p1:0,p2:0,p3:0,p4:0}, errors = [];
   var marks = {p1:{}, p2:{}, p3:{}, p4:[]};
+  var gdiff = s.paper.level === 'challenge' ? 4 : 3;
   s.p1.gaps.forEach(function(g){
     var sel = u.$('select[data-part="p1"][data-n="'+g.n+'"]', v);
     var val = sel ? +sel.value : -1;
@@ -876,7 +880,7 @@ function gradeMock(v){
     if(ok){ score++; parts.p1++; }
     else errors.push({part:'Part 1', n:g.n, user: val>=0 ? g.opts[val] : '(blank)', corr:g.opts[g.cor], exp:g.exp});
     marks.p1[g.n] = {ok:ok, user: val>=0 ? g.opts[val] : '', corr:g.opts[g.cor], exp:g.exp};
-    eng.record({id:s.p1.id+'-'+g.n, tags:g.tags, diff:3, ans:[g.opts[g.cor]]}, 'mcc', ok, '', 0, val>=0?g.opts[val]:'', '', {quiet:true});
+    eng.record({id:s.p1.id+'-'+g.n, tags:g.tags, diff:gdiff, ans:[g.opts[g.cor]]}, 'mcc', ok, '', 0, val>=0?g.opts[val]:'', '', {quiet:true});
   });
   s.p2.gaps.forEach(function(g){
     var inp = u.$('input[data-part="p2"][data-n="'+g.n+'"]', v);
@@ -885,7 +889,7 @@ function gradeMock(v){
     if(ok){ score++; parts.p2++; }
     else errors.push({part:'Part 2', n:g.n, user:val||'(blank)', corr:g.ans.join(' / '), exp:g.exp});
     marks.p2[g.n] = {ok:ok, user:val, corr:g.ans[0], exp:g.exp};
-    eng.record({id:s.p2.id+'-'+g.n, tags:g.tags, gt:g.gt, diff:3, ans:g.ans}, 'cloze', ok, '', 0, val, '', {quiet:true});
+    eng.record({id:s.p2.id+'-'+g.n, tags:g.tags, gt:g.gt, diff:gdiff, ans:g.ans}, 'cloze', ok, '', 0, val, '', {quiet:true});
   });
   s.p3.gaps.forEach(function(g){
     var inp = u.$('input[data-part="p3"][data-n="'+g.n+'"]', v);
@@ -894,7 +898,7 @@ function gradeMock(v){
     if(ok){ score++; parts.p3++; }
     else errors.push({part:'Part 3', n:g.n, user:val||'(blank)', corr:g.ans.join(' / ')+' ('+g.stem+')', exp:g.exp});
     marks.p3[g.n] = {ok:ok, user:val, corr:g.ans[0], stem:g.stem, exp:g.exp};
-    eng.record({id:s.p3.id+'-'+g.n, tags:g.tags, diff:3, ans:g.ans}, 'wf', ok, '', 0, val, '', {quiet:true});
+    eng.record({id:s.p3.id+'-'+g.n, tags:g.tags, diff:gdiff, ans:g.ans}, 'wf', ok, '', 0, val, '', {quiet:true});
   });
   s.p4.forEach(function(q,i){
     var inp = u.$('input[data-part="p4"][data-n="'+i+'"]', v);
@@ -907,7 +911,8 @@ function gradeMock(v){
   });
   eng.checkBadges(0);
   eng.markPassage(s.p1.id); eng.markPassage(s.p2.id); eng.markPassage(s.p3.id);
-  var scale = eng.recordMock(score, 36, parts);
+  var res = eng.recordMock(score, 36, parts, s.paper);
+  var scale = res.scale, isCh = res.level === 'challenge';
   var pr = eng.predict();
   // render the WHOLE paper back, corrected in place — like a marked exam script
   function corrected(pass, mode){
@@ -932,7 +937,15 @@ function gradeMock(v){
     '<div class="q-shell"><div class="q-card session-done">'+
       '<div class="emoji">'+(score>=30?'🏆':score>=22?'🎯':'🧗')+'</div>'+
       '<div class="mock-result-score">'+score+'<span style="font-size:26px;color:var(--ink3)"> / 36</span></div>'+
-      '<p class="muted" style="margin-top:6px">≈ Cambridge scale <b>'+scale+'</b> · '+(scale>=180?'Grade A':scale>=173?'Grade B':scale>=160?'Grade C — pass':'below pass')+' on this paper</p>'+
+      '<p class="muted" style="margin-top:6px">Paper '+s.paper.n+(isCh?' · <b style="color:var(--red)">Challenge</b>':'')+' · ≈ Cambridge scale <b>'+scale+'</b> · '+(scale>=180?'Grade A':scale>=173?'Grade B':scale>=160?'Grade C — pass':'below pass')+' on this paper</p>'+
+      (isCh ?
+        '<div class="card" style="text-align:left;margin:14px auto 0;max-width:560px;background:var(--glass3)">'+
+          '<h3 style="margin-bottom:6px">⛰️ This was a higher-level paper</h3>'+
+          '<div style="font-size:13.5px;line-height:1.65">Challenge papers run <b>above real exam difficulty</b> — C1-edge collocations, inversion, double word-formation shifts. '+
+          'Raw marks here are worth more: your '+score+'/36 was graded with a <b>+12% difficulty allowance</b>'+
+          (res.delta>0 ? ', lifting your scale from '+res.scaleStd+' to <b>'+scale+'</b> (+'+res.delta+' points) compared with the same raw score on a standard paper.' : '.')+
+          ' If you can score here, the real paper will feel slow and friendly.</div>'+
+        '</div>' : '')+
       '<div class="mr-grid">'+
         mr('Part 1', parts.p1, 8)+mr('Part 2', parts.p2, 8)+mr('Part 3', parts.p3, 8)+mr('Part 4', parts.p4, 12)+
       '</div>'+

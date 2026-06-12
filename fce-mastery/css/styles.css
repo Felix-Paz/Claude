@@ -631,3 +631,24 @@ body::after{opacity:.085}
 .story i{color:var(--red2);font-style:italic}
 @keyframes storyin{from{opacity:0;transform:translateY(8px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
 @media (prefers-reduced-motion:reduce){.story-card .story{animation:none}}
+
+/* ===== v5.5 — fixed mock papers ===== */
+.paper-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px}
+.paper-card{
+  position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+  padding:13px 14px;border-radius:16px;border:1px solid var(--edge);background:var(--glass);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);cursor:pointer;text-align:left;
+  font-family:inherit;color:var(--ink);transition:transform .18s var(--ease),box-shadow .18s var(--ease),border-color .18s;
+}
+.paper-card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(27,28,33,.10);border-color:rgba(224,73,47,.4)}
+.paper-card .pc-n{font-family:var(--disp);font-weight:800;font-size:26px;line-height:1}
+.paper-card .pc-n::before{content:"Paper ";font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:2px}
+.paper-card .pc-lvl{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink3)}
+.paper-card.ch .pc-lvl{color:var(--red)}
+.paper-card .pc-done{font-size:11px;font-weight:700;color:var(--ok)}
+.paper-card .pc-done.fresh{color:var(--ink3);font-weight:600}
+.paper-card .pc-done.rec-tag{color:var(--red)}
+.paper-card.done{opacity:.78}
+.paper-card.done:hover{opacity:1}
+.paper-card.rec{border-color:var(--red);box-shadow:0 0 0 2px rgba(224,73,47,.22),0 8px 22px rgba(224,73,47,.10)}
+.paper-card.ch{background:linear-gradient(135deg,rgba(224,73,47,.05),var(--glass))}

@@ -642,6 +642,27 @@ body::after{opacity:.085}
 @keyframes storyin{from{opacity:0;transform:translateY(8px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
 @media (prefers-reduced-motion:reduce){.story-card .story{animation:none}}
 
+/* ===== v5.5 — fixed mock papers ===== */
+.paper-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px}
+.paper-card{
+  position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+  padding:13px 14px;border-radius:16px;border:1px solid var(--edge);background:var(--glass);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);cursor:pointer;text-align:left;
+  font-family:inherit;color:var(--ink);transition:transform .18s var(--ease),box-shadow .18s var(--ease),border-color .18s;
+}
+.paper-card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(27,28,33,.10);border-color:rgba(224,73,47,.4)}
+.paper-card .pc-n{font-family:var(--disp);font-weight:800;font-size:26px;line-height:1}
+.paper-card .pc-n::before{content:"Paper ";font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:2px}
+.paper-card .pc-lvl{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink3)}
+.paper-card.ch .pc-lvl{color:var(--red)}
+.paper-card .pc-done{font-size:11px;font-weight:700;color:var(--ok)}
+.paper-card .pc-done.fresh{color:var(--ink3);font-weight:600}
+.paper-card .pc-done.rec-tag{color:var(--red)}
+.paper-card.done{opacity:.78}
+.paper-card.done:hover{opacity:1}
+.paper-card.rec{border-color:var(--red);box-shadow:0 0 0 2px rgba(224,73,47,.22),0 8px 22px rgba(224,73,47,.10)}
+.paper-card.ch{background:linear-gradient(135deg,rgba(224,73,47,.05),var(--glass))}
+
 </style>
 </head>
 <body>
@@ -2044,6 +2065,344 @@ P.p3.push({ id:"pp3g", title:"The language of bees",
 })();
 
 
+/* ===== js/data-mocks3.js ===== */
+/* Mastery (FCE) — passage pack III: completes the fixed-paper system.
+   +3 standard passages (pp1g, pp1h, pp3h) and +12 CHALLENGE passages (B2+/C1-edge:
+   subtler collocations, trickier word formation, less sign-posted cloze gaps).
+   Every passage belongs to exactly ONE fixed mock paper — see data-papers.js. */
+window.FCE = window.FCE || {};
+FCE.BANK = FCE.BANK || {};
+(function(){
+var P = FCE.BANK.passages;
+
+/* ---------- STANDARD Part 1 ---------- */
+P.p1.push({
+id:"pp1g", title:"The window-box gardener", level:"standard",
+text:"When Rosa moved into a sixth-floor flat, she assumed her gardening days were over. The flat (1) a noisy street and had no balcony, only a narrow ledge. Rather than give up, she decided to (2) the most of it. She fixed two window boxes to the ledge, (3) them with herbs, and watered them every morning before work. To her neighbours’ surprise, the herbs (4) so well that people began stopping in the street to look up. Rosa now (5) seeds with half the building. Gardening, she says, is not about space; it is about paying (6) attention to whatever space you have. Her latest project is persuading the landlord to (7) the residents to plant the flat roof — and judging by his recent silence on the subject, he is seriously (8) it.",
+gaps:[
+ {n:1, opts:["overlooked","oversaw","overtook","overheard"], cor:0, exp:"OVERLOOK = have a view of from above. Oversee = supervise people.", tags:["col"]},
+ {n:2, opts:["take","do","make","get"], cor:2, exp:"MAKE the most of = use as fully as possible.", tags:["fix"]},
+ {n:3, opts:["filled","poured","loaded","stocked"], cor:0, exp:"FILL a container WITH something. You pour liquid; you stock a shop.", tags:["col","prep"]},
+ {n:4, opts:["thrived","prospered","boomed","succeeded"], cor:0, exp:"plants THRIVE = grow strongly. Businesses boom, people prosper.", tags:["col"]},
+ {n:5, opts:["divides","shares","parts","splits"], cor:1, exp:"SHARE something WITH somebody.", tags:["col","prep"]},
+ {n:6, opts:["near","exact","close","strict"], cor:2, exp:"pay CLOSE attention — fixed intensifier.", tags:["col"]},
+ {n:7, opts:["allow","let","agree","approve"], cor:0, exp:"ALLOW somebody TO do. LET takes the bare infinitive; agree/approve don’t take object + to-infinitive.", tags:["ger","pass"]},
+ {n:8, opts:["wondering","considering","thinking","debating about"], cor:1, exp:"CONSIDER + noun/-ing, no preposition. THINK would need ABOUT.", tags:["ger"]},
+]});
+P.p1.push({
+id:"pp1h", title:"Learning to juggle", level:"standard",
+text:"Juggling looks impossible until somebody breaks it (1) into steps. My instructor, a retired circus performer, began by making me (2) a single ball from hand to hand for a full week. I was desperate to move on, but he refused to let me (3) corners. “Drop a thousand balls,” he said cheerfully, “and you will be a juggler.” He was right. Once my hands knew the rhythm, the second ball almost taught (4) . The third took longer, and I nearly gave (5) hope of ever managing it. What kept me going was a simple piece of (6) : practise beside a bed, so the balls land softly and you waste no energy bending down. Within a month I could juggle while walking, much to the (7) of my flatmates, who had (8) my chances at zero.",
+gaps:[
+ {n:1, opts:["down","up","off","out"], cor:0, exp:"BREAK something DOWN into steps = divide into parts.", tags:["pv"]},
+ {n:2, opts:["to throw","throwing","throw","thrown"], cor:2, exp:"MAKE somebody DO — bare infinitive after make.", tags:["ger","pass"]},
+ {n:3, opts:["take","cut","trim","skip"], cor:1, exp:"CUT corners = do something the careless, easy way.", tags:["fix"]},
+ {n:4, opts:["itself","himself","myself","oneself"], cor:0, exp:"the ball almost taught ITSELF — reflexive agrees with the subject.", tags:["pron"]},
+ {n:5, opts:["off","away","up","in"], cor:2, exp:"GIVE UP hope of -ing.", tags:["pv","ger"]},
+ {n:6, opts:["advise","advice","recommendation","tip"], cor:1, exp:"a piece of ADVICE (uncountable, spelled with C). 'A piece of recommendation/tip' fails; advise is the verb.", tags:["spell","col"]},
+ {n:7, opts:["amazement","amaze","amazingness","amazing"], cor:0, exp:"much to the AMAZEMENT of — a noun must follow 'the'.", tags:["wfnoun"]},
+ {n:8, opts:["rated","marked","scored","graded"], cor:0, exp:"RATE somebody's chances AT = assess them.", tags:["col","prep"]},
+]});
+
+/* ---------- STANDARD Part 3 ---------- */
+P.p3.push({
+id:"pp3h", title:"The school radio station", level:"standard",
+text:"Our school radio station began as a lunchtime experiment and is now a source of real (1)PROUD for everyone involved. The studio — a converted storeroom — looks (2)PROFESSION enough to fool visitors, and the weekly schedule is planned with impressive (3)EFFICIENT . Pupils handle everything themselves, from the (4)CHOOSE of music to interviews with local figures. Teachers admit they were (5)DOUBT at first, fearing chaos on the airwaves. Instead, the project has improved attendance, boosted (6)CONFIDENT , and given shy students an (7)EXPECT route into public speaking. The next ambition is a podcast, which the team insists is entirely (8)ACHIEVE before the summer.",
+gaps:[
+ {n:1, stem:"PROUD", ans:["pride"], exp:"proud → pride (irregular noun).", tags:["wfnoun","spell"]},
+ {n:2, stem:"PROFESSION", ans:["professional"], exp:"profession → professional.", tags:["wfadj","spell"]},
+ {n:3, stem:"EFFICIENT", ans:["efficiency"], exp:"efficient → efficiency.", tags:["wfnoun"]},
+ {n:4, stem:"CHOOSE", ans:["choice"], exp:"choose → choice (vowel change).", tags:["wfnoun","spell"]},
+ {n:5, stem:"DOUBT", ans:["doubtful"], exp:"doubt → doubtful (adjective).", tags:["wfadj"]},
+ {n:6, stem:"CONFIDENT", ans:["confidence"], exp:"confident → confidence.", tags:["wfnoun","spell"]},
+ {n:7, stem:"EXPECT", ans:["unexpected"], exp:"expect → UNexpected — the negative prefix is needed: an unexpected route.", tags:["wfneg"]},
+ {n:8, stem:"ACHIEVE", ans:["achievable"], exp:"achieve → achievable.", tags:["wfadj","spell"]},
+]});
+
+/* ---------- CHALLENGE Part 1 (subtler collocations, C1-edge) ---------- */
+P.p1.push({
+id:"pp1i", title:"The myth of the photographic memory", level:"challenge",
+text:"Popular culture is fond of characters who glance at a page and (1) every word for ever. Memory researchers, however, remain deeply sceptical: under laboratory conditions, nobody has ever (2) the existence of a truly photographic memory. What the best rememberers actually do (3) to something less magical and more interesting. They encode information in vivid scenes, (4) new facts to familiar places, and rehearse at widening intervals. In other words, exceptional memory is a skill (5) through technique rather than a gift. The broader implication is encouraging: (6) the methods are learnable, ordinary students can (7) the gap dramatically. The brain you were born with matters less than the (8) you make of it.",
+gaps:[
+ {n:1, opts:["contain","retain","obtain","sustain"], cor:1, exp:"RETAIN = keep in memory. The -tain family, separated only by prefix.", tags:["col"]},
+ {n:2, opts:["demonstrated","displayed","exposed","performed"], cor:0, exp:"DEMONSTRATE the existence of = prove.", tags:["col"]},
+ {n:3, opts:["gets","falls","comes","turns"], cor:2, exp:"COME DOWN TO = be essentially a matter of.", tags:["pv"]},
+ {n:4, opts:["weld","staple","anchor","cement"], cor:2, exp:"ANCHOR new facts TO familiar places — the memory-technique metaphor. Weld/staple are physical-only; cement wants relationships.", tags:["col"]},
+ {n:5, opts:["acquired","received","earned","collected"], cor:0, exp:"a skill ACQUIRED through practice.", tags:["col"]},
+ {n:6, opts:["since","although","unless","whereas"], cor:0, exp:"SINCE = because (the logic is cause, not contrast or condition).", tags:["link"]},
+ {n:7, opts:["narrow","thin","slim","tighten"], cor:0, exp:"NARROW the gap — the fixed pair.", tags:["col"]},
+ {n:8, opts:["effort","use","work","practice"], cor:1, exp:"the USE you make of it — 'make use of', relativised.", tags:["fix"]},
+]});
+P.p1.push({
+id:"pp1j", title:"Reading the weather at sea", level:"challenge",
+text:"Long before satellites, sailors crossed oceans by (1) of accumulated observation. A ring around the moon (2) rain within a day; a steady fall in pressure gave (3) of worse to come. Such knowledge was hard (4) , passed from captain to apprentice over years of shared watches. Modern forecasting has not made it obsolete. Yacht crews are still trained to (5) the sky against the official forecast, because conditions at sea can (6) with astonishing speed. More than one skipper has been (7) the embarrassment of a ruined voyage by noticing what the clouds were doing while the radio promised sunshine. At sea, the sky always (8) the final word.",
+gaps:[
+ {n:1, opts:["sake","help","way","virtue"], cor:3, exp:"BY VIRTUE OF = thanks to. 'By way of' = via / as a form of; sake and help build different phrases.", tags:["depprep"]},
+ {n:2, opts:["foretold","guessed","supposed","reckoned"], cor:0, exp:"an omen FORETOLD rain = was a sign of it. Guess/suppose/reckon need a human subject.", tags:["col"]},
+ {n:3, opts:["warning","signal","notice","alarm"], cor:0, exp:"GIVE WARNING OF — fixed phrase. (Give notice = resign!)", tags:["col","fix"]},
+ {n:4, opts:["gained","won","earned","achieved"], cor:2, exp:"hard-EARNED knowledge.", tags:["col"]},
+ {n:5, opts:["see","watch","read","look"], cor:2, exp:"READ the sky = interpret it.", tags:["col"]},
+ {n:6, opts:["deteriorate","collapse","decay","descend"], cor:0, exp:"conditions DETERIORATE = get worse.", tags:["col","spell"]},
+ {n:7, opts:["spared","excused","forgiven","pardoned"], cor:0, exp:"SPARE somebody the embarrassment → passive: be spared the embarrassment.", tags:["col","pass"]},
+ {n:8, opts:["holds","has","keeps","owns"], cor:1, exp:"HAVE the final word — idiom.", tags:["fix"]},
+]});
+P.p1.push({
+id:"pp1k", title:"The slow rise of the repair café", level:"challenge",
+text:"The first repair café opened in Amsterdam in 2009, and the idea has since (1) on remarkably. The format could hardly be simpler: volunteers with soldering irons and sewing machines (2) up shop in a community hall, and residents bring whatever has stopped working. Toasters are taken (3) , trouser hems are rescued, and a surprising number of “dead” laptops turn out to need nothing more than a cable. Organisers are quick to (4) out that the point is not merely thrift. Every repaired kettle is a small (5) against a culture that treats objects as disposable. Visitors also (6) something harder to measure: the confidence to open things up. Many arrive (7) that electronics are beyond them and leave having fixed their own headphones — a shift in attitude that, campaigners argue, (8) far beyond the workshop door.",
+gaps:[
+ {n:1, opts:["caught","taken","picked","carried"], cor:0, exp:"CATCH ON = become popular.", tags:["pv"]},
+ {n:2, opts:["put","set","stand","turn"], cor:1, exp:"SET UP SHOP = establish yourself somewhere to work.", tags:["pv","fix"]},
+ {n:3, opts:["apart","away","down","off"], cor:0, exp:"TAKE APART = disassemble.", tags:["pv"]},
+ {n:4, opts:["spell","point","set","mark"], cor:1, exp:"POINT OUT that = draw attention to.", tags:["pv"]},
+ {n:5, opts:["refusal","protest","denial","disagreement"], cor:1, exp:"a small PROTEST AGAINST. Refusal takes TO, denial OF, disagreement WITH.", tags:["col","prep"]},
+ {n:6, opts:["gain","win","reach","earn"], cor:0, exp:"GAIN confidence.", tags:["col"]},
+ {n:7, opts:["convinced","persuaded","determined","resolved"], cor:0, exp:"arrive CONVINCED THAT — persuaded would need somebody doing the persuading.", tags:["col"]},
+ {n:8, opts:["arrives","extends","enlarges","escapes"], cor:1, exp:"EXTENDS far beyond = reaches past.", tags:["col"]},
+]});
+P.p1.push({
+id:"pp1l", title:"How cities sound at night", level:"challenge",
+text:"Acousticians who study cities after dark describe a soundscape utterly (1) from the daytime one. With traffic reduced to a murmur, noises that normally go (2) — a distant train, fox cries, the hum of substations — suddenly (3) themselves felt. Researchers in Berlin spent two years recording the same street corner at 3 a.m., and their archive (4) some surprising conclusions. Night noise, they found, is judged less by volume than by meaning: a neighbour’s heels on a wooden floor will (5) more complaints than a louder but anonymous motorway. The team now advises planners to stop (6) noise purely in decibels and to take its character into (7) as well. A city that merely quietens the night, they argue, has only done half the job; the real prize is a night that sounds (8) home.",
+gaps:[
+ {n:1, opts:["distinct","apart","separate","contrary"], cor:0, exp:"DISTINCT FROM = clearly different from.", tags:["col","prep"]},
+ {n:2, opts:["unheard","unnoticed","missing","ignored"], cor:1, exp:"GO UNNOTICED — the fixed pair.", tags:["fix","pass"]},
+ {n:3, opts:["have","get","make","find"], cor:2, exp:"MAKE themselves felt — idiom.", tags:["fix"]},
+ {n:4, opts:["yielded","granted","donated","awarded"], cor:0, exp:"YIELD conclusions/results — the research verb.", tags:["col"]},
+ {n:5, opts:["pull","draw","drag","fetch"], cor:1, exp:"DRAW complaints/criticism = attract.", tags:["col"]},
+ {n:6, opts:["measuring","counting","timing","sizing"], cor:0, exp:"MEASURE noise in decibels — measure in units.", tags:["ger","col"]},
+ {n:7, opts:["thought","account","mind","regard"], cor:1, exp:"take something INTO ACCOUNT.", tags:["depprep"]},
+ {n:8, opts:["of","as","like","with"], cor:2, exp:"sounds LIKE home — sound + like + noun.", tags:["prep"]},
+]});
+
+/* ---------- CHALLENGE Part 2 (less sign-posted gaps) ---------- */
+P.p2.push({
+id:"pp2i", title:"On keeping a diary", level:"challenge",
+text:"Diarists rarely agree on why they write. Some treat the page as a confessional, others as little (1) than an appointment book with opinions. What unites them is the discipline itself: a few lines every night, no matter (2) tired they are. Research suggests the habit pays unexpected dividends. People who write briefly about their day report sleeping better, (3) is hardly what you would predict from an activity that revisits its stresses. One explanation is that naming a worry cuts it (4) to size; once captured, it no longer circles the mind demanding attention. (5) it not for this calming effect, the practice would probably have died out long (6) . Instead, sales of paper notebooks keep rising — proof, if proof (7) needed, that some technologies survive (8) being officially obsolete.",
+gaps:[
+ {n:1, ans:["more"], gt:"comp", exp:"little MORE than = hardly anything more than.", tags:["comp"]},
+ {n:2, ans:["how"], gt:"adv", exp:"no matter HOW tired — concession.", tags:["link"]},
+ {n:3, ans:["which"], gt:"rel", exp:"…, WHICH is hardly what you would predict — relative referring to the whole clause.", tags:["rel"]},
+ {n:4, ans:["down"], gt:"adv", exp:"CUT something DOWN TO SIZE — idiom.", tags:["pv","fix"]},
+ {n:5, ans:["were"], gt:"aux", exp:"WERE it not for = if it were not for (formal inversion).", tags:["cond","inv"]},
+ {n:6, ans:["ago","since"], gt:"adv", exp:"died out long AGO (long SINCE also survives in formal style).", tags:["fix"]},
+ {n:7, ans:["were","be"], gt:"aux", exp:"if proof WERE needed — subjunctive in a fixed phrase ('if proof be needed' is the older form).", tags:["cond","pass"]},
+ {n:8, ans:["despite"], gt:"prep", exp:"survive DESPITE being obsolete — preposition + -ing.", tags:["link","ger"]},
+]});
+P.p2.push({
+id:"pp2j", title:"The chess prodigy who walked away", level:"challenge",
+text:"At twelve, Marta Ruiz was the youngest national champion her country had (1) produced. By sixteen she had beaten three grandmasters; by nineteen she had stopped playing (2) . Journalists assumed burnout, but Marta tells it differently. Chess, she says, had begun to crowd (3) everything else she might become. Hardly (4) she finished one tournament when preparation for the next began. Nor was it the losing that wore her down: it was winning, and discovering how little the victories changed. (5) eventually freed her was a chance remark from her grandmother, to (6) she still owes, she says, her sense of proportion: “A life should not fit on sixty-four squares.” Marta now coaches twice a week — on (7) that the children also bring a hobby that has nothing to do (8) chess.",
+gaps:[
+ {n:1, ans:["ever"], gt:"adv", exp:"the youngest champion the country had EVER produced.", tags:["comp","aux"]},
+ {n:2, ans:["altogether","completely","entirely"], gt:"adv", exp:"stopped playing ALTOGETHER = completely.", tags:["fix"]},
+ {n:3, ans:["out"], gt:"adv", exp:"CROWD OUT = leave no room for.", tags:["pv"]},
+ {n:4, ans:["had"], gt:"aux", exp:"HARDLY HAD she finished … when — inversion after hardly.", tags:["inv","aux"]},
+ {n:5, ans:["what"], gt:"rel", exp:"WHAT eventually freed her was… — what-cleft as subject.", tags:["rel","inv"]},
+ {n:6, ans:["whom"], gt:"rel", exp:"to WHOM she still owes — after a preposition, whom.", tags:["rel"]},
+ {n:7, ans:["condition"], gt:"fixphrase", exp:"ON CONDITION THAT = provided that.", tags:["fix","cond"]},
+ {n:8, ans:["with"], gt:"prep", exp:"have nothing to do WITH.", tags:["depprep"]},
+]});
+P.p2.push({
+id:"pp2k", title:"Why we forget names", level:"challenge",
+text:"Few memory failures embarrass us (1) reliably as forgetting a name seconds after hearing it. The explanation is unflattering but simple: most of the time we never store the name at (2) . During introductions, attention is busy elsewhere — judging first impressions, planning what to say — and the name slides past (3) being processed. Psychologists call this an encoding failure, (4) distinguish it from genuine forgetting. The cure follows from the diagnosis. Repeat the name aloud at (5) twice in the first minute; attach it to a feature, a job, anything with meaning; and if it has (6) slipped away, ask again immediately — far (7) insulting the other person, doing so signals that their name is worth the trouble. People would much (8) be asked twice than be avoided at the next meeting.",
+gaps:[
+ {n:1, ans:["as","so"], gt:"comp", exp:"as/SO reliably AS — the first half of the comparison.", tags:["comp"]},
+ {n:2, ans:["all"], gt:"fixphrase", exp:"not … AT ALL.", tags:["fix"]},
+ {n:3, ans:["without"], gt:"prep", exp:"slides past WITHOUT being processed.", tags:["prep","ger","pass"]},
+ {n:4, ans:["to"], gt:"prep", exp:"…, TO distinguish it from — infinitive of purpose.", tags:["ger"]},
+ {n:5, ans:["least"], gt:"fixphrase", exp:"AT LEAST twice.", tags:["fix"]},
+ {n:6, ans:["already","still","somehow"], gt:"adv", exp:"if it has ALREADY slipped away (still/somehow also natural).", tags:["aux"]},
+ {n:7, ans:["from"], gt:"prep", exp:"FAR FROM insulting the other person, doing so… = it does not insult them at all.", tags:["fix","inv"]},
+ {n:8, ans:["rather","sooner"], gt:"modal", exp:"would much RATHER/SOONER be asked — preference + passive.", tags:["wish","pass"]},
+]});
+P.p2.push({
+id:"pp2l", title:"The lighthouse keepers’ last shift", level:"challenge",
+text:"When automation finally reached the last manned lighthouse in 1998, the three keepers (1) duty had spent a combined seventy years on the rock. Theirs was a working life like (2) other: eight weeks on, four off, the routine governed entirely by the light. (3) so much as a minute’s lateness was tolerated at lighting-up time, whatever the weather threw at them. Visitors imagined loneliness; the keepers spoke instead of rhythm, and of a silence it took weeks to learn to hear. Now that the lamps come (4) by themselves at dusk, only the buildings remain, many of them converted into holiday lets. Former keepers are sometimes hired to show guests (5) the towers — wry tours in which nostalgia is kept firmly (6) control. Asked whether the old service should (7) been preserved, one replied that progress was right to come, “but it might at (8) have knocked first.”",
+gaps:[
+ {n:1, ans:["on"], gt:"prep", exp:"the keepers ON duty.", tags:["depprep"]},
+ {n:2, ans:["no"], gt:"det", exp:"a life like NO other.", tags:["det","fix"]},
+ {n:3, ans:["not"], gt:"adv", exp:"NOT so much as a minute’s lateness — emphatic negative.", tags:["inv","det"]},
+ {n:4, ans:["on"], gt:"adv", exp:"the lamps COME ON = start working, by themselves.", tags:["pv"]},
+ {n:5, ans:["around","round","over"], gt:"adv", exp:"show guests AROUND/ROUND the towers.", tags:["pv"]},
+ {n:6, ans:["under"], gt:"prep", exp:"kept firmly UNDER control.", tags:["depprep"]},
+ {n:7, ans:["have"], gt:"aux", exp:"should HAVE been preserved — perfect modal passive.", tags:["modal","pass"]},
+ {n:8, ans:["least"], gt:"fixphrase", exp:"might AT LEAST have knocked.", tags:["fix"]},
+]});
+
+/* ---------- CHALLENGE Part 3 (harder derivations: negatives, plurals, double shifts) ---------- */
+P.p3.push({
+id:"pp3i", title:"The psychology of queueing", level:"challenge",
+text:"Queueing feels like wasted time, yet our reaction to it is anything but simple. Studies show that (1)CERTAIN about how long a wait will last annoys people far more than the wait itself, which is why airports now display (2)MISLEAD generous estimates that the real queue then beats. Equally important is the (3)PERCEIVE of fairness: a single winding line is slower for some, but the sight of latecomers overtaking is so (4)BEAR for most of us that companies avoid multiple lines wherever possible. Clever design can make a wait feel (5)CONSIDER shorter than it is — mirrors by lifts, for instance, cut complaints (6)DRAMA . None of this, researchers concede, makes queueing enjoyable. It merely keeps our natural (7)PATIENT within socially acceptable limits, and turns a daily irritation into something (8)ENDURE .",
+gaps:[
+ {n:1, stem:"CERTAIN", ans:["uncertainty"], exp:"certain → UNcertainty — negative prefix AND noun suffix (double shift).", tags:["wfneg","wfnoun"]},
+ {n:2, stem:"MISLEAD", ans:["misleadingly"], exp:"mislead → misleadingLY — an adverb is needed to modify 'generous'.", tags:["wfadv"]},
+ {n:3, stem:"PERCEIVE", ans:["perception"], exp:"perceive → perception.", tags:["wfnoun","spell"]},
+ {n:4, stem:"BEAR", ans:["unbearable"], exp:"bear → UNbearable — negative + -able.", tags:["wfneg","wfadj"]},
+ {n:5, stem:"CONSIDER", ans:["considerably"], exp:"consider → considerably (adverb modifying 'shorter').", tags:["wfadv"]},
+ {n:6, stem:"DRAMA", ans:["dramatically"], exp:"drama → dramatically.", tags:["wfadv","spell"]},
+ {n:7, stem:"PATIENT", ans:["impatience"], exp:"patient → IMpatience — negative prefix + noun.", tags:["wfneg","wfnoun","spell"]},
+ {n:8, stem:"ENDURE", ans:["endurable"], exp:"endure → endurable = bearable.", tags:["wfadj"]},
+]});
+P.p3.push({
+id:"pp3j", title:"Volcano tourism", level:"challenge",
+text:"Every year, thousands of travellers pay for the (1)FORGET experience of standing at the rim of an active volcano. The attraction is easy to grasp: nowhere else does the planet feel so alive, so vast, so completely (2)DIFFER to human plans. Yet the industry walks an ethical tightrope. Guides face constant (3)PRESS to approach closer than official limits allow, and the (4)COMPARE safety of recent years has bred complacency. Volcanologists point out that eruptions remain fundamentally (5)PREDICT , however good the monitoring. After the 2019 tragedy in New Zealand, several operators were judged to have shown a (6)REGRET lack of caution. The lesson is not that such journeys should end, but that their (7)POPULAR must never be allowed to outweigh the mountain’s (8)DENY power to surprise.",
+gaps:[
+ {n:1, stem:"FORGET", ans:["unforgettable"], exp:"forget → UNforgettable — negative prefix + double T + -able.", tags:["wfneg","wfadj","spell"]},
+ {n:2, stem:"DIFFER", ans:["indifferent"], exp:"differ → INdifferent (to) = unmoved by — a meaning shift, not just 'different'.", tags:["wfneg","wfadj","spell"]},
+ {n:3, stem:"PRESS", ans:["pressure"], exp:"press → pressure.", tags:["wfnoun"]},
+ {n:4, stem:"COMPARE", ans:["comparative"], exp:"compare → comparative safety.", tags:["wfadj"]},
+ {n:5, stem:"PREDICT", ans:["unpredictable"], exp:"predict → UNpredictable.", tags:["wfneg","wfadj"]},
+ {n:6, stem:"REGRET", ans:["regrettable"], exp:"regret → regrettable — double T.", tags:["wfadj","spell"]},
+ {n:7, stem:"POPULAR", ans:["popularity"], exp:"popular → popularity.", tags:["wfnoun"]},
+ {n:8, stem:"DENY", ans:["undeniable"], exp:"deny → UNdeniable.", tags:["wfneg","wfadj"]},
+]});
+P.p3.push({
+id:"pp3k", title:"Night trains across Europe", level:"challenge",
+text:"After decades of (1)STEADY decline, the European night train is enjoying an unlikely revival. Operators who once cut sleeper routes as (2)PROFIT now reopen them to satisfy travellers hunting for alternatives to short flights. The appeal is partly practical — you board at dusk and arrive, (3)REFRESH , in a new capital at dawn — and partly romantic, for trains retain an (4)EXPLAIN hold on the imagination. The new services are not cheap, and critics question their (5)RELY in winter. Supporters reply that early teething troubles were (6)AVOID , given how quickly the network grew, and point to booking figures of remarkable (7)STRONG . Whether the revival lasts will depend, as ever, on (8)PUNCTUAL — the one virtue no sleeping passenger ever forgives a railway for lacking.",
+gaps:[
+ {n:1, stem:"STEADY", ans:["steady"], exp:"No change — STEADY already fits 'decades of steady decline'. Cambridge plants exactly one of these to test nerve.", tags:["wfadj"]},
+ {n:2, stem:"PROFIT", ans:["unprofitable"], exp:"profit → UNprofitable — routes were cut BECAUSE unprofitable.", tags:["wfneg","wfadj"]},
+ {n:3, stem:"REFRESH", ans:["refreshed"], exp:"refresh → refreshed (participle adjective describing 'you').", tags:["wfadj"]},
+ {n:4, stem:"EXPLAIN", ans:["inexplicable"], exp:"explain → INexplicable = impossible to explain. The hardest shift in the set.", tags:["wfneg","wfadj","spell"]},
+ {n:5, stem:"RELY", ans:["reliability"], exp:"rely → reliability.", tags:["wfnoun","spell"]},
+ {n:6, stem:"AVOID", ans:["unavoidable"], exp:"avoid → UNavoidable.", tags:["wfneg","wfadj"]},
+ {n:7, stem:"STRONG", ans:["strength"], exp:"strong → strength.", tags:["wfnoun","spell"]},
+ {n:8, stem:"PUNCTUAL", ans:["punctuality"], exp:"punctual → punctuality.", tags:["wfnoun"]},
+]});
+P.p3.push({
+id:"pp3l", title:"The restoration of silence", level:"challenge",
+text:"Acoustic ecologists argue that genuine quiet has become one of the rarest (1)OCCUR in the natural world. Even remote valleys suffer the (2)AVOID drone of aircraft, and recordings made in national parks reveal a (3)WORRY rise in mechanical noise over thirty years. The campaign for protected “quiet zones” therefore strikes many as perfectly (4)REASON . Opponents, however, find the proposals (5)PRACTICE , arguing that no agency can police the sky. Campaigners respond that the goal is less (6)AMBITION than critics claim: not the (7)ELIMINATE of all sound, but the preservation of places where natural sound still dominates. Anyone who has heard a dawn chorus undisturbed will confirm that the experience is (8)PRICE .",
+gaps:[
+ {n:1, stem:"OCCUR", ans:["occurrences"], exp:"occur → occurrences — double C, double R, AND the plural after 'one of the rarest'.", tags:["wfnoun","spell"]},
+ {n:2, stem:"AVOID", ans:["unavoidable"], exp:"avoid → UNavoidable drone.", tags:["wfneg","wfadj"]},
+ {n:3, stem:"WORRY", ans:["worrying"], exp:"worry → worrying (adjective).", tags:["wfadj"]},
+ {n:4, stem:"REASON", ans:["reasonable"], exp:"reason → reasonable.", tags:["wfadj"]},
+ {n:5, stem:"PRACTICE", ans:["impractical"], exp:"practice → IMpractical — the negative prefix becomes IM- before P.", tags:["wfneg","wfadj","spell"]},
+ {n:6, stem:"AMBITION", ans:["ambitious"], exp:"ambition → ambitious — 'less ambitious than critics claim'.", tags:["wfadj"]},
+ {n:7, stem:"ELIMINATE", ans:["elimination"], exp:"eliminate → elimination.", tags:["wfnoun"]},
+ {n:8, stem:"PRICE", ans:["priceless"], exp:"price → priceless = beyond price (NOT 'expensive').", tags:["wfadj"]},
+]});
+})();
+
+
+/* ===== js/data-papers.js ===== */
+/* Mastery (FCE) — THE FIXED MOCK PAPERS.
+   12 complete Use of English papers. Each paper owns its three passages and its six
+   Key Word Transformations OUTRIGHT: nothing here is shared between papers, and the
+   Part 4 items below live only in mocks — they are never served in practice.
+   Papers 1–8 = standard exam difficulty. Papers 9–12 = CHALLENGE (B2+/C1-edge);
+   results on those are graded with a stated difficulty allowance. */
+window.FCE = window.FCE || {};
+FCE.PAPERS = [
+
+{n:1, level:"standard", p1:"pp1a", p2:"pp2a", p3:"pp3a", p4:[
+ {id:"x01", s1:"They continued playing despite the rain.", key:"CARRIED", s2:"They ____ playing despite the rain.", ans:["carried on"], halves:[["carried"],["on"]], tags:["pv"], diff:1, exp:"CARRY ON = continue.", trap:"No preposition after on here — carried on playing."},
+ {id:"x02", s1:"Maria started learning Japanese two years ago.", key:"BEEN", s2:"Maria has ____ Japanese for two years.", ans:["been learning","been studying"], halves:[["been"],["learning","studying"]], tags:["aux"], diff:1, exp:"started ago ↔ present perfect continuous + FOR.", trap:"FOR + period, not since."},
+ {id:"x03", s1:"“Did you enjoy the concert?” Tom asked me.", key:"IF", s2:"Tom asked me ____ enjoyed the concert.", ans:["if i had"], halves:[["if i"],["had"]], tags:["rep"], diff:2, exp:"Reported yes/no question: IF + backshift to past perfect.", trap:"No question mark, no inversion in reported questions."},
+ {id:"x04", s1:"The box was so heavy that I couldn’t lift it.", key:"TOO", s2:"The box was ____ me to lift.", ans:["too heavy for"], halves:[["too heavy"],["for"]], tags:["comp"], diff:2, exp:"so + adj + that ↔ TOO + adj + FOR somebody TO do.", trap:"Don’t repeat 'it' at the end — 'to lift it' loses the mark."},
+ {id:"x05", s1:"Photography doesn’t interest my brother at all.", key:"INTERESTED", s2:"My brother is not ____ photography at all.", ans:["interested in"], halves:[["interested"],["in"]], tags:["prep"], diff:1, exp:"INTERESTED IN — adjective + dependent preposition.", trap:"interested ON/about — automatic zero."},
+ {id:"x06", s1:"You won’t pass if you don’t revise regularly.", key:"UNLESS", s2:"You won’t pass ____ regularly.", ans:["unless you revise"], halves:[["unless you"],["revise"]], tags:["cond","link"], diff:2, exp:"if not ↔ UNLESS + positive verb.", trap:"UNLESS already contains the 'not' — never write 'unless you don’t'."},
+]},
+
+{n:2, level:"standard", p1:"pp1b", p2:"pp2b", p3:"pp3b", p4:[
+ {id:"x07", s1:"Lena doesn’t ride horses any more.", key:"USED", s2:"Lena ____ horses, but she doesn’t any more.", ans:["used to ride"], halves:[["used to"],["ride"]], tags:["wish"], diff:2, exp:"past habit ↔ USED TO + bare infinitive.", trap:"'use to' without D — the most common written slip."},
+ {id:"x08", s1:"I can’t decide where to go this summer.", key:"MAKE", s2:"I can’t ____ mind where to go this summer.", ans:["make up my"], halves:[["make up"],["my"]], tags:["pv","fix"], diff:2, exp:"MAKE UP your MIND = decide.", trap:"The possessive must match the subject: make up MY mind."},
+ {id:"x09", s1:"That’s the café. We first met there.", key:"WHERE", s2:"That’s the café ____ first met.", ans:["where we"], halves:[["where"],["we"]], tags:["rel"], diff:1, exp:"Place + complete clause → WHERE.", trap:"'in which we' would also work — but the key forces where."},
+ {id:"x10", s1:"The play was so boring that we left early.", key:"SUCH", s2:"It was ____ boring play that we left early.", ans:["such a"], halves:[["such"],["a"]], tags:["det","comp"], diff:2, exp:"so + adj ↔ SUCH + A + adj + noun.", trap:"The article A is the whole second half of the mark."},
+ {id:"x11", s1:"I can’t wait to see my cousins again.", key:"LOOKING", s2:"I am ____ seeing my cousins again.", ans:["looking forward to"], halves:[["looking forward"],["to"]], tags:["pv","ger"], diff:2, exp:"LOOK FORWARD TO + -ing.", trap:"TO here is a preposition — the -ing after it is already in the sentence."},
+ {id:"x12", s1:"A photographer is taking my photo tomorrow.", key:"HAVING", s2:"I am ____ taken tomorrow.", ans:["having my photo","having my picture"], halves:[["having"],["my photo","my picture"]], tags:["pass"], diff:3, exp:"Causative: HAVE something DONE — I am having my photo taken.", trap:"The photo doesn’t take itself — causative word order is photo + taken."},
+]},
+
+{n:3, level:"standard", p1:"pp1c", p2:"pp2c", p3:"pp3c", p4:[
+ {id:"x13", s1:"I’m sorry I sold my guitar.", key:"WISH", s2:"I ____ my guitar.", ans:["wish i had not sold","wish i hadn't sold"], halves:[["wish i had not","wish i hadn't"],["sold"]], tags:["wish"], diff:3, exp:"Regret about the past: WISH + past perfect.", trap:"wish + would is for other people's annoying habits, not your own past."},
+ {id:"x14", s1:"They are repairing the road outside our house.", key:"BEING", s2:"The road outside our house is ____ .", ans:["being repaired"], halves:[["being"],["repaired"]], tags:["pass"], diff:2, exp:"Present continuous passive: is BEING + participle.", trap:"BEING is the word students drop."},
+ {id:"x15", s1:"She is too young to vote.", key:"ENOUGH", s2:"She is not ____ to vote.", ans:["old enough"], halves:[["old"],["enough"]], tags:["comp"], diff:1, exp:"too + adj ↔ not + OPPOSITE adj + ENOUGH.", trap:"ENOUGH goes AFTER the adjective."},
+ {id:"x16", s1:"“You should take the earlier train, Pia,” said Marco.", key:"ADVISED", s2:"Marco ____ the earlier train.", ans:["advised pia to take"], halves:[["advised pia"],["to take"]], tags:["rep","ger"], diff:2, exp:"ADVISE somebody TO do.", trap:"'advised that she takes' loses the structure mark."},
+ {id:"x17", s1:"Walking on the grass is forbidden.", key:"NO", s2:"There is ____ on the grass.", ans:["no walking"], halves:[["no"],["walking"]], tags:["det","ger"], diff:3, exp:"There is NO + -ing = it is forbidden.", trap:"'not walking' fails — the pattern wants NO + gerund."},
+ {id:"x18", s1:"Although the tickets cost a lot, the stadium was full.", key:"SPITE", s2:"____ the high ticket prices, the stadium was full.", ans:["in spite of"], halves:[["in spite"],["of"]], tags:["link"], diff:2, exp:"IN SPITE OF + noun.", trap:"in spite needs OF; despite refuses it. Don’t cross-breed them."},
+]},
+
+{n:4, level:"standard", p1:"pp1d", p2:"pp2d", p3:"pp3d", p4:[
+ {id:"x19", s1:"Somebody services our boiler every winter.", key:"GET", s2:"We ____ serviced every winter.", ans:["get our boiler"], halves:[["get"],["our boiler"]], tags:["pass"], diff:3, exp:"Causative with GET: get something done.", trap:"Word order: get + object + participle."},
+ {id:"x20", s1:"The fridge is completely empty.", key:"ANYTHING", s2:"There is hardly ____ the fridge.", ans:["anything in"], halves:[["anything"],["in"]], tags:["det","prep"], diff:2, exp:"completely empty ↔ hardly ANYTHING in.", trap:"hardly NOTHING is a double negative — zero."},
+ {id:"x21", s1:"The last time I saw Carla was in 2019.", key:"SINCE", s2:"I have not seen Carla ____ .", ans:["since 2019"], halves:[["since"],["2019"]], tags:["aux"], diff:1, exp:"last time ↔ present perfect negative + SINCE.", trap:"Present perfect, not past simple, before since."},
+ {id:"x22", s1:"Whenever we visited, grandpa told the same stories.", key:"WOULD", s2:"Whenever we visited, grandpa ____ the same stories.", ans:["would tell"], halves:[["would"],["tell"]], tags:["wish","aux"], diff:3, exp:"Past repeated behaviour: WOULD + bare infinitive.", trap:"WOULD works for repeated actions, never for past states (no 'would own')."},
+ {id:"x23", s1:"Maya insisted that she would pay for lunch.", key:"ON", s2:"Maya insisted ____ for lunch.", ans:["on paying"], halves:[["on"],["paying"]], tags:["prep","ger"], diff:2, exp:"INSIST ON + -ing.", trap:"insist TO pay — the classic infinitive trap."},
+ {id:"x24", s1:"“Don’t touch the wires, kids,” said the electrician.", key:"WARNED", s2:"The electrician ____ touch the wires.", ans:["warned the kids not to","warned the children not to"], halves:[["warned the kids","warned the children"],["not to"]], tags:["rep"], diff:3, exp:"WARN somebody NOT TO do.", trap:"NOT TO — both words, in that order."},
+]},
+
+{n:5, level:"standard", p1:"pp1e", p2:"pp2e", p3:"pp3e", p4:[
+ {id:"x25", s1:"They cancelled the open-air concert because of the storm.", key:"CALLED", s2:"The open-air concert was ____ because of the storm.", ans:["called off"], halves:[["called"],["off"]], tags:["pv","pass"], diff:2, exp:"CALL OFF = cancel — here in the passive.", trap:"OFF is the meaning; 'called out/away' are different verbs."},
+ {id:"x26", s1:"My sister and I are equally tall.", key:"AS", s2:"I am just ____ my sister.", ans:["as tall as"], halves:[["as tall"],["as"]], tags:["comp"], diff:1, exp:"equally ↔ AS + adjective + AS.", trap:"Both AS's are needed — the second one carries a mark."},
+ {id:"x27", s1:"Could you open the window, please?", key:"MIND", s2:"Would you ____ the window, please?", ans:["mind opening"], halves:[["mind"],["opening"]], tags:["ger"], diff:2, exp:"Would you MIND + -ing.", trap:"mind TO open — gerund only after mind."},
+ {id:"x28", s1:"That author’s latest novel sold a million copies.", key:"WHOSE", s2:"That is the author ____ novel sold a million copies.", ans:["whose latest"], halves:[["whose"],["latest"]], tags:["rel"], diff:2, exp:"Possession → WHOSE.", trap:"who's = who is. Different creature entirely."},
+ {id:"x29", s1:"Take a map — you might get lost.", key:"CASE", s2:"Take a map in ____ lost.", ans:["case you get"], halves:[["case"],["you get"]], tags:["link","cond"], diff:3, exp:"IN CASE + present simple = preparation for a possibility.", trap:"in case ≠ if: you take the map BEFORE anything happens."},
+ {id:"x30", s1:"It rained heavily, so the match was postponed.", key:"RESULT", s2:"The match was postponed as a ____ heavy rain.", ans:["result of the","result of"], halves:[["result"],["of the","of"]], tags:["depprep"], diff:2, exp:"AS A RESULT OF + noun.", trap:"as a result FROM — the phrase owns OF."},
+]},
+
+{n:6, level:"standard", p1:"pp1f", p2:"pp2f", p3:"pp3f", p4:[
+ {id:"x31", s1:"It’s possible that Leo forgot the appointment.", key:"HAVE", s2:"Leo may ____ the appointment.", ans:["have forgotten"], halves:[["have"],["forgotten"]], tags:["modal"], diff:2, exp:"Past possibility: may HAVE + participle.", trap:"may forgot / may forget — the HAVE carries the past."},
+ {id:"x32", s1:"It’s useless to argue with the referee.", key:"POINT", s2:"There is no ____ with the referee.", ans:["point in arguing","point arguing"], halves:[["point in","point"],["arguing"]], tags:["fix","ger"], diff:2, exp:"There is no POINT (IN) + -ing.", trap:"'no point to argue' fails — gerund territory."},
+ {id:"x33", s1:"They built this lighthouse in 1820.", key:"WAS", s2:"This lighthouse ____ in 1820.", ans:["was built"], halves:[["was"],["built"]], tags:["pass"], diff:1, exp:"Past simple passive.", trap:"BUILT, not builded — irregular participle."},
+ {id:"x34", s1:"Rafa loves sailing.", key:"KEEN", s2:"Rafa is very ____ sailing.", ans:["keen on"], halves:[["keen"],["on"]], tags:["prep"], diff:1, exp:"KEEN ON + -ing/noun.", trap:"keen ABOUT/for — only ON survives."},
+ {id:"x35", s1:"My parents didn’t allow me to stay out late.", key:"LET", s2:"My parents did not ____ out late.", ans:["let me stay"], halves:[["let me"],["stay"]], tags:["ger","pass"], diff:2, exp:"LET + object + bare infinitive.", trap:"let me TO stay — let never takes to."},
+ {id:"x36", s1:"Thieves entered the museum through a skylight.", key:"BREAK", s2:"Thieves managed to ____ the museum through a skylight.", ans:["break into"], halves:[["break"],["into"]], tags:["pv"], diff:2, exp:"BREAK INTO = enter illegally.", trap:"break IN has no object; with 'the museum' you need INTO."},
+]},
+
+{n:7, level:"standard", p1:"pp1g", p2:"pp2g", p3:"pp3g", p4:[
+ {id:"x37", s1:"I think you should apologise to your sister.", key:"BETTER", s2:"You had ____ to your sister.", ans:["better apologise"], halves:[["better"],["apologise"]], tags:["modal"], diff:2, exp:"HAD BETTER + bare infinitive = strong advice.", trap:"No TO after had better."},
+ {id:"x38", s1:"Even though he felt exhausted, Idris finished the race.", key:"DESPITE", s2:"Idris finished the race ____ exhausted.", ans:["despite feeling","despite being"], halves:[["despite"],["feeling","being"]], tags:["link","ger"], diff:2, exp:"DESPITE + -ing.", trap:"despite OF — instant zero."},
+ {id:"x39", s1:"The committee rejected my proposal.", key:"TURNED", s2:"My proposal was ____ the committee.", ans:["turned down by"], halves:[["turned down"],["by"]], tags:["pv","pass"], diff:3, exp:"TURN DOWN = reject — passive + BY agent.", trap:"All three words: turned + down + by."},
+ {id:"x40", s1:"We last visited the coast years ago.", key:"LONG", s2:"It is a ____ we visited the coast.", ans:["long time since"], halves:[["long time"],["since"]], tags:["wish","aux"], diff:3, exp:"It is a LONG TIME SINCE + past simple.", trap:"Past simple after since in this frame — not present perfect."},
+ {id:"x41", s1:"“Why don’t we hire bikes?” said Nora.", key:"SUGGESTED", s2:"Nora ____ bikes.", ans:["suggested hiring","suggested renting"], halves:[["suggested"],["hiring","renting"]], tags:["rep","ger"], diff:2, exp:"SUGGEST + -ing.", trap:"suggested TO hire — suggest never takes object + to-infinitive."},
+ {id:"x42", s1:"The misunderstanding was Marco’s fault.", key:"FAULT", s2:"Marco was at ____ the misunderstanding.", ans:["fault for"], halves:[["fault"],["for"]], tags:["depprep","fix"], diff:4, exp:"be AT FAULT FOR something = be responsible for it.", trap:"The whole chunk: at fault for."},
+]},
+
+{n:8, level:"standard", p1:"pp1h", p2:"pp2h", p3:"pp3h", p4:[
+ {id:"x43", s1:"Zara quickly got used to city traffic.", key:"ACCUSTOMED", s2:"Zara quickly became ____ city traffic.", ans:["accustomed to"], halves:[["accustomed"],["to"]], tags:["prep","ger"], diff:3, exp:"become ACCUSTOMED TO = get used to.", trap:"accustomed WITH — only TO works."},
+ {id:"x44", s1:"He saves money so that he can travel in summer.", key:"ORDER", s2:"He saves money in ____ travel in summer.", ans:["order to"], halves:[["order"],["to"]], tags:["link","ger"], diff:2, exp:"IN ORDER TO + infinitive = purpose.", trap:"in order FOR travel — TO + verb here."},
+ {id:"x45", s1:"There were almost no seats left when we arrived.", key:"HARDLY", s2:"There were ____ seats left when we arrived.", ans:["hardly any"], halves:[["hardly"],["any"]], tags:["det"], diff:2, exp:"almost no ↔ HARDLY ANY.", trap:"hardly no — double negative, zero."},
+ {id:"x46", s1:"It wasn’t the goalkeeper’s fault that they lost.", key:"BLAME", s2:"The goalkeeper was not to ____ the defeat.", ans:["blame for"], halves:[["blame"],["for"]], tags:["depprep","fix"], diff:3, exp:"be TO BLAME FOR something.", trap:"Active form, passive meaning — 'to be blamed' changes the structure."},
+ {id:"x47", s1:"I can’t tolerate noisy neighbours any longer.", key:"PUT", s2:"I can’t ____ noisy neighbours any longer.", ans:["put up with"], halves:[["put up"],["with"]], tags:["pv"], diff:2, exp:"PUT UP WITH = tolerate.", trap:"Three words, no substitutions accepted."},
+ {id:"x48", s1:"My advice is to ask for a refund.", key:"WERE", s2:"If I ____ , I would ask for a refund.", ans:["were you"], halves:[["were"],["you"]], tags:["cond"], diff:2, exp:"If I WERE YOU — advice conditional.", trap:"WERE for all persons in this idiom — 'if I was you' drops a mark in writing."},
+]},
+
+{n:9, level:"challenge", p1:"pp1i", p2:"pp2i", p3:"pp3i", p4:[
+ {id:"x49", s1:"Immediately after I sat down, the phone rang.", key:"SOONER", s2:"No ____ down than the phone rang.", ans:["sooner had i sat"], halves:[["sooner had i"],["sat"]], tags:["inv","aux"], diff:5, exp:"NO SOONER HAD I sat down THAN — inversion + than.", trap:"No sooner pairs with THAN (already given); hardly pairs with when."},
+ {id:"x50", s1:"Without your warning, we would have missed the turning.", key:"BUT", s2:"____ your warning, we would have missed the turning.", ans:["but for"], halves:[["but"],["for"]], tags:["cond","link"], diff:4, exp:"BUT FOR + noun = if it hadn’t been for.", trap:"Two words only — 'but because of' ruins it."},
+ {id:"x51", s1:"You should have handed in this essay days ago.", key:"TIME", s2:"It is high ____ in this essay.", ans:["time you handed"], halves:[["time you"],["handed"]], tags:["wish"], diff:4, exp:"It is high TIME + subject + PAST SIMPLE.", trap:"Past simple after high time, even though the meaning is present."},
+ {id:"x52", s1:"You must never open this door, whatever happens.", key:"ACCOUNT", s2:"On no ____ this door be opened.", ans:["account must","account should"], halves:[["account"],["must","should"]], tags:["inv","modal"], diff:5, exp:"ON NO ACCOUNT + inverted modal: must this door be opened.", trap:"The inversion is compulsory after the negative opener."},
+ {id:"x53", s1:"Somebody stole Marta’s passport while she was asleep.", key:"STOLEN", s2:"Marta had her passport ____ she was asleep.", ans:["stolen while"], halves:[["stolen"],["while"]], tags:["pass"], diff:4, exp:"HAVE something done — here the unlucky version: had her passport stolen.", trap:"Same causative grammar, victim meaning."},
+ {id:"x54", s1:"I only relaxed after the plane landed.", key:"DID", s2:"Only after the plane landed ____ .", ans:["did i relax"], halves:[["did i"],["relax"]], tags:["inv","aux"], diff:5, exp:"ONLY AFTER… + inversion: did I relax.", trap:"The subject goes BETWEEN did and relax."},
+]},
+
+{n:10, level:"challenge", p1:"pp1j", p2:"pp2j", p3:"pp3j", p4:[
+ {id:"x55", s1:"Please don’t mention this to anyone.", key:"RATHER", s2:"I would ____ mention this to anyone.", ans:["rather you did not","rather you didn't"], halves:[["rather you"],["did not","didn't"]], tags:["wish"], diff:5, exp:"WOULD RATHER + different subject + PAST simple.", trap:"When the subject changes, rather takes past — 'rather you don’t' is the famous near-miss."},
+ {id:"x56", s1:"The company was very close to bankruptcy when the loan arrived.", key:"VERGE", s2:"The company was on the ____ bankrupt when the loan arrived.", ans:["verge of going"], halves:[["verge of"],["going"]], tags:["depprep","ger"], diff:5, exp:"ON THE VERGE OF + -ing.", trap:"OF + gerund — 'verge to go' collapses."},
+ {id:"x57", s1:"We assumed the museum would be open and didn’t check.", key:"GRANTED", s2:"We took it for ____ the museum would be open.", ans:["granted that"], halves:[["granted"],["that"]], tags:["fix"], diff:4, exp:"TAKE IT FOR GRANTED THAT…", trap:"The dummy IT is already there — don’t repeat it."},
+ {id:"x58", s1:"She both directs the films and writes the music.", key:"ONLY", s2:"Not ____ direct the films, but she also writes the music.", ans:["only does she"], halves:[["only does"],["she"]], tags:["inv","aux"], diff:5, exp:"NOT ONLY + inversion: does she direct.", trap:"Without DOES the inversion fails and so does the mark."},
+ {id:"x59", s1:"“I never touched the exam papers,” said the clerk.", key:"DENIED", s2:"The clerk ____ the exam papers.", ans:["denied touching","denied having touched","denied ever touching"], halves:[["denied"],["touching","having touched","ever touching"]], tags:["rep","ger"], diff:3, exp:"DENY + -ing (or having + participle).", trap:"denied TO touch — deny never takes the infinitive."},
+ {id:"x60", s1:"You certainly may not borrow the car.", key:"MEANS", s2:"By no ____ borrow the car.", ans:["means may you","means can you"], halves:[["means"],["may you","can you"]], tags:["inv","modal"], diff:5, exp:"BY NO MEANS + inverted modal.", trap:"Negative opener → modal BEFORE subject."},
+]},
+
+{n:11, level:"challenge", p1:"pp1k", p2:"pp2k", p3:"pp3k", p4:[
+ {id:"x61", s1:"Because she had missed the bus, Ines took a taxi.", key:"HAVING", s2:"____ the bus, Ines took a taxi.", ans:["having missed"], halves:[["having"],["missed"]], tags:["ger"], diff:4, exp:"Perfect participle: HAVING MISSED = because she had missed.", trap:"'Having missing' / 'having miss' — participle after having."},
+ {id:"x62", s1:"Nobody minds if you bring a guest.", key:"OBJECTION", s2:"Nobody has any ____ a guest.", ans:["objection to bringing","objection to your bringing"], halves:[["objection to"],["bringing","your bringing"]], tags:["prep","ger"], diff:5, exp:"OBJECTION TO + -ing.", trap:"TO is a preposition here — the infinitive is the trap."},
+ {id:"x63", s1:"You should definitely visit the old harbour.", key:"WORTH", s2:"The old harbour is well ____ .", ans:["worth visiting","worth a visit"], halves:[["worth"],["visiting","a visit"]], tags:["fix","ger"], diff:3, exp:"WELL WORTH + -ing / a visit.", trap:"worth TO visit — gerund country."},
+ {id:"x64", s1:"If you happen to see Leila, give her my regards.", key:"SHOULD", s2:"____ see Leila, give her my regards.", ans:["should you"], halves:[["should"],["you"]], tags:["cond","inv"], diff:5, exp:"SHOULD YOU see = if you happen to see (formal inversion).", trap:"No IF — the inversion replaces it."},
+ {id:"x65", s1:"The fog stopped the planes from taking off.", key:"PREVENTED", s2:"The planes were ____ taking off by the fog.", ans:["prevented from"], halves:[["prevented"],["from"]], tags:["pass","prep"], diff:3, exp:"PREVENT somebody FROM -ing — here passive.", trap:"FROM survives into the passive."},
+ {id:"x66", s1:"The trains probably won’t run tomorrow.", key:"LIKELIHOOD", s2:"There is little ____ the trains running tomorrow.", ans:["likelihood of"], halves:[["likelihood"],["of"]], tags:["depprep","ger"], diff:5, exp:"little LIKELIHOOD OF + noun/-ing.", trap:"OF, then the -ing clause already given."},
+]},
+
+{n:12, level:"challenge", p1:"pp1l", p2:"pp2l", p3:"pp3l", p4:[
+ {id:"x67", s1:"You must never reveal your password to anyone.", key:"CIRCUMSTANCES", s2:"Under no ____ reveal your password to anyone.", ans:["circumstances must you","circumstances should you"], halves:[["circumstances"],["must you","should you"]], tags:["inv","modal"], diff:5, exp:"UNDER NO CIRCUMSTANCES + inverted modal + subject.", trap:"Both the modal AND the inverted subject are needed."},
+ {id:"x68", s1:"Although I admire her courage, I think the plan is reckless.", key:"MUCH", s2:"____ I admire her courage, I think the plan is reckless.", ans:["much as"], halves:[["much"],["as"]], tags:["link"], diff:5, exp:"MUCH AS = although (with verbs of liking/admiring).", trap:"Two small words; 'much although' is nothing."},
+ {id:"x69", s1:"We instantly disliked each other when we met.", key:"SIGHT", s2:"It was dislike at ____ when we met.", ans:["first sight"], halves:[["first"],["sight"]], tags:["fix"], diff:3, exp:"at FIRST SIGHT — works for dislike too.", trap:"The idiom is fixed: at first sight."},
+ {id:"x70", s1:"Eventually, cutting corners always costs a business money.", key:"RUN", s2:"Cutting corners always costs a business money in ____ .", ans:["the long run"], halves:[["the long"],["run"]], tags:["fix"], diff:3, exp:"IN THE LONG RUN = eventually, over time.", trap:"THE is part of the idiom."},
+ {id:"x71", s1:"We’ll only camp overnight if there is no alternative.", key:"RESORT", s2:"We will camp overnight only as a ____ there is no alternative.", ans:["last resort if"], halves:[["last resort"],["if"]], tags:["fix","cond"], diff:4, exp:"AS A LAST RESORT = only when nothing else is possible.", trap:"LAST is not optional."},
+ {id:"x72", s1:"She didn’t let the criticism discourage her.", key:"FROM", s2:"She stopped the criticism ____ her.", ans:["from discouraging"], halves:[["from"],["discouraging"]], tags:["prep","ger"], diff:3, exp:"STOP something FROM -ing.", trap:"FROM + gerund — mirror of prevent from."},
+]},
+
+];
+
+
 /* ===== js/data-vocab.js ===== */
 /* Mastery (FCE) — Essay Vocab Lab data.
    Each entry upgrades a "flat" word into band-boosting alternatives, anchored in a real
@@ -2216,6 +2575,7 @@ E.blank = function(){
     calib:{g:{att:0,cor:0}, f:{att:0,cor:0}, s:{att:0,cor:0}},
     log:[], sessions:[], mocks:[], trend:[],
     passSeen:{},
+    papersDone:{},       // fixed mock papers: paper n -> {t, score, scale, level}
     beh:{ n:0, ttfkSum:0, editSum:0, pauseSum:0, changed:0, changedRight:0, selfCorrect:0, hiddenHesit:0, fluentSure:0, skips:0, fastRight:0, keySum:0, typeMsSum:0 },
     boost:{},            // tag -> remaining reinforcement count (error generalization)
     pos:{},              // open-cloze positional fingerprints: where in the sentence you fail
@@ -2236,7 +2596,7 @@ E.load = function(){
   if(!E.state.v) E.state = E.blank();
   var b = E.blank(); // migrate forward: fill anything missing
   Object.keys(b).forEach(function(k){ if(E.state[k] === undefined) E.state[k] = b[k]; });
-  ['boost','wants','accepts','passSeen','spellSeen'].forEach(function(k){ if(!E.state[k]) E.state[k]={}; });
+  ['boost','wants','accepts','passSeen','spellSeen','papersDone'].forEach(function(k){ if(!E.state[k]) E.state[k]={}; });
   if(!E.state.spell) E.state.spell = {pat:{}, words:{}};
   if(!E.state.reports) E.state.reports = [];
   if(!E.state.settings.lite) E.state.settings.lite = 'auto';
@@ -2950,21 +3310,62 @@ E.diagnosticSet = function(){
   return ids.map(function(id){ return E.byId[id]; }).filter(Boolean);
 };
 E.mockSet = function(){
-  var P = FCE.BANK.passages;
-  var p1 = E.pickPassage('p1') || P.p1[0];
-  var p2 = E.pickPassage('p2') || P.p2[0];
-  var p3 = E.pickPassage('p3') || P.p3[0];
-  var kwts = shuffle(FCE.BANK.kwt).slice(0,6);
-  return {p1:p1, p2:p2, p3:p3, p4:kwts};
+  return E.pickPaper();
 };
-E.recordMock = function(score, max, parts){
+/* ---------------- fixed mock papers ----------------
+   12 complete papers, each owning its passages and Part 4 items outright.
+   Standard papers = exam difficulty. Challenge papers = B2+/C1-edge, graded
+   with an explicit difficulty allowance (see recordMock). */
+E.CH_BONUS = 0.12; // challenge allowance: +12 percentage points before the scale map
+E.paperByN = function(n){
+  for(var i=0;i<FCE.PAPERS.length;i++){ if(FCE.PAPERS[i].n === n) return FCE.PAPERS[i]; }
+  return null;
+};
+E.passById = function(part, id){
+  var list = FCE.BANK.passages[part] || [];
+  for(var i=0;i<list.length;i++){ if(list[i].id === id) return list[i]; }
+  return null;
+};
+E.recommendedLevel = function(){
+  var a = E.state.ability;
+  var avg = (a.kwt + a.cloze + a.wf + a.mcc) / 4;
+  return avg >= 1280 ? 'challenge' : 'standard';
+};
+E.nextPaper = function(){
+  var done = E.state.papersDone, lvl = E.recommendedLevel();
+  var fresh = FCE.PAPERS.filter(function(p){ return !done[p.n]; });
+  if(fresh.length){
+    var pref = fresh.filter(function(p){ return p.level === lvl; });
+    return {paper: (pref.length ? pref : fresh)[0], retake:false};
+  }
+  var oldest = FCE.PAPERS.slice().sort(function(a,b){ return (done[a.n].t||0) - (done[b.n].t||0); })[0];
+  return {paper: oldest, retake:true};
+};
+E.pickPaper = function(n){
+  var paper = n ? E.paperByN(n) : null;
+  if(!paper) paper = E.nextPaper().paper;
+  return {
+    paper: paper,
+    retake: !!E.state.papersDone[paper.n],
+    p1: E.passById('p1', paper.p1),
+    p2: E.passById('p2', paper.p2),
+    p3: E.passById('p3', paper.p3),
+    p4: paper.p4,
+  };
+};
+E.recordMock = function(score, max, parts, paper){
   var p = Math.min(1, (score/max)*1.02);
-  var scale = Math.round(toScale(p));
-  E.state.mocks.push({t:Date.now(), score:score, max:max, scale:scale, parts:parts});
+  var lvl = paper ? paper.level : 'standard';
+  var scaleStd = Math.round(toScale(p));
+  var scale = lvl === 'challenge' ? Math.round(toScale(Math.min(1, p + E.CH_BONUS))) : scaleStd;
+  var delta = scale - scaleStd;
+  E.state.mocks.push({t:Date.now(), score:score, max:max, scale:scale, parts:parts,
+                      level:lvl, paper: paper ? paper.n : 0, delta:delta});
+  if(paper) E.state.papersDone[paper.n] = {t:Date.now(), score:score, scale:scale, level:lvl};
   E.award('mock');
   if(score >= 30) E.award('mock30');
   E.save();
-  return scale;
+  return {scale:scale, scaleStd:scaleStd, delta:delta, level:lvl};
 };
 E.pickPassage = function(part){
   var list = FCE.BANK.passages[part] || [];
@@ -5182,9 +5583,9 @@ function vocabDone(){
 
 /* ============================ MOCK TEST ============================ */
 var M = null;
-P.mock = function(){
+P.mock = function(paperN){
   var eng = E();
-  M = {set: eng.mockSet(), t0: Date.now(), limit: 35*60, done:false};
+  M = {set: eng.pickPaper(paperN), t0: Date.now(), limit: 35*60, done:false};
   var u = U();
   var host = u.$('#view');
   host.innerHTML = '';
@@ -5210,10 +5611,13 @@ function mockView(){
     });
     return '<div class="passage">'+txt+'</div>';
   }
+  var pp = s.paper, isCh = pp.level === 'challenge';
   var html =
-  '<div class="mock-timer"><div class="inner">⏱️ <span id="mt">35:00</span><span class="tiny">Use of English · 36 marks</span><button class="btn small danger" id="m-abort">Abandon</button></div></div>'+
-  '<div class="h-page">Mock Test</div>'+
-  '<p class="sub">Real format, real timing, feedback only at the end. Part 4 is marked 0 / 1 / 2 — exactly like Cambridge.</p>'+
+  '<div class="mock-timer"><div class="inner">⏱️ <span id="mt">35:00</span><span class="tiny">Paper '+pp.n+' · 36 marks</span><button class="btn small danger" id="m-abort">Abandon</button></div></div>'+
+  '<div class="h-page">Paper '+pp.n+(isCh?' <em>· Challenge</em>':'')+'</div>'+
+  '<p class="sub">Real format, real timing, feedback only at the end. Part 4 is marked 0 / 1 / 2 — exactly like Cambridge.'+
+  (isCh ? ' <b>This is a CHALLENGE paper</b> — set above exam level. Your result will be graded with a stated difficulty allowance, so don’t panic if it feels harder: it is.' : '')+
+  (s.retake ? ' <b>Retake</b> — you have sat this paper before; treat it as revision, not prediction.' : '')+'</p>'+
   '<div class="mock-part"><h4>Part 1 — Multiple-Choice Cloze · '+u.esc(s.p1.title)+'</h4><div class="pd">Choose A–D for each gap. 8 marks.</div>'+passageHTML(s.p1,'p1')+'</div>'+
   '<div class="mock-part"><h4>Part 2 — Open Cloze · '+u.esc(s.p2.title)+'</h4><div class="pd">ONE word per gap. 8 marks.</div>'+passageHTML(s.p2,'p2')+'</div>'+
   '<div class="mock-part"><h4>Part 3 — Word Formation · '+u.esc(s.p3.title)+'</h4><div class="pd">Form a word from each stem. 8 marks.</div>'+passageHTML(s.p3,'p3')+'</div>'+
@@ -5248,6 +5652,7 @@ function gradeMock(v){
   var u = U(), eng = E(), s = M.set;
   var score = 0, parts = {p1:0,p2:0,p3:0,p4:0}, errors = [];
   var marks = {p1:{}, p2:{}, p3:{}, p4:[]};
+  var gdiff = s.paper.level === 'challenge' ? 4 : 3;
   s.p1.gaps.forEach(function(g){
     var sel = u.$('select[data-part="p1"][data-n="'+g.n+'"]', v);
     var val = sel ? +sel.value : -1;
@@ -5255,7 +5660,7 @@ function gradeMock(v){
     if(ok){ score++; parts.p1++; }
     else errors.push({part:'Part 1', n:g.n, user: val>=0 ? g.opts[val] : '(blank)', corr:g.opts[g.cor], exp:g.exp});
     marks.p1[g.n] = {ok:ok, user: val>=0 ? g.opts[val] : '', corr:g.opts[g.cor], exp:g.exp};
-    eng.record({id:s.p1.id+'-'+g.n, tags:g.tags, diff:3, ans:[g.opts[g.cor]]}, 'mcc', ok, '', 0, val>=0?g.opts[val]:'', '', {quiet:true});
+    eng.record({id:s.p1.id+'-'+g.n, tags:g.tags, diff:gdiff, ans:[g.opts[g.cor]]}, 'mcc', ok, '', 0, val>=0?g.opts[val]:'', '', {quiet:true});
   });
   s.p2.gaps.forEach(function(g){
     var inp = u.$('input[data-part="p2"][data-n="'+g.n+'"]', v);
@@ -5264,7 +5669,7 @@ function gradeMock(v){
     if(ok){ score++; parts.p2++; }
     else errors.push({part:'Part 2', n:g.n, user:val||'(blank)', corr:g.ans.join(' / '), exp:g.exp});
     marks.p2[g.n] = {ok:ok, user:val, corr:g.ans[0], exp:g.exp};
-    eng.record({id:s.p2.id+'-'+g.n, tags:g.tags, gt:g.gt, diff:3, ans:g.ans}, 'cloze', ok, '', 0, val, '', {quiet:true});
+    eng.record({id:s.p2.id+'-'+g.n, tags:g.tags, gt:g.gt, diff:gdiff, ans:g.ans}, 'cloze', ok, '', 0, val, '', {quiet:true});
   });
   s.p3.gaps.forEach(function(g){
     var inp = u.$('input[data-part="p3"][data-n="'+g.n+'"]', v);
@@ -5273,7 +5678,7 @@ function gradeMock(v){
     if(ok){ score++; parts.p3++; }
     else errors.push({part:'Part 3', n:g.n, user:val||'(blank)', corr:g.ans.join(' / ')+' ('+g.stem+')', exp:g.exp});
     marks.p3[g.n] = {ok:ok, user:val, corr:g.ans[0], stem:g.stem, exp:g.exp};
-    eng.record({id:s.p3.id+'-'+g.n, tags:g.tags, diff:3, ans:g.ans}, 'wf', ok, '', 0, val, '', {quiet:true});
+    eng.record({id:s.p3.id+'-'+g.n, tags:g.tags, diff:gdiff, ans:g.ans}, 'wf', ok, '', 0, val, '', {quiet:true});
   });
   s.p4.forEach(function(q,i){
     var inp = u.$('input[data-part="p4"][data-n="'+i+'"]', v);
@@ -5286,7 +5691,8 @@ function gradeMock(v){
   });
   eng.checkBadges(0);
   eng.markPassage(s.p1.id); eng.markPassage(s.p2.id); eng.markPassage(s.p3.id);
-  var scale = eng.recordMock(score, 36, parts);
+  var res = eng.recordMock(score, 36, parts, s.paper);
+  var scale = res.scale, isCh = res.level === 'challenge';
   var pr = eng.predict();
   // render the WHOLE paper back, corrected in place — like a marked exam script
   function corrected(pass, mode){
@@ -5311,7 +5717,15 @@ function gradeMock(v){
     '<div class="q-shell"><div class="q-card session-done">'+
       '<div class="emoji">'+(score>=30?'🏆':score>=22?'🎯':'🧗')+'</div>'+
       '<div class="mock-result-score">'+score+'<span style="font-size:26px;color:var(--ink3)"> / 36</span></div>'+
-      '<p class="muted" style="margin-top:6px">≈ Cambridge scale <b>'+scale+'</b> · '+(scale>=180?'Grade A':scale>=173?'Grade B':scale>=160?'Grade C — pass':'below pass')+' on this paper</p>'+
+      '<p class="muted" style="margin-top:6px">Paper '+s.paper.n+(isCh?' · <b style="color:var(--red)">Challenge</b>':'')+' · ≈ Cambridge scale <b>'+scale+'</b> · '+(scale>=180?'Grade A':scale>=173?'Grade B':scale>=160?'Grade C — pass':'below pass')+' on this paper</p>'+
+      (isCh ?
+        '<div class="card" style="text-align:left;margin:14px auto 0;max-width:560px;background:var(--glass3)">'+
+          '<h3 style="margin-bottom:6px">⛰️ This was a higher-level paper</h3>'+
+          '<div style="font-size:13.5px;line-height:1.65">Challenge papers run <b>above real exam difficulty</b> — C1-edge collocations, inversion, double word-formation shifts. '+
+          'Raw marks here are worth more: your '+score+'/36 was graded with a <b>+12% difficulty allowance</b>'+
+          (res.delta>0 ? ', lifting your scale from '+res.scaleStd+' to <b>'+scale+'</b> (+'+res.delta+' points) compared with the same raw score on a standard paper.' : '.')+
+          ' If you can score here, the real paper will feel slow and friendly.</div>'+
+        '</div>' : '')+
       '<div class="mr-grid">'+
         mr('Part 1', parts.p1, 8)+mr('Part 2', parts.p2, 8)+mr('Part 3', parts.p3, 8)+mr('Part 4', parts.p4, 12)+
       '</div>'+
@@ -5374,20 +5788,37 @@ var NAV_LITE = [
 FCE.ui.views.mock = function(){
   var eng = FCE.engine;
   var mocks = eng.state.mocks;
+  var done = eng.state.papersDone;
+  var rec = eng.nextPaper();
+  var doneN = Object.keys(done).length;
   var v = FCE.ui.el(
     '<div class="h-page">Mock <em>Test</em></div>'+
-    '<p class="sub">The full 36-mark Use of English paper: real passages, four parts, 35 minutes, official-style scoring. No feedback until you submit — just like the real room.</p>'+
-    (function(){
-      var P = FCE.BANK.passages, seen = eng.state.passSeen;
-      var fresh = P.p1.concat(P.p2, P.p3).filter(function(p){ return !seen[p.id]; }).length;
-      var combos = P.p1.length * P.p2.length * P.p3.length;
-      return '<div class="row wrap" style="margin-bottom:16px">'+
-        '<span class="chip acc">'+combos.toLocaleString()+' paper combinations</span>'+
-        '<span class="chip">'+P.p1.length+'× Part 1 · '+P.p2.length+'× Part 2 · '+P.p3.length+'× Part 3 texts</span>'+
-        (fresh ? '<span class="chip ok">'+fresh+' passages you have never seen</span>' : '<span class="chip warn">all passages seen — least-recent rotate back in</span>')+
-        '<span class="chip">Part 4: 6 random of '+FCE.BANK.kwt.length+' transformations</span>'+
-      '</div>';
-    })()+
+    '<p class="sub">Twelve complete, fixed Use of English papers — like a book of past exams. Every passage and every transformation belongs to <b>one paper only</b>, so each mock is 100% fresh material. Papers 9–12 are <b>Challenge papers</b>: set above exam level and graded with a stated difficulty allowance.</p>'+
+    '<div class="row wrap" style="margin-bottom:16px">'+
+      '<span class="chip acc">12 fixed papers</span>'+
+      '<span class="chip">8 standard · 4 challenge ⛰️</span>'+
+      '<span class="chip '+(doneN?'ok':'')+'">'+doneN+' of 12 completed</span>'+
+      '<span class="chip" title="Nothing rotates between papers: 36 exclusive passages + 72 exclusive transformations, none of which ever appear in practice sessions.">every exercise exclusive to its paper</span>'+
+    '</div>'+
+    '<div class="card" style="margin-bottom:16px"><h3>Up next for you: Paper '+rec.paper.n+(rec.paper.level==='challenge'?' · Challenge ⛰️':'')+'</h3>'+
+      '<div class="muted" style="font-size:13.5px">'+
+      (rec.retake ? 'You have completed all 12 papers — this is your oldest result, served as a retake (revision value only).'
+        : (eng.recommendedLevel()==='challenge'
+          ? 'Your training ability is running above exam level, so the engine is dealing you a <b>Challenge paper</b>: harder collocations, inversion, double word-formation shifts. Scoring includes a +12% difficulty allowance — and your result will say exactly how much it was worth.'
+          : 'Standard papers mirror the real exam one-to-one. Challenge papers (9–12) unlock value once your ability climbs above exam level — you can still try one early, it just plays rough.'))+
+      '</div></div>'+
+    '<h3 class="sec-label">Choose your paper</h3>'+
+    '<div class="paper-grid" style="margin-bottom:16px">'+
+      FCE.PAPERS.map(function(p){
+        var d = done[p.n], isRec = p.n === rec.paper.n && !rec.retake;
+        return '<button class="paper-card'+(p.level==='challenge'?' ch':'')+(d?' done':'')+(isRec?' rec':'')+'" data-paper="'+p.n+'">'+
+          '<span class="pc-n">'+p.n+'</span>'+
+          '<span class="pc-lvl">'+(p.level==='challenge'?'⛰️ Challenge':'Standard')+'</span>'+
+          (d ? '<span class="pc-done">✓ '+d.score+'/36 · scale '+d.scale+'</span>'
+             : (isRec ? '<span class="pc-done rec-tag">▸ recommended</span>' : '<span class="pc-done fresh">unseen</span>'))+
+        '</button>';
+      }).join('')+
+    '</div>'+
     '<div class="grid g2" style="margin-bottom:16px">'+
       '<div class="card"><h3>What you’ll face</h3>'+
         '<div class="stack" style="gap:7px;font-size:13.5px">'+
@@ -5406,11 +5837,14 @@ FCE.ui.views.mock = function(){
     '</div>'+
     (mocks.length ? '<div class="card" style="margin-bottom:16px"><h3>Your mock history</h3>'+
       mocks.slice(-5).reverse().map(function(m){
-        return '<div class="row between" style="padding:6px 0;font-size:13.5px"><span>'+new Date(m.t).toLocaleDateString()+'</span><span class="mono">'+m.score+'/36</span><span class="chip '+(m.scale>=160?'ok':'warn')+'">scale '+m.scale+'</span></div>';
+        return '<div class="row between" style="padding:6px 0;font-size:13.5px"><span>'+new Date(m.t).toLocaleDateString()+(m.paper?' · Paper '+m.paper:'')+(m.level==='challenge'?' ⛰️':'')+'</span><span class="mono">'+m.score+'/36</span><span class="chip '+(m.scale>=160?'ok':'warn')+'">scale '+m.scale+(m.delta?' <span title="includes the challenge-paper allowance">(+'+m.delta+')</span>':'')+'</span></div>';
       }).join('')+'</div>' : '')+
-    '<button class="btn primary block" id="mock-start" style="font-size:16px;padding:16px">Start the paper · 35:00 ▸</button>'
+    '<button class="btn primary block" id="mock-start" style="font-size:16px;padding:16px">Start Paper '+rec.paper.n+' · 35:00 ▸</button>'
   );
-  FCE.ui.$('#mock-start', v).addEventListener('click', function(){ FCE.practice.mock(); });
+  FCE.ui.$('#mock-start', v).addEventListener('click', function(){ FCE.practice.mock(rec.paper.n); });
+  FCE.ui.$$('.paper-card', v).forEach(function(b){
+    b.addEventListener('click', function(){ FCE.practice.mock(+b.dataset.paper); });
+  });
   return v;
 };
 

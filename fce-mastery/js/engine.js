@@ -20,6 +20,7 @@ E.blank = function(){
     calib:{g:{att:0,cor:0}, f:{att:0,cor:0}, s:{att:0,cor:0}},
     log:[], sessions:[], mocks:[], trend:[],
     passSeen:{},
+    papersDone:{},       // fixed mock papers: paper n -> {t, score, scale, level}
     beh:{ n:0, ttfkSum:0, editSum:0, pauseSum:0, changed:0, changedRight:0, selfCorrect:0, hiddenHesit:0, fluentSure:0, skips:0, fastRight:0, keySum:0, typeMsSum:0 },
     boost:{},            // tag -> remaining reinforcement count (error generalization)
     pos:{},              // open-cloze positional fingerprints: where in the sentence you fail
@@ -40,7 +41,7 @@ E.load = function(){
   if(!E.state.v) E.state = E.blank();
   var b = E.blank(); // migrate forward: fill anything missing
   Object.keys(b).forEach(function(k){ if(E.state[k] === undefined) E.state[k] = b[k]; });
-  ['boost','wants','accepts','passSeen','spellSeen'].forEach(function(k){ if(!E.state[k]) E.state[k]={}; });
+  ['boost','wants','accepts','passSeen','spellSeen','papersDone'].forEach(function(k){ if(!E.state[k]) E.state[k]={}; });
   if(!E.state.spell) E.state.spell = {pat:{}, words:{}};
   if(!E.state.reports) E.state.reports = [];
   if(!E.state.settings.lite) E.state.settings.lite = 'auto';
@@ -754,21 +755,62 @@ E.diagnosticSet = function(){
   return ids.map(function(id){ return E.byId[id]; }).filter(Boolean);
 };
 E.mockSet = function(){
-  var P = FCE.BANK.passages;
-  var p1 = E.pickPassage('p1') || P.p1[0];
-  var p2 = E.pickPassage('p2') || P.p2[0];
-  var p3 = E.pickPassage('p3') || P.p3[0];
-  var kwts = shuffle(FCE.BANK.kwt).slice(0,6);
-  return {p1:p1, p2:p2, p3:p3, p4:kwts};
+  return E.pickPaper();
 };
-E.recordMock = function(score, max, parts){
+/* ---------------- fixed mock papers ----------------
+   12 complete papers, each owning its passages and Part 4 items outright.
+   Standard papers = exam difficulty. Challenge papers = B2+/C1-edge, graded
+   with an explicit difficulty allowance (see recordMock). */
+E.CH_BONUS = 0.12; // challenge allowance: +12 percentage points before the scale map
+E.paperByN = function(n){
+  for(var i=0;i<FCE.PAPERS.length;i++){ if(FCE.PAPERS[i].n === n) return FCE.PAPERS[i]; }
+  return null;
+};
+E.passById = function(part, id){
+  var list = FCE.BANK.passages[part] || [];
+  for(var i=0;i<list.length;i++){ if(list[i].id === id) return list[i]; }
+  return null;
+};
+E.recommendedLevel = function(){
+  var a = E.state.ability;
+  var avg = (a.kwt + a.cloze + a.wf + a.mcc) / 4;
+  return avg >= 1280 ? 'challenge' : 'standard';
+};
+E.nextPaper = function(){
+  var done = E.state.papersDone, lvl = E.recommendedLevel();
+  var fresh = FCE.PAPERS.filter(function(p){ return !done[p.n]; });
+  if(fresh.length){
+    var pref = fresh.filter(function(p){ return p.level === lvl; });
+    return {paper: (pref.length ? pref : fresh)[0], retake:false};
+  }
+  var oldest = FCE.PAPERS.slice().sort(function(a,b){ return (done[a.n].t||0) - (done[b.n].t||0); })[0];
+  return {paper: oldest, retake:true};
+};
+E.pickPaper = function(n){
+  var paper = n ? E.paperByN(n) : null;
+  if(!paper) paper = E.nextPaper().paper;
+  return {
+    paper: paper,
+    retake: !!E.state.papersDone[paper.n],
+    p1: E.passById('p1', paper.p1),
+    p2: E.passById('p2', paper.p2),
+    p3: E.passById('p3', paper.p3),
+    p4: paper.p4,
+  };
+};
+E.recordMock = function(score, max, parts, paper){
   var p = Math.min(1, (score/max)*1.02);
-  var scale = Math.round(toScale(p));
-  E.state.mocks.push({t:Date.now(), score:score, max:max, scale:scale, parts:parts});
+  var lvl = paper ? paper.level : 'standard';
+  var scaleStd = Math.round(toScale(p));
+  var scale = lvl === 'challenge' ? Math.round(toScale(Math.min(1, p + E.CH_BONUS))) : scaleStd;
+  var delta = scale - scaleStd;
+  E.state.mocks.push({t:Date.now(), score:score, max:max, scale:scale, parts:parts,
+                      level:lvl, paper: paper ? paper.n : 0, delta:delta});
+  if(paper) E.state.papersDone[paper.n] = {t:Date.now(), score:score, scale:scale, level:lvl};
   E.award('mock');
   if(score >= 30) E.award('mock30');
   E.save();
-  return scale;
+  return {scale:scale, scaleStd:scaleStd, delta:delta, level:lvl};
 };
 E.pickPassage = function(part){
   var list = FCE.BANK.passages[part] || [];
