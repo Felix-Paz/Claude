@@ -877,6 +877,152 @@ E.readiness = function(){
   var vol = Math.min(1, E.state.records.total/120);
   return Math.round(100 * (0.45*pr.p + 0.2*coverage + 0.2*vol + 0.15*mockDone));
 };
+
+/* ---------------- the coach's read ----------------
+   A tailored prose overview of THIS student, composed from the live model:
+   every candidate observation is scored for salience, the strongest few are
+   woven into one paragraph. Deterministic per day (no Math.random), so it
+   reads stable within a day but evolves with the data. */
+E.studentStory = function(){
+  var st = E.state, n = st.records.total;
+  var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  var name = esc(st.name || 'friend');
+  var day = Math.floor(Date.now()/864e5), pickI = 0;
+  var pick = function(arr){ return arr[(day + (pickI++)) % arr.length]; };
+  var pct = function(x){ return Math.round(x*100); };
+
+  if(n < 10){
+    var d0 = E.daysToExam();
+    return pick([
+      'This panel becomes your living profile, '+name+'. Right now the engine knows nothing — after about <b>ten answers</b> it starts writing what it sees here: where you hesitate, what you misspell, which grammar quietly costs you marks'+(d0!==null && d0>=0 ? ', and whether you are on schedule for the exam in <b>'+d0+' day'+(d0===1?'':'s')+'</b>.' : '.')+' Do one Smart Session and come back.',
+      name+', this space is reserved for an honest description of you as a candidate — your instincts, your spelling, your strongest paper. It is written by the engine from your own answers, and it cannot start until you give it about <b>ten</b>. The diagnostic is the fastest way to wake it up.',
+    ]);
+  }
+
+  var pr = E.predict(), tier = E.difficultyTier();
+  var obs = [];
+
+  /* accuracy trend: recent vs previous */
+  var L = st.log;
+  if(L.length >= 30){
+    var rec = L.slice(-25), prev = L.slice(-50, -25);
+    var ra = rec.reduce(function(x,l){return x+l.ok;},0)/rec.length;
+    var pa = prev.length ? prev.reduce(function(x,l){return x+l.ok;},0)/prev.length : ra;
+    if(ra - pa >= 0.12) obs.push({w:5.8, t:pick([
+      'Your last 25 answers run at <b>'+pct(ra)+'%</b> — a clear step up from the '+pct(pa)+'% before them, so whatever you changed, keep it.',
+      'The curve is bending the right way: <b>'+pct(ra)+'%</b> over your last 25, up from '+pct(pa)+'%.'])});
+    else if(pa - ra >= 0.12) obs.push({w:6.0, t:pick([
+      'Heads up: accuracy has dipped to <b>'+pct(ra)+'%</b> over the last 25 (from '+pct(pa)+'%) — usually a sign of rushing or fatigue, not forgetting.',
+      'Your recent 25 sit at <b>'+pct(ra)+'%</b>, down from '+pct(pa)+'%. Slow the first read of each question and the number comes back.'])});
+  }
+
+  /* sharpest confirmed weakness */
+  var recs = E.coach();
+  var c0 = recs && recs.length ? recs[0] : null;
+  if(c0 && n >= 15) obs.push({w:5.6, t:pick([
+    'The single most expensive gap is <b>'+esc(c0.name)+'</b> — roughly <b>'+(Math.round(c0.cost*2)/2).toFixed(1)+' marks</b> riding on it right now.',
+    '<b>'+esc(c0.name)+'</b> is where your marks leak fastest; the engine is already steering exercises there.'])});
+
+  /* strongest confirmed skill */
+  var bestTag = null, bestM = 0;
+  Object.keys(st.tags).forEach(function(t){
+    var r = st.tags[t]; if(!r || r.att < 5 || !FCE.TAGS[t]) return;
+    var m = E.mEff(t); if(m > bestM){ bestM = m; bestTag = t; }
+  });
+  if(bestTag && bestM >= 0.8) obs.push({w:3.2, t:pick([
+    'On the bright side, <b>'+esc(FCE.TAGS[bestTag].name)+'</b> is genuinely solid ('+pct(bestM)+'% mastered) — banked marks.',
+    'You can already treat <b>'+esc(FCE.TAGS[bestTag].name)+'</b> as a strength: '+pct(bestM)+'% mastery and holding.'])});
+
+  /* paper-part contrast */
+  var PN = {kwt:'Part 4 (transformations)', cloze:'Part 2 (open cloze)', wf:'Part 3 (word formation)', mcc:'Part 1 (multiple choice)'};
+  var per = E.expectedAccuracy().per;
+  var parts = Object.keys(per).sort(function(a,b){ return per[b]-per[a]; });
+  if(n >= 25 && per[parts[0]] - per[parts[3]] >= 0.12) obs.push({w:4.2, t:pick([
+    'Across the paper you are strongest in <b>'+PN[parts[0]]+'</b> and most exposed in <b>'+PN[parts[3]]+'</b> ('+pct(per[parts[0]])+'% vs '+pct(per[parts[3]])+'% expected).',
+    'If the exam were tomorrow, <b>'+PN[parts[0]]+'</b> would carry you and <b>'+PN[parts[3]]+'</b> would bill you — a '+ (pct(per[parts[0]]) - pct(per[parts[3]])) +'-point spread.'])});
+
+  /* behavioural instincts */
+  var br = E.behaviorReport();
+  if(br){
+    var flips = br.changedRight + br.selfCorrect;
+    if(br.changedRight >= 3 && flips >= 5 && br.changedRight/flips >= 0.6) obs.push({w:5.4, t:pick([
+      'The telemetry shows a costly habit: you have talked yourself <i>out of</i> a correct answer <b>'+br.changedRight+' times</b>. When your hand moves first, let it finish.',
+      'You change answers under doubt — and <b>'+br.changedRight+'</b> of those edits destroyed a right answer. Your first instinct is better than you trust it to be.'])});
+    else if(br.selfCorrect >= 3 && flips >= 5 && br.changedRight/flips <= 0.4) obs.push({w:3.6, t:
+      'Your re-reads genuinely rescue marks — <b>'+br.selfCorrect+'</b> answers were saved on second look. Keep budgeting those few extra seconds.'});
+    if(br.fastRight >= 10 && br.avgHesit < 2.5) obs.push({w:2.4, t:
+      'Pace is a weapon for you: <b>'+br.fastRight+'</b> fast-and-correct answers with barely any hesitation.'});
+    else if(br.avgHesit > 6) obs.push({w:2.2, t:
+      'You are a deliberate starter (≈<b>'+br.avgHesit.toFixed(1)+'s</b> before the first keystroke). Fine in practice — just rehearse the exam clock in mocks.'});
+  }
+
+  /* spelling cost */
+  var sr = E.spellReport();
+  if(sr.total >= 3){
+    var topW = sr.words.length ? sr.words[0].w : null;
+    obs.push({w:5.2, t:pick([
+      'Spelling alone has cost you <b>'+sr.total+' marks</b> you otherwise earned'+(topW ? ' — <i>'+esc(topW)+'</i> is your most frequent victim' : '')+'. The Spelling Gym is loaded with exactly these words.',
+      '<b>'+sr.total+'</b> of your errors were pure spelling — the grammar was right'+(topW ? ' (<i>'+esc(topW)+'</i> tops the list)' : '')+'. Cheapest marks you can win back this week.'])});
+  }
+
+  /* calibration */
+  var lf = E.luckyAndFalse();
+  if(lf.falseConf >= 3) obs.push({w:4.1, t:
+    'Calibration check: <b>'+lf.falseConf+' times</b> you felt sure and were wrong. Treat "certain" answers to one extra glance — that is where silent marks vanish.'});
+  else if(lf.lucky >= 4) obs.push({w:2.6, t:
+    'You called <b>'+lf.lucky+'</b> correct answers "a guess" — you know more than you give yourself credit for.'});
+
+  /* open-cloze positional fingerprint */
+  var wp = E.worstPos();
+  if(wp) obs.push({w:4.4, t:
+    'There is a positional pattern in your open-cloze misses: gaps <b>'+esc(E.posName(wp))+'</b> trip you disproportionately — the engine now serves more of exactly those.'});
+
+  /* mock vs day-to-day signal */
+  if(st.mocks.length){
+    var lastMock = st.mocks[st.mocks.length-1];
+    if(Math.abs(lastMock.scale - pr.scale) >= 5) obs.push({w:4.6, t: lastMock.scale > pr.scale ?
+      'Your last mock landed at <b>'+Math.round(lastMock.scale)+'</b> — above your day-to-day signal, so you rise to exam conditions.' :
+      'Your last mock came in at <b>'+Math.round(lastMock.scale)+'</b>, below your practice level — likely pacing, not knowledge. Another timed paper will confirm.'});
+  } else if(n >= 40){
+    obs.push({w:3.4, t:'You have never sat a full timed mock — at this point it is the highest-information forty minutes available to you.'});
+  }
+
+  /* mastery list */
+  var wantsN = Object.keys(st.wants).length;
+  if(wantsN) obs.push({w:3.0, t:'Your Mastery List holds <b>'+wantsN+'</b> flagged pattern'+(wantsN>1?'s':'')+' — each clears after two clean wins, and the engine keeps dealing them in.'});
+
+  /* essay vocab */
+  var vs = E.vocabStats();
+  if(vs.mastered >= 6) obs.push({w:2.0, t:'Your essay arsenal is growing too: <b>'+vs.mastered+'</b> band-boosting upgrades locked in for the writing paper.'});
+
+  obs.sort(function(a,b){ return b.w - a.w; });
+  var body = [], len = 0;
+  for(var i=0; i<obs.length && body.length < 4; i++){
+    if(len + obs[i].t.length > 600 && body.length >= 2) break;
+    body.push(obs[i].t); len += obs[i].t.length;
+  }
+
+  var opener = pick([
+    name+', after <b>'+n+' answers</b> here is the honest picture. You are training at <b>'+tier.name+'</b> difficulty and tracking toward a <b>'+pr.grade+'</b> ('+pct(pr.pass)+'% pass odds). ',
+    'The engine’s read on you, '+name+' — <b>'+n+' answers</b> in, training at <b>'+tier.name+'</b> level, currently a <b>'+pr.grade+'</b>-shaped candidate with '+pct(pr.pass)+'% pass odds. ',
+    name+' in one paragraph: <b>'+n+'</b> answers logged, <b>'+tier.name+'</b>-tier difficulty, pass probability <b>'+pct(pr.pass)+'%</b>. ',
+  ]);
+  if(st.streak.count >= 3) opener += pick([
+    'The <b>'+st.streak.count+'-day streak</b> is doing quiet compound work. ',
+    ''+st.streak.count+' straight days — consistency is your real edge. ',
+  ]);
+
+  var d = E.daysToExam(), closer;
+  if(d !== null && d >= 0 && d <= 10) closer = ' With <b>'+(d===0?'the exam today':d+' day'+(d===1?'':'s')+' left')+'</b>, the plan is simple: protect strengths, drill the one gap above, sleep well.';
+  else if(c0) closer = pick([
+    ' Next move: a focused drill on <b>'+esc(c0.name)+'</b> — that is where the next mark is cheapest.',
+    ' If you only do one thing today, make it <b>'+esc(c0.name)+'</b>.',
+  ]);
+  else closer = ' Keep feeding the engine — every answer sharpens this picture.';
+
+  return opener + body.join(' ') + closer;
+};
+
 E.grammarBook = function(){
   var byTag = {};
   E.state.log.forEach(function(l){

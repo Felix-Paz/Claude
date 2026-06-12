@@ -182,6 +182,13 @@ U.views.dash = function(){
   '</div>'+
 
   '<div class="bento" style="margin-bottom:16px">'+
+    '<div class="card story-card sp12">'+
+      '<h3>The coach’s read <span class="grow"></span><span class="chip" title="Composed by the on-device engine from your own answer history — no AI, no internet. It re-writes itself as your data changes.">✎ live profile</span></h3>'+
+      '<div class="story serif">'+eng.studentStory()+'</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="bento" style="margin-bottom:16px">'+
     '<div class="card hoverable grade-card sp7"><div class="halo"></div>'+
       '<h3>Predicted FCE grade <span class="grow"></span><button class="btn small ghost" id="how-link">how? ⓘ</button></h3>'+
       (hasData ?

@@ -616,3 +616,18 @@ body::after{opacity:.085}
   opacity:.5;
 }
 @media (prefers-reduced-motion:reduce){.ink-stroke path{animation:none;stroke-dashoffset:0}}
+
+/* ===== v5.4 — The coach's read (adaptive student overview) ===== */
+.story-card{position:relative;overflow:hidden}
+.story-card::before{
+  content:"";position:absolute;left:26px;top:54px;bottom:18px;width:2px;
+  background:linear-gradient(180deg,rgba(224,73,47,.4),rgba(224,73,47,.06));border-radius:2px;
+}
+.story-card .story{
+  font-size:16px;line-height:1.8;max-width:78ch;padding-left:22px;
+  color:var(--ink);animation:storyin .7s .15s var(--ease) backwards;
+}
+.story b{font-weight:800;border-bottom:2px solid rgba(224,73,47,.35);padding-bottom:1px}
+.story i{color:var(--red2);font-style:italic}
+@keyframes storyin{from{opacity:0;transform:translateY(8px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+@media (prefers-reduced-motion:reduce){.story-card .story{animation:none}}

@@ -115,9 +115,12 @@ function qView(){
       '<div class="q-key" style="margin-top:12px">stem: <span class="q-stem">'+u.esc(q.stem)+'</span> <span class="tiny">— transform it to fit</span></div>'+
       '<input class="ans-input" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="The transformed word…">';
   } else {
+    // display order is shuffled; data-i keeps the ORIGINAL index so grading/telemetry are untouched
+    var ord = q.opts.map(function(_,i){ return i; });
+    for(var z=ord.length-1; z>0; z--){ var rz=Math.floor(Math.random()*(z+1)), tz=ord[z]; ord[z]=ord[rz]; ord[rz]=tz; }
     body = '<div class="q-text">'+gapify(q.s)+'</div>'+
-      '<div class="opts">'+q.opts.map(function(o,i){
-        return '<button class="opt" data-i="'+i+'"><span class="letter">'+String.fromCharCode(65+i)+'</span><span>'+u.esc(o)+'</span></button>';
+      '<div class="opts">'+ord.map(function(oi,pos){
+        return '<button class="opt" data-i="'+oi+'"><span class="letter">'+String.fromCharCode(65+pos)+'</span><span>'+u.esc(q.opts[oi])+'</span></button>';
       }).join('')+'</div>';
   }
 
@@ -267,9 +270,10 @@ function grade(v, it, gaveUp){
       ok = S.selOpt === q.cor;
       userTxt = q.opts[S.selOpt] || '';
     }
-    u.$$('.opt', v).forEach(function(b,i){
-      if(i === q.cor) b.classList.add('right');
-      else if(!gaveUp && i === S.selOpt && !ok) b.classList.add('wrong');
+    u.$$('.opt', v).forEach(function(b){
+      var oi = +b.dataset.i;
+      if(oi === q.cor) b.classList.add('right');
+      else if(!gaveUp && oi === S.selOpt && !ok) b.classList.add('wrong');
       b.disabled = true;
     });
   } else {

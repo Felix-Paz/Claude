@@ -8,8 +8,10 @@ require('../js/data-bank3.js');
 require('../js/data-bank4.js');
 require('../js/data-bank5.js');
 require('../js/data-bank6.js');
+require('../js/data-bank7.js');
 require('../js/data-mocks2.js');
 require('../js/data-vocab.js');
+require('../js/data-vocab2.js');
 require('../js/engine.js');
 require('../js/charts.js');
 
@@ -20,7 +22,9 @@ function ok(cond, msg){ if(cond){ console.log('  ✓ ' + msg); } else { fails++;
 console.log('— bank integrity —');
 E.load(); E.indexBank();
 const all = E.allItems();
-ok(all.length >= 540, `bank has ${all.length} items (>=540)`);
+ok(all.length >= 640, `bank has ${all.length} items (>=640)`);
+const story0 = E.studentStory();
+ok(typeof story0 === 'string' && story0.length > 80 && story0.indexOf('friend') !== -1, 'coach’s read: cold-start welcome renders');
 const ids = new Set();
 let dup = null;
 all.forEach(it => { if(ids.has(it.q.id)) dup = it.q.id; ids.add(it.q.id); });
@@ -59,7 +63,9 @@ ok(FCE.BANK.passages.p1.length >= 6 && FCE.BANK.passages.p2.length >= 8 && FCE.B
 ok(pBad.length === 0, 'passage markers match text' + (pBad.length? ' | '+pBad.join(' | '):''));
 let spellBad = [];
 FCE.SPELL.forEach(s => { s.bad.forEach(b => { if(b === s.w) spellBad.push(s.w); }); });
-ok(spellBad.length === 0 && FCE.SPELL.length >= 40, `spelling bank ok (${FCE.SPELL.length} words)`);
+ok(spellBad.length === 0 && FCE.SPELL.length >= 70, `spelling bank ok (${FCE.SPELL.length} words)`);
+const spellDup = FCE.SPELL.map(s => s.w).filter((w,i,a) => a.indexOf(w) !== i);
+ok(spellDup.length === 0, 'no duplicate gym words' + (spellDup.length? ' | '+spellDup.join(','):''));
 let defBad = [];
 FCE.SPELL.forEach(sp => {
   if(!sp.def || !sp.cue) defBad.push(sp.w+' missing def/cue');
@@ -68,7 +74,9 @@ FCE.SPELL.forEach(sp => {
 ok(defBad.length === 0, 'gym clues never reveal the word' + (defBad.length? ' | '+defBad.join(', '):''));
 let vBad = [];
 FCE.VOCAB.forEach(vx => { if(!vx.basic || !vx.up || !vx.s || vx.s.indexOf('____')===-1) vBad.push(vx.up); });
-ok(FCE.VOCAB.length >= 54 && vBad.length === 0, `essay vocab bank ok (${FCE.VOCAB.length} upgrades)`);
+ok(FCE.VOCAB.length >= 125 && vBad.length === 0, `essay vocab bank ok (${FCE.VOCAB.length} upgrades)`);
+const vDup = FCE.VOCAB.map(v => v.basic).filter((b,i,a) => a.indexOf(b) !== i);
+ok(vDup.length === 0, 'no duplicate vocab basics' + (vDup.length? ' | '+vDup.join(','):''));
 
 console.log('— grading & diagnosis —');
 const k01 = FCE.BANK.kwt.find(q => q.id==='k01');
@@ -162,7 +170,7 @@ ok(fs2.length > 0, 'focus search finds "had better" ('+fs2.length+' hits)');
 E.focusAdd(fs2[0]);
 ok(Object.keys(E.state.boost).length > 0 || Object.keys(E.state.wants).length > 0, 'focus search feeds the engine');
 // spelling gym — incl. the white-screen regression (own-mistake words must carry a def)
-E.state.spell.words['decision'] = 2; // simulate a word missed in sessions that is NOT in FCE.SPELL
+E.state.spell.words['kayak'] = 2; // simulate a word missed in sessions that is NOT in FCE.SPELL
 const gym = E.spellingSet(8);
 ok(gym.every(g => g.def && g.cue), 'every gym item has a definition clue (white-screen fix)');
 ok(typeof E.difficultyTier().name === 'string', 'difficulty tier resolves ('+E.difficultyTier().name+')');
@@ -182,6 +190,9 @@ ok(scale >= 168 && scale <= 184, `mock 27/36 → sensible scale (${scale})`);
 ok(E.patternFor('is being built'), 'pattern intelligence matches');
 ok(FCE.charts.gauge(165, 8).indexOf('<svg') === 0, 'gauge renders');
 ok(FCE.charts.spark([0.4,0.6,0.7]).indexOf('<svg') === 0, 'spark renders');
+const story1 = E.studentStory();
+ok(story1.length > 150 && story1.indexOf('<b>') !== -1, 'coach’s read: data-rich profile composes');
+ok(!/undefined|NaN/.test(story1), 'coach’s read: no broken values');
 const exp = E.export();
 E.reset(); E.import(exp);
 ok(E.state.reports.length === 1, 'export/import round-trip');

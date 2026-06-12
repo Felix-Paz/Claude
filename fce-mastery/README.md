@@ -25,13 +25,14 @@ node fce-mastery/test/ui.js        # Playwright walk-through (needs chromium)
 | Error generalization | A miss boosts the *concept*: the engine feeds that skill back through **different** exercises until it sticks; wobbly items (right-wrong-right) get extra pressure |
 | "I want to master this" | One tap floods future sessions with that concept; two clean wins clear it from the Mastery List |
 | Answer disputes | "My answer was actually right" repairs the stats, whitelists the answer for that item, and stores a report in the backup |
-| Spelling intelligence | Slips are fingerprinted (double letters, ie/ei, -tion/-sion, weak vowels…) and feed the **Spelling Gym** — missing-letters skeletons + flash-and-write rounds with definition clues, seeded with the user's own victims + 43 danger words (a wrong spelling is never displayed) |
+| Spelling intelligence | Slips are fingerprinted (double letters, ie/ei, -tion/-sion, weak vowels…) and feed the **Spelling Gym** — missing-letters skeletons + flash-and-write rounds with definition clues, seeded with the user's own victims + 73 danger words (a wrong spelling is never displayed) |
 | Grade prediction | Ability + recent accuracy + mocks, corrected for practice-is-harder-than-exam bias → clear output: predicted **grade letter**, scale ± CI, **pass probability** |
 | Coaching | marks-at-risk = exam weight × personal risk; Mastery List; stubborn items; auto 7-Day Emergency Mode |
-| Content | **545 hand-written Cambridge-style items** + 21 full passages (6× Part 1, 8× Part 2, 7× Part 3 — passages appear in mocks; 336 paper combinations before counting the 6-of-130 random KWT set), pattern DB with real-paper frequency stars |
+| Content | **642 hand-written Cambridge-style items** (incl. a 97-item "Spelling Minefield" pack built around the words students actually misspell) + 21 full passages (6× Part 1, 8× Part 2, 7× Part 3 — passages appear in mocks; 336 paper combinations before counting the 6-of-130 random KWT set), pattern DB with real-paper frequency stars |
 | Positional intelligence | Every Open Cloze answer is fingerprinted by WHERE the gap sits (sentence start/end, after a comma, neighbouring word classes); weak positions get served more |
 | Focus search | Type anything — "had better", "provided that", inversions — and the engine floods future sessions with it |
-| Essay Vocab Lab | 58 basic→band-boosting upgrades inside real essay frames, Leitner-spaced ladder: recognise → cued recall (letter skeleton) → full production |
+| Essay Vocab Lab | 130 basic→band-boosting upgrades inside real essay frames, Leitner-spaced ladder: recognise → cued recall (letter skeleton) → full production |
+| The coach's read | A daily-fresh, fully tailored prose profile of the student on Home — trend, instincts, spelling cost, calibration, part contrast — composed by salience-ranking live observations (deterministic, no AI) |
 | Telemetry, in the open | Every captured signal (keystrokes, hesitation, typing time, rewrites, abandoned right answers…) displayed in Progress → Habits |
 
 ## Brand — "Red Ink on Paper"

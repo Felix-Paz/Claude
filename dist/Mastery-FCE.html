@@ -627,6 +627,21 @@ body::after{opacity:.085}
 }
 @media (prefers-reduced-motion:reduce){.ink-stroke path{animation:none;stroke-dashoffset:0}}
 
+/* ===== v5.4 — The coach's read (adaptive student overview) ===== */
+.story-card{position:relative;overflow:hidden}
+.story-card::before{
+  content:"";position:absolute;left:26px;top:54px;bottom:18px;width:2px;
+  background:linear-gradient(180deg,rgba(224,73,47,.4),rgba(224,73,47,.06));border-radius:2px;
+}
+.story-card .story{
+  font-size:16px;line-height:1.8;max-width:78ch;padding-left:22px;
+  color:var(--ink);animation:storyin .7s .15s var(--ease) backwards;
+}
+.story b{font-weight:800;border-bottom:2px solid rgba(224,73,47,.35);padding-bottom:1px}
+.story i{color:var(--red2);font-style:italic}
+@keyframes storyin{from{opacity:0;transform:translateY(8px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+@media (prefers-reduced-motion:reduce){.story-card .story{animation:none}}
+
 </style>
 </head>
 <body>
@@ -1763,6 +1778,160 @@ FCE.BANK.mcc = FCE.BANK.mcc.concat(M);
 })();
 
 
+/* ===== js/data-bank7.js ===== */
+/* Mastery (FCE) — question bank VII: THE SPELLING MINEFIELD
+   (k131–k150, c158–c175, w129–w169, m131–m148 + 30 new Spelling Gym words)
+   Every item is built around words students reliably misspell — the answer IS the danger word,
+   so a slip costs the mark, gets diagnosed, and feeds the Spelling Gym automatically. */
+window.FCE = window.FCE || {};
+FCE.BANK = FCE.BANK || {};
+(function(){
+var K = [
+{id:"k131", s1:"The rescue operation went exactly as planned.", key:"SUCCESS", s2:"The rescue operation was ____ .", ans:["a complete success","a total success","a great success","a real success","a huge success"], halves:[["a complete","a total","a great","a real","a huge"],["success"]], tags:["col","spell"], diff:2, exp:"be A (complete) SUCCESS — noun phrase with article.", trap:"Double C, double S: suCCeSS. And don’t forget the article A."},
+{id:"k132", s1:"“I’m really sorry about the delay,” said the manager.", key:"APOLOGY", s2:"The manager offered ____ the delay.", ans:["an apology for","us an apology for"], halves:[["an apology","us an apology"],["for"]], tags:["rep","prep","spell"], diff:3, exp:"offer an APOLOGY FOR something.", trap:"One P, one L — and the preposition is FOR."},
+{id:"k133", s1:"“You should see a dentist, Ana,” said the doctor.", key:"RECOMMENDED", s2:"The doctor ____ a dentist.", ans:["recommended that ana see","recommended that ana should see"], halves:[["recommended that ana"],["see","should see"]], tags:["rep","spell"], diff:4, exp:"RECOMMEND THAT somebody (should) see.", trap:"One C, double M — and no TO after recommend that."},
+{id:"k134", s1:"She still hasn’t decided if she should apply for the course.", key:"DECISION", s2:"She still has not made a ____ apply for the course.", ans:["decision about whether to","decision on whether to","decision whether to","decision as to whether to"], halves:[["decision"],["about whether to","on whether to","whether to","as to whether to"]], tags:["link","spell"], diff:4, exp:"make a DECISION (about) WHETHER TO do.", trap:"deciSion with one S — and WHETHER, never IF, before TO."},
+{id:"k135", s1:"Tom doesn’t smoke, and his brother doesn’t either.", key:"NEITHER", s2:"Tom does not smoke, and ____ his brother.", ans:["neither does"], halves:[["neither"],["does"]], tags:["inv","aux","spell"], diff:3, exp:"NEITHER + auxiliary + subject (inversion).", trap:"nEIther — E before I. And the verb inverts: neither DOES he."},
+{id:"k136", s1:"Most people used to think that the earth was flat.", key:"BELIEF", s2:"There was a widespread ____ the earth was flat.", ans:["belief that"], halves:[["belief"],["that"]], tags:["fix","spell"], diff:3, exp:"a widespread BELIEF THAT + clause.", trap:"The noun ends in F — beliEF, not believe."},
+{id:"k137", s1:"The match did not live up to the fans’ expectations.", key:"DISAPPOINTED", s2:"The fans ____ the match.", ans:["were disappointed with","were disappointed by","were disappointed in","felt disappointed with","felt disappointed by"], halves:[["were disappointed","felt disappointed"],["with","by","in"]], tags:["prep","spell"], diff:2, exp:"be DISAPPOINTED WITH/BY something.", trap:"One S, double P: diSaPPointed."},
+{id:"k138", s1:"I felt awkward because I forgot my own phone number.", key:"EMBARRASSING", s2:"It was ____ my own phone number.", ans:["embarrassing to forget","embarrassing to have forgotten"], halves:[["embarrassing"],["to forget","to have forgotten"]], tags:["ger","spell"], diff:3, exp:"It was EMBARRASSING TO + infinitive.", trap:"Double R AND double S — the most misspelled word in the exam."},
+{id:"k139", s1:"Nobody has replied to my complaint yet.", key:"RECEIVED", s2:"I have not ____ to my complaint yet.", ans:["received a reply","received an answer","received any reply","received a response"], halves:[["received"],["a reply","an answer","any reply","a response"]], tags:["col","spell"], diff:2, exp:"RECEIVE a reply/an answer.", trap:"E before I after C: recEIved."},
+{id:"k140", s1:"The film starts with a spectacular car chase.", key:"BEGINNING", s2:"At the ____ film, there is a spectacular car chase.", ans:["beginning of the"], halves:[["beginning"],["of the"]], tags:["depprep","spell"], diff:2, exp:"at the BEGINNING OF something.", trap:"Double N: begiNNing — and OF THE must follow."},
+{id:"k141", s1:"She knows a great deal about modern art.", key:"KNOWLEDGE", s2:"She has an impressive ____ modern art.", ans:["knowledge of","knowledge about"], halves:[["knowledge"],["of","about"]], tags:["prep","spell"], diff:3, exp:"KNOWLEDGE OF a subject.", trap:"Silent K + LEDGE: know-ledge."},
+{id:"k142", s1:"How tall is the new tower?", key:"HEIGHT", s2:"What is the ____ new tower?", ans:["height of the"], halves:[["height"],["of the"]], tags:["wfnoun","spell"], diff:2, exp:"the HEIGHT OF something.", trap:"Spelled like EIGHT with an H in front: h-eight."},
+{id:"k143", s1:"The teacher let us leave early on Friday.", key:"PERMISSION", s2:"The teacher gave us ____ early on Friday.", ans:["permission to leave"], halves:[["permission"],["to leave"]], tags:["ger","spell"], diff:2, exp:"give PERMISSION TO + infinitive.", trap:"Double S then -SION: permi-ssion."},
+{id:"k144", s1:"He never explained why he was late.", key:"EXPLANATION", s2:"He never gave an ____ being late.", ans:["explanation for"], halves:[["explanation"],["for"]], tags:["prep","spell"], diff:3, exp:"an EXPLANATION FOR something.", trap:"The verb’s AI disappears: expl-A-nation."},
+{id:"k145", s1:"I intended to phone you, but I forgot.", key:"MEANT", s2:"I ____ phone you, but I forgot.", ans:["had meant to","meant to"], halves:[["had meant","meant"],["to"]], tags:["ger","spell"], diff:2, exp:"MEAN TO do = intend to do.", trap:"MEANT keeps the silent A — 'ment' is a suffix, not a verb."},
+{id:"k146", s1:"“It was kind of you to water my plants, Raul,” said Mia.", key:"THANKED", s2:"Mia ____ her plants.", ans:["thanked raul for watering"], halves:[["thanked raul"],["for watering"]], tags:["rep","ger","prep"], diff:3, exp:"THANK somebody FOR + -ing.", trap:"FOR + watering — the gerund after the preposition."},
+{id:"k147", s1:"Nobody took any notice of the warning signs.", key:"PAID", s2:"Nobody ____ to the warning signs.", ans:["paid attention","paid any attention"], halves:[["paid"],["attention","any attention"]], tags:["col","spell"], diff:2, exp:"PAY ATTENTION TO something.", trap:"PAID — never 'payed'. The exam’s favourite irregular spelling."},
+{id:"k148", s1:"Shakespeare wrote this play around 1601.", key:"WRITTEN", s2:"This play ____ Shakespeare around 1601.", ans:["was written by"], halves:[["was written"],["by"]], tags:["pass","spell"], diff:1, exp:"Past passive: WAS WRITTEN BY.", trap:"Double T in wriTTen (but one T in writing)."},
+{id:"k149", s1:"I considered applying for the scholarship.", key:"THOUGHT", s2:"I ____ for the scholarship.", ans:["thought about applying","thought of applying"], halves:[["thought about","thought of"],["applying"]], tags:["ger","spell"], diff:2, exp:"THINK ABOUT/OF + -ing.", trap:"-OUGHT: th-ought. 'Thougth' and 'thout' both lose the mark."},
+{id:"k150", s1:"Lena organises all of the team’s travel.", key:"RESPONSIBLE", s2:"Lena is ____ all of the team’s travel.", ans:["responsible for organising","responsible for arranging"], halves:[["responsible for"],["organising","arranging"]], tags:["prep","ger","spell"], diff:3, exp:"RESPONSIBLE FOR + -ing.", trap:"-SIBLE, not -sable — and FOR + gerund."},
+];
+var C = [
+{id:"c158", s:"____ or not you agree with the rule, you must follow it.", ans:["whether"], gt:"link", tags:["link","spell"], diff:3, exp:"WHETHER … or not. IF is impossible directly before 'or not'.", trap:"WHETHER the word, WEATHER the rain — and never 'wether'."},
+{id:"c159", s:"The ticket office stays open ____ midnight on Saturdays.", ans:["until","till"], gt:"prep", tags:["prep","spell"], diff:1, exp:"UNTIL + a point in time.", trap:"One L in until (till is the one with two)."},
+{id:"c160", s:"____ the forecast promised sunshine, it rained for hours.", ans:["although","though","while","whilst"], gt:"link", tags:["link","spell"], diff:2, exp:"ALTHOUGH/THOUGH + clause for contrast.", trap:"No final T: although — 'althought' is the classic slip."},
+{id:"c161", s:"We drove all ____ the night to catch the first ferry.", ans:["through"], gt:"prep", tags:["prep","spell"], diff:2, exp:"all THROUGH the night = during the whole night.", trap:"-OUGH with no final T (that’s 'thought') and no missing R ('trough' is for pigs)."},
+{id:"c162", s:"The hotel, ____ was built as a private palace, keeps its original staircase.", ans:["which"], gt:"rel", tags:["rel","spell"], diff:2, exp:"Non-defining relative clause → WHICH after the comma.", trap:"THAT is forbidden after a comma — and the H hides in wHich."},
+{id:"c163", s:"I have a colleague ____ sister flies rescue helicopters.", ans:["whose"], gt:"rel", tags:["rel","spell"], diff:3, exp:"WHOSE = possession, for people and things.", trap:"WHOSE owns things; WHO'S = who is."},
+{id:"c164", s:"____ is no point in arguing about things you cannot change.", ans:["there"], gt:"pron", tags:["fix","ger","spell"], diff:2, exp:"THERE is no point IN + -ing.", trap:"THERE (dummy subject), not THEIR (possession)."},
+{id:"c165", s:"Many parents worry about ____ children’s screen time.", ans:["their"], gt:"pron", tags:["pron","spell"], diff:1, exp:"THEIR = possessive before a noun.", trap:"their/there/they’re — possession takes the EI version."},
+{id:"c166", s:"Candidates may not talk ____ the listening test itself.", ans:["during","throughout","in"], gt:"prep", tags:["prep"], diff:2, exp:"DURING + noun (no clause needed).", trap:"DURING + noun, WHILE + clause — never 'during the test is playing'."},
+{id:"c167", s:"He has been afraid of dogs ____ the age of five.", ans:["since","from"], gt:"prep", tags:["prep"], diff:2, exp:"present perfect + SINCE a point in time.", trap:"FOR + a length of time, SINCE + a starting point."},
+{id:"c168", s:"Strangely ____ , nobody complained about the freezing room.", ans:["enough"], gt:"fixphrase", tags:["fix","spell"], diff:4, exp:"strangely/oddly/funnily ENOUGH — fixed comment phrase.", trap:"-OUGH ending, no final T: enough."},
+{id:"c169", s:"The copies are very close to the original, but not ____ identical.", ans:["quite","completely","entirely","totally","exactly","fully"], gt:"adv", tags:["fix","spell"], diff:3, exp:"not QUITE = almost, but not 100%.", trap:"QUITE (almost) has one syllable; QUIET (silent) has two — swap them and the sentence dies."},
+{id:"c170", s:"Right from the ____ , the budget was unrealistic.", ans:["beginning","start","outset"], gt:"fixphrase", tags:["fix","spell"], diff:2, exp:"right from the BEGINNING/START/OUTSET.", trap:"If you choose the long word: double N — beginning."},
+{id:"c171", s:"We had ____ leave now, before the roads ice over.", ans:["better","best"], gt:"modal", tags:["modal"], diff:3, exp:"HAD BETTER + bare infinitive = strong advice.", trap:"No TO after had better — 'had better to leave' fails."},
+{id:"c172", s:"Is there any rule ____ using a dictionary in class?", ans:["against"], gt:"prep", tags:["prep","spell"], diff:3, exp:"a rule AGAINST + -ing.", trap:"Ends -NST: against. 'Againts' is one of the commonest slips in scripts."},
+{id:"c173", s:"Just ____ you and me, the café is changing owners.", ans:["between"], gt:"prep", tags:["fix","spell"], diff:2, exp:"just BETWEEN you and me = confidentially.", trap:"Double E first, single E after the W: betwEEn."},
+{id:"c174", s:"She recognised his voice ____ , without even turning round.", ans:["immediately","instantly","straightaway"], gt:"adv", tags:["spell"], diff:3, exp:"IMMEDIATELY / INSTANTLY = at once.", trap:"Double M, then -ELY: immediately."},
+{id:"c175", s:"____ of the two finalists managed a clean routine.", ans:["neither"], gt:"det", tags:["det","spell"], diff:3, exp:"NEITHER OF + the two = not one and not the other.", trap:"nEIther — and it takes a singular verb."},
+];
+var W = [
+{id:"w129", s:"Their first attempt to reach the summit was ____ .", stem:"SUCCESS", ans:["unsuccessful"], tags:["wfneg","wfadj","spell"], diff:3, exp:"success → UNsuccessful (negative adjective).", trap:"UN + double C + double S + one final L."},
+{id:"w130", s:"I missed the ____ of the lecture because of the traffic.", stem:"BEGIN", ans:["beginning"], tags:["wfnoun","spell"], diff:2, exp:"begin → beginning.", trap:"The N doubles before -ING: begiNNing."},
+{id:"w131", s:"The ____ has promised to cut rail fares.", stem:"GOVERN", ans:["government"], tags:["wfnoun","spell"], diff:2, exp:"govern → government.", trap:"The N of govern survives: gover-N-ment."},
+{id:"w132", s:"On the chef’s ____ , we ordered the mussels.", stem:"RECOMMEND", ans:["recommendation"], tags:["wfnoun","spell"], diff:3, exp:"recommend → recommendation.", trap:"One C, double M — at every length of the family."},
+{id:"w133", s:"The college helps first-year students find ____ .", stem:"ACCOMMODATE", ans:["accommodation"], tags:["wfnoun","spell"], diff:3, exp:"accommodate → accommodation.", trap:"Generous house: two C AND two M."},
+{id:"w134", s:"The app removes all the ____ steps from booking.", stem:"NECESSARY", ans:["unnecessary"], tags:["wfneg","spell"], diff:3, exp:"necessary → UNnecessary.", trap:"UN + one C + double S. The UN doubles the N: uNNecessary."},
+{id:"w135", s:"The harbour is ____ at first light.", stem:"BEAUTY", ans:["beautiful"], tags:["wfadj","spell"], diff:1, exp:"beauty → beautiful (y → i).", trap:"B-E-A-U start, ONE final L."},
+{id:"w136", s:"She started her own ____ straight after university.", stem:"BUSY", ans:["business"], tags:["wfnoun","spell"], diff:2, exp:"busy → business.", trap:"The Y of busy becomes I: busi-ness."},
+{id:"w137", s:"The sudden ____ of the village cat puzzled everyone.", stem:"DISAPPEAR", ans:["disappearance"], tags:["wfnoun","spell"], diff:4, exp:"disappear → disappearance.", trap:"One S, double P, then -ANCE."},
+{id:"w138", s:"They lost most of their ____ in the flood.", stem:"POSSESS", ans:["possessions"], tags:["wfnoun","spell"], diff:3, exp:"possess → possessions (plural needed after 'most of their').", trap:"Double S twice — and don’t forget the plural S."},
+{id:"w139", s:"Always get ____ advice before investing.", stem:"PROFESSION", ans:["professional"], tags:["wfadj","spell"], diff:2, exp:"profession → professional.", trap:"One F, double S: proFeSSional."},
+{id:"w140", s:"Volunteering every weekend shows real ____ .", stem:"COMMIT", ans:["commitment"], tags:["wfnoun","spell"], diff:3, exp:"commit → commitment.", trap:"No double T before -MENT (but committed has two)."},
+{id:"w141", s:"Keep your ____ in case the zip breaks.", stem:"RECEIVE", ans:["receipt"], tags:["wfnoun","spell"], diff:4, exp:"receive → receipt.", trap:"E before I after C — plus a silent P: recei-P-t."},
+{id:"w142", s:"Crows show astonishing practical ____ .", stem:"INTELLIGENT", ans:["intelligence"], tags:["wfnoun","spell"], diff:2, exp:"intelligent → intelligence.", trap:"Double L and -ENCE: inteLLigence."},
+{id:"w143", s:"Light ____ hides the stars from city children.", stem:"POLLUTE", ans:["pollution"], tags:["wfnoun","spell"], diff:1, exp:"pollute → pollution.", trap:"Double L: poLLution."},
+{id:"w144", s:"The cookery course was sociable and hugely ____ .", stem:"ENJOY", ans:["enjoyable"], tags:["wfadj"], diff:1, exp:"enjoy → enjoyable.", trap:"Keep the Y: enjoy-able."},
+{id:"w145", s:"In the manager’s ____ , Petra makes the decisions.", stem:"ABSENT", ans:["absence"], tags:["wfnoun","spell"], diff:2, exp:"absent → absence.", trap:"-ENCE after -ent: absence."},
+{id:"w146", s:"The referee’s whistle cut through the ____ .", stem:"SILENT", ans:["silence"], tags:["wfnoun","spell"], diff:1, exp:"silent → silence.", trap:"-ENCE: silence."},
+{id:"w147", s:"Second-hand clothes have become highly ____ .", stem:"FASHION", ans:["fashionable"], tags:["wfadj"], diff:2, exp:"fashion → fashionable.", trap:"Just add -ABLE — no letters change."},
+{id:"w148", s:"The airport handles mostly ____ flights.", stem:"NATION", ans:["international"], tags:["wfadj","spell"], diff:2, exp:"nation → INTERnational (prefix + adjective).", trap:"-TIONAL, never -cional."},
+{id:"w149", s:"I ____ hope the misunderstanding can be repaired.", stem:"SINCERE", ans:["sincerely"], tags:["wfadv","spell"], diff:2, exp:"sincere → sincerely.", trap:"Keep the final E: sincere-ly."},
+{id:"w150", s:"____ after the alarm, staff guided everyone outside.", stem:"IMMEDIATE", ans:["immediately"], tags:["wfadv","spell"], diff:2, exp:"immediate → immediately.", trap:"Double M at the start, -ELY at the end."},
+{id:"w151", s:"This is ____ the best paella I have ever eaten.", stem:"DEFINITE", ans:["definitely"], tags:["wfadv","spell"], diff:2, exp:"definite → definitely.", trap:"FINITE lives inside — there is no A anywhere in it."},
+{id:"w152", s:"Keep raw meat ____ from cooked dishes at all times.", stem:"SEPARATE", ans:["separate"], tags:["wfadj","spell"], diff:4, exp:"No change needed — the adjective IS separate. Cambridge plants one of these to test your nerve.", trap:"There’s A RAT in sep-A-RAT-e. Changing the word here loses the mark."},
+{id:"w153", s:"The ____ for the gym appears on every bus in town.", stem:"ADVERTISE", ans:["advertisement"], tags:["wfnoun","spell"], diff:3, exp:"advertise → advertisement.", trap:"Keep the E of advertise: advertise-ment."},
+{id:"w154", s:"The witness gave a detailed ____ of the driver.", stem:"DESCRIBE", ans:["description"], tags:["wfnoun","spell"], diff:2, exp:"describe → description.", trap:"The B of describe becomes P: descri-P-tion."},
+{id:"w155", s:"Clear ____ prevents most workplace conflict.", stem:"COMMUNICATE", ans:["communication"], tags:["wfnoun","spell"], diff:2, exp:"communicate → communication.", trap:"Double M, single N: coMMunication."},
+{id:"w156", s:"She expressed her ____ with a handwritten note.", stem:"GRATEFUL", ans:["gratitude"], tags:["wfnoun","spell"], diff:3, exp:"grateful → gratitude.", trap:"GRATE-, never GREAT-: the thank-you family has no 'great' in it."},
+{id:"w157", s:"A silly ____ over parking ruined the afternoon.", stem:"ARGUE", ans:["argument"], tags:["wfnoun","spell"], diff:2, exp:"argue → argument.", trap:"The E of argue drops before -MENT: argu-ment."},
+{id:"w158", s:"You should ____ to the neighbours for the noise.", stem:"APOLOGY", ans:["apologise","apologize"], tags:["wfverb","spell"], diff:2, exp:"apology → apologise (noun → verb).", trap:"One P, one L — and the Y becomes -ISE."},
+{id:"w159", s:"Autumn is my ____ season by far.", stem:"FAVOUR", ans:["favourite"], tags:["wfadj","spell"], diff:1, exp:"favour → favourite.", trap:"The British U stays: favo-U-rite."},
+{id:"w160", s:"They moved to a quieter ____ last spring.", stem:"NEIGHBOUR", ans:["neighbourhood"], tags:["wfnoun","spell"], diff:2, exp:"neighbour → neighbourhood.", trap:"EI after the N, silent GH: n-EI-ghbourhood."},
+{id:"w161", s:"Her letter was polite but extremely ____ .", stem:"PERSUADE", ans:["persuasive"], tags:["wfadj","spell"], diff:3, exp:"persuade → persuasive.", trap:"The D of persuade becomes S: persua-S-ive."},
+{id:"w162", s:"Arriving twenty minutes late is simply not ____ .", stem:"ACCEPT", ans:["acceptable"], tags:["wfadj","spell"], diff:2, exp:"accept → acceptable.", trap:"Double C at the start: aCCeptable."},
+{id:"w163", s:"To her great ____ , the school trip was cancelled.", stem:"DISAPPOINT", ans:["disappointment"], tags:["wfnoun","spell"], diff:3, exp:"disappoint → disappointment.", trap:"One S, double P: diSaPPointment."},
+{id:"w164", s:"The charity owes its ____ to one stubborn volunteer.", stem:"EXIST", ans:["existence"], tags:["wfnoun","spell"], diff:3, exp:"exist → existence.", trap:"-ENCE, not -ance: exist-ENCE."},
+{id:"w165", s:"The ____ of the relay race took weeks of planning.", stem:"ORGANISE", ans:["organisation","organization"], tags:["wfnoun","spell"], diff:2, exp:"organise → organisation.", trap:"Keep every syllable: or-ga-ni-sa-tion."},
+{id:"w166", s:"The bakery still uses ____ wood-fired ovens.", stem:"TRADITION", ans:["traditional"], tags:["wfadj"], diff:1, exp:"tradition → traditional.", trap:"Just add -AL — resist 'traditionnal'."},
+{id:"w167", s:"A ____ parcel was waiting on the doorstep.", stem:"MYSTERY", ans:["mysterious"], tags:["wfadj","spell"], diff:3, exp:"mystery → mysterious.", trap:"The Y of mystery becomes I: myster-I-ous."},
+{id:"w168", s:"Pure ____ made him belittle her promotion.", stem:"JEALOUS", ans:["jealousy"], tags:["wfnoun","spell"], diff:3, exp:"jealous → jealousy.", trap:"EA in the middle: j-EA-lousy."},
+{id:"w169", s:"Eating a heavy meal at midnight is an ____ habit.", stem:"HEALTH", ans:["unhealthy"], tags:["wfneg","wfadj"], diff:2, exp:"health → UNhealthy (negative adjective).", trap:"UN + healthy — note the article is AN, a hint that a vowel sound starts the word."},
+];
+var M = [
+{id:"m131", s:"Let me give you one piece of ____ before the interview.", opts:["advise","advice","advert","advisory"], cor:1, tags:["spell","col"], diff:2, exp:"ADVICE with C = the uncountable noun ('a piece of advice').", trap:"ADVISE with S is the verb — the doctor advises, you take advice."},
+{id:"m132", s:"Everyone ____ Daniel agreed to split the bill.", opts:["except","accept","expect","access"], cor:0, tags:["spell","prep"], diff:2, exp:"EXCEPT = apart from.", trap:"ACCEPT = say yes to. One letter, opposite job."},
+{id:"m133", s:"With daily ____ , your spelling improves remarkably fast.", opts:["practise","practical","practice","practising"], cor:2, tags:["spell","col"], diff:3, exp:"PRACTICE with C = the noun (British English).", trap:"practiSe = verb, practiCe = noun — ICE is a noun, like the thing in your drink."},
+{id:"m134", s:"Tie the key to your bag so you don’t ____ it.", opts:["loose","lose","loss","lost"], cor:1, tags:["spell","col"], diff:2, exp:"LOSE (verb) = no longer have.", trap:"LOOSE (double O) is an adjective — a loose screw, a loose shirt."},
+{id:"m135", s:"We found a ____ corner of the library to revise in.", opts:["quietly","quiet","quite","quit"], cor:1, tags:["spell","col"], diff:2, exp:"QUIET = silent (adjective before a noun).", trap:"QUITE = fairly. Swap them and the sentence collapses."},
+{id:"m136", s:"For ____ there was homemade lemon ice cream.", opts:["desert","deserve","dessert","deserted"], cor:2, tags:["spell","col"], diff:2, exp:"DESSERT (double S) = the sweet course.", trap:"Double S because you want seconds; the sandy DESERT has one."},
+{id:"m137", s:"The school orders its ____ — pens, folders, envelopes — in bulk.", opts:["stationary","statuary","stationed","stationery"], cor:3, tags:["spell","col"], diff:4, exp:"STATIONERY with E = paper goods.", trap:"E for Envelopes; stationAry with A = not moving."},
+{id:"m138", s:"Refusing to copy homework is a matter of ____ for her.", opts:["principle","principal","principality","principally"], cor:0, tags:["spell","fix"], diff:3, exp:"a matter of PRINCIPLE = a moral rule.", trap:"The principAl is your PAL (a person); a principLE is a ruLE."},
+{id:"m139", s:"The ____ forecast warns of storms along the coast.", opts:["wether","weathered","weather","whether"], cor:2, tags:["spell","col"], diff:1, exp:"the WEATHER forecast.", trap:"WHETHER introduces alternatives ('whether or not') — it never rains."},
+{id:"m140", s:"Take a torch and wear ____ boots — the path is muddy.", opts:["sensational","sensible","senseless","sensitive"], cor:1, tags:["spell","col"], diff:3, exp:"SENSIBLE = practical, showing good judgement.", trap:"SENSITIVE = easily affected. The classic false-friend pair."},
+{id:"m141", s:"The treaty was signed on a truly ____ afternoon for both nations.", opts:["historical","history","historic","historian"], cor:2, tags:["spell","col"], diff:4, exp:"HISTORIC = important enough to be remembered.", trap:"HISTORICAL = simply relating to the past. A historic day makes history."},
+{id:"m142", s:"____ volleyball, she also competes in judo at national level.", opts:["Despite","Beside","Except","Besides"], cor:3, tags:["spell","link"], diff:3, exp:"BESIDES = in addition to.", trap:"BESIDE (no S) = next to. The S adds the meaning 'as well as'."},
+{id:"m143", s:"If you feel dizzy, ____ down for ten minutes.", opts:["lain","laid","lie","lay"], cor:2, tags:["spell","col"], diff:3, exp:"LIE down (no object) — lie, lay, lain.", trap:"LAY needs an object: you lay a table, but you lie down."},
+{id:"m144", s:"The documentary was so ____ that half the class dozed off.", opts:["bored","boring","boredom","bore"], cor:1, tags:["spell","comp"], diff:1, exp:"-ING describes the thing: the film is BORING.", trap:"-ED describes the person: the class was bored."},
+{id:"m145", s:"The last bus went straight ____ without stopping for us.", opts:["past","passed","paste","pass"], cor:0, tags:["spell","prep"], diff:3, exp:"go/drive/walk PAST = beyond a point.", trap:"PASSED is the verb’s past tense — 'the bus passed us', but 'went past'."},
+{id:"m146", s:"Could I ____ your calculator until the end of the lesson?", opts:["lend","loan","borrow","hire"], cor:2, tags:["spell","col"], diff:2, exp:"BORROW = take temporarily; the owner LENDS.", trap:"Direction matters: you borrow FROM, you lend TO."},
+{id:"m147", s:"The escape room was enormous ____ from start to finish.", opts:["funny","laugh","fun","joke"], cor:2, tags:["spell","col"], diff:2, exp:"great/enormous FUN (noun).", trap:"FUNNY means it makes you laugh — a clown is funny, a water park is fun."},
+{id:"m148", s:"She has found a holiday ____ at the ice-cream kiosk.", opts:["work","employ","labour","job"], cor:3, tags:["spell","col"], diff:2, exp:"a JOB = countable position.", trap:"WORK is uncountable — you can’t find 'a work'."},
+];
+FCE.BANK.kwt = FCE.BANK.kwt.concat(K);
+FCE.BANK.cloze = FCE.BANK.cloze.concat(C);
+FCE.BANK.wf = FCE.BANK.wf.concat(W);
+FCE.BANK.mcc = FCE.BANK.mcc.concat(M);
+
+/* 30 more Spelling Gym danger words (def NEVER contains the word; cue shown after answering). */
+FCE.SPELL = FCE.SPELL.concat([
+ {w:'different', bad:['diferent','diffrent'], def:'ADJECTIVE · not the same. “City life is completely ____ from village life.”', cue:'double F, then -ERENT: di-FF-erent'},
+ {w:'disappointed', bad:['dissapointed','disapointed'], def:'ADJECTIVE · sad because something failed your hopes. “The fans were ____ with the final score.”', cue:'one S, double P: dis-a-PP-ointed'},
+ {w:'disappear', bad:['dissapear','disapear'], def:'VERB · to vanish from sight. “Magicians make rabbits ____.”', cue:'DIS + a double-P verb: dis-aPPear'},
+ {w:'possession', bad:['posession','possesion'], def:'NOUN · something you own. “The guitar is his most treasured ____.”', cue:'double S twice: po-SS-e-SS-ion'},
+ {w:'professional', bad:['proffesional','profesional'], def:'ADJECTIVE · relating to skilled, paid work. “Get ____ advice before signing anything.”', cue:'one F, double S: pro-F-e-SS-ional'},
+ {w:'responsibility', bad:['responsability','responsibilty'], def:'NOUN · a duty you are expected to handle. “Feeding the cat is your ____.”', cue:'-IBILITY, never -ability: respons-I-bility'},
+ {w:'possibility', bad:['posibility','possability'], def:'NOUN · a chance that something may happen. “There is a real ____ of snow tonight.”', cue:'double S + -IBILITY: po-SS-ibility'},
+ {w:'interesting', bad:['intresting','interisting'], def:'ADJECTIVE · holding your attention. “The museum was far more ____ than expected.”', cue:'four syllables survive: in-TER-est-ing'},
+ {w:'especially', bad:['expecially','especialy'], def:'ADVERB · particularly, above all. “I love autumn, ____ October.”', cue:'starts E-S-P (no X) and ends -ALLY'},
+ {w:'although', bad:['althought','altough'], def:'CONJUNCTION · despite the fact that. “____ it rained, the match went ahead.”', cue:'ALL (one L) + THOUGH — and no final T'},
+ {w:'enough', bad:['enought','enogh'], def:'DETERMINER · as much as is needed. “Is there ____ pizza for everyone?”', cue:'-OUGH with no T: e-nough'},
+ {w:'through', bad:['trough','throught'], def:'PREPOSITION · from one side to the other. “The train goes ____ two tunnels.”', cue:'THR + OUGH — drop a letter and it becomes a pig’s dinner bowl'},
+ {w:'surprise', bad:['suprise','surprice'], def:'NOUN · an unexpected event. “The party was a complete ____.”', cue:'two R sounds: suR-pRise — and S at the end, not C'},
+ {w:'tomorrow', bad:['tommorow','tomorow'], def:'ADVERB · on the day after today. “The results come out ____.”', cue:'one M, double R: to-M-o-RR-ow'},
+ {w:'favourite', bad:['favourit','faborite'], def:'ADJECTIVE · liked more than all others. “Friday is my ____ day of the week.”', cue:'favour + ITE — the British U stays in'},
+ {w:'library', bad:['libary','librery'], def:'NOUN · a building full of books to borrow. “The university ____ opens at eight.”', cue:'two R sounds: li-BR-a-RY'},
+ {w:'neighbourhood', bad:['neigbourhood','nieghbourhood'], def:'NOUN · the area around where you live. “They moved to a quieter ____.”', cue:'EI after the N, then silent GH: n-EI-GH-bourhood'},
+ {w:'advertisement', bad:['advertisment','advertissement'], def:'NOUN · a public notice that sells something. “The ____ for the gym is on every bus.”', cue:'advertise keeps its E: advertise-ment'},
+ {w:'competition', bad:['competion','compitition'], def:'NOUN · an event where people try to win. “She entered a national piano ____.”', cue:'com-PET-ition — the PET in the middle survives'},
+ {w:'description', bad:['discription','descripcion'], def:'NOUN · words that say what something is like. “The witness gave a detailed ____ of the car.”', cue:'DE- start (not DI-), -TION end (not -cion)'},
+ {w:'decision', bad:['decission','desicion'], def:'NOUN · a choice you finally make. “Moving abroad was a brave ____.”', cue:'one S in the middle: deci-S-ion'},
+ {w:'communication', bad:['comunication','comunicacion'], def:'NOUN · the exchange of information. “Clear ____ prevents most arguments.”', cue:'double M, and -CATION at the end: co-MM-uni-cation'},
+ {w:'unfortunately', bad:['unfortunatelly','unfortunatly'], def:'ADVERB · sadly, as bad luck would have it. “____ , the last tickets had gone.”', cue:'fortunate + LY — one L, with the E kept: -teLY'},
+ {w:'opinion', bad:['oppinion','opinnion'], def:'NOUN · what you think about something. “In my ____ , the book beats the film.”', cue:'single letters all the way: o-PIN-ion (a PIN inside)'},
+ {w:'studying', bad:['studing','studiying'], def:'VERB (-ing) · spending time learning. “She is ____ for her driving theory test.”', cue:'study + ING — the Y stays: stud-Y-ing'},
+ {w:'really', bad:['realy','rilly'], def:'ADVERB · truly, genuinely. “The view is ____ spectacular at sunset.”', cue:'REAL + LY = double L where they meet'},
+ {w:'countries', bad:['countrys','contries'], def:'NOUN (plural) · more than one nation. “Spain and Portugal are neighbouring ____.”', cue:'Y after a consonant → IES: countr-IES'},
+ {w:'sincerely', bad:['sincerly','sincerelly'], def:'ADVERB · honestly; the formal letter sign-off “Yours ____”. ', cue:'sincere + LY — keep the silent E: sincere-ly'},
+ {w:'believe', bad:['belive','beleive'], def:'VERB · to think something is true. “Do you ____ in ghosts?”', cue:'I before E: bel-IE-ve (never E-I after L)'},
+ {w:'receive', bad:['recieve','receibe'], def:'VERB · to get something that is sent to you. “Did you ____ my postcard from Rome?”', cue:'E before I after C — the famous exception: re-CEI-ve'},
+]);
+})();
+
+
 /* ===== js/data-mocks2.js ===== */
 /* Mastery (FCE) — mock passage expansion II: +3 Part 1, +2 Part 2, +3 Part 3.
    Pools after this file: P1 ×6 · P2 ×8 · P3 ×7 → 336 passage combinations,
@@ -1941,6 +2110,87 @@ FCE.VOCAB = [
 {basic:"happen", up:["occur","take place","arise"], s:"Misunderstandings often ____ when instructions are vague.", why:"arise for problems, occur for events."},
 {basic:"change (noun)", up:["shift","transformation"], s:"The last decade has seen a dramatic ____ in shopping habits.", why:"a shift IN — analytical change-language."},
 ];
+
+
+/* ===== js/data-vocab2.js ===== */
+/* Mastery (FCE) — Essay Vocab Lab, expansion pack II (+72 upgrades).
+   Same contract as data-vocab.js: basic = the flat word; up = accepted band-boosting
+   alternatives (first = headline); s = real essay frame with ____; why = examiner note. */
+window.FCE = window.FCE || {};
+FCE.VOCAB = FCE.VOCAB.concat([
+{basic:"think about", up:["consider","take into account","weigh up"], s:"Before banning cars, councils should ____ the needs of older residents.", why:"consider + object = the essay verb for balanced arguments."},
+{basic:"solve", up:["resolve","remedy","overcome"], s:"Better street lighting alone will not ____ the problem of night-time safety.", why:"resolve problems, overcome obstacles — precision verbs."},
+{basic:"very good", up:["outstanding","exceptional","superb"], s:"The festival’s volunteer team did an ____ job this year.", why:"one strong adjective beats 'very + weak adjective' every time."},
+{basic:"very bad", up:["dreadful","appalling","atrocious"], s:"The state of the changing rooms is frankly ____.", why:"graded condemnation — examiners hear the register shift."},
+{basic:"nice (people)", up:["considerate","welcoming","kind-hearted"], s:"The host family could not have been more ____.", why:"'nice' says nothing; considerate/welcoming say HOW they were nice."},
+{basic:"clever", up:["gifted","talented","sharp"], s:"Even the most ____ students need feedback to improve.", why:"gifted/talented = ability language for education essays."},
+{basic:"weird", up:["peculiar","unusual","odd"], s:"There is something ____ about a beach town in winter.", why:"'weird' is spoken English; peculiar/odd carry the same idea formally."},
+{basic:"old (things)", up:["outdated","obsolete","old-fashioned"], s:"Much of the school’s computer equipment is now hopelessly ____.", why:"outdated = no longer useful; old = just age. Examiners notice the difference."},
+{basic:"new (ideas)", up:["innovative","groundbreaking","original"], s:"The company rewards employees who propose ____ solutions.", why:"innovative praises the NEWNESS of thinking, not the date."},
+{basic:"kids", up:["young people","adolescents","teenagers"], s:"Social media places enormous pressure on ____ to look perfect.", why:"'kids' is chat language — never let it into a B2 essay."},
+{basic:"everybody knows", up:["it is widely acknowledged","it is generally accepted","it is well known"], s:"____ that regular exercise improves concentration.", why:"impersonal openers sound researched instead of chatty."},
+{basic:"a lot (adverb)", up:["considerably","significantly","substantially"], s:"Cycling lanes have improved road safety ____ since 2020.", why:"one precise adverb replaces a vague intensifier."},
+{basic:"not enough", up:["insufficient","inadequate","lacking"], s:"The evidence against the new policy is simply ____.", why:"negative evaluation without writing 'not' — elegant economy."},
+{basic:"right (justified)", up:["justified","well-founded","legitimate"], s:"Parents’ concerns about screen time are entirely ____.", why:"justified = right for a REASON — the essay sense of 'right'."},
+{basic:"clear", up:["evident","apparent","obvious"], s:"It is ____ that tourism brings both income and pressure to the island.", why:"It is evident that… — the classic analysis frame."},
+{basic:"hard (difficult)", up:["demanding","challenging","tough"], s:"Combining a job with full-time study is extremely ____.", why:"demanding/challenging describe difficulty without complaint."},
+{basic:"easy", up:["straightforward","simple","effortless"], s:"Registering to vote online is quick and ____.", why:"straightforward = easy in the procedural sense essays need."},
+{basic:"dangerous", up:["hazardous","risky","unsafe"], s:"Cycling without lights is genuinely ____ after dark.", why:"hazardous conditions, risky decisions — pick the precise danger."},
+{basic:"dirty (environment)", up:["polluted","contaminated"], s:"The river is too ____ for swimming after heavy rain.", why:"polluted/contaminated = the environmental register."},
+{basic:"clean (energy)", up:["renewable","sustainable","green"], s:"The island now gets half its power from ____ sources.", why:"renewable/sustainable — compulsory vocabulary for environment essays."},
+{basic:"worrying", up:["alarming","disturbing","troubling"], s:"The rise in food prices is deeply ____ for young families.", why:"alarming statistics, disturbing trends — strong evaluative pairs."},
+{basic:"money (public)", up:["funding","resources","investment"], s:"Local libraries close when ____ is cut.", why:"funding/resources = the vocabulary of policy essays."},
+{basic:"job", up:["occupation","position","career"], s:"Choosing an ____ at eighteen is a daunting prospect.", why:"occupation/position = formal; career = the long view."},
+{basic:"free time", up:["leisure time","spare time"], s:"Longer working hours leave employees with little ____ for sport.", why:"leisure time is the survey-and-essay term."},
+{basic:"buy", up:["purchase","acquire"], s:"More households now ____ groceries online than in person.", why:"purchase = formal register; acquire = gain possession over time."},
+{basic:"agree with", up:["support","be in favour of","back"], s:"Most residents ____ the plan for a car-free centre.", why:"support/be in favour of = stance verbs for opinion essays."},
+{basic:"disagree with", up:["oppose","object to","reject"], s:"Many shop owners ____ the new parking charges.", why:"oppose needs no preposition — instant precision."},
+{basic:"ask for", up:["request","call for","demand"], s:"Residents have ____ a meeting with the council about the noise.", why:"requested politely, demanded forcefully — choose your strength."},
+{basic:"tell", up:["inform","notify"], s:"Passengers complain that nobody bothered to ____ them of the cancellation.", why:"inform somebody OF something — full B2 frame."},
+{basic:"find out", up:["discover","establish","determine"], s:"Researchers hope to ____ why teenagers sleep so late.", why:"discover facts, establish causes — research verbs."},
+{basic:"look at closely", up:["examine","analyse","investigate"], s:"This essay will ____ the arguments on both sides.", why:"the introduction verb examiners expect to see."},
+{basic:"check", up:["verify","monitor"], s:"Apps now let parents ____ how long children spend online.", why:"verify facts, monitor processes — precise checking."},
+{basic:"keep (preserve)", up:["preserve","retain","safeguard"], s:"We must ____ historic buildings even when land is valuable.", why:"preserve traditions/buildings — heritage-essay vocabulary."},
+{basic:"make smaller", up:["reduce","decrease","cut down on"], s:"Car-free Sundays would ____ pollution in the city centre.", why:"reduce + noun is the workhorse; cut down ON for habits."},
+{basic:"go up", up:["rise","increase","soar"], s:"Rents continue to ____ faster than salaries.", why:"rise (neutral) vs soar (dramatic) — trend language with attitude."},
+{basic:"go down", up:["fall","decline","drop"], s:"Cinema attendance tends to ____ when streaming gets cheaper.", why:"decline adds the idea of long-term weakening."},
+{basic:"get worse", up:["deteriorate","worsen","decline"], s:"Air quality tends to ____ during windless winter weeks.", why:"deteriorate = get worse, in a lab coat."},
+{basic:"get better (after illness)", up:["recover","recuperate"], s:"It took her almost a month to ____ from the operation.", why:"recover FROM — health-topic essential."},
+{basic:"build", up:["construct","develop","erect"], s:"The council plans to ____ affordable flats on the old factory site.", why:"construct buildings, develop areas — town-planning register."},
+{basic:"destroy", up:["demolish","devastate","ruin"], s:"Floods can ____ a harvest in a single night.", why:"demolish buildings, devastate regions, ruin plans — match verb to victim."},
+{basic:"fix", up:["repair","put right","rectify"], s:"The airline promised to ____ its booking system after the chaos.", why:"rectify mistakes = C1 polish; repair things."},
+{basic:"choose", up:["select","opt for"], s:"Given the choice, most commuters would ____ the train over driving.", why:"opt FOR + noun — decision language."},
+{basic:"let (allow)", up:["permit","enable","allow"], s:"Flexible hours ____ parents to collect children from school.", why:"enable somebody TO do = empowerment, not just permission."},
+{basic:"force", up:["compel","oblige","pressure"], s:"Rising rents ____ many graduates to move back home.", why:"compel/oblige somebody TO do — formal causation."},
+{basic:"avoid", up:["refrain from","steer clear of"], s:"Patients are advised to ____ caffeine before the test.", why:"refrain FROM + -ing = the formal warning frame."},
+{basic:"join in", up:["participate in","take part in","engage in"], s:"Shy students rarely ____ class discussions without encouragement.", why:"participate IN — preposition included, mark secured."},
+{basic:"stop doing (a habit)", up:["give up","quit","cut out"], s:"Her doctor told her to ____ sugary drinks completely.", why:"give up + noun/-ing — the habit-breaking phrasal examiners expect."},
+{basic:"start (a hobby)", up:["take up","get into"], s:"More retirees are deciding to ____ painting or chess.", why:"TAKE UP a hobby — the partner of give up."},
+{basic:"finish", up:["complete","conclude","finalise"], s:"Both bridges should be ____ before the tourist season.", why:"complete projects, conclude agreements."},
+{basic:"answer (verb)", up:["respond to","reply to","address"], s:"The minister failed to ____ the journalists’ central question.", why:"respond TO — and 'address a question' = tackle it."},
+{basic:"wait for", up:["await"], s:"Thousands of fans ____ the band’s arrival outside the hotel.", why:"await takes NO preposition — a neat C1-flavour swap."},
+{basic:"cause (verb)", up:["lead to","result in","give rise to"], s:"Poor sleep can ____ serious problems with concentration.", why:"lead to / result in = the cause-effect chains essays are built from."},
+{basic:"be caused by", up:["stem from","arise from"], s:"Most neighbour disputes ____ noise or parking.", why:"stem from flips the cause-effect arrow elegantly."},
+{basic:"spend time", up:["devote time to","dedicate time to"], s:"Schools should ____ teaching basic cookery.", why:"devote/dedicate time TO + -ing — commitment vocabulary."},
+{basic:"worried", up:["concerned","anxious","apprehensive"], s:"Many parents are ____ about the amount of homework set.", why:"concerned ABOUT = worried, professionally dressed."},
+{basic:"surprising", up:["striking","remarkable","astonishing"], s:"It is ____ how quickly children adapt to new technology.", why:"striking/remarkable = surprise that invites analysis."},
+{basic:"huge", up:["enormous","vast","immense"], s:"Hosting the festival requires an ____ amount of voluntary work.", why:"enormous/vast/immense — the formal giants."},
+{basic:"tiny", up:["minimal","negligible","slight"], s:"The new tax will have only a ____ effect on most salaries.", why:"negligible = so small it can be ignored — perfect for counter-arguments."},
+{basic:"fast", up:["rapid","swift"], s:"The ____ growth of online shopping has emptied many high streets.", why:"rapid growth/change — THE trend collocation."},
+{basic:"slow", up:["gradual","sluggish"], s:"Progress on recycling targets has been disappointingly ____.", why:"gradual = neutral pace; sluggish = criticised pace."},
+{basic:"often", up:["frequently","regularly"], s:"Trains on this line are ____ delayed in winter.", why:"frequently/regularly — adverbs that sound measured, not moaning."},
+{basic:"sometimes", up:["occasionally","from time to time"], s:"Even experienced drivers ____ misjudge the roundabout.", why:"occasionally softens a claim — useful for balanced paragraphs."},
+{basic:"always", up:["invariably","consistently"], s:"The bakery is ____ sold out by mid-morning.", why:"invariably = always, with a hint of evidence behind it."},
+{basic:"hardly ever", up:["rarely","seldom"], s:"Politicians ____ admit that a policy has failed.", why:"rarely/seldom can even start a sentence with inversion: Rarely DO they admit…"},
+{basic:"for example", up:["for instance","such as","to illustrate"], s:"Several cities, ____ Valencia and Porto, now offer free museum Sundays.", why:"'such as' slots examples INTO the sentence — smoother than restarting."},
+{basic:"to sum up", up:["in conclusion","on balance","all things considered"], s:"____ , the benefits of hosting the games outweigh the costs.", why:"on balance signals you have actually WEIGHED the arguments."},
+{basic:"instead of", up:["rather than","as an alternative to"], s:"____ banning phones, schools could teach focused use.", why:"Rather than + -ing — contrast structures earn organisation marks."},
+{basic:"at the same time", up:["simultaneously","meanwhile"], s:"The app translates and, ____ , corrects your grammar.", why:"simultaneously compresses 'at the same time' into one precise adverb."},
+{basic:"because (conjunction)", up:["since","as","given that"], s:"____ the hall was double-booked, the concert moved outdoors.", why:"since/as at sentence start = cause without repeating 'because'."},
+{basic:"good for the environment", up:["environmentally friendly","eco-friendly","sustainable"], s:"Bamboo cutlery is a cheap, ____ alternative to plastic.", why:"the hyphenated eco-adjectives — and a spelling test in disguise."},
+{basic:"thing (factor)", up:["factor","aspect","element"], s:"Cost is the decisive ____ for most families choosing a holiday.", why:"'thing' is the emptiest word in English — factor/aspect always beats it."},
+{basic:"result", up:["outcome","consequence"], s:"The ban had one unexpected ____ : cycling doubled in a year.", why:"outcome (neutral) vs consequence (often negative) — choose deliberately."},
+]);
 
 
 /* ===== js/engine.js ===== */
@@ -2823,6 +3073,152 @@ E.readiness = function(){
   var vol = Math.min(1, E.state.records.total/120);
   return Math.round(100 * (0.45*pr.p + 0.2*coverage + 0.2*vol + 0.15*mockDone));
 };
+
+/* ---------------- the coach's read ----------------
+   A tailored prose overview of THIS student, composed from the live model:
+   every candidate observation is scored for salience, the strongest few are
+   woven into one paragraph. Deterministic per day (no Math.random), so it
+   reads stable within a day but evolves with the data. */
+E.studentStory = function(){
+  var st = E.state, n = st.records.total;
+  var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  var name = esc(st.name || 'friend');
+  var day = Math.floor(Date.now()/864e5), pickI = 0;
+  var pick = function(arr){ return arr[(day + (pickI++)) % arr.length]; };
+  var pct = function(x){ return Math.round(x*100); };
+
+  if(n < 10){
+    var d0 = E.daysToExam();
+    return pick([
+      'This panel becomes your living profile, '+name+'. Right now the engine knows nothing — after about <b>ten answers</b> it starts writing what it sees here: where you hesitate, what you misspell, which grammar quietly costs you marks'+(d0!==null && d0>=0 ? ', and whether you are on schedule for the exam in <b>'+d0+' day'+(d0===1?'':'s')+'</b>.' : '.')+' Do one Smart Session and come back.',
+      name+', this space is reserved for an honest description of you as a candidate — your instincts, your spelling, your strongest paper. It is written by the engine from your own answers, and it cannot start until you give it about <b>ten</b>. The diagnostic is the fastest way to wake it up.',
+    ]);
+  }
+
+  var pr = E.predict(), tier = E.difficultyTier();
+  var obs = [];
+
+  /* accuracy trend: recent vs previous */
+  var L = st.log;
+  if(L.length >= 30){
+    var rec = L.slice(-25), prev = L.slice(-50, -25);
+    var ra = rec.reduce(function(x,l){return x+l.ok;},0)/rec.length;
+    var pa = prev.length ? prev.reduce(function(x,l){return x+l.ok;},0)/prev.length : ra;
+    if(ra - pa >= 0.12) obs.push({w:5.8, t:pick([
+      'Your last 25 answers run at <b>'+pct(ra)+'%</b> — a clear step up from the '+pct(pa)+'% before them, so whatever you changed, keep it.',
+      'The curve is bending the right way: <b>'+pct(ra)+'%</b> over your last 25, up from '+pct(pa)+'%.'])});
+    else if(pa - ra >= 0.12) obs.push({w:6.0, t:pick([
+      'Heads up: accuracy has dipped to <b>'+pct(ra)+'%</b> over the last 25 (from '+pct(pa)+'%) — usually a sign of rushing or fatigue, not forgetting.',
+      'Your recent 25 sit at <b>'+pct(ra)+'%</b>, down from '+pct(pa)+'%. Slow the first read of each question and the number comes back.'])});
+  }
+
+  /* sharpest confirmed weakness */
+  var recs = E.coach();
+  var c0 = recs && recs.length ? recs[0] : null;
+  if(c0 && n >= 15) obs.push({w:5.6, t:pick([
+    'The single most expensive gap is <b>'+esc(c0.name)+'</b> — roughly <b>'+(Math.round(c0.cost*2)/2).toFixed(1)+' marks</b> riding on it right now.',
+    '<b>'+esc(c0.name)+'</b> is where your marks leak fastest; the engine is already steering exercises there.'])});
+
+  /* strongest confirmed skill */
+  var bestTag = null, bestM = 0;
+  Object.keys(st.tags).forEach(function(t){
+    var r = st.tags[t]; if(!r || r.att < 5 || !FCE.TAGS[t]) return;
+    var m = E.mEff(t); if(m > bestM){ bestM = m; bestTag = t; }
+  });
+  if(bestTag && bestM >= 0.8) obs.push({w:3.2, t:pick([
+    'On the bright side, <b>'+esc(FCE.TAGS[bestTag].name)+'</b> is genuinely solid ('+pct(bestM)+'% mastered) — banked marks.',
+    'You can already treat <b>'+esc(FCE.TAGS[bestTag].name)+'</b> as a strength: '+pct(bestM)+'% mastery and holding.'])});
+
+  /* paper-part contrast */
+  var PN = {kwt:'Part 4 (transformations)', cloze:'Part 2 (open cloze)', wf:'Part 3 (word formation)', mcc:'Part 1 (multiple choice)'};
+  var per = E.expectedAccuracy().per;
+  var parts = Object.keys(per).sort(function(a,b){ return per[b]-per[a]; });
+  if(n >= 25 && per[parts[0]] - per[parts[3]] >= 0.12) obs.push({w:4.2, t:pick([
+    'Across the paper you are strongest in <b>'+PN[parts[0]]+'</b> and most exposed in <b>'+PN[parts[3]]+'</b> ('+pct(per[parts[0]])+'% vs '+pct(per[parts[3]])+'% expected).',
+    'If the exam were tomorrow, <b>'+PN[parts[0]]+'</b> would carry you and <b>'+PN[parts[3]]+'</b> would bill you — a '+ (pct(per[parts[0]]) - pct(per[parts[3]])) +'-point spread.'])});
+
+  /* behavioural instincts */
+  var br = E.behaviorReport();
+  if(br){
+    var flips = br.changedRight + br.selfCorrect;
+    if(br.changedRight >= 3 && flips >= 5 && br.changedRight/flips >= 0.6) obs.push({w:5.4, t:pick([
+      'The telemetry shows a costly habit: you have talked yourself <i>out of</i> a correct answer <b>'+br.changedRight+' times</b>. When your hand moves first, let it finish.',
+      'You change answers under doubt — and <b>'+br.changedRight+'</b> of those edits destroyed a right answer. Your first instinct is better than you trust it to be.'])});
+    else if(br.selfCorrect >= 3 && flips >= 5 && br.changedRight/flips <= 0.4) obs.push({w:3.6, t:
+      'Your re-reads genuinely rescue marks — <b>'+br.selfCorrect+'</b> answers were saved on second look. Keep budgeting those few extra seconds.'});
+    if(br.fastRight >= 10 && br.avgHesit < 2.5) obs.push({w:2.4, t:
+      'Pace is a weapon for you: <b>'+br.fastRight+'</b> fast-and-correct answers with barely any hesitation.'});
+    else if(br.avgHesit > 6) obs.push({w:2.2, t:
+      'You are a deliberate starter (≈<b>'+br.avgHesit.toFixed(1)+'s</b> before the first keystroke). Fine in practice — just rehearse the exam clock in mocks.'});
+  }
+
+  /* spelling cost */
+  var sr = E.spellReport();
+  if(sr.total >= 3){
+    var topW = sr.words.length ? sr.words[0].w : null;
+    obs.push({w:5.2, t:pick([
+      'Spelling alone has cost you <b>'+sr.total+' marks</b> you otherwise earned'+(topW ? ' — <i>'+esc(topW)+'</i> is your most frequent victim' : '')+'. The Spelling Gym is loaded with exactly these words.',
+      '<b>'+sr.total+'</b> of your errors were pure spelling — the grammar was right'+(topW ? ' (<i>'+esc(topW)+'</i> tops the list)' : '')+'. Cheapest marks you can win back this week.'])});
+  }
+
+  /* calibration */
+  var lf = E.luckyAndFalse();
+  if(lf.falseConf >= 3) obs.push({w:4.1, t:
+    'Calibration check: <b>'+lf.falseConf+' times</b> you felt sure and were wrong. Treat "certain" answers to one extra glance — that is where silent marks vanish.'});
+  else if(lf.lucky >= 4) obs.push({w:2.6, t:
+    'You called <b>'+lf.lucky+'</b> correct answers "a guess" — you know more than you give yourself credit for.'});
+
+  /* open-cloze positional fingerprint */
+  var wp = E.worstPos();
+  if(wp) obs.push({w:4.4, t:
+    'There is a positional pattern in your open-cloze misses: gaps <b>'+esc(E.posName(wp))+'</b> trip you disproportionately — the engine now serves more of exactly those.'});
+
+  /* mock vs day-to-day signal */
+  if(st.mocks.length){
+    var lastMock = st.mocks[st.mocks.length-1];
+    if(Math.abs(lastMock.scale - pr.scale) >= 5) obs.push({w:4.6, t: lastMock.scale > pr.scale ?
+      'Your last mock landed at <b>'+Math.round(lastMock.scale)+'</b> — above your day-to-day signal, so you rise to exam conditions.' :
+      'Your last mock came in at <b>'+Math.round(lastMock.scale)+'</b>, below your practice level — likely pacing, not knowledge. Another timed paper will confirm.'});
+  } else if(n >= 40){
+    obs.push({w:3.4, t:'You have never sat a full timed mock — at this point it is the highest-information forty minutes available to you.'});
+  }
+
+  /* mastery list */
+  var wantsN = Object.keys(st.wants).length;
+  if(wantsN) obs.push({w:3.0, t:'Your Mastery List holds <b>'+wantsN+'</b> flagged pattern'+(wantsN>1?'s':'')+' — each clears after two clean wins, and the engine keeps dealing them in.'});
+
+  /* essay vocab */
+  var vs = E.vocabStats();
+  if(vs.mastered >= 6) obs.push({w:2.0, t:'Your essay arsenal is growing too: <b>'+vs.mastered+'</b> band-boosting upgrades locked in for the writing paper.'});
+
+  obs.sort(function(a,b){ return b.w - a.w; });
+  var body = [], len = 0;
+  for(var i=0; i<obs.length && body.length < 4; i++){
+    if(len + obs[i].t.length > 600 && body.length >= 2) break;
+    body.push(obs[i].t); len += obs[i].t.length;
+  }
+
+  var opener = pick([
+    name+', after <b>'+n+' answers</b> here is the honest picture. You are training at <b>'+tier.name+'</b> difficulty and tracking toward a <b>'+pr.grade+'</b> ('+pct(pr.pass)+'% pass odds). ',
+    'The engine’s read on you, '+name+' — <b>'+n+' answers</b> in, training at <b>'+tier.name+'</b> level, currently a <b>'+pr.grade+'</b>-shaped candidate with '+pct(pr.pass)+'% pass odds. ',
+    name+' in one paragraph: <b>'+n+'</b> answers logged, <b>'+tier.name+'</b>-tier difficulty, pass probability <b>'+pct(pr.pass)+'%</b>. ',
+  ]);
+  if(st.streak.count >= 3) opener += pick([
+    'The <b>'+st.streak.count+'-day streak</b> is doing quiet compound work. ',
+    ''+st.streak.count+' straight days — consistency is your real edge. ',
+  ]);
+
+  var d = E.daysToExam(), closer;
+  if(d !== null && d >= 0 && d <= 10) closer = ' With <b>'+(d===0?'the exam today':d+' day'+(d===1?'':'s')+' left')+'</b>, the plan is simple: protect strengths, drill the one gap above, sleep well.';
+  else if(c0) closer = pick([
+    ' Next move: a focused drill on <b>'+esc(c0.name)+'</b> — that is where the next mark is cheapest.',
+    ' If you only do one thing today, make it <b>'+esc(c0.name)+'</b>.',
+  ]);
+  else closer = ' Keep feeding the engine — every answer sharpens this picture.';
+
+  return opener + body.join(' ') + closer;
+};
+
 E.grammarBook = function(){
   var byTag = {};
   E.state.log.forEach(function(l){
@@ -3334,6 +3730,13 @@ U.views.dash = function(){
     '<svg class="ink-stroke" viewBox="0 0 320 14" preserveAspectRatio="none"><path d="M4 9 C 60 3, 120 12, 180 7 S 290 5, 316 8" fill="none" stroke="#E0492F" stroke-width="5" stroke-linecap="round"/></svg></div>'+
     '<div class="ticker" style="margin-top:9px">ENGINE LIVE · <b>'+nSignals.toLocaleString()+'</b> signals · <b>'+Object.keys(FCE.TAGS).length+'</b> skills tracked · <b>'+eng.allItems().length+'</b> exercises · '+(due? '<b>'+due+'</b> reviews due':'queue clear')+'</div></div>'+
     '<div class="row">'+daysChip()+'<button class="btn small ghost" data-go="awards" title="Awards">🏆</button></div>'+
+  '</div>'+
+
+  '<div class="bento" style="margin-bottom:16px">'+
+    '<div class="card story-card sp12">'+
+      '<h3>The coach’s read <span class="grow"></span><span class="chip" title="Composed by the on-device engine from your own answer history — no AI, no internet. It re-writes itself as your data changes.">✎ live profile</span></h3>'+
+      '<div class="story serif">'+eng.studentStory()+'</div>'+
+    '</div>'+
   '</div>'+
 
   '<div class="bento" style="margin-bottom:16px">'+
@@ -4091,9 +4494,12 @@ function qView(){
       '<div class="q-key" style="margin-top:12px">stem: <span class="q-stem">'+u.esc(q.stem)+'</span> <span class="tiny">— transform it to fit</span></div>'+
       '<input class="ans-input" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="The transformed word…">';
   } else {
+    // display order is shuffled; data-i keeps the ORIGINAL index so grading/telemetry are untouched
+    var ord = q.opts.map(function(_,i){ return i; });
+    for(var z=ord.length-1; z>0; z--){ var rz=Math.floor(Math.random()*(z+1)), tz=ord[z]; ord[z]=ord[rz]; ord[rz]=tz; }
     body = '<div class="q-text">'+gapify(q.s)+'</div>'+
-      '<div class="opts">'+q.opts.map(function(o,i){
-        return '<button class="opt" data-i="'+i+'"><span class="letter">'+String.fromCharCode(65+i)+'</span><span>'+u.esc(o)+'</span></button>';
+      '<div class="opts">'+ord.map(function(oi,pos){
+        return '<button class="opt" data-i="'+oi+'"><span class="letter">'+String.fromCharCode(65+pos)+'</span><span>'+u.esc(q.opts[oi])+'</span></button>';
       }).join('')+'</div>';
   }
 
@@ -4243,9 +4649,10 @@ function grade(v, it, gaveUp){
       ok = S.selOpt === q.cor;
       userTxt = q.opts[S.selOpt] || '';
     }
-    u.$$('.opt', v).forEach(function(b,i){
-      if(i === q.cor) b.classList.add('right');
-      else if(!gaveUp && i === S.selOpt && !ok) b.classList.add('wrong');
+    u.$$('.opt', v).forEach(function(b){
+      var oi = +b.dataset.i;
+      if(oi === q.cor) b.classList.add('right');
+      else if(!gaveUp && oi === S.selOpt && !ok) b.classList.add('wrong');
       b.disabled = true;
     });
   } else {
