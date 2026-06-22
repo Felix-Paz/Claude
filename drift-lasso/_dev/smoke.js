@@ -20,7 +20,7 @@ function makeCtx(){
     canvas:null,
     setTransform:noop, transform:noop, scale:noop, translate:noop, rotate:noop, save:noop, restore:noop,
     fillRect:noop, clearRect:noop, strokeRect:noop,
-    beginPath:noop, closePath:noop, moveTo:noop, lineTo:noop, arc:noop, rect:noop, quadraticCurveTo:noop, bezierCurveTo:noop,
+    beginPath:noop, closePath:noop, moveTo:noop, lineTo:noop, arc:noop, ellipse:noop, rect:noop, roundRect:noop, quadraticCurveTo:noop, bezierCurveTo:noop,
     fill:noop, stroke:noop, clip:noop,
     fillText:noop, strokeText:noop, measureText:()=>({width:10}),
     drawImage:noop, putImageData:noop, getImageData:()=>({data:new Uint8ClampedArray(4)}),

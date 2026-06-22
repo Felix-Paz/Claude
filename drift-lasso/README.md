@@ -1,11 +1,12 @@
 # Drift Lasso
 
-A portal-ready, single-mechanic **hypercasual** web game — *neon synthwave night drift* meets
-`.io`-style area capture. You permanently drift in a circle leaving a glowing trail; **hold to
-tighten, release to widen**, and lasso floating drones by closing a loop around them. Cross your
-own live trail with nothing enclosed and you die. Greed kills.
+A portal-ready, single-mechanic **hypercasual** web game with a **bold cartoon 2.5D** look
+(glossy 3D-style balls, soft shadows, candy colours, thick ink outlines) fused with `.io`-style
+area capture. You drive a glossy ball that leaves a thick candy ribbon; **release to roam
+(drive nearly straight), hold to curl the ribbon into a lasso** and pop floating drones by
+closing a loop around them. Cross your own live trail with nothing enclosed and you die. Greed kills.
 
-> One mechanic. Hold and release. Depth comes from escalation, not features.
+> One mechanic. Release to roam, hold to lasso. Depth comes from escalation, not features.
 
 The entire game ships as **one self-contained `index.html`** — vanilla JS + HTML5 Canvas 2D, no
 dependencies, no external fonts/CDNs, no network calls. It is playable within 2–3 seconds of load.
@@ -25,19 +26,20 @@ python3 -m http.server 8000
 
 That's it. No build step, no install. To deploy, upload `index.html` (the rest is optional dev tooling).
 
-**Controls:** press & hold anywhere = tighten the drift; release = widen. Touch, mouse, or keyboard
+**Controls:** release (finger up) = roam / drive nearly straight to chase; press & hold = curl your
+trail into a lasso loop. Time your holds to wrap drones, release to escape. Touch, mouse, or keyboard
 (`Space` / `↓` / `Enter`) all map to the same single "hold" input.
 
 ---
 
 ## The first 10 seconds (guaranteed)
 
-There is no menu, logo, or tutorial. On load the car is already drifting and **one drone hovers at
-the centre of its circle**. Until the player's first capture, that drone gently tracks the centre of
-the *current* drift circle, so the very first action — whether they idle, hold immediately, hold
-late, tap, or mash — **always** closes a capturing loop and never a cheap death. This is verified by
-simulation across every screen size and input timing (see `_dev/sim.test.js`): first capture lands
-in **1.6–3.3 s**, every time.
+There is no menu, logo, or tutorial. On load the car is already roaming into the arena with **one
+drone hovering right beside it**, and a single fading "HOLD" hint. Until the player's first capture,
+that drone tracks the centre of the circle the car *would* carve if it curled now, so the very first
+**hold** — pressed immediately, late, after roaming, as a tap, or as a mash — **always** curls a
+capturing loop and never a cheap death. Verified by simulation across every screen size and hold
+timing (see `_dev/sim.test.js`): first capture lands in **2–3.3 s**, every time; roaming never kills.
 
 ---
 
@@ -136,7 +138,7 @@ All live in the **`CONFIG`** object at the very top of the script, named for dat
 | Constant | What it does | Default |
 |---|---|---|
 | `CAR_SPEED` | Constant forward speed (px/s) | `252` |
-| `MIN_RADIUS` / `MAX_RADIUS` | Tightest (held) / widest (released) drift radius | `44` / `165` |
+| `HOLD_RADIUS` / `ROAM_RADIUS` | Curl radius when held (lasso size) / near-straight radius when released (roam) | `80` / `1500` |
 | `RADIUS_LERP` | How snappily the radius responds to input | `8.5` |
 | `TRAIL_LIFESPAN` | Seconds a trail point lives = the self-collision **hazard window** | `2.6` |
 | `SELF_GRACE_SEGMENTS` | **Forgiving-hitbox grace** near the head (the single most important feel knob) | `6` |
@@ -146,7 +148,7 @@ All live in the **`CONFIG`** object at the very top of the script, named for dat
 | `RAMP_GENTLE_TIME` | Seconds of deliberately gentle intro (no wall) | `20` |
 | `RAMP_FULL_TIME` / `SCORE_FOR_MAX` | How long / how much score to approach max difficulty | `150` / `6000` |
 | `BASE_CAPTURE`, `AREA_*`, `COMBO_MAX`, `COMBO_DECAY_TIME` | Scoring + combo shape | — |
-| `INTRO_RADIUS`, `FIRST_DRONE_FRAC`, `INTRO_DRONE_TRACK` | The guaranteed-first-capture opening | `74`, `0.75`, `8` |
+| `INTRO_DRONE_TRACK` | How strongly the intro drone hovers at the prospective curl-centre | `10` |
 | `HITSTOP_BIG`, `SHAKE_DECAY`, `CHROMA_COMBO` | Juice intensity | — |
 | `WALL_DEATH` | Wall is lethal? Kept `false` → **one** death rule (self-cross only); soft containment instead | `false` |
 | `INTERSTITIAL_EVERY_RUNS`, `REVIVE_INVULN`, `DOUBLE_COINS_PARTIAL` | Monetization pacing | `3`, `1.3`, `1.5` |
@@ -181,9 +183,10 @@ feel self-inflicted, never cheap.
 ## Discoverability
 
 Title/meta is `Drift Lasso` (genre-clear, searchable on "drift"); tagged to drift / `.io` / arcade /
-hypercasual via the meta description + OG card. The **money shot** — a glowing cyan→magenta loop
-mid-snap around a cluster of amber drones on black with a big magenta combo number — is engineered to
-happen constantly in real play (it *is* the core action), so capture/preview footage sells the game.
+hypercasual via the meta description + OG card. The **money shot** — a thick inked cyan→pink lasso
+ribbon snapping shut around a cluster of glossy coral/gold balls, confetti bursting, with a big
+chunky combo number — is engineered to happen constantly in real play (it *is* the core action), so
+capture/preview footage sells the game. See `preview.svg` for an illustrative still of that framing.
 
 ---
 

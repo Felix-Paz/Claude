@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" font-family="'Segoe UI',system-ui,Arial,sans-serif">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5AD1FF"/><stop offset="0.55" stop-color="#5AA8FF"/><stop offset="1" stop-color="#6A5BFF"/>
+    </linearGradient>
+    <radialGradient id="vig" cx="0.5" cy="0.46" r="0.75">
+      <stop offset="0.45" stop-color="#241A4D" stop-opacity="0"/><stop offset="1" stop-color="#241A4D" stop-opacity="0.34"/>
+    </radialGradient>
+    <linearGradient id="ribbon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00E5FF"/><stop offset="1" stop-color="#FF49C3"/>
+    </linearGradient>
+    <radialGradient id="coral" cx="0.36" cy="0.32" r="0.75">
+      <stop offset="0" stop-color="#FFD0A8"/><stop offset="0.5" stop-color="#FF6B5C"/><stop offset="1" stop-color="#C0392B"/>
+    </radialGradient>
+    <radialGradient id="gold" cx="0.36" cy="0.32" r="0.75">
+      <stop offset="0" stop-color="#FFF1B0"/><stop offset="0.5" stop-color="#FFCB3A"/><stop offset="1" stop-color="#D89200"/>
+    </radialGradient>
+    <radialGradient id="carb" cx="0.36" cy="0.30" r="0.8">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="0.7" stop-color="#FFFFFF"/><stop offset="1" stop-color="#8FE6FF"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1080" height="1350" fill="url(#sky)"/>
+  <!-- grid -->
+  <g stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="2">
+    <path d="M150 0V1350 M270 0V1350 M390 0V1350 M510 0V1350 M630 0V1350 M750 0V1350 M870 0V1350 M990 0V1350"/>
+    <path d="M0 250H1080 M0 370H1080 M0 490H1080 M0 610H1080 M0 730H1080 M0 850H1080 M0 970H1080 M0 1090H1080 M0 1210H1080"/>
+  </g>
+
+  <!-- captured loop: translucent fill + inked candy ribbon (the money shot) -->
+  <path id="loop" d="M540 600 C760 600 840 740 820 880 C800 1020 660 1090 540 1080 C400 1068 270 1010 268 870 C266 720 360 600 540 600 Z"/>
+  <use href="#loop" fill="#00E5FF" fill-opacity="0.16"/>
+  <use href="#loop" fill="none" stroke="#241A4D" stroke-width="30" stroke-linejoin="round"/>
+  <use href="#loop" fill="none" stroke="url(#ribbon)" stroke-width="20" stroke-linejoin="round"/>
+
+  <!-- drones inside (glossy balls with shadow + specular) -->
+  <g>
+    <ellipse cx="470" cy="812" rx="60" ry="22" fill="#241A4D" opacity="0.22"/>
+    <circle cx="470" cy="788" r="49" fill="#241A4D"/><circle cx="470" cy="788" r="43" fill="url(#coral)"/>
+    <ellipse cx="455" cy="772" rx="15" ry="9" fill="#fff" opacity="0.9"/>
+
+    <ellipse cx="640" cy="852" rx="56" ry="20" fill="#241A4D" opacity="0.22"/>
+    <circle cx="640" cy="830" r="45" fill="#241A4D"/><circle cx="640" cy="830" r="39" fill="url(#coral)"/>
+    <ellipse cx="627" cy="816" rx="13" ry="8" fill="#fff" opacity="0.9"/>
+
+    <ellipse cx="540" cy="952" rx="64" ry="22" fill="#241A4D" opacity="0.22"/>
+    <circle cx="540" cy="928" r="52" fill="#241A4D"/><circle cx="540" cy="928" r="46" fill="url(#gold)"/>
+    <ellipse cx="524" cy="910" rx="16" ry="10" fill="#fff" opacity="0.95"/>
+  </g>
+
+  <!-- the car: glossy white ball on the ribbon, ink arrow -->
+  <g transform="translate(540,600)">
+    <ellipse cx="0" cy="26" rx="34" ry="13" fill="#241A4D" opacity="0.22"/>
+    <circle r="30" fill="#241A4D"/><circle r="25" fill="url(#carb)"/>
+    <path d="M16 0 L1 9 L5 0 L1 -9 Z" fill="#241A4D"/>
+  </g>
+
+  <!-- confetti -->
+  <g stroke="#241A4D" stroke-width="2">
+    <rect x="300" y="690" width="14" height="24" rx="3" fill="#00E5FF" transform="rotate(20 307 702)"/>
+    <rect x="800" y="760" width="14" height="24" rx="3" fill="#FFD23F" transform="rotate(-30 807 772)"/>
+    <rect x="700" y="700" width="13" height="22" rx="3" fill="#7CFF6B" transform="rotate(40 706 711)"/>
+    <rect x="380" y="980" width="13" height="22" rx="3" fill="#FF8A3D" transform="rotate(-15 386 991)"/>
+    <rect x="690" y="1010" width="14" height="24" rx="3" fill="#B16BFF" transform="rotate(25 697 1022)"/>
+    <rect x="470" y="640" width="12" height="20" rx="3" fill="#FF49C3" transform="rotate(-25 476 650)"/>
+    <rect x="620" y="640" width="12" height="20" rx="3" fill="#00E5FF" transform="rotate(35 626 650)"/>
+    <rect x="250" y="900" width="13" height="22" rx="3" fill="#FFD23F" transform="rotate(15 256 911)"/>
+  </g>
+
+  <!-- score popup -->
+  <text x="540" y="540" text-anchor="middle" font-size="64" font-weight="900" fill="#FFFFFF" stroke="#241A4D" stroke-width="9" paint-order="stroke">+540</text>
+  <text x="540" y="478" text-anchor="middle" font-size="40" font-weight="900" fill="#FFB020" stroke="#241A4D" stroke-width="7" paint-order="stroke">PERFECT!</text>
+
+  <!-- HUD -->
+  <text x="540" y="120" text-anchor="middle" font-size="118" font-weight="900" fill="#FFFFFF" stroke="#241A4D" stroke-width="13" paint-order="stroke" letter-spacing="2">2,480</text>
+  <text x="540" y="250" text-anchor="middle" font-size="34" font-weight="900" fill="#FF49C3" stroke="#241A4D" stroke-width="7" paint-order="stroke">x4</text>
+  <text x="540" y="210" text-anchor="middle" font-size="30" font-weight="900" fill="#EAF2FF" stroke="#241A4D" stroke-width="6" paint-order="stroke">BEST 1,960</text>
+  <text x="40" y="150" font-size="40" font-weight="900" fill="#FFB020" stroke="#241A4D" stroke-width="7" paint-order="stroke">&#9673; 128</text>
+
+  <rect width="1080" height="1350" fill="url(#vig)"/>
+</svg>

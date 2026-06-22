@@ -4,131 +4,137 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>Drift Lasso — Neon Drift &amp; Capture</title>
-<meta name="description" content="Drift Lasso: hold to tighten your drift, release to widen, and lasso glowing drones with your neon trail. One mechanic, endless combos. A free hypercasual drift .io arcade game." />
+<meta name="description" content="Drift Lasso: release to roam, hold to curl your trail into a lasso and pop the drones. One thumb, endless combos. A free hypercasual drift .io arcade game." />
 <meta name="theme-color" content="#0A0A14" />
 <!-- Discoverability / portal share card. Genre-clear, searchable: drift, io, arcade, hypercasual. -->
 <meta property="og:title" content="Drift Lasso" />
-<meta property="og:description" content="Hold to tighten, release to widen. Lasso the drones. Don't cross your own trail." />
+<meta property="og:description" content="Release to roam, hold to lasso. Pop the drones. Don't cross your own trail." />
 <meta property="og:type" content="website" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <style>
   /* ---------------------------------------------------------------------------
-     Drift Lasso — styles. Self-contained, no external fonts/CDN (fast first paint).
-     A heavy geometric system-font stack gives the "neon poster" feel with zero
-     network cost. Tabular numerals keep the score from jittering as it counts.
+     Drift Lasso — BOLD CARTOON 2.5D styles. Self-contained, no external fonts/CDN
+     (fast first paint). Bright cream cards, a single dark "ink" outline, chunky
+     candy buttons with a solid 3D drop. Tabular figures keep the score from jittering.
   --------------------------------------------------------------------------- */
   :root{
-    --bg:#0A0A14; --grid:#1A1A2E; --cyan:#00F0FF; --magenta:#FF2D95;
-    --amber:#FFB800; --red:#FF1744; --white:#FFFFFF;
+    --ink:#241A4D; --cream:#FFF7EC; --sky1:#5AD1FF; --sky2:#6A5BFF;
+    --cyan:#00E5FF; --magenta:#FF49C3; --amber:#FFB020; --purple:#7C4DFF;
+    --red:#FF3B5C; --white:#FFFFFF;
     --font: 800 16px/1.1 "Eurostile","Bahnschrift","DIN Alternate Bold","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
   }
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body{
-    margin:0; padding:0; height:100%; width:100%; background:var(--bg);
+    margin:0; padding:0; height:100%; width:100%;
+    background:linear-gradient(180deg,var(--sky1),var(--sky2));
     overflow:hidden; position:fixed; inset:0;
     touch-action:none; overscroll-behavior:none;
     user-select:none; -webkit-user-select:none;
-    font:var(--font); color:#fff;
+    font:var(--font); color:var(--ink);
     -webkit-font-smoothing:antialiased;
   }
   #game{ position:absolute; inset:0; display:block; z-index:0; }
-
-  /* CSS-driven full-screen feedback flashes (cheap, GPU-composited) */
   #flash{ position:absolute; inset:0; z-index:2; pointer-events:none; opacity:0; }
 
+  /* chunky cartoon corner buttons (ink outline + solid 3D drop) */
   .ui-btn{
-    position:absolute; z-index:5; cursor:pointer; border:none; color:#fff;
-    background:rgba(20,22,40,.55); border:1.5px solid rgba(255,255,255,.18);
-    border-radius:14px; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
-    font:800 18px/1 inherit; letter-spacing:.5px;
-    width:52px; height:52px; display:flex; align-items:center; justify-content:center;
-    transition:transform .08s ease, background .15s ease, border-color .15s ease;
+    position:absolute; z-index:5; cursor:pointer; color:var(--ink);
+    background:var(--white); border:3px solid var(--ink); border-radius:16px;
+    box-shadow:0 4px 0 var(--ink); font:900 20px/1 inherit;
+    width:54px; height:54px; display:flex; align-items:center; justify-content:center;
+    transition:transform .06s ease, box-shadow .06s ease;
   }
-  .ui-btn:active{ transform:scale(.92); }
+  .ui-btn:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--ink); }
   #btn-mute{ top:max(14px,env(safe-area-inset-top)); right:14px; }
-  #btn-shop{ top:max(14px,env(safe-area-inset-top)); left:14px; }
+  #btn-shop{ top:max(14px,env(safe-area-inset-top)); left:14px; color:var(--amber); }
 
-  /* Overlay screens (game over / shop / daily). DOM = crisp text + reliable
-     large touch targets, and it's off the hot render path. */
+  /* Overlay screens — DOM = crisp text + reliable large touch targets, off the hot path */
   .overlay{
     position:absolute; inset:0; z-index:10; display:none;
     flex-direction:column; align-items:center; justify-content:center;
-    padding:max(22px,env(safe-area-inset-top)) 22px max(22px,env(safe-area-inset-bottom));
-    background:radial-gradient(120% 90% at 50% 38%, rgba(10,10,20,.62), rgba(10,10,20,.93));
-    -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px);
-    text-align:center; opacity:0; transition:opacity .28s ease;
+    padding:max(22px,env(safe-area-inset-top)) 18px max(22px,env(safe-area-inset-bottom));
+    background:radial-gradient(120% 90% at 50% 38%, rgba(36,26,77,.40), rgba(36,26,77,.72));
+    text-align:center; opacity:0; transition:opacity .26s ease;
   }
   .overlay.show{ display:flex; opacity:1; }
-  .panel{ width:min(440px,94vw); display:flex; flex-direction:column; align-items:center; gap:14px; }
+  /* the bright card */
+  .panel{
+    width:min(430px,94vw); display:flex; flex-direction:column; align-items:center; gap:12px;
+    background:var(--cream); border:4px solid var(--ink); border-radius:30px;
+    box-shadow:0 10px 0 rgba(36,26,77,.40), 0 22px 44px rgba(0,0,0,.28);
+    padding:22px 20px 24px;
+    animation:pop .26s cubic-bezier(.2,1.3,.5,1) both;
+  }
+  @keyframes pop{ from{ transform:scale(.86) translateY(8px); opacity:0; } to{ transform:none; opacity:1; } }
 
-  .eyebrow{ font-size:14px; letter-spacing:4px; text-transform:uppercase; color:var(--cyan); opacity:.85; }
-  .headline{ font-size:clamp(34px,11vw,58px); letter-spacing:2px; line-height:.95; margin:2px 0; }
-  .headline.close{ color:var(--magenta); text-shadow:0 0 24px rgba(255,45,149,.55); }
-  .sub{ font-size:15px; color:#aeb6d6; font-weight:600; letter-spacing:.4px; }
+  .eyebrow{ font-size:13px; letter-spacing:3px; text-transform:uppercase; color:var(--purple); font-weight:900; }
+  .headline{ font-size:clamp(34px,11vw,56px); letter-spacing:1px; line-height:.95; margin:1px 0; color:var(--ink); text-shadow:0 3px 0 rgba(36,26,77,.18); }
+  .headline.close{ color:var(--magenta); }
+  .sub{ font-size:15px; color:#5a5480; font-weight:700; }
 
-  .score-big{ font-size:clamp(56px,18vw,96px); color:var(--cyan); text-shadow:0 0 30px rgba(0,240,255,.45); letter-spacing:1px; font-variant-numeric:tabular-nums; }
-  .best-row{ display:flex; gap:18px; justify-content:center; align-items:center; font-size:15px; color:#9aa3c7; letter-spacing:1px; }
-  .best-row b{ color:#fff; font-variant-numeric:tabular-nums; }
+  .score-big{ font-size:clamp(58px,18vw,96px); color:var(--magenta); letter-spacing:1px; font-variant-numeric:tabular-nums; text-shadow:0 4px 0 rgba(36,26,77,.22); }
+  .best-row{ display:flex; gap:16px; justify-content:center; align-items:center; font-size:15px; color:#6b6493; letter-spacing:.5px; font-weight:800; }
+  .best-row b{ color:var(--ink); font-variant-numeric:tabular-nums; }
 
-  .near{ font-size:14px; color:#c7cdf0; line-height:1.5; max-width:340px; }
+  .near{ font-size:14px; color:#5a5480; line-height:1.5; max-width:340px; font-weight:700; }
   .near b{ color:var(--magenta); }
 
+  /* chunky candy buttons with a solid ink 3D drop */
   .btn{
-    width:100%; max-width:380px; min-height:60px; border:none; border-radius:16px;
-    color:#031018; font:900 19px/1 inherit; letter-spacing:.6px; cursor:pointer;
+    width:100%; max-width:380px; min-height:62px; border:3px solid var(--ink); border-radius:18px;
+    color:var(--ink); font:900 19px/1 inherit; letter-spacing:.4px; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:10px;
-    transition:transform .08s ease, filter .15s ease; padding:0 16px;
+    box-shadow:0 6px 0 var(--ink); transition:transform .06s ease, box-shadow .06s ease; padding:0 16px;
   }
-  .btn:active{ transform:translateY(2px) scale(.99); }
-  .btn.primary{ background:linear-gradient(135deg,var(--cyan),#56ffd5); box-shadow:0 8px 26px rgba(0,240,255,.32); }
-  .btn.reward{ background:linear-gradient(135deg,var(--magenta),#ff7ab3); color:#fff; box-shadow:0 8px 26px rgba(255,45,149,.32); }
-  .btn.ghost{ background:rgba(255,255,255,.08); color:#dfe4ff; border:1.5px solid rgba(255,255,255,.16); box-shadow:none; }
-  .btn .tag{ font-size:12px; font-weight:800; padding:3px 8px; border-radius:999px; background:rgba(0,0,0,.22); letter-spacing:.5px; }
-  .btn[disabled]{ filter:grayscale(.7) brightness(.7); pointer-events:none; }
+  .btn:active{ transform:translateY(4px); box-shadow:0 2px 0 var(--ink); }
+  .btn.primary{ background:var(--cyan); }
+  .btn.reward{ background:var(--magenta); color:var(--white); }
+  .btn.ghost{ background:var(--white); }
+  .btn .tag{ font-size:12px; font-weight:900; padding:3px 8px; border-radius:999px; background:rgba(36,26,77,.16); letter-spacing:.5px; }
+  .btn[disabled]{ filter:grayscale(.5) brightness(.92); opacity:.7; pointer-events:none; }
   .btn-row{ display:flex; gap:12px; width:100%; max-width:380px; }
   .btn-row .btn{ flex:1; min-width:0; }
 
   /* Coins + next-unlock progress (always-visible goal) */
-  .wallet{ display:flex; align-items:center; gap:8px; font-size:18px; color:var(--amber); font-weight:900; letter-spacing:.5px; }
-  .wallet .coin{ width:18px; height:18px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff6cf, var(--amber) 60%, #b87b00); box-shadow:0 0 10px rgba(255,184,0,.6); display:inline-block; }
+  .wallet{ display:flex; align-items:center; gap:8px; font-size:19px; color:#b9770a; font-weight:900; }
+  .wallet .coin{ width:18px; height:18px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff6cf, var(--amber) 62%, #a86f00); border:2px solid var(--ink); display:inline-block; }
   .progress-wrap{ width:100%; max-width:380px; }
-  .progress-label{ display:flex; justify-content:space-between; font-size:12.5px; color:#9aa3c7; letter-spacing:.6px; margin-bottom:6px; }
-  .progress-label b{ color:#fff; }
-  .bar{ height:10px; border-radius:999px; background:rgba(255,255,255,.10); overflow:hidden; }
-  .bar > i{ display:block; height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,var(--amber),#ffd86b); box-shadow:0 0 12px rgba(255,184,0,.55); transition:width .4s ease; }
+  .progress-label{ display:flex; justify-content:space-between; font-size:12.5px; color:#6b6493; letter-spacing:.4px; margin-bottom:6px; font-weight:800; }
+  .progress-label b{ color:var(--ink); }
+  .bar{ height:14px; border-radius:999px; background:#EADFce; border:3px solid var(--ink); overflow:hidden; }
+  .bar > i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--amber),#ffd86b); transition:width .4s ease; }
 
   /* Shop grid */
-  .shop-grid{ width:100%; display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:4px; max-height:46vh; overflow-y:auto; padding:4px; -webkit-overflow-scrolling:touch; }
-  .skin{ position:relative; border-radius:16px; padding:12px 10px 11px; background:rgba(255,255,255,.05); border:1.5px solid rgba(255,255,255,.10); display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; transition:border-color .15s ease, transform .08s ease; }
-  .skin:active{ transform:scale(.98); }
-  .skin.equipped{ border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan) inset, 0 6px 20px rgba(0,240,255,.18); }
-  .skin.locked{ opacity:.96; }
+  .shop-grid{ width:100%; display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:2px; max-height:44vh; overflow-y:auto; padding:4px; -webkit-overflow-scrolling:touch; }
+  .skin{ position:relative; border-radius:18px; padding:12px 10px 11px; background:var(--white); border:3px solid var(--ink); box-shadow:0 4px 0 var(--ink); display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer; transition:transform .06s ease, box-shadow .06s ease; }
+  .skin:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--ink); }
+  .skin.equipped{ background:#E9FBFF; box-shadow:0 4px 0 var(--ink), 0 0 0 3px var(--cyan) inset; }
   .skin canvas{ width:110px; height:46px; display:block; }
-  .skin .name{ font-size:13px; letter-spacing:.4px; }
-  .skin .cost{ font-size:12px; color:var(--amber); font-weight:900; display:flex; align-items:center; gap:5px; }
-  .skin .state{ font-size:11.5px; letter-spacing:1px; text-transform:uppercase; font-weight:800; }
-  .skin .state.eq{ color:var(--cyan); }
-  .skin .state.un{ color:#9aa3c7; }
-  .skin .mini-coin{ width:12px; height:12px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff6cf, var(--amber) 60%, #b87b00); display:inline-block; }
+  .skin .name{ font-size:13px; letter-spacing:.2px; color:var(--ink); font-weight:900; }
+  .skin .cost{ font-size:13px; color:#b9770a; font-weight:900; display:flex; align-items:center; gap:5px; }
+  .skin .state{ font-size:11px; letter-spacing:.6px; text-transform:uppercase; font-weight:900; }
+  .skin .state.eq{ color:#0098b0; }
+  .skin .state.un{ color:#8a83ad; }
+  .skin .mini-coin{ width:12px; height:12px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff6cf, var(--amber) 62%, #a86f00); border:1.5px solid var(--ink); display:inline-block; }
 
-  .toast{ position:absolute; left:50%; top:14%; transform:translateX(-50%); z-index:30; background:rgba(10,12,24,.9); border:1.5px solid rgba(0,240,255,.4); color:#eaf6ff; padding:12px 18px; border-radius:14px; font-weight:800; letter-spacing:.5px; opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; text-align:center; max-width:88vw; }
+  .toast{ position:absolute; left:50%; top:13%; transform:translateX(-50%); z-index:30; background:var(--white); border:3px solid var(--ink); box-shadow:0 5px 0 var(--ink); color:var(--ink); padding:12px 18px; border-radius:16px; font-weight:900; letter-spacing:.3px; opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease; text-align:center; max-width:88vw; }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(6px); }
 
   /* Simulated ad modal (stub). Real SDK replaces this entirely — see AdSDK. */
-  #ad{ position:absolute; inset:0; z-index:40; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.92); flex-direction:column; gap:20px; text-align:center; padding:24px; }
+  #ad{ position:absolute; inset:0; z-index:40; display:none; align-items:center; justify-content:center; background:rgba(20,14,40,.92); flex-direction:column; gap:20px; text-align:center; padding:24px; }
   #ad.show{ display:flex; }
-  #ad .ad-box{ width:min(420px,92vw); border:1.5px solid rgba(255,255,255,.14); border-radius:18px; padding:26px 22px; background:linear-gradient(160deg,#10131f,#0a0c16); }
-  #ad .ad-mark{ font-size:11px; letter-spacing:3px; color:#7e88ad; text-transform:uppercase; }
-  #ad .ad-title{ font-size:22px; margin:10px 0 4px; }
-  #ad .ad-sub{ font-size:13.5px; color:#9aa3c7; margin-bottom:18px; }
-  #ad .ad-bar{ height:8px; border-radius:999px; background:rgba(255,255,255,.12); overflow:hidden; margin-bottom:18px; }
+  #ad .ad-box{ width:min(420px,92vw); border:3px solid var(--ink); border-radius:22px; padding:26px 22px; background:var(--cream); box-shadow:0 10px 0 rgba(36,26,77,.4); }
+  #ad .ad-mark{ font-size:11px; letter-spacing:3px; color:#8a83ad; text-transform:uppercase; font-weight:900; }
+  #ad .ad-title{ font-size:22px; margin:10px 0 4px; color:var(--ink); }
+  #ad .ad-sub{ font-size:13.5px; color:#6b6493; margin-bottom:18px; font-weight:700; }
+  #ad .ad-bar{ height:14px; border-radius:999px; background:#EADFce; border:3px solid var(--ink); overflow:hidden; margin-bottom:18px; }
   #ad .ad-bar > i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--magenta),var(--cyan)); }
   #ad .ad-actions{ display:flex; gap:10px; justify-content:center; }
   #ad .ad-actions .btn{ min-height:48px; font-size:16px; }
 
   .hidden{ display:none !important; }
-  a{ color:var(--cyan); }
+  a{ color:var(--purple); }
 </style>
 </head>
 <body>
@@ -230,16 +236,14 @@
 /* Every number a designer would touch lives here. See README "Tuning". */
 const CONFIG = {
   // --- CAR / DRIFT ---------------------------------------------------------
-  CAR_SPEED: 252,        // px/sec forward travel (constant; player never sets speed)
-  MIN_RADIUS: 44,        // tightest drift radius — finger HELD
-  MAX_RADIUS: 165,       // widest drift radius — finger UP (clamped to screen at runtime)
-  RADIUS_LERP: 8.5,      // how fast the radius eases toward its target (1/sec)
-  TURN_DIR: 1,           // +1 clockwise; the car ALWAYS turns this way (it's drifting)
-  INTRO_RADIUS: 74,      // gentle opening radius until the first capture of each run
-  FIRST_DRONE_FRAC: 0.75,// first drone starts this fraction of INTRO_RADIUS toward circle centre
-  INTRO_DRONE_TRACK: 8,  // intro drone hovers at the drift-circle centre this strongly (1/sec)
-                         // (these are tuned so the first action — idle OR hold, pressed at ANY
-                         //  moment, on ANY screen size — always closes a CAPTURING loop, never a death)
+  CAR_SPEED: 250,        // px/sec forward travel (constant; the player only steers the curve)
+  HOLD_RADIUS: 80,       // finger DOWN -> curl into a loop (the lasso). Smaller = tighter lasso.
+  ROAM_RADIUS: 1500,     // finger UP -> drive (near-)straight to roam & chase. Bigger = straighter.
+  RADIUS_LERP: 9,        // how fast the curve eases between roam and curl (1/sec)
+  TURN_DIR: 1,           // which way the car curls while held (+1 = clockwise)
+  INTRO_DRONE_TRACK: 10, // intro drone hovers at the prospective curl-centre this strongly (1/sec)
+                         // (tuned so HOLDING at ANY moment, on ANY screen size, always closes a
+                         //  CAPTURING loop on the first run — proven in _dev/control2.explore.js)
 
   // --- TRAIL (the hero) ----------------------------------------------------
   TRAIL_LIFESPAN: 2.6,   // seconds a trail point stays alive (hazard + lasso window)
@@ -299,8 +303,17 @@ const CONFIG = {
 /* Palette — the whole game is colour-coded: cool = safe/score, amber = target,
    red = death only. Keep this disciplined. */
 const COL = {
-  bg:'#0A0A14', grid:'#1A1A2E', cyan:'#00F0FF', magenta:'#FF2D95',
-  amber:'#FFB800', red:'#FF1744', white:'#FFFFFF',
+  // bold cartoon 2.5D palette — bright candy colours + a single dark "ink" outline
+  ink:'#241A4D',                          // cartoon outline + shadow base (colored near-black)
+  bg:'#3FB9FF', sky1:'#5AD1FF', sky2:'#6A5BFF', // vibrant sky gradient
+  grid:'rgba(255,255,255,0.10)',
+  car:'#FFFFFF', carRim:'#8FE6FF',
+  drone:'#FF6B5C', droneHi:'#FFD0A8', droneDark:'#C0392B',     // glossy coral target
+  bonus:'#FFCB3A', bonusHi:'#FFF1B0', bonusDark:'#D89200',     // glossy gold target
+  trailA:'#00E5FF', trailB:'#FF49C3',     // candy cyan -> pink ribbon
+  white:'#FFFFFF', red:'#FF3B5C',
+  cyan:'#00E5FF', magenta:'#FF49C3', amber:'#FFB020',          // UI accents (kept names)
+  confetti:['#00E5FF','#FF49C3','#FFD23F','#7CFF6B','#FF8A3D','#B16BFF'],
 };
 
 /* ============================== [UTIL] ===================================== */
@@ -599,61 +612,107 @@ function makePool(size, factory){
 }
 
 /* ============================= [SPRITES] =================================== */
-/* Pre-rendered radial-glow sprites. Drawing these with drawImage is far cheaper
-   than per-frame shadowBlur/gradients and gives a gorgeous bloom on phones. */
+/* Pre-rendered sprites: glossy "3D" candy balls (cartoon 2.5D look) for the car
+   and drones, plus soft radial dots for confetti sparkles + glow. Rendering them
+   once into offscreen canvases and drawImage-ing keeps it crisp AND fast. */
 const Sprites=(()=>{
-  function glow(size, inner){
+  const PAD=10;
+  // a glossy sphere with an ink outline + top-left highlight + specular dot
+  function ball(diam, base, hi, dark){
+    const s=diam+PAD*2, c=document.createElement('canvas'); c.width=c.height=s;
+    const g=c.getContext('2d'); const cx=s/2, cy=s/2, R=diam/2;
+    // ink outline
+    g.beginPath(); g.arc(cx,cy,R,0,TAU); g.fillStyle=COL.ink; g.fill();
+    // body: radial gradient lit from top-left
+    const ir=R-Math.max(3,diam*0.07);
+    const grd=g.createRadialGradient(cx-ir*0.38,cy-ir*0.42,ir*0.1, cx,cy,ir);
+    grd.addColorStop(0,hi); grd.addColorStop(0.5,base); grd.addColorStop(1,dark);
+    g.beginPath(); g.arc(cx,cy,ir,0,TAU); g.fillStyle=grd; g.fill();
+    // glossy specular highlight
+    g.globalAlpha=0.9; g.fillStyle='rgba(255,255,255,0.95)';
+    g.beginPath(); g.ellipse(cx-ir*0.34,cy-ir*0.40, ir*0.30, ir*0.20, -0.6, 0, TAU); g.fill();
+    g.globalAlpha=1;
+    return c;
+  }
+  function dot(size, inner){ // soft additive glow / sparkle
     const c=document.createElement('canvas'); c.width=c.height=size; const g=c.getContext('2d');
-    const r=size/2; const grd=g.createRadialGradient(r,r,0,r,r,r);
-    grd.addColorStop(0,inner); grd.addColorStop(0.25,inner.replace(/[\d.]+\)$/,'0.55)'));
-    grd.addColorStop(1,inner.replace(/[\d.]+\)$/,'0)'));
+    const r=size/2, grd=g.createRadialGradient(r,r,0,r,r,r);
+    grd.addColorStop(0,inner); grd.addColorStop(0.4,inner.replace(/[\d.]+\)$/,'0.5)')); grd.addColorStop(1,inner.replace(/[\d.]+\)$/,'0)'));
+    g.fillStyle=grd; g.fillRect(0,0,size,size); return c;
+  }
+  function shadow(size){ // soft ink ground shadow
+    const c=document.createElement('canvas'); c.width=c.height=size; const g=c.getContext('2d');
+    const r=size/2, grd=g.createRadialGradient(r,r,0,r,r,r);
+    grd.addColorStop(0,'rgba(36,26,77,0.42)'); grd.addColorStop(0.7,'rgba(36,26,77,0.22)'); grd.addColorStop(1,'rgba(36,26,77,0)');
     g.fillStyle=grd; g.fillRect(0,0,size,size); return c;
   }
   return {
-    car:null, drone:null, droneBonus:null, white:null, cyan:null, magenta:null, amber:null, red:null,
+    car:null, drone:null, droneBonus:null, shadow:null,
+    white:null, cyan:null, magenta:null, amber:null, red:null, pad:PAD,
     build(){
-      this.car=glow(140,'rgba(255,255,255,1)');
-      this.drone=glow(120,'rgba(255,184,0,1)');
-      this.droneBonus=glow(140,'rgba(86,255,213,1)');
-      this.white=glow(64,'rgba(255,255,255,1)');
-      this.cyan=glow(72,'rgba(0,240,255,1)');
-      this.magenta=glow(72,'rgba(255,45,149,1)');
-      this.amber=glow(72,'rgba(255,184,0,1)');
-      this.red=glow(72,'rgba(255,23,68,1)');
+      this.car=ball(46, '#FFFFFF', '#FFFFFF', COL.carRim);
+      this.drone=ball(40, COL.drone, COL.droneHi, COL.droneDark);
+      this.droneBonus=ball(46, COL.bonus, COL.bonusHi, COL.bonusDark);
+      this.shadow=shadow(96);
+      this.white=dot(64,'rgba(255,255,255,1)');
+      this.cyan=dot(72,'rgba(0,229,255,1)');
+      this.magenta=dot(72,'rgba(255,73,195,1)');
+      this.amber=dot(72,'rgba(255,176,32,1)');
+      this.red=dot(72,'rgba(255,59,92,1)');
     }
   };
 })();
 
 /* ============================ [PARTICLES] ================================== */
+/* Two flavours from one pool: solid spinning CONFETTI (cartoon pop) + additive
+   GLOW sparkles (shine). Gravity + drag give the confetti a satisfying arc. */
 const Particles=(()=>{
-  const pool=makePool(CONFIG.MAX_PARTICLES, ()=>({x:0,y:0,vx:0,vy:0,life:0,max:1,size:1,spr:null,add:true}));
+  const pool=makePool(CONFIG.MAX_PARTICLES, ()=>({x:0,y:0,vx:0,vy:0,life:0,max:1,size:1,spr:null,add:true,confetti:false,color:'#fff',rot:0,vrot:0,grav:0}));
   function burst(x,y,n,opts){
     opts=opts||{};
     for(let i=0;i<n;i++){
       const p=pool.get(); if(!p) break;
-      const a=rand(0,TAU), sp=rand(opts.spMin||40, opts.spMax||260);
-      p.x=x; p.y=y; p.vx=Math.cos(a)*sp; p.vy=Math.sin(a)*sp;
-      p.max=p.life=rand(opts.lifeMin||0.4, opts.lifeMax||0.9);
-      p.size=rand(opts.sizeMin||6, opts.sizeMax||16);
-      p.spr=opts.spr||Sprites.amber; p.add=opts.add!==false;
-      p.drag=opts.drag||2.6;
+      const a=rand(0,TAU), sp=rand(opts.spMin||60, opts.spMax||320);
+      p.x=x; p.y=y; p.vx=Math.cos(a)*sp; p.vy=Math.sin(a)*sp - (opts.lift||40);
+      p.max=p.life=rand(opts.lifeMin||0.5, opts.lifeMax||1.1);
+      p.confetti=!!opts.confetti;
+      if(p.confetti){
+        p.color=opts.colors? opts.colors[(Math.random()*opts.colors.length)|0] : COL.confetti[(Math.random()*COL.confetti.length)|0];
+        p.size=rand(opts.sizeMin||4, opts.sizeMax||9);
+        p.rot=rand(0,TAU); p.vrot=rand(-14,14); p.grav=opts.grav!=null?opts.grav:760; p.drag=opts.drag||1.4;
+      } else {
+        p.spr=opts.spr||Sprites.white; p.size=rand(opts.sizeMin||6, opts.sizeMax||16);
+        p.grav=0; p.drag=opts.drag||3.0;
+      }
     }
   }
   function update(dt){
     const a=pool.alive;
     for(let i=a.length-1;i>=0;i--){ const p=a[i];
       p.life-=dt; if(p.life<=0){ pool.free(p); continue; }
-      const k=Math.exp(-p.drag*dt); p.vx*=k; p.vy*=k;
-      p.x+=p.vx*dt; p.y+=p.vy*dt;
+      const k=Math.exp(-p.drag*dt); p.vx*=k; p.vy*=k; p.vy+=p.grav*dt;
+      p.x+=p.vx*dt; p.y+=p.vy*dt; p.rot+=p.vrot*dt;
     }
   }
   function draw(ctx){
-    const a=pool.alive; ctx.globalCompositeOperation='lighter';
-    for(let i=0;i<a.length;i++){ const p=a[i]; const t=p.life/p.max;
+    const a=pool.alive;
+    // additive sparkles first
+    ctx.globalCompositeOperation='lighter';
+    for(let i=0;i<a.length;i++){ const p=a[i]; if(p.confetti) continue; const t=p.life/p.max;
       const s=p.size*(0.5+t); ctx.globalAlpha=clamp(t,0,1);
       ctx.drawImage(p.spr, p.x-s, p.y-s, s*2, s*2);
     }
-    ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+    // solid confetti on top
+    ctx.globalCompositeOperation='source-over';
+    for(let i=0;i<a.length;i++){ const p=a[i]; if(!p.confetti) continue; const t=p.life/p.max;
+      ctx.globalAlpha=clamp(t*1.3,0,1);
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      const w=p.size, h=p.size*1.7;
+      ctx.fillStyle=COL.ink; ctx.fillRect(-w/2-1,-h/2-1,w+2,h+2);   // tiny ink edge
+      ctx.fillStyle=p.color; ctx.fillRect(-w/2,-h/2,w,h);
+      ctx.restore();
+    }
+    ctx.globalAlpha=1;
   }
   return { burst, update, draw, freeAll:()=>pool.freeAll(), get count(){return pool.count;} };
 })();
@@ -668,12 +727,13 @@ const Popups=(()=>{
   function update(dt){ const a=pool.alive; for(let i=a.length-1;i>=0;i--){ const p=a[i]; p.life-=dt; if(p.life<=0){pool.free(p);continue;} p.y+=p.vy*dt; p.vy*=Math.exp(-3*dt); } }
   function draw(ctx){
     const a=pool.alive;
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round';
     for(let i=0;i<a.length;i++){ const p=a[i]; const t=p.life/p.max;
-      const pop=t>0.8?(1-(t-0.8)/0.2*0.0):1; const sc=1+(1-t)*0.15;
-      ctx.globalAlpha=clamp(t*1.4,0,1);
+      // pop-in scale + slight overshoot bounce, then drift up and fade
+      const sc=(t>0.82?1.25-(t-0.82)/0.18*0.25:1) * (1+(1-t)*0.12);
+      ctx.globalAlpha=clamp(t*1.5,0,1);
       ctx.font='900 '+Math.round(p.size*sc)+'px '+FONT_STACK;
-      ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillText(p.text,p.x+1,p.y+2);
+      ctx.lineWidth=Math.max(4,p.size*sc*0.16); ctx.strokeStyle=COL.ink; ctx.strokeText(p.text,p.x,p.y); // chunky cartoon ink outline
       ctx.fillStyle=p.color; ctx.fillText(p.text,p.x,p.y);
     }
     ctx.globalAlpha=1;
@@ -685,11 +745,12 @@ const Popups=(()=>{
 /* Screen shake, hit-stop (slow-mo), colour flashes, near-miss shimmer and the
    subtle chromatic aberration on big combos. The "feel" layer lives here. */
 const FX=(()=>{
-  let shake=0, hitstop=0, chroma=0, nearShimmer=0;
+  let shake=0, hitstop=0, chroma=0, nearShimmer=0, zoom=0;
   const flashEl=document.getElementById('flash');
   let flashT=0, flashColor='rgba(255,255,255,0)';
   function addShake(m){ shake=Math.max(shake,m); }
   function addHitstop(s){ hitstop=Math.max(hitstop,s); }
+  function addZoom(v){ zoom=Math.max(zoom,v); }      // camera punch on big hits
   function setChroma(v){ chroma=Math.max(chroma,v); }
   function nearMiss(){ nearShimmer=1; }
   function flash(color,strength){ flashColor=color; flashT=strength; }
@@ -701,13 +762,14 @@ const FX=(()=>{
     shake=Math.max(0, shake-CONFIG.SHAKE_DECAY*shake*dt - 6*dt);
     chroma=Math.max(0, chroma-3*dt);
     nearShimmer=Math.max(0, nearShimmer-3*dt);
+    zoom=Math.max(0, zoom - zoom*9*dt - 0.04*dt);    // springs back fast
     if(flashT>0){ flashT=Math.max(0,flashT-2.4*dt); flashEl.style.background=flashColor; flashEl.style.opacity=flashT; }
     else flashEl.style.opacity=0;
   }
   function shakeXY(out){ const m=shake*14; out.x=rand(-m,m); out.y=rand(-m,m); }
-  return { addShake, addHitstop, setChroma, nearMiss, flash, timeScale, update, tickRealtime, shakeXY,
-    get chroma(){return chroma;}, get nearShimmer(){return nearShimmer;}, get shake(){return shake;},
-    reset(){ shake=hitstop=chroma=nearShimmer=flashT=0; flashEl.style.opacity=0; } };
+  return { addShake, addHitstop, addZoom, setChroma, nearMiss, flash, timeScale, update, tickRealtime, shakeXY,
+    get chroma(){return chroma;}, get nearShimmer(){return nearShimmer;}, get shake(){return shake;}, get zoom(){return zoom;},
+    reset(){ shake=hitstop=chroma=nearShimmer=zoom=flashT=0; flashEl.style.opacity=0; } };
 })();
 
 /* ============================ [COSMETICS] ================================== */
@@ -846,12 +908,12 @@ const Game=(()=>{
   // canvas + view
   const canvas=document.getElementById('game');
   const ctx=canvas.getContext('2d',{alpha:false});
-  let W=0,H=0,DPR=1, maxR=CONFIG.MAX_RADIUS, vignette=null, bgGrad=null, safeTop=0;
+  let W=0,H=0,DPR=1, vignette=null, bgGrad=null, safeTop=0;
 
   // run state
   const STATE={BOOT:0,PLAYING:1,DYING:2,DEAD:3};
   let state=STATE.BOOT;
-  const car={x:0,y:0,dir:0,r:CONFIG.MAX_RADIUS, invuln:0};
+  const car={x:0,y:0,dir:0,r:CONFIG.ROAM_RADIUS, invuln:0};
   let score=0, displayScore=0, coinsRun=0;
   let combo=0, comboTimer=0, comboBounce=0, pitchStep=0;
   let elapsed=0, spawnTimer=0, difficulty=0, droneTarget=1, nextMilestone=CONFIG.MILESTONE_STEP;
@@ -865,14 +927,13 @@ const Game=(()=>{
     canvas.style.width=W+'px'; canvas.style.height=H+'px';
     canvas.width=Math.round(W*DPR); canvas.height=Math.round(H*DPR);
     ctx.setTransform(DPR,0,0,DPR,0,0);
-    maxR=Math.min(CONFIG.MAX_RADIUS, Math.min(W,H)*0.30);
     // measure the notch / safe-area inset once so the canvas HUD never hides under it
     safeTop=measureSafeTop();
-    // background + vignette gradients (rebuilt on resize; cached, drawn once/frame)
-    bgGrad=ctx.createRadialGradient(W/2,H*0.42,0, W/2,H*0.5, Math.max(W,H)*0.78);
-    bgGrad.addColorStop(0,'#12122a'); bgGrad.addColorStop(0.55,'#0c0c1a'); bgGrad.addColorStop(1,COL.bg);
-    vignette=ctx.createRadialGradient(W/2,H*0.46,Math.min(W,H)*0.2, W/2,H*0.5, Math.max(W,H)*0.72);
-    vignette.addColorStop(0,'rgba(0,0,0,0)'); vignette.addColorStop(1,'rgba(0,0,0,0.62)');
+    // bright candy sky + soft vignette (rebuilt on resize; cached, drawn once/frame)
+    bgGrad=ctx.createLinearGradient(0,0,0,H);
+    bgGrad.addColorStop(0,COL.sky1); bgGrad.addColorStop(0.55,'#5aa8ff'); bgGrad.addColorStop(1,COL.sky2);
+    vignette=ctx.createRadialGradient(W/2,H*0.44,Math.min(W,H)*0.34, W/2,H*0.5, Math.max(W,H)*0.78);
+    vignette.addColorStop(0,'rgba(36,26,77,0)'); vignette.addColorStop(1,'rgba(36,26,77,0.34)');
   }
 
   // read env(safe-area-inset-top) via a one-off probe (no per-frame cost)
@@ -893,17 +954,15 @@ const Game=(()=>{
     dyingTimer=0; car.invuln=0; nearMissCd=0; revivedThisRun=false; previewState.valid=false; capFX.active=false;
     Trail.reset(); Drones.freeAll(); Particles.freeAll(); Popups.freeAll(); FX.reset();
     prevBest=Storage.data.highScore;
-    // Car starts mid-arena ALREADY drifting in a gentle circle (live within ~2s of
-    // load). firstCaptureDone resets every run so each restart opens with the same
-    // friction-free, guaranteed-first-capture intro.
-    car.x=W*0.5; car.y=H*0.56; car.dir=-Math.PI/2; car.r=Math.min(maxR,CONFIG.INTRO_RADIUS);
+    // Car starts low-centre already ROAMING upward into the arena (live within ~1s of
+    // load). firstCaptureDone resets every run so each restart opens the same way.
+    car.x=W*0.5; car.y=H*0.62; car.dir=-Math.PI/2; car.r=CONFIG.ROAM_RADIUS;
     droneTarget=1; firstCaptureDone=false;
-    // Place ONE drone at the centre of the opening drift circle, so the very first
-    // action — an idle lap OR a hold, pressed at any moment — always closes a loop
-    // AROUND it (verified across input timings). Centre = car + R along turn-side normal.
+    // Place ONE drone at the prospective curl-centre (car + HOLD_RADIUS along the turn-
+    // side normal). It tracks that centre during the intro, so the first HOLD — pressed
+    // at ANY moment, on ANY screen size — always curls a loop AROUND it. Never a death.
     const na=car.dir + CONFIG.TURN_DIR*Math.PI/2;
-    const off=CONFIG.INTRO_RADIUS*CONFIG.FIRST_DRONE_FRAC;
-    Drones.spawnAt(car.x+Math.cos(na)*off, car.y+Math.sin(na)*off, false);
+    Drones.spawnAt(car.x+Math.cos(na)*CONFIG.HOLD_RADIUS, car.y+Math.sin(na)*CONFIG.HOLD_RADIUS, false);
     hintAlpha = Storage.data.firstRunDone?0:1;  // "HOLD" hint on the very first run only
     Audio.resetMusicClock(); Audio.setMusic(true);
     state=STATE.PLAYING;
@@ -939,26 +998,27 @@ const Game=(()=>{
     capFX.n=loop.n; for(let i=0;i<loop.n;i++){ capFX.poly[i].x=loop.poly[i].x; capFX.poly[i].y=loop.poly[i].y; }
     capFX.active=true; capFX.t=1; capFX.color=bonusHit?COL.cyan:COL.magenta;
 
-    // pop drones -> particles + free
+    // pop drones -> candy confetti + sparkle + free
     caught.forEach(d=>{
-      Particles.burst(d.x,d.y, d.bonus?26:16, {spr:Sprites.amber, spMax:300, sizeMax:18});
-      Particles.burst(d.x,d.y, 8, {spr: capFX.color===COL.cyan?Sprites.cyan:Sprites.magenta, spMax:200, sizeMax:14});
+      Particles.burst(d.x,d.y, d.bonus?30:20, {confetti:true, spMax:340, sizeMax:9});
+      Particles.burst(d.x,d.y, 7, {spr:Sprites.white, spMax:180, sizeMax:13}); // sparkle shine
       Drones.pool.free(d);
     });
 
     // popups: points + multiplier (dopamine — treated as a core feature)
-    Popups.spawn(centerX, centerY, '+'+gained, COL.cyan, 34);
-    if(comboMult()>1) Popups.spawn(centerX, centerY-34, 'x'+comboMult()+'!', COL.magenta, 30);
+    Popups.spawn(centerX, centerY, '+'+gained, COL.white, 36);
+    if(comboMult()>1) Popups.spawn(centerX, centerY-36, 'x'+comboMult()+'!', COL.magenta, 32);
     // variable reward: clean big single loop => PERFECT bonus
-    if(caught.length>=1 && norm>=CONFIG.PERFECT_AREA){ Popups.spawn(centerX, centerY-66,'PERFECT!',COL.amber,26); Audio.bonus(); }
-    if(bonusHit){ Popups.spawn(centerX, centerY-66,'BONUS x2',COL.cyan,26); Audio.bonus(); }
+    if(caught.length>=1 && norm>=CONFIG.PERFECT_AREA){ Popups.spawn(centerX, centerY-70,'PERFECT!',COL.amber,28); Audio.bonus(); }
+    if(bonusHit){ Popups.spawn(centerX, centerY-70,'BONUS x2',COL.cyan,28); Audio.bonus(); }
 
-    // feel: shake + hit-stop scaled to the size of the moment
+    // feel: shake + hit-stop + camera punch scaled to the size of the moment
     const big=caught.length>=CONFIG.HITSTOP_THRESHOLD;
     FX.addShake(clamp(0.25+caught.length*0.18+norm*0.15, 0.2, 1.4));
+    FX.addZoom(clamp(0.03+caught.length*0.02+norm*0.01, 0.03, 0.12));
     if(big) FX.addHitstop(CONFIG.HITSTOP_BIG + (caught.length-2)*0.02);
     if(combo>=CONFIG.CHROMA_COMBO) FX.setChroma(clamp((combo-CONFIG.CHROMA_COMBO+1)*0.15,0,0.7));
-    FX.flash(capFX.color==='#FF2D95'?'rgba(255,45,149,0.12)':'rgba(0,240,255,0.14)', 0.45);
+    FX.flash(bonusHit?'rgba(0,229,255,0.14)':'rgba(255,73,195,0.13)', 0.45);
     Audio.capture(pitchStep);
 
     // coins as a small variable drip (extra reason to chase combos)
@@ -975,19 +1035,20 @@ const Game=(()=>{
     if(state!==STATE.PLAYING) return;
     if(car.invuln>0) return;            // post-revive grace
     state=STATE.DYING; dyingTimer=0.7;
-    FX.addShake(1.5); FX.flash('rgba(255,23,68,0.5)',1.0); Audio.death();
+    FX.addShake(1.5); FX.flash('rgba(255,59,92,0.5)',1.0); Audio.death();
     Audio.setMusic(false);
-    // combo "shatters"
-    if(combo>1){ Particles.burst(W/2,H*0.18, 20, {spr:Sprites.red, spMax:240, sizeMax:18}); }
+    // combo "shatters" into red shards up top
+    if(combo>1){ Particles.burst(W/2,H*0.18, 22, {confetti:true, colors:[COL.red,'#FF8DA0','#FFFFFF'], spMax:260, sizeMax:9}); }
     // big death burst at the car
-    Particles.burst(car.x,car.y, 30, {spr:Sprites.white, spMax:320, sizeMax:20});
+    Particles.burst(car.x,car.y, 26, {confetti:true, colors:[COL.red,'#FFFFFF','#FF8DA0'], spMax:340, sizeMax:9});
+    Particles.burst(car.x,car.y, 10, {spr:Sprites.white, spMax:240, sizeMax:16});
   }
 
   function revive(){
     // restore at the same score; clear hazards; brief invulnerability. Once per run.
     revivedThisRun=true;
     Trail.reset(); Drones.freeAll(); Particles.freeAll();
-    car.x=W*0.5; car.y=H*0.5; car.dir=-Math.PI/2; car.r=maxR; car.invuln=CONFIG.REVIVE_INVULN;
+    car.x=W*0.5; car.y=H*0.5; car.dir=-Math.PI/2; car.r=CONFIG.ROAM_RADIUS; car.invuln=CONFIG.REVIVE_INVULN;
     Trail.push(car.x,car.y,elapsed);
     droneTarget=Math.max(CONFIG.MIN_DRONES, droneTarget);
     state=STATE.PLAYING; Audio.setMusic(true); FX.flash('rgba(0,240,255,0.25)',0.6);
@@ -1023,18 +1084,16 @@ const Game=(()=>{
       spawnTimer=interval;
       // spawn away from the car so nothing pops in on top of the player
       let x,y,tries=0;
-      do{ x=rand(60,W-60); y=rand(80,H-80); tries++; }while(dist(x,y,car.x,car.y)<maxR*1.4 && tries<12);
+      do{ x=rand(60,W-60); y=rand(80,H-80); tries++; }while(dist(x,y,car.x,car.y)<150 && tries<12);
       Drones.spawnAt(x,y, Math.random()<CONFIG.BONUS_DRONE_CHANCE);
     }
   }
 
   // ---- car physics ---------------------------------------------------------
   function updateCar(dt){
-    // radius eases toward target set by input (hold=tight, release=wide).
-    // Until the first capture the "wide" radius is capped to INTRO_RADIUS so the
-    // opening always resolves to a guaranteed capture (see fullReset).
-    const wide = firstCaptureDone ? maxR : Math.min(maxR, CONFIG.INTRO_RADIUS);
-    const targetR = Input.isHolding()? CONFIG.MIN_RADIUS : wide;
+    // THE control scheme: RELEASE = roam (near-straight travel so you can chase),
+    // HOLD = curl into a lasso loop. Time your holds to wrap drones; release to escape.
+    const targetR = Input.isHolding()? CONFIG.HOLD_RADIUS : CONFIG.ROAM_RADIUS;
     car.r = lerp(car.r, targetR, clamp(CONFIG.RADIUS_LERP*dt,0,1));
     let omega = (CONFIG.CAR_SPEED/car.r)*CONFIG.TURN_DIR;
     // soft containment: curve back from the wall (keeps the single death rule)
@@ -1070,8 +1129,9 @@ const Game=(()=>{
       // closes (idle lap or held spiral) always encloses it. Bulletproof first win.
       if(!firstCaptureDone && Drones.count>=1){
         const d=Drones.alive[0];
-        const cx=car.x + car.r*Math.cos(car.dir + CONFIG.TURN_DIR*Math.PI/2);
-        const cy=car.y + car.r*Math.sin(car.dir + CONFIG.TURN_DIR*Math.PI/2);
+        // hover at the centre of the circle the car WOULD carve if it held now
+        const cx=car.x + CONFIG.HOLD_RADIUS*Math.cos(car.dir + CONFIG.TURN_DIR*Math.PI/2);
+        const cy=car.y + CONFIG.HOLD_RADIUS*Math.sin(car.dir + CONFIG.TURN_DIR*Math.PI/2);
         const k=clamp(CONFIG.INTRO_DRONE_TRACK*dt,0,1); d.x+=(cx-d.x)*k; d.y+=(cy-d.y)*k;
       }
       // record trail point when we've moved far enough
@@ -1106,8 +1166,8 @@ const Game=(()=>{
       }
 
       // drift hum tracks tightness
-      const tight=1-(car.r-CONFIG.MIN_RADIUS)/Math.max(1,(maxR-CONFIG.MIN_RADIUS));
-      Audio.setDrift(clamp(tight,0,1), true);
+      const tight=clamp(1-(car.r-CONFIG.HOLD_RADIUS)/240, 0, 1); // 1 while curling, 0 while roaming
+      Audio.setDrift(tight, true);
       Audio.updateMusic(true, difficulty);
 
       // capture snap-fill animation timer
@@ -1159,7 +1219,7 @@ const Game=(()=>{
     canvas, get ctx(){return ctx;}, STATE, resize,
     fullReset, revive, update,
     get state(){return state;}, set state(s){state=s;},
-    get W(){return W;}, get H(){return H;}, get car(){return car;}, get maxR(){return maxR;},
+    get W(){return W;}, get H(){return H;}, get car(){return car;},
     get score(){return score;}, get displayScore(){return displayScore;},
     get combo(){return combo;}, get comboBounce(){return comboBounce;},
     get elapsed(){return elapsed;}, get difficulty(){return difficulty;},
@@ -1171,40 +1231,53 @@ const Game=(()=>{
 
 /* ============================== [RENDER] =================================== */
 const Render=(()=>{
+  // soft rounded floor grid (bright, playful, parallaxes with the car)
   function drawGrid(ctx,W,H,px,py){
-    const sp=46; ctx.lineWidth=1; ctx.strokeStyle='rgba(26,26,46,0.9)'; ctx.beginPath();
-    const ox=-((px)%sp), oy=-((py)%sp);
+    const sp=58; ctx.lineWidth=2; ctx.strokeStyle=COL.grid; ctx.beginPath();
+    const ox=-((px%sp)+sp)%sp, oy=-((py%sp)+sp)%sp;
     for(let x=ox;x<W+sp;x+=sp){ ctx.moveTo(x,0); ctx.lineTo(x,H); }
     for(let y=oy;y<H+sp;y+=sp){ ctx.moveTo(0,y); ctx.lineTo(W,y); }
     ctx.stroke();
   }
 
-  // hoisted so the draw pass allocates nothing per frame
-  const TRAIL_PASSES=[ {w:CONFIG.TRAIL_WIDTH*3.0, a:0.10}, {w:CONFIG.TRAIL_WIDTH*1.8, a:0.22}, {w:CONFIG.TRAIL_WIDTH, a:0.95} ];
+  // a flattened ink shadow under a lifted object (the #1 cartoon-2.5D trick)
+  function drawShadow(ctx,x,y,r){
+    const s=r*2.4; ctx.save(); ctx.globalAlpha=1;
+    ctx.translate(x, y+r*0.62); ctx.scale(1,0.45);
+    ctx.drawImage(Sprites.shadow, -s, -s, s*2, s*2); ctx.restore();
+  }
+
   function drawTrail(ctx, offX, offY){
     const n=Trail.len; if(n<2) return;
     const skin=Cosmetics.trail(); const rainbow=(skin.a==='rainbow');
     const headShift=(Game.elapsed*60)%360;
-    // resolve the gradient endpoints ONCE (no per-segment object allocation)
     let ar=0,ag=0,ab=0,br=0,bg=0,bb=0;
     if(!rainbow){ const ca=hexToRgb(skin.a), cb=hexToRgb(skin.b); ar=ca.r;ag=ca.g;ab=ca.b;br=cb.r;bg=cb.g;bb=cb.b; }
     ctx.lineCap='round'; ctx.lineJoin='round';
-    // additive multi-pass = a soft liquid bloom, far cheaper than shadowBlur
-    ctx.globalCompositeOperation='lighter';
-    for(let pi=0; pi<TRAIL_PASSES.length; pi++){
-      const pass=TRAIL_PASSES[pi]; ctx.lineWidth=pass.w;
-      for(let i=1;i<n;i++){
-        const p0=Trail.get(i-1), p1=Trail.get(i);
-        const tN=i/(n-1);                            // 0 tail -> 1 head
-        const age=clamp((Game.elapsed-p1.t)/CONFIG.TRAIL_LIFESPAN,0,1);
-        const fade=1-age; if(fade<=0.02) continue;   // older = dimmer
-        const alpha=pass.a*fade;
-        if(rainbow){ ctx.strokeStyle='hsla('+(((tN*300)+headShift)%360)+',100%,60%,'+alpha+')'; }
-        else { const r=(ar+(br-ar)*tN)|0, g=(ag+(bg-ag)*tN)|0, b=(ab+(bb-ab)*tN)|0; ctx.strokeStyle='rgba('+r+','+g+','+b+','+alpha+')'; }
-        ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y+offY); ctx.lineTo(p1.x+offX,p1.y+offY); ctx.stroke();
-      }
+    const core=CONFIG.TRAIL_WIDTH;
+    // PASS 1 — ink outline (whole ribbon first, so cores always sit on top)
+    ctx.lineWidth=core+8; ctx.strokeStyle=COL.ink;
+    for(let i=1;i<n;i++){ const p0=Trail.get(i-1),p1=Trail.get(i);
+      const fade=1-clamp((Game.elapsed-p1.t)/CONFIG.TRAIL_LIFESPAN,0,1); if(fade<=0.04) continue;
+      ctx.globalAlpha=fade; ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y+offY); ctx.lineTo(p1.x+offX,p1.y+offY); ctx.stroke();
     }
-    ctx.globalCompositeOperation='source-over';
+    // PASS 2 — solid candy core (cyan -> pink)
+    ctx.lineWidth=core;
+    for(let i=1;i<n;i++){ const p0=Trail.get(i-1),p1=Trail.get(i);
+      const tN=i/(n-1); const fade=1-clamp((Game.elapsed-p1.t)/CONFIG.TRAIL_LIFESPAN,0,1); if(fade<=0.04) continue;
+      ctx.globalAlpha=fade;
+      if(rainbow) ctx.strokeStyle='hsl('+(((tN*300)+headShift)%360)+',100%,62%)';
+      else { const r=(ar+(br-ar)*tN)|0,g=(ag+(bg-ag)*tN)|0,b=(ab+(bb-ab)*tN)|0; ctx.strokeStyle='rgb('+r+','+g+','+b+')'; }
+      ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y+offY); ctx.lineTo(p1.x+offX,p1.y+offY); ctx.stroke();
+    }
+    // PASS 3 — glossy white sheen highlight running along the ribbon
+    ctx.lineWidth=core*0.32; ctx.strokeStyle='rgba(255,255,255,0.75)';
+    for(let i=1;i<n;i++){ const p1=Trail.get(i);
+      const fade=1-clamp((Game.elapsed-p1.t)/CONFIG.TRAIL_LIFESPAN,0,1); if(fade<=0.2) continue;
+      const p0=Trail.get(i-1); ctx.globalAlpha=fade*0.5;
+      ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y-core*0.18+offY); ctx.lineTo(p1.x+offX,p1.y-core*0.18+offY); ctx.stroke();
+    }
+    ctx.globalAlpha=1;
   }
 
   function drawPreview(ctx,offX,offY){
@@ -1213,13 +1286,13 @@ const Render=(()=>{
     ctx.moveTo(pv.poly[0].x+offX,pv.poly[0].y+offY);
     for(let i=1;i<pv.n;i++) ctx.lineTo(pv.poly[i].x+offX,pv.poly[i].y+offY);
     ctx.closePath();
-    const pulse=0.10+0.05*Math.sin(performance.now()*0.012);
-    if(pv.danger){ ctx.fillStyle='rgba(255,23,68,'+(pulse*0.8)+')'; }
-    else ctx.fillStyle='rgba(0,240,255,'+pulse+')';
+    const pulse=0.14+0.07*Math.sin(performance.now()*0.012);
+    ctx.fillStyle = pv.danger ? 'rgba(255,59,92,'+(pulse*1.1)+')' : 'rgba(0,229,255,'+pulse+')';
     ctx.fill(); ctx.restore();
     if(!pv.danger && pv.ghost>0){
-      ctx.globalAlpha=0.85; ctx.font='900 22px '+FONT_STACK; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillStyle=COL.cyan; ctx.fillText('+'+pv.ghost, pv.gx+offX, pv.gy+offY); ctx.globalAlpha=1;
+      ctx.font='900 24px '+FONT_STACK; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.lineWidth=5; ctx.strokeStyle=COL.ink; ctx.strokeText('+'+pv.ghost, pv.gx+offX, pv.gy+offY);
+      ctx.fillStyle=COL.white; ctx.fillText('+'+pv.ghost, pv.gx+offX, pv.gy+offY);
     }
   }
 
@@ -1227,129 +1300,113 @@ const Render=(()=>{
     const cf=Game.capFX; if(!cf.active || cf.n<3) return;
     const t=clamp(cf.t,0,1); const scale=0.85+0.15*t;
     ctx.save();
-    // snap-shut: scale slightly toward centroid as it flashes white->color
     let cx=0,cy=0; for(let i=0;i<cf.n;i++){cx+=cf.poly[i].x;cy+=cf.poly[i].y;} cx/=cf.n; cy/=cf.n;
     ctx.translate(cx+offX,cy+offY); ctx.scale(scale,scale); ctx.translate(-cx-offX,-cy-offY);
     ctx.beginPath(); ctx.moveTo(cf.poly[0].x+offX,cf.poly[0].y+offY);
     for(let i=1;i<cf.n;i++) ctx.lineTo(cf.poly[i].x+offX,cf.poly[i].y+offY); ctx.closePath();
-    const a=0.5*t; const cc=hexToRgb(cf.color);
-    ctx.fillStyle='rgba('+cc.r+','+cc.g+','+cc.b+','+a+')'; ctx.fill();
-    ctx.globalCompositeOperation='lighter';
-    ctx.fillStyle='rgba(255,255,255,'+(0.4*t)+')'; ctx.fill();
+    const cc=hexToRgb(cf.color);
+    ctx.fillStyle='rgba('+cc.r+','+cc.g+','+cc.b+','+(0.55*t)+')'; ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,'+(0.55*t)+')'; ctx.fill();
+    ctx.lineWidth=4; ctx.strokeStyle='rgba(255,255,255,'+(0.8*t)+')'; ctx.stroke();
     ctx.restore();
   }
 
   function drawDrones(ctx,offX,offY){
     const a=Drones.alive;
-    ctx.globalCompositeOperation='lighter';
+    // shadows first (all drones), then the glossy balls
+    for(let i=0;i<a.length;i++){ const d=a[i]; if(d.spawn<0.2) continue; drawShadow(ctx,d.x+offX,d.y+offY,d.r*d.spawn); }
     for(let i=0;i<a.length;i++){ const d=a[i];
-      const pop=0.85+0.15*Math.sin(d.phase); const s=d.r*(2.6)*pop*d.spawn;
+      const pop=(0.92+0.10*Math.sin(d.phase))*d.spawn;        // gentle idle bob
       const spr=d.bonus?Sprites.droneBonus:Sprites.drone;
+      const s=(d.r+Sprites.pad)*2*pop;
       ctx.globalAlpha=clamp(d.spawn,0,1);
-      ctx.drawImage(spr, d.x-s+offX, d.y-s+offY, s*2, s*2);
+      ctx.drawImage(spr, d.x-s/2+offX, d.y-(s/2)-d.r*0.12+offY, s, s); // tiny lift = floaty
     }
-    ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
-    // solid cores
-    for(let i=0;i<a.length;i++){ const d=a[i]; const pop=0.85+0.15*Math.sin(d.phase);
-      ctx.beginPath(); ctx.fillStyle=d.bonus?'#aefff0':'#fff4d6';
-      ctx.arc(d.x+offX,d.y+offY, d.r*0.5*pop*d.spawn, 0, TAU); ctx.fill();
-      ctx.beginPath(); ctx.strokeStyle=d.bonus?COL.cyan:COL.amber; ctx.lineWidth=2;
-      ctx.arc(d.x+offX,d.y+offY, d.r*0.95*d.spawn, 0, TAU); ctx.stroke();
-    }
+    ctx.globalAlpha=1;
   }
 
   function drawCar(ctx,offX,offY){
-    const car=Game.car; const skin=Cosmetics.car();
-    // glow
-    ctx.globalCompositeOperation='lighter';
-    const gs=46; ctx.globalAlpha=car.invuln>0?(0.5+0.5*Math.sin(performance.now()*0.02)):1;
-    ctx.drawImage(Sprites.car, car.x-gs+offX, car.y-gs+offY, gs*2, gs*2);
-    ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
-    // body: a small bright dart pointing along travel
-    ctx.save(); ctx.translate(car.x+offX,car.y+offY); ctx.rotate(car.dir);
-    ctx.fillStyle=skin.color; ctx.beginPath();
-    ctx.moveTo(9,0); ctx.lineTo(-6,5); ctx.lineTo(-3,0); ctx.lineTo(-6,-5); ctx.closePath(); ctx.fill();
-    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(2,0,2.4,0,TAU); ctx.fill();
+    const car=Game.car;
+    const blink = car.invuln>0 ? (0.45+0.55*Math.abs(Math.sin(performance.now()*0.02))) : 1;
+    drawShadow(ctx, car.x+offX, car.y+offY, 22);
+    const s=(23+Sprites.pad)*2;
+    ctx.globalAlpha=blink;
+    ctx.drawImage(Sprites.car, car.x-s/2+offX, car.y-s/2-3+offY, s, s);
+    ctx.globalAlpha=1;
+    // bold ink direction arrow on top of the ball
+    ctx.save(); ctx.translate(car.x+offX,car.y-3+offY); ctx.rotate(car.dir);
+    ctx.fillStyle=COL.ink; ctx.beginPath();
+    ctx.moveTo(13,0); ctx.lineTo(2,7); ctx.lineTo(5,0); ctx.lineTo(2,-7); ctx.closePath(); ctx.fill();
     ctx.restore();
   }
 
+  // chunky outlined HUD text helper
+  function inkText(ctx,txt,x,y,size,fill,ink){
+    ctx.font='900 '+size+'px '+FONT_STACK;
+    ctx.lineJoin='round'; ctx.lineWidth=Math.max(5,size*0.16); ctx.strokeStyle=ink||COL.ink;
+    ctx.strokeText(txt,x,y); ctx.fillStyle=fill; ctx.fillText(txt,x,y);
+  }
   function drawHUD(ctx,W,H){
     const st=Game.safeTop;
-    // SCORE — large, top-center, cyan, tabular numerals so it never jitters
-    const s=Math.round(Game.displayScore).toString();
     ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.font='900 56px '+FONT_STACK;
-    ctx.fillStyle='rgba(0,240,255,0.25)'; ctx.fillText(s, W/2, 18+st+2);
-    ctx.fillStyle=COL.cyan; ctx.fillText(s, W/2, 18+st);
+    // SCORE — big, white, chunky ink outline, tabular (never jitters)
+    inkText(ctx, Math.round(Game.displayScore).toString(), W/2, 16+st, 60, COL.white);
     // BEST line (the target to beat)
-    ctx.font='800 15px '+FONT_STACK;
     const beat=(Game.score>Game.prevBest && Game.prevBest>0);
-    const bestTxt = beat?'NEW BEST':'BEST '+Storage.data.highScore;
-    ctx.fillStyle=beat?COL.magenta:'#7f88ad';
-    ctx.fillText(bestTxt, W/2, 82+st);
-
-    // COMBO — punchy magenta, bounces on increment
-    if(Game.combo>1){
-      const sc=1+Game.comboBounce*0.5;
-      ctx.font='900 '+Math.round(40*sc)+'px '+FONT_STACK; ctx.textAlign='center';
-      ctx.fillStyle=COL.magenta; ctx.globalAlpha=0.9;
-      ctx.fillText('x'+Game.combo, W/2, 110+st); ctx.globalAlpha=1;
+    inkText(ctx, beat?'NEW BEST!':'BEST '+Storage.data.highScore, W/2, 84+st, 17, beat?COL.magenta:'#EAF2FF');
+    // COMBO — hot pink, bounces on increment
+    if(Game.combo>1){ const sc=1+Game.comboBounce*0.6;
+      inkText(ctx, 'x'+Game.combo, W/2, 110+st, Math.round(42*sc), COL.magenta);
     }
-
-    // COINS — top-left, below the shop button (no overlap on any aspect ratio)
-    ctx.textAlign='left'; ctx.font='900 19px '+FONT_STACK; ctx.fillStyle=COL.amber;
-    ctx.fillText('◉ '+Storage.data.coins, 18, 74+st);
+    // COINS — top-left, below the shop button
+    ctx.textAlign='left';
+    inkText(ctx, '◉ '+Storage.data.coins, 16, 74+st, 22, COL.amber);
   }
 
   function drawHint(ctx,W,H){
     const a=Game.hintAlpha; if(a<=0) return;
-    const car=Game.car; const pulse=0.5+0.5*Math.sin(performance.now()*0.006);
-    ctx.globalAlpha=a*(0.5+0.5*pulse);
-    ctx.font='900 22px '+FONT_STACK; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillStyle='#fff'; ctx.fillText('HOLD', car.x, car.y+54);
-    ctx.globalAlpha=a*0.6; ctx.font='800 13px '+FONT_STACK; ctx.fillStyle='#9aa3c7';
-    ctx.fillText('to tighten the drift', car.x, car.y+76);
+    const car=Game.car; const pulse=0.6+0.4*Math.sin(performance.now()*0.006);
+    ctx.globalAlpha=a; ctx.textAlign='center'; ctx.textBaseline='middle';
+    inkText(ctx,'HOLD', car.x, car.y+58, Math.round(24*(0.95+0.1*pulse)), COL.white);
+    ctx.font='800 13px '+FONT_STACK; ctx.lineWidth=4; ctx.strokeStyle=COL.ink;
+    ctx.strokeText('to lasso the drone', car.x, car.y+82); ctx.fillStyle='#EAF2FF';
+    ctx.fillText('to lasso the drone', car.x, car.y+82);
     ctx.globalAlpha=1;
   }
 
   const _sh={x:0,y:0}; // reused each frame (no allocation)
   function frame(){
     const ctx=Game.ctx, W=Game.W, H=Game.H;
-    // background — subtle radial indigo gradient (premium depth)
+    const playing=(Game.state===Game.STATE.PLAYING||Game.state===Game.STATE.DYING);
+    // bright candy sky
     ctx.fillStyle=Game.bgGrad||COL.bg; ctx.fillRect(0,0,W,H);
-    // screen shake offset
+    // ---- world layer: camera zoom-punch + screen shake (HUD stays put) ----
     FX.shakeXY(_sh);
-    const offX=_sh.x, offY=_sh.y;
-    // parallax grid
-    drawGrid(ctx,W,H, Game.parallaxX+offX, Game.parallaxY+offY);
+    const z=1+FX.zoom;
+    ctx.save();
+    ctx.translate(W/2,H/2); ctx.scale(z,z); ctx.translate(-W/2+_sh.x, -H/2+_sh.y);
 
-    drawPreview(ctx,offX,offY);
-    drawCaptureFill(ctx,offX,offY);
-    drawTrail(ctx,offX,offY);
-
-    // subtle chromatic aberration on big combos: re-stroke trail with R/B offset
+    drawGrid(ctx,W,H, Game.parallaxX, Game.parallaxY);
+    drawPreview(ctx,0,0);
+    drawCaptureFill(ctx,0,0);
+    drawTrail(ctx,0,0);
     if(FX.chroma>0.02){
-      const k=FX.chroma*4;
-      ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=0.25*FX.chroma;
-      // cheap CA ghost of the trail head region
-      ctx.save(); ctx.translate(k,0); drawTrailGhost(ctx,offX,offY,'rgba(255,0,64,1)'); ctx.restore();
-      ctx.save(); ctx.translate(-k,0); drawTrailGhost(ctx,offX,offY,'rgba(0,200,255,1)'); ctx.restore();
+      const k=FX.chroma*4; ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=0.22*FX.chroma;
+      ctx.save(); ctx.translate(k,0); drawTrailGhost(ctx,0,0,'rgba(255,0,80,1)'); ctx.restore();
+      ctx.save(); ctx.translate(-k,0); drawTrailGhost(ctx,0,0,'rgba(0,210,255,1)'); ctx.restore();
       ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
     }
-
-    drawDrones(ctx,offX,offY);
-    if(Game.state===Game.STATE.PLAYING||Game.state===Game.STATE.DYING) drawCar(ctx,offX,offY);
+    drawDrones(ctx,0,0);
+    if(playing) drawCar(ctx,0,0);
     Particles.draw(ctx);
     Popups.draw(ctx);
-
-    // near-miss shimmer (red vignette pulse)
-    if(FX.nearShimmer>0.02){ ctx.fillStyle='rgba(255,23,68,'+(FX.nearShimmer*0.10)+')'; ctx.fillRect(0,0,W,H); }
-
-    // vignette to focus the centre
-    if(Game.vignette){ ctx.fillStyle=Game.vignette; ctx.fillRect(0,0,W,H); }
-
     drawHint(ctx,W,H);
-    if(Game.state===Game.STATE.PLAYING||Game.state===Game.STATE.DYING) drawHUD(ctx,W,H);
+    ctx.restore();
+
+    // ---- full-screen overlays (no camera transform) ----
+    if(FX.nearShimmer>0.02){ ctx.fillStyle='rgba(255,59,92,'+(FX.nearShimmer*0.12)+')'; ctx.fillRect(0,0,W,H); }
+    if(Game.vignette){ ctx.fillStyle=Game.vignette; ctx.fillRect(0,0,W,H); }
+    if(playing) drawHUD(ctx,W,H);
   }
   function drawTrailGhost(ctx,offX,offY,color){
     const n=Trail.len; if(n<2) return; ctx.lineWidth=CONFIG.TRAIL_WIDTH; ctx.strokeStyle=color; ctx.lineCap='round';

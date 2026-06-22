@@ -1,13 +1,13 @@
-/* Canonical headless test for Drift Lasso's core geometry + opening guarantee.
-   Mirrors the exact algorithms + tuned constants used in index.html.
-   Proves: geometry helpers are correct; the opening always yields a fast first
-   CAPTURE (never a cheap death) for idle OR hold at any timing; and the normal
-   death rule (empty self-cross = death) still holds. Run: `node _dev/sim.test.js` */
+/* Canonical headless test for Drift Lasso's core geometry + the "roam + lasso"
+   opening guarantee. Mirrors the exact algorithms + tuned constants in index.html.
+   Proves: geometry helpers are correct; HOLDING at any time during the intro always
+   curls a CAPTURING loop (never a cheap death) across screen sizes; and the normal
+   death rule (empty self-cross = death) still holds.  Run: node _dev/sim.test.js   */
 
 const C = {
-  CAR_SPEED:252, MIN_RADIUS:44, MAX_RADIUS:165, RADIUS_LERP:8.5, TURN_DIR:1,
-  INTRO_RADIUS:74, FIRST_DRONE_FRAC:0.75, INTRO_DRONE_TRACK:8,
-  TRAIL_LIFESPAN:2.6, TRAIL_MIN_DIST:6, MAX_TRAIL_POINTS:260, SELF_GRACE_SEGMENTS:6,
+  CAR_SPEED:250, HOLD_RADIUS:80, ROAM_RADIUS:1500, RADIUS_LERP:9, TURN_DIR:1,
+  INTRO_DRONE_TRACK:10, WALL_MARGIN:26, CONTAIN:3.2,
+  TRAIL_LIFESPAN:2.6, TRAIL_MIN_DIST:6, MAX_TRAIL_POINTS:300, SELF_GRACE_SEGMENTS:6,
 };
 
 /* ---- geometry (copied verbatim from index.html) ---- */
@@ -48,32 +48,33 @@ function makeTrail(){
   };
 }
 
-/* One run. `hold(t)` returns whether the finger is down at time t.
-   `intro` mirrors the game: wide radius capped to INTRO_RADIUS and empty loops
-   are softened to trail-resets until the first capture. */
-function simulate({hold, intro=true, drone, W=412, H=870, maxSeconds=12}){
-  const maxR=Math.min(C.MAX_RADIUS, Math.min(W,H)*0.30);
-  const introR=Math.min(maxR,C.INTRO_RADIUS);
-  const car={x:W*0.5,y:H*0.56,dir:-Math.PI/2,r:intro?introR:maxR};
-  const trail=makeTrail();let elapsed=0;const dt=1/60;let firstCap=false,soft=0;
-  // default first drone at the opening-circle centre (game's placement)
-  if(drone===undefined){ const na=car.dir+C.TURN_DIR*Math.PI/2, off=introR*C.FIRST_DRONE_FRAC; drone={x:car.x+Math.cos(na)*off,y:car.y+Math.sin(na)*off}; }
+/* One run of the "roam + lasso" model. hold(t) => finger down at time t.
+   intro=true mirrors the game: the single drone tracks the prospective curl-centre
+   and empty loops are softened to trail-resets until the first capture.            */
+function simulate({hold, intro=true, drone, W=412, H=870, maxSeconds=10}){
+  const car={x:W*0.5,y:H*0.62,dir:-Math.PI/2,r:C.ROAM_RADIUS};
+  let nx=Math.cos(car.dir+C.TURN_DIR*Math.PI/2), ny=Math.sin(car.dir+C.TURN_DIR*Math.PI/2);
+  if(drone===undefined) drone={x:car.x+nx*C.HOLD_RADIUS, y:car.y+ny*C.HOLD_RADIUS};
+  const trail=makeTrail();let elapsed=0;const dt=1/60;let soft=0;
   while(elapsed<maxSeconds){
     elapsed+=dt;
-    const wide=(intro&&!firstCap)?introR:maxR;
-    const targetR=(hold&&hold(elapsed))?C.MIN_RADIUS:wide;
+    const targetR=(hold&&hold(elapsed))?C.HOLD_RADIUS:C.ROAM_RADIUS;
     car.r=lerp(car.r,targetR,clamp(C.RADIUS_LERP*dt,0,1));
-    car.dir+=(C.CAR_SPEED/car.r)*C.TURN_DIR*dt;
-    car.x+=Math.cos(car.dir)*C.CAR_SPEED*dt;car.y+=Math.sin(car.dir)*C.CAR_SPEED*dt;
-    // intro: drone hovers at the drift-circle centre (mirrors the game)
-    if(intro && !firstCap && drone){ const cx=car.x+car.r*Math.cos(car.dir+C.TURN_DIR*Math.PI/2), cy=car.y+car.r*Math.sin(car.dir+C.TURN_DIR*Math.PI/2); const k=clamp(C.INTRO_DRONE_TRACK*dt,0,1); drone.x+=(cx-drone.x)*k; drone.y+=(cy-drone.y)*k; }
+    let omega=(C.CAR_SPEED/car.r)*C.TURN_DIR;
+    const m2=C.WALL_MARGIN*2;
+    if(car.x<m2||car.x>W-m2||car.y<m2||car.y>H-m2){ const des=Math.atan2(H/2-car.y,W/2-car.x); let d=Math.atan2(Math.sin(des-car.dir),Math.cos(des-car.dir)); omega+=d*C.CONTAIN*0.6; }
+    car.dir+=omega*dt;
+    car.x+=Math.cos(car.dir)*C.CAR_SPEED*dt; car.y+=Math.sin(car.dir)*C.CAR_SPEED*dt;
+    if(intro && drone){ nx=Math.cos(car.dir+C.TURN_DIR*Math.PI/2); ny=Math.sin(car.dir+C.TURN_DIR*Math.PI/2);
+      const cx=car.x+nx*C.HOLD_RADIUS, cy=car.y+ny*C.HOLD_RADIUS, k=clamp(C.INTRO_DRONE_TRACK*dt,0,1);
+      drone.x+=(cx-drone.x)*k; drone.y+=(cy-drone.y)*k; }
     const last=trail.len>0?trail.get(trail.len-1):null;
     if(!last||dist2(last.x,last.y,car.x,car.y)>=C.TRAIL_MIN_DIST*C.TRAIL_MIN_DIST){
       trail.push(car.x,car.y,elapsed);const loop=trail.checkClose();
       if(loop){
         const caught=(drone&&pointInPoly(drone.x,drone.y,loop.poly,loop.n))?1:0;
         if(caught>0) return {event:'capture',time:elapsed,soft};
-        if(intro&&!firstCap){ trail.reset();trail.push(car.x,car.y,elapsed);soft++; }
+        if(intro){ trail.reset();trail.push(car.x,car.y,elapsed);soft++; }
         else return {event:'death',time:elapsed,soft};
       }
     }
@@ -94,35 +95,35 @@ const sq=[{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:0,y:10}];
 ok(pointInPoly(5,5,sq,4) && !pointInPoly(15,5,sq,4),'point-in-polygon in/out');
 ok(Math.abs(polyArea(sq,4)-100)<1e-9,'shoelace area of unit-square*10 = 100');
 
-console.log('\n[opening guarantee — every input timing yields a fast first capture]');
+console.log('\n[opening guarantee — HOLDING at any time curls a capturing loop]');
 const patterns={
-  'idle (no input)':        null,
-  'hold from 0s':           t=>true,
-  'hold from 0.3s':         t=>t>0.3,
-  'hold from 0.8s':         t=>t>0.8,
-  'hold from 1.2s':         t=>t>1.2,
-  'quick tap @0.4–0.7s':    t=>t>0.4&&t<0.7,
-  'pulsing':                t=>Math.floor(t*3)%2===0,
-  'jitter':                 t=>Math.sin(t*20)>0,
+  'hold from 0s':       t=>true,
+  'hold from 0.3s':     t=>t>0.3,
+  'hold from 0.6s':     t=>t>0.6,
+  'hold from 1.0s':     t=>t>1.0,
+  'hold from 1.5s':     t=>t>1.5,
+  'hold from 2.0s':     t=>t>2.0,
+  'roam then hold @1.2':t=>t>1.2,
+  'pulse then hold':    t=>(t>1.0)||(t>0.3&&t<0.5),
 };
 let worst=0;
 for(const name in patterns){
   const r=simulate({hold:patterns[name]});
-  const good = r.event==='capture' && r.time<=10;
+  const good=r.event==='capture' && r.time<=8;
   worst=Math.max(worst,r.time);
-  ok(good, name.padEnd(22)+'=> '+r.event+' @ '+r.time.toFixed(2)+'s (soft '+r.soft+')');
+  ok(good, name.padEnd(20)+'=> '+r.event+' @ '+r.time.toFixed(2)+'s (soft '+r.soft+')');
 }
-ok(worst<=10,'slowest first capture across all inputs ('+worst.toFixed(2)+'s) is within 10s');
+ok(worst<=8,'slowest first capture across all hold timings ('+worst.toFixed(2)+'s) is within 8s');
 
-console.log('\n[death rule]');
+console.log('\n[opening fairness — roaming never kills you]');
+const roam=simulate({hold:()=>false, maxSeconds:6});
+ok(roam.event==='none','releasing (roaming straight) never self-crosses → no cheap death while learning');
+
+console.log('\n[death rule — normal play]');
 const dEmpty=simulate({intro:false, drone:{x:-9999,y:-9999}, hold:()=>true});
-ok(dEmpty.event==='death','normal mode: empty self-cross = death');
+ok(dEmpty.event==='death','holding a loop around nothing = death (the one legible rule)');
 // (capture-on-enclosure is exercised exhaustively by the opening patterns above
 //  and by the headless smoke test, so it is not re-asserted here.)
-
-console.log('\n[fairness]');
-const wide=simulate({intro:false, drone:{x:-9999,y:-9999}, hold:()=>false, maxSeconds:1.0});
-ok(wide.event==='none','a wide idle circle does not self-cross in the first second (no cheap death)');
 
 console.log('\n========================================');
 console.log('  '+pass+' passed, '+fail+' failed');
