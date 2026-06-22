@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Drift Lasso — Neon Drift &amp; Capture</title>
+<meta name="description" content="Drift Lasso: hold to tighten your drift, release to widen, and lasso glowing drones with your neon trail. One mechanic, endless combos. A free hypercasual drift .io arcade game." />
+<meta name="theme-color" content="#0A0A14" />
+<!-- Discoverability / portal share card. Genre-clear, searchable: drift, io, arcade, hypercasual. -->
+<meta property="og:title" content="Drift Lasso" />
+<meta property="og:description" content="Hold to tighten, release to widen. Lasso the drones. Don't cross your own trail." />
+<meta property="og:type" content="website" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<style>
+  /* ---------------------------------------------------------------------------
+     Drift Lasso — styles. Self-contained, no external fonts/CDN (fast first paint).
+     A heavy geometric system-font stack gives the "neon poster" feel with zero
+     network cost. Tabular numerals keep the score from jittering as it counts.
+  --------------------------------------------------------------------------- */
+  :root{
+    --bg:#0A0A14; --grid:#1A1A2E; --cyan:#00F0FF; --magenta:#FF2D95;
+    --amber:#FFB800; --red:#FF1744; --white:#FFFFFF;
+    --font: 800 16px/1.1 "Eurostile","Bahnschrift","DIN Alternate Bold","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0; height:100%; width:100%; background:var(--bg);
+    overflow:hidden; position:fixed; inset:0;
+    touch-action:none; overscroll-behavior:none;
+    user-select:none; -webkit-user-select:none;
+    font:var(--font); color:#fff;
+    -webkit-font-smoothing:antialiased;
+  }
+  #game{ position:absolute; inset:0; display:block; z-index:0; }
+
+  /* CSS-driven full-screen feedback flashes (cheap, GPU-composited) */
+  #flash{ position:absolute; inset:0; z-index:2; pointer-events:none; opacity:0; }
+
+  .ui-btn{
+    position:absolute; z-index:5; cursor:pointer; border:none; color:#fff;
+    background:rgba(20,22,40,.55); border:1.5px solid rgba(255,255,255,.18);
+    border-radius:14px; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+    font:800 18px/1 inherit; letter-spacing:.5px;
+    width:52px; height:52px; display:flex; align-items:center; justify-content:center;
+    transition:transform .08s ease, background .15s ease, border-color .15s ease;
+  }
+  .ui-btn:active{ transform:scale(.92); }
+  #btn-mute{ top:max(14px,env(safe-area-inset-top)); right:14px; }
+  #btn-shop{ top:max(14px,env(safe-area-inset-top)); left:14px; }
+
+  /* Overlay screens (game over / shop / daily). DOM = crisp text + reliable
+     large touch targets, and it's off the hot render path. */
+  .overlay{
+    position:absolute; inset:0; z-index:10; display:none;
+    flex-direction:column; align-items:center; justify-content:center;
+    padding:max(22px,env(safe-area-inset-top)) 22px max(22px,env(safe-area-inset-bottom));
+    background:radial-gradient(120% 90% at 50% 38%, rgba(10,10,20,.62), rgba(10,10,20,.93));
+    -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px);
+    text-align:center; opacity:0; transition:opacity .28s ease;
+  }
+  .overlay.show{ display:flex; opacity:1; }
+  .panel{ width:min(440px,94vw); display:flex; flex-direction:column; align-items:center; gap:14px; }
+
+  .eyebrow{ font-size:14px; letter-spacing:4px; text-transform:uppercase; color:var(--cyan); opacity:.85; }
+  .headline{ font-size:clamp(34px,11vw,58px); letter-spacing:2px; line-height:.95; margin:2px 0; }
+  .headline.close{ color:var(--magenta); text-shadow:0 0 24px rgba(255,45,149,.55); }
+  .sub{ font-size:15px; color:#aeb6d6; font-weight:600; letter-spacing:.4px; }
+
+  .score-big{ font-size:clamp(56px,18vw,96px); color:var(--cyan); text-shadow:0 0 30px rgba(0,240,255,.45); letter-spacing:1px; font-variant-numeric:tabular-nums; }
+  .best-row{ display:flex; gap:18px; justify-content:center; align-items:center; font-size:15px; color:#9aa3c7; letter-spacing:1px; }
+  .best-row b{ color:#fff; font-variant-numeric:tabular-nums; }
+
+  .near{ font-size:14px; color:#c7cdf0; line-height:1.5; max-width:340px; }
+  .near b{ color:var(--magenta); }
+
+  .btn{
+    width:100%; max-width:380px; min-height:60px; border:none; border-radius:16px;
+    color:#031018; font:900 19px/1 inherit; letter-spacing:.6px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    transition:transform .08s ease, filter .15s ease; padding:0 16px;
+  }
+  .btn:active{ transform:translateY(2px) scale(.99); }
+  .btn.primary{ background:linear-gradient(135deg,var(--cyan),#56ffd5); box-shadow:0 8px 26px rgba(0,240,255,.32); }
+  .btn.reward{ background:linear-gradient(135deg,var(--magenta),#ff7ab3); color:#fff; box-shadow:0 8px 26px rgba(255,45,149,.32); }
+  .btn.ghost{ background:rgba(255,255,255,.08); color:#dfe4ff; border:1.5px solid rgba(255,255,255,.16); box-shadow:none; }
+  .btn .tag{ font-size:12px; font-weight:800; padding:3px 8px; border-radius:999px; background:rgba(0,0,0,.22); letter-spacing:.5px; }
+  .btn[disabled]{ filter:grayscale(.7) brightness(.7); pointer-events:none; }
+  .btn-row{ display:flex; gap:12px; width:100%; max-width:380px; }
+  .btn-row .btn{ flex:1; min-width:0; }
+
+  /* Coins + next-unlock progress (always-visible goal) */
+  .wallet{ display:flex; align-items:center; gap:8px; font-size:18px; color:var(--amber); font-weight:900; letter-spacing:.5px; }
+  .wallet .coin{ width:18px; height:18px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff6cf, var(--amber) 60%, #b87b00); box-shadow:0 0 10px rgba(255,184,0,.6); display:inline-block; }
+  .progress-wrap{ width:100%; max-width:380px; }
+  .progress-label{ display:flex; justify-content:space-between; font-size:12.5px; color:#9aa3c7; letter-spacing:.6px; margin-bottom:6px; }
+  .progress-label b{ color:#fff; }
+  .bar{ height:10px; border-radius:999px; background:rgba(255,255,255,.10); overflow:hidden; }
+  .bar > i{ display:block; height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,var(--amber),#ffd86b); box-shadow:0 0 12px rgba(255,184,0,.55); transition:width .4s ease; }
+
+  /* Shop grid */
+  .shop-grid{ width:100%; display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:4px; max-height:46vh; overflow-y:auto; padding:4px; -webkit-overflow-scrolling:touch; }
+  .skin{ position:relative; border-radius:16px; padding:12px 10px 11px; background:rgba(255,255,255,.05); border:1.5px solid rgba(255,255,255,.10); display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; transition:border-color .15s ease, transform .08s ease; }
+  .skin:active{ transform:scale(.98); }
+  .skin.equipped{ border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan) inset, 0 6px 20px rgba(0,240,255,.18); }
+  .skin.locked{ opacity:.96; }
+  .skin canvas{ width:110px; height:46px; display:block; }
+  .skin .name{ font-size:13px; letter-spacing:.4px; }
+  .skin .cost{ font-size:12px; color:var(--amber); font-weight:900; display:flex; align-items:center; gap:5px; }
+  .skin .state{ font-size:11.5px; letter-spacing:1px; text-transform:uppercase; font-weight:800; }
+  .skin .state.eq{ color:var(--cyan); }
+  .skin .state.un{ color:#9aa3c7; }
+  .skin .mini-coin{ width:12px; height:12px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff6cf, var(--amber) 60%, #b87b00); display:inline-block; }
+
+  .toast{ position:absolute; left:50%; top:14%; transform:translateX(-50%); z-index:30; background:rgba(10,12,24,.9); border:1.5px solid rgba(0,240,255,.4); color:#eaf6ff; padding:12px 18px; border-radius:14px; font-weight:800; letter-spacing:.5px; opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; text-align:center; max-width:88vw; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(6px); }
+
+  /* Simulated ad modal (stub). Real SDK replaces this entirely — see AdSDK. */
+  #ad{ position:absolute; inset:0; z-index:40; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.92); flex-direction:column; gap:20px; text-align:center; padding:24px; }
+  #ad.show{ display:flex; }
+  #ad .ad-box{ width:min(420px,92vw); border:1.5px solid rgba(255,255,255,.14); border-radius:18px; padding:26px 22px; background:linear-gradient(160deg,#10131f,#0a0c16); }
+  #ad .ad-mark{ font-size:11px; letter-spacing:3px; color:#7e88ad; text-transform:uppercase; }
+  #ad .ad-title{ font-size:22px; margin:10px 0 4px; }
+  #ad .ad-sub{ font-size:13.5px; color:#9aa3c7; margin-bottom:18px; }
+  #ad .ad-bar{ height:8px; border-radius:999px; background:rgba(255,255,255,.12); overflow:hidden; margin-bottom:18px; }
+  #ad .ad-bar > i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--magenta),var(--cyan)); }
+  #ad .ad-actions{ display:flex; gap:10px; justify-content:center; }
+  #ad .ad-actions .btn{ min-height:48px; font-size:16px; }
+
+  .hidden{ display:none !important; }
+  a{ color:var(--cyan); }
+</style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="flash"></div>
+
+  <button id="btn-shop" class="ui-btn" aria-label="Shop">&#9733;</button>
+  <button id="btn-mute" class="ui-btn" aria-label="Mute">&#128266;</button>
+
+  <!-- GAME OVER -->
+  <div id="over" class="overlay">
+    <div class="panel">
+      <div class="eyebrow" id="over-eyebrow">Run Over</div>
+      <div class="headline" id="over-headline">SO CLOSE</div>
+      <div class="score-big" id="over-score">0</div>
+      <div class="best-row"><span>BEST <b id="over-best">0</b></span><span id="over-newbest" class="hidden" style="color:var(--magenta)">NEW BEST!</span></div>
+      <div class="near" id="over-near"></div>
+      <div class="wallet"><span class="coin"></span><span id="over-coins">+0</span><span style="color:#9aa3c7;font-weight:700;font-size:13px">this run</span></div>
+
+      <button class="btn reward" id="btn-revive">REVIVE &amp; CONTINUE <span class="tag">&#9654; AD</span></button>
+      <div class="btn-row">
+        <button class="btn reward" id="btn-double">2&#215; COINS <span class="tag">&#9654;</span></button>
+        <button class="btn primary" id="btn-again">PLAY AGAIN</button>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label"><span id="next-name">Next unlock</span><span>in <b id="next-coins">0</b></span></div>
+        <div class="bar"><i id="next-bar"></i></div>
+      </div>
+      <button class="btn ghost" id="btn-openshop">OPEN GARAGE</button>
+    </div>
+  </div>
+
+  <!-- SHOP / GARAGE -->
+  <div id="shop" class="overlay">
+    <div class="panel">
+      <div class="eyebrow">Garage</div>
+      <div class="headline" style="font-size:clamp(28px,9vw,44px)">SKINS</div>
+      <div class="wallet"><span class="coin"></span><span id="shop-coins">0</span></div>
+      <div class="shop-grid" id="shop-grid"></div>
+      <button class="btn primary" id="btn-shop-close">BACK</button>
+    </div>
+  </div>
+
+  <!-- DAILY REWARD -->
+  <div id="daily" class="overlay">
+    <div class="panel">
+      <div class="eyebrow">Daily Streak</div>
+      <div class="headline" id="daily-streak">DAY 1</div>
+      <div class="sub" id="daily-sub">Welcome back, drifter.</div>
+      <div class="wallet" style="font-size:30px"><span class="coin" style="width:26px;height:26px"></span><span id="daily-amount">+25</span></div>
+      <button class="btn primary" id="btn-daily-claim">CLAIM</button>
+    </div>
+  </div>
+
+  <!-- Simulated ad (stub UI; never ships with real portal SDK) -->
+  <div id="ad">
+    <div class="ad-box">
+      <div class="ad-mark">Advertisement &middot; Simulated</div>
+      <div class="ad-title" id="ad-title">Rewarded Video</div>
+      <div class="ad-sub" id="ad-sub">Watch to earn your reward.</div>
+      <div class="ad-bar"><i id="ad-bar"></i></div>
+      <div class="ad-actions">
+        <button class="btn ghost" id="ad-skip" style="flex:0 0 auto;padding:0 18px">SKIP</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+<script>
+"use strict";
+/* =============================================================================
+   DRIFT LASSO
+   A portal-ready hypercasual game. Single self-contained build.
+   Vanilla JS + HTML5 Canvas 2D. No dependencies, no network calls.
+
+   The file is organized into clearly separated modules (search the banners):
+     [CONFIG]      all tunables, named for data-driven iteration
+     [UTIL]        math + geometry (segment intersect, point-in-poly, area)
+     [STORAGE]     persistence abstraction (localStorage now, cloud-save later)
+     [AUDIO]       procedural WebAudio engine (autoplay-safe, mute toggle)
+     [ADSDK]       ad interface stub (rewarded/interstitial + fallbacks)
+     [INPUT]       pointer/touch/mouse/keyboard -> single "hold" boolean
+     [POOL]        generic object pool (zero per-frame allocation)
+     [SPRITES]     pre-rendered glow sprites (cheap bloom on mobile)
+     [ENTITIES]    car, trail, drones
+     [PARTICLES]   pooled particle system
+     [POPUPS]      pooled score popups
+     [FX]          screen shake, hit-stop, flashes, chroma, near-miss
+     [COSMETICS]   trail + car skins, coins, unlocks
+     [GAME]        state machine, spawn director, scoring, collisions
+     [RENDER]      the draw pass
+     [UI]          DOM overlays (game over, shop, daily)
+     [LOOP]        fixed-timestep update + rAF render + lifecycle
+============================================================================= */
+
+/* ============================== [CONFIG] ==================================== */
+/* Every number a designer would touch lives here. See README "Tuning". */
+const CONFIG = {
+  // --- CAR / DRIFT ---------------------------------------------------------
+  CAR_SPEED: 252,        // px/sec forward travel (constant; player never sets speed)
+  MIN_RADIUS: 44,        // tightest drift radius — finger HELD
+  MAX_RADIUS: 165,       // widest drift radius — finger UP (clamped to screen at runtime)
+  RADIUS_LERP: 8.5,      // how fast the radius eases toward its target (1/sec)
+  TURN_DIR: 1,           // +1 clockwise; the car ALWAYS turns this way (it's drifting)
+  INTRO_RADIUS: 74,      // gentle opening radius until the first capture of each run
+  FIRST_DRONE_FRAC: 0.75,// first drone starts this fraction of INTRO_RADIUS toward circle centre
+  INTRO_DRONE_TRACK: 8,  // intro drone hovers at the drift-circle centre this strongly (1/sec)
+                         // (these are tuned so the first action — idle OR hold, pressed at ANY
+                         //  moment, on ANY screen size — always closes a CAPTURING loop, never a death)
+
+  // --- TRAIL (the hero) ----------------------------------------------------
+  TRAIL_LIFESPAN: 2.6,   // seconds a trail point stays alive (hazard + lasso window)
+  TRAIL_MIN_DIST: 6,     // min px between recorded trail points (perf + smoothness)
+  MAX_TRAIL_POINTS: 260, // hard cap (object pool size)
+  TRAIL_WIDTH: 7.5,      // core stroke width in px
+  SELF_GRACE_SEGMENTS: 6,// adjacency window skipped near the head = forgiving hitbox
+  NEAR_MISS_DIST: 24,    // px proximity (no cross) that fires the near-miss warning
+  PREVIEW_DIST: 30,      // px head->earlier-point that lights the close preview
+
+  // --- DRONES (targets) ----------------------------------------------------
+  DRONE_RADIUS: 13,
+  DRONE_BASE_SPEED: 12,  // px/sec at difficulty 0
+  DRONE_MAX_SPEED: 58,   // px/sec at difficulty 1
+  MIN_DRONES: 3,         // floor once the game gets going
+  MAX_DRONES: 15,        // ceiling at full difficulty
+  BONUS_DRONE_CHANCE: 0.12, // chance a spawned drone is a high-value "bonus" (variable reward)
+
+  // --- DIFFICULTY RAMP -----------------------------------------------------
+  RAMP_GENTLE_TIME: 20,  // sec of deliberately gentle intro (no wall)
+  RAMP_FULL_TIME: 150,   // sec to approach max difficulty
+  SCORE_FOR_MAX: 6000,   // score that also pushes difficulty toward 1
+
+  // --- SCORING -------------------------------------------------------------
+  BASE_CAPTURE: 110,     // base points per captured drone before area+combo
+  AREA_REF_FRACTION: 0.085, // loop area / (arena*this) => normalized 1.0
+  AREA_NORM_MIN: 0.4,
+  AREA_NORM_MAX: 3.0,
+  PERFECT_AREA: 1.6,     // normalized area above which a single-loop earns "PERFECT!"
+  COMBO_MAX: 12,         // multiplier cap
+  COMBO_DECAY_TIME: 4.5, // sec without a capture before the combo resets
+  MILESTONE_STEP: 500,   // every N score -> coins + fanfare
+  MILESTONE_COINS: 12,
+  COINS_PER_100: 1,      // run coins = floor(score/100) * this
+
+  // --- FEEL / JUICE --------------------------------------------------------
+  SHAKE_DECAY: 6,
+  HITSTOP_BIG: 0.10,     // sec of slow-mo on a weighty capture
+  HITSTOP_THRESHOLD: 2,  // drones in one capture to trigger hit-stop
+  CHROMA_COMBO: 4,       // combo >= this turns on subtle chromatic aberration
+
+  // --- ARENA ---------------------------------------------------------------
+  WALL_DEATH: false,     // keep ONE death rule (self-cross). Soft containment instead.
+  WALL_MARGIN: 26,       // px from edge where containment starts steering inward
+  CONTAIN_STRENGTH: 3.2, // how hard the car curves back from a wall
+
+  // --- POOLS ---------------------------------------------------------------
+  MAX_PARTICLES: 340,
+  MAX_POPUPS: 24,
+
+  // --- MONETIZATION --------------------------------------------------------
+  INTERSTITIAL_EVERY_RUNS: 3, // show an interstitial at most once per N game-overs
+  REVIVE_INVULN: 1.3,         // sec of safety after a revive
+  DOUBLE_COINS_PARTIAL: 1.5,  // ad-block fallback multiplier for "2x coins"
+};
+
+/* Palette — the whole game is colour-coded: cool = safe/score, amber = target,
+   red = death only. Keep this disciplined. */
+const COL = {
+  bg:'#0A0A14', grid:'#1A1A2E', cyan:'#00F0FF', magenta:'#FF2D95',
+  amber:'#FFB800', red:'#FF1744', white:'#FFFFFF',
+};
+
+/* ============================== [UTIL] ===================================== */
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const TAU=Math.PI*2;
+const rand=(a,b)=>a+Math.random()*(b-a);
+const randInt=(a,b)=>Math.floor(rand(a,b+1));
+const dist2=(ax,ay,bx,by)=>{const dx=ax-bx,dy=ay-by;return dx*dx+dy*dy;};
+const dist=(ax,ay,bx,by)=>Math.sqrt(dist2(ax,ay,bx,by));
+
+function hexToRgb(h){h=h.replace('#','');return {r:parseInt(h.slice(0,2),16),g:parseInt(h.slice(2,4),16),b:parseInt(h.slice(4,6),16)};}
+function rgbStr(c,a){return 'rgba('+c.r+','+c.g+','+c.b+','+a+')';}
+function mixRgb(a,b,t){return {r:Math.round(lerp(a.r,b.r,t)),g:Math.round(lerp(a.g,b.g,t)),b:Math.round(lerp(a.b,b.b,t))};}
+
+/* Segment intersection. Returns true and writes the hit point to OUT if the
+   open segments AB and CD properly cross. Endpoint-touching is ignored (so the
+   trail's shared joints never read as a self-cross). */
+const _hit={x:0,y:0};
+function segHit(ax,ay,bx,by,cx,cy,dx,dy,OUT){
+  const r1=bx-ax, r2=by-ay, s1=dx-cx, s2=dy-cy;
+  const denom=r1*s2 - r2*s1;
+  if(denom===0) return false;            // parallel
+  const t=((cx-ax)*s2 - (cy-ay)*s1)/denom;
+  const u=((cx-ax)*r2 - (cy-ay)*r1)/denom;
+  if(t>0 && t<1 && u>0 && u<1){ OUT.x=ax+t*r1; OUT.y=ay+t*r2; return true; }
+  return false;
+}
+
+/* Shortest distance from point P to segment AB (for near-miss telegraphing). */
+function pointSegDist(px,py,ax,ay,bx,by){
+  const dx=bx-ax, dy=by-ay; const l2=dx*dx+dy*dy;
+  if(l2===0) return dist(px,py,ax,ay);
+  let t=((px-ax)*dx+(py-ay)*dy)/l2; t=clamp(t,0,1);
+  return dist(px,py, ax+t*dx, ay+t*dy);
+}
+
+/* Ray-cast point-in-polygon over an array of {x,y} with explicit length n. */
+function pointInPoly(px,py,poly,n){
+  let inside=false;
+  for(let i=0,j=n-1;i<n;j=i++){
+    const xi=poly[i].x, yi=poly[i].y, xj=poly[j].x, yj=poly[j].y;
+    if(((yi>py)!==(yj>py)) && (px < (xj-xi)*(py-yi)/(yj-yi)+xi)) inside=!inside;
+  }
+  return inside;
+}
+
+/* Shoelace area of an array of {x,y} with explicit length n. */
+function polyArea(poly,n){
+  let a=0;
+  for(let i=0,j=n-1;i<n;j=i++){ a += (poly[j].x+poly[i].x)*(poly[j].y-poly[i].y); }
+  return Math.abs(a/2);
+}
+
+// Export pure helpers for the dev test harness (no effect in the browser).
+if(typeof module!=='undefined' && module.exports){
+  module.exports={clamp,lerp,segHit,pointInPoly,polyArea,pointSegDist,CONFIG};
+}
+
+/* ============================ [STORAGE] ==================================== */
+/* Thin persistence layer. Swap _read/_write for a portal cloud-save adapter and
+   nothing else changes. All game saves go through Storage.data + Storage.save(). */
+const Storage=(()=>{
+  const KEY='driftlasso.save.v1';
+  const defaults={
+    highScore:0, coins:0, totalRuns:0,
+    unlocked:['neon','car_core'], equippedTrail:'neon', equippedCar:'car_core',
+    muted:false, firstRunDone:false, endowed:false,
+    lastDaily:'', streak:0, sinceInterstitial:0,
+  };
+  let data=Object.assign({},defaults);
+  function _read(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
+  function _write(o){ try{ localStorage.setItem(KEY, JSON.stringify(o)); }catch(e){ /* private mode: run in-memory */ } }
+  function load(){ const s=_read(); if(s && typeof s==='object'){ data=Object.assign({},defaults,s); /* heal arrays */ if(!Array.isArray(data.unlocked)) data.unlocked=defaults.unlocked.slice(); } }
+  function save(){ _write(data); }
+  return { data, load, save,
+    get:(k)=>data[k], set:(k,v)=>{ data[k]=v; save(); } };
+})();
+
+/* ============================== [AUDIO] ==================================== */
+/* Procedural WebAudio. CRITICAL: nothing is created or played until the first
+   user gesture (Audio.unlock), satisfying autoplay policy and never blaring on
+   load. Mute toggles the master gain. All synths are tiny and allocation-light. */
+const Audio=(()=>{
+  let ctx=null, master=null, music=null, ready=false, muted=false;
+  let noiseBuf=null;
+  let drift=null, driftGain=null, driftFilter=null; // continuous drift hum
+
+  // background bassline scheduler
+  let bassNext=0, bassStep=0;
+  const BASS=[0,0,3,0, 5,0,3,0]; // semitone offsets over root
+  const ROOT=55; // A1
+
+  function unlock(){
+    if(ready) return;
+    try{
+      const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+      ctx=new AC();
+      master=ctx.createGain(); master.gain.value=muted?0:0.9; master.connect(ctx.destination);
+      music=ctx.createGain(); music.gain.value=0.0; music.connect(master); // fades in during play
+      // noise buffer for death / texture
+      noiseBuf=ctx.createBuffer(1, ctx.sampleRate*0.5, ctx.sampleRate);
+      const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+      // persistent drift hum
+      drift=ctx.createOscillator(); drift.type='sawtooth'; drift.frequency.value=70;
+      driftFilter=ctx.createBiquadFilter(); driftFilter.type='lowpass'; driftFilter.frequency.value=300;
+      driftGain=ctx.createGain(); driftGain.gain.value=0;
+      drift.connect(driftFilter); driftFilter.connect(driftGain); driftGain.connect(master);
+      drift.start();
+      ready=true;
+    }catch(e){ ready=false; }
+    if(ctx && ctx.state==='suspended') ctx.resume();
+  }
+  function resume(){ if(ctx && ctx.state==='suspended') ctx.resume(); }
+  function setMuted(m){ muted=m; if(master) master.gain.setTargetAtTime(m?0:0.9, ctx.currentTime, 0.02); }
+  function isMuted(){ return muted; }
+
+  function env(node, t0, peak, atk, dec){ const g=node.gain; g.cancelScheduledValues(t0); g.setValueAtTime(0.0001,t0); g.exponentialRampToValueAtTime(peak,t0+atk); g.exponentialRampToValueAtTime(0.0001,t0+atk+dec); }
+
+  function tone(freq, type, peak, atk, dec, dest){
+    if(!ready) return; const t0=ctx.currentTime;
+    const o=ctx.createOscillator(); o.type=type||'sine'; o.frequency.value=freq;
+    const g=ctx.createGain(); o.connect(g); g.connect(dest||master);
+    env(g,t0,peak,atk,dec); o.start(t0); o.stop(t0+atk+dec+0.02);
+  }
+
+  // Capture: pitch climbs a step with the combo. Pavlovian rising ladder.
+  function capture(step){
+    if(!ready) return;
+    const semis=clamp(step,0,18);
+    const base=523.25*Math.pow(2,semis/12); // C5 ladder
+    tone(base,'triangle',0.5,0.005,0.16);
+    tone(base*1.5,'sine',0.25,0.005,0.14);    // a fifth for shine
+    tone(base*2,'sine',0.12,0.005,0.10);
+  }
+  function bonus(){ if(!ready)return; tone(1318,'triangle',0.4,0.005,0.18); tone(1760,'sine',0.25,0.01,0.2); }
+  function coin(){ tone(880,'square',0.18,0.004,0.05); tone(1320,'square',0.16,0.02,0.06); }
+  function tick(){ tone(2200,'sine',0.05,0.002,0.03); }
+  function nearMiss(){ tone(1500,'sawtooth',0.06,0.003,0.05); }
+
+  function fanfare(){
+    if(!ready) return; const seq=[523,659,784,1046];
+    seq.forEach((f,i)=> setTimeout(()=>{ tone(f,'triangle',0.4,0.01,0.22); tone(f*2,'sine',0.18,0.01,0.2);},i*90));
+  }
+  // Death: dissonant, descending, with noise. It should sting.
+  function death(){
+    if(!ready) return; const t0=ctx.currentTime;
+    const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.setValueAtTime(330,t0); o.frequency.exponentialRampToValueAtTime(70,t0+0.5);
+    const o2=ctx.createOscillator(); o2.type='square'; o2.frequency.setValueAtTime(347,t0); o2.frequency.exponentialRampToValueAtTime(74,t0+0.5); // detuned = dissonant
+    const g=ctx.createGain(); g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.5,t0+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+0.55);
+    o.connect(g); o2.connect(g); g.connect(master); o.start(t0); o2.start(t0); o.stop(t0+0.6); o2.stop(t0+0.6);
+    const n=ctx.createBufferSource(); n.buffer=noiseBuf; const ng=ctx.createGain(); ng.gain.setValueAtTime(0.3,t0); ng.gain.exponentialRampToValueAtTime(0.0001,t0+0.25); n.connect(ng); ng.connect(master); n.start(t0); n.stop(t0+0.3);
+  }
+
+  // Continuous drift hum tracks how tight the drift is (intensity 0..1).
+  function setDrift(intensity, playing){
+    if(!ready) return; const t=ctx.currentTime;
+    driftGain.gain.setTargetAtTime(playing?(0.02+0.05*intensity):0, t, 0.08);
+    driftFilter.frequency.setTargetAtTime(260+intensity*900, t, 0.08);
+    drift.frequency.setTargetAtTime(60+intensity*55, t, 0.08);
+  }
+  function setMusic(on,intensity){ if(!ready) return; music.gain.setTargetAtTime(on?0.5:0.0, ctx.currentTime, 0.4); }
+
+  // Low pulsing synth bassline; tempo speeds up with difficulty.
+  function updateMusic(playing, difficulty){
+    if(!ready || !playing) return;
+    const now=ctx.currentTime;
+    const beat=lerp(0.50,0.30,clamp(difficulty,0,1));
+    while(bassNext < now+0.1){
+      const t0=Math.max(bassNext, now);
+      const semi=BASS[bassStep%BASS.length];
+      const f=ROOT*Math.pow(2,semi/12);
+      const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=f;
+      const fl=ctx.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value=420;
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.5,t0+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+beat*0.9);
+      o.connect(fl); fl.connect(g); g.connect(music); o.start(t0); o.stop(t0+beat);
+      bassStep++; bassNext += beat;
+    }
+  }
+  function resetMusicClock(){ if(ready) bassNext=ctx.currentTime; bassStep=0; }
+
+  return { unlock, resume, setMuted, isMuted, capture, bonus, coin, tick, nearMiss,
+           fanfare, death, setDrift, setMusic, updateMusic, resetMusicClock,
+           get ready(){return ready;} };
+})();
+
+/* ============================== [ADSDK] ==================================== */
+/* Portal-agnostic ad interface. Drop real CrazyGames/Poki/GameDistribution
+   calls into the two marked spots — the rest of the game never changes.
+   Contract:
+     showRewarded(onSuccess, onFail): onSuccess ONLY on genuine completion;
+       onFail on skip/early-close/no-fill. Caller decides any partial fallback.
+     showInterstitial(): natural breaks only; self-caps frequency. */
+const AdSDK=(()=>{
+  // ---- swap this object for the real SDK adapter at integration time -------
+  const provider={
+    available:true,
+    // e.g. CrazyGames: window.CrazySDK.ad.requestAd('rewarded', {adFinished, adError})
+    rewarded(onComplete,onError){ simulate('Rewarded Video', onComplete, onError); },
+    interstitial(onDone){ simulate('Advertisement', onDone, onDone, true); },
+  };
+  // -------------------------------------------------------------------------
+
+  const adEl=document.getElementById('ad');
+  const barEl=document.getElementById('ad-bar');
+  const titleEl=document.getElementById('ad-title');
+  const subEl=document.getElementById('ad-sub');
+  const skipEl=document.getElementById('ad-skip');
+  let raf=null, onEnd=null, onAbort=null;
+
+  function simulate(title, onComplete, onError, isInterstitial){
+    // Simulated network "no-fill" ~ rarely, to exercise the fallback path.
+    if(!provider.available || Math.random()<0.0){ onError&&onError('no-fill'); return; }
+    titleEl.textContent=title;
+    subEl.textContent=isInterstitial?'Your game continues shortly.':'Watch to the end to earn your reward.';
+    skipEl.textContent=isInterstitial?'CLOSE':'SKIP';
+    adEl.classList.add('show');
+    Audio.setMusic(false);
+    const dur=isInterstitial?1600:2600; const start=performance.now();
+    onEnd=onComplete; onAbort=onError;
+    const step=(now)=>{
+      const p=clamp((now-start)/dur,0,1);
+      barEl.style.width=(p*100)+'%';
+      if(p>=1){ finish(true); } else { raf=requestAnimationFrame(step); }
+    };
+    raf=requestAnimationFrame(step);
+  }
+  function finish(completed){
+    cancelAnimationFrame(raf); raf=null;
+    adEl.classList.remove('show'); barEl.style.width='0%';
+    const c=onEnd, a=onAbort; onEnd=onAbort=null;
+    if(completed){ c&&c(); } else { a&&a('skipped'); }
+  }
+  skipEl.addEventListener('click', ()=> finish(false));
+
+  return {
+    setProvider(p){ Object.assign(provider,p); },
+    showRewarded(onSuccess,onFail){
+      if(!provider.available){ onFail&&onFail('unavailable'); return; }
+      provider.rewarded(()=>onSuccess&&onSuccess(), (err)=>onFail&&onFail(err));
+    },
+    showInterstitial(onDone){
+      // frequency cap: at most once per INTERSTITIAL_EVERY_RUNS game-overs
+      Storage.data.sinceInterstitial=(Storage.data.sinceInterstitial||0)+1;
+      if(Storage.data.sinceInterstitial < CONFIG.INTERSTITIAL_EVERY_RUNS || !provider.available){
+        Storage.save(); onDone&&onDone(); return;
+      }
+      Storage.data.sinceInterstitial=0; Storage.save();
+      provider.interstitial(()=>onDone&&onDone());
+    },
+  };
+})();
+
+/* ============================== [INPUT] ==================================== */
+/* One mechanic: HOLD. Pointer/touch down or mapped key down => holding.
+   We listen on window and ignore presses that begin on UI (buttons/overlays)
+   so the controls never fight the menus. preventDefault stops scroll/zoom. */
+const Input=(()=>{
+  let holding=false; const onFirst=[];
+  let firstDone=false;
+  function fireFirst(){ if(firstDone) return; firstDone=true; Audio.unlock(); onFirst.forEach(f=>f()); }
+  function isUI(t){ return t && t.closest && t.closest('.ui-btn,.overlay,#ad,.toast'); }
+  function down(e){
+    fireFirst();
+    if(isUI(e.target)) return;        // let the UI handle its own taps
+    if(e.cancelable) e.preventDefault();
+    holding=true;
+  }
+  function up(e){ holding=false; }
+  window.addEventListener('pointerdown',down,{passive:false});
+  window.addEventListener('pointerup',up,{passive:false});
+  window.addEventListener('pointercancel',up,{passive:false});
+  // keyboard mapping for desktop (space / arrow down / mouse already covered)
+  window.addEventListener('keydown',(e)=>{ if(e.code==='Space'||e.code==='ArrowDown'||e.code==='Enter'){ fireFirst(); if(!isUI(document.activeElement)){ e.preventDefault(); holding=true; } } });
+  window.addEventListener('keyup',(e)=>{ if(e.code==='Space'||e.code==='ArrowDown'||e.code==='Enter'){ holding=false; } });
+  // stop the page from scrolling/zooming under the game
+  window.addEventListener('touchmove',(e)=>{ if(e.cancelable) e.preventDefault(); },{passive:false});
+  window.addEventListener('gesturestart',(e)=>e.preventDefault());
+  window.addEventListener('dblclick',(e)=>e.preventDefault());
+  return { isHolding:()=>holding, onFirstInteraction:(f)=>onFirst.push(f) };
+})();
+
+/* ============================== [POOL] ===================================== */
+/* Generic fixed-capacity pool. alive[] holds active objects; spare[] holds the
+   rest. No allocation after init — get()/free() just move references. */
+function makePool(size, factory){
+  const all=new Array(size); const spare=[]; const alive=[];
+  for(let i=0;i<size;i++){ const o=factory(); o._alive=false; all[i]=o; spare.push(o); }
+  return {
+    alive,
+    get(){ const o=spare.pop(); if(!o) return null; o._alive=true; alive.push(o); return o; },
+    free(o){ if(!o._alive) return; o._alive=false; const i=alive.indexOf(o); if(i>=0){ alive[i]=alive[alive.length-1]; alive.pop(); } spare.push(o); }, // swap-remove: O(1), zero allocation
+    freeAll(){ for(let i=alive.length-1;i>=0;i--){ alive[i]._alive=false; spare.push(alive[i]); } alive.length=0; },
+    get count(){ return alive.length; },
+  };
+}
+
+/* ============================= [SPRITES] =================================== */
+/* Pre-rendered radial-glow sprites. Drawing these with drawImage is far cheaper
+   than per-frame shadowBlur/gradients and gives a gorgeous bloom on phones. */
+const Sprites=(()=>{
+  function glow(size, inner){
+    const c=document.createElement('canvas'); c.width=c.height=size; const g=c.getContext('2d');
+    const r=size/2; const grd=g.createRadialGradient(r,r,0,r,r,r);
+    grd.addColorStop(0,inner); grd.addColorStop(0.25,inner.replace(/[\d.]+\)$/,'0.55)'));
+    grd.addColorStop(1,inner.replace(/[\d.]+\)$/,'0)'));
+    g.fillStyle=grd; g.fillRect(0,0,size,size); return c;
+  }
+  return {
+    car:null, drone:null, droneBonus:null, white:null, cyan:null, magenta:null, amber:null, red:null,
+    build(){
+      this.car=glow(140,'rgba(255,255,255,1)');
+      this.drone=glow(120,'rgba(255,184,0,1)');
+      this.droneBonus=glow(140,'rgba(86,255,213,1)');
+      this.white=glow(64,'rgba(255,255,255,1)');
+      this.cyan=glow(72,'rgba(0,240,255,1)');
+      this.magenta=glow(72,'rgba(255,45,149,1)');
+      this.amber=glow(72,'rgba(255,184,0,1)');
+      this.red=glow(72,'rgba(255,23,68,1)');
+    }
+  };
+})();
+
+/* ============================ [PARTICLES] ================================== */
+const Particles=(()=>{
+  const pool=makePool(CONFIG.MAX_PARTICLES, ()=>({x:0,y:0,vx:0,vy:0,life:0,max:1,size:1,spr:null,add:true}));
+  function burst(x,y,n,opts){
+    opts=opts||{};
+    for(let i=0;i<n;i++){
+      const p=pool.get(); if(!p) break;
+      const a=rand(0,TAU), sp=rand(opts.spMin||40, opts.spMax||260);
+      p.x=x; p.y=y; p.vx=Math.cos(a)*sp; p.vy=Math.sin(a)*sp;
+      p.max=p.life=rand(opts.lifeMin||0.4, opts.lifeMax||0.9);
+      p.size=rand(opts.sizeMin||6, opts.sizeMax||16);
+      p.spr=opts.spr||Sprites.amber; p.add=opts.add!==false;
+      p.drag=opts.drag||2.6;
+    }
+  }
+  function update(dt){
+    const a=pool.alive;
+    for(let i=a.length-1;i>=0;i--){ const p=a[i];
+      p.life-=dt; if(p.life<=0){ pool.free(p); continue; }
+      const k=Math.exp(-p.drag*dt); p.vx*=k; p.vy*=k;
+      p.x+=p.vx*dt; p.y+=p.vy*dt;
+    }
+  }
+  function draw(ctx){
+    const a=pool.alive; ctx.globalCompositeOperation='lighter';
+    for(let i=0;i<a.length;i++){ const p=a[i]; const t=p.life/p.max;
+      const s=p.size*(0.5+t); ctx.globalAlpha=clamp(t,0,1);
+      ctx.drawImage(p.spr, p.x-s, p.y-s, s*2, s*2);
+    }
+    ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+  }
+  return { burst, update, draw, freeAll:()=>pool.freeAll(), get count(){return pool.count;} };
+})();
+
+/* ============================== [POPUPS] =================================== */
+const Popups=(()=>{
+  const pool=makePool(CONFIG.MAX_POPUPS, ()=>({x:0,y:0,vy:0,life:0,max:1,text:'',color:'#fff',size:28,bold:true}));
+  function spawn(x,y,text,color,size){
+    const p=pool.get(); if(!p) return;
+    p.x=x; p.y=y; p.vy=-46; p.max=p.life=1.0; p.text=text; p.color=color||COL.cyan; p.size=size||30;
+  }
+  function update(dt){ const a=pool.alive; for(let i=a.length-1;i>=0;i--){ const p=a[i]; p.life-=dt; if(p.life<=0){pool.free(p);continue;} p.y+=p.vy*dt; p.vy*=Math.exp(-3*dt); } }
+  function draw(ctx){
+    const a=pool.alive;
+    for(let i=0;i<a.length;i++){ const p=a[i]; const t=p.life/p.max;
+      const pop=t>0.8?(1-(t-0.8)/0.2*0.0):1; const sc=1+(1-t)*0.15;
+      ctx.globalAlpha=clamp(t*1.4,0,1);
+      ctx.font='900 '+Math.round(p.size*sc)+'px '+FONT_STACK;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillText(p.text,p.x+1,p.y+2);
+      ctx.fillStyle=p.color; ctx.fillText(p.text,p.x,p.y);
+    }
+    ctx.globalAlpha=1;
+  }
+  return { spawn, update, draw, freeAll:()=>pool.freeAll() };
+})();
+
+/* ================================ [FX] ===================================== */
+/* Screen shake, hit-stop (slow-mo), colour flashes, near-miss shimmer and the
+   subtle chromatic aberration on big combos. The "feel" layer lives here. */
+const FX=(()=>{
+  let shake=0, hitstop=0, chroma=0, nearShimmer=0;
+  const flashEl=document.getElementById('flash');
+  let flashT=0, flashColor='rgba(255,255,255,0)';
+  function addShake(m){ shake=Math.max(shake,m); }
+  function addHitstop(s){ hitstop=Math.max(hitstop,s); }
+  function setChroma(v){ chroma=Math.max(chroma,v); }
+  function nearMiss(){ nearShimmer=1; }
+  function flash(color,strength){ flashColor=color; flashT=strength; }
+  function timeScale(){ return hitstop>0?0.12:1; }
+  // hit-stop is counted in REAL time (decoupled from the slow-mo it causes), so the
+  // micro-pause lasts its true ~100ms instead of stretching out.
+  function tickRealtime(realDt){ if(hitstop>0) hitstop=Math.max(0,hitstop-realDt); }
+  function update(dt){
+    shake=Math.max(0, shake-CONFIG.SHAKE_DECAY*shake*dt - 6*dt);
+    chroma=Math.max(0, chroma-3*dt);
+    nearShimmer=Math.max(0, nearShimmer-3*dt);
+    if(flashT>0){ flashT=Math.max(0,flashT-2.4*dt); flashEl.style.background=flashColor; flashEl.style.opacity=flashT; }
+    else flashEl.style.opacity=0;
+  }
+  function shakeXY(out){ const m=shake*14; out.x=rand(-m,m); out.y=rand(-m,m); }
+  return { addShake, addHitstop, setChroma, nearMiss, flash, timeScale, update, tickRealtime, shakeXY,
+    get chroma(){return chroma;}, get nearShimmer(){return nearShimmer;}, get shake(){return shake;},
+    reset(){ shake=hitstop=chroma=nearShimmer=flashT=0; flashEl.style.opacity=0; } };
+})();
+
+/* ============================ [COSMETICS] ================================== */
+/* Trail + car skins. Cheap to make, strong for retention, and a rewarded-ad
+   driver ("unlock early — watch a video"). One trail skin is FREE; the next is
+   pre-discounted via "endowed progress" so the collection feels already begun. */
+const Cosmetics=(()=>{
+  const TRAILS=[
+    {id:'neon',     name:'Neon Drift', cost:0,   a:'#00F0FF', b:'#FF2D95'},
+    {id:'inferno',  name:'Inferno',    cost:140, a:'#FFE259', b:'#FF1744'},
+    {id:'voltage',  name:'Voltage',    cost:240, a:'#AEEBFF', b:'#7C4DFF'},
+    {id:'spectrum', name:'Spectrum',   cost:420, a:'rainbow', b:'rainbow'},
+    {id:'gold',     name:'24 Karat',   cost:650, a:'#FFF1A8', b:'#FFB800'},
+    {id:'chrome',   name:'Chrome',     cost:900, a:'#FFFFFF', b:'#9AD7FF'},
+  ];
+  const CARS=[
+    {id:'car_core', name:'Pulse',  cost:0,   color:'#FFFFFF'},
+    {id:'car_amber',name:'Ember',  cost:180, color:'#FFB800'},
+    {id:'car_mag',  name:'Vapor',  cost:320, color:'#FF2D95'},
+    {id:'car_gold', name:'Bullion',cost:500, color:'#FFD24A'},
+  ];
+  function isUnlocked(id){ return Storage.data.unlocked.indexOf(id)>=0; }
+  function unlock(id){ if(!isUnlocked(id)){ Storage.data.unlocked.push(id); Storage.save(); } }
+  function trail(){ return TRAILS.find(t=>t.id===Storage.data.equippedTrail)||TRAILS[0]; }
+  function car(){ return CARS.find(c=>c.id===Storage.data.equippedCar)||CARS[0]; }
+  function all(){ return TRAILS.concat(CARS); }
+  // cheapest locked item -> drives the "next unlock" goal bar
+  function nextLocked(){
+    let best=null;
+    all().forEach(it=>{ if(!isUnlocked(it.id) && it.cost>0){ if(!best||it.cost<best.cost) best=it; } });
+    return best;
+  }
+  return { TRAILS, CARS, isUnlocked, unlock, trail, car, all, nextLocked };
+})();
+
+/* ============================ [ENTITIES] =================================== */
+const FONT_STACK='"Eurostile","Bahnschrift","DIN Alternate Bold","Segoe UI",system-ui,Arial,sans-serif';
+
+// --- Trail: circular buffer of pooled points + self-intersection logic ------
+const Trail=(()=>{
+  const cap=CONFIG.MAX_TRAIL_POINTS;
+  const pts=new Array(cap); for(let i=0;i<cap;i++) pts[i]={x:0,y:0,t:0};
+  let head=0, len=0;
+  // reusable scratch polygons (no per-frame allocation)
+  const scratch=new Array(cap); for(let i=0;i<cap;i++) scratch[i]={x:0,y:0};
+  const scratch2=new Array(cap); for(let i=0;i<cap;i++) scratch2[i]={x:0,y:0};
+
+  function reset(){ head=0; len=0; }
+  function get(i){ return pts[(head+i)%cap]; }
+  function push(x,y,t){
+    let idx;
+    if(len<cap){ idx=(head+len)%cap; len++; }
+    else { idx=head; head=(head+1)%cap; }
+    const p=pts[idx]; p.x=x; p.y=y; p.t=t;
+  }
+  function dropOld(now,lifespan){ while(len>0 && now-get(0).t>lifespan){ head=(head+1)%cap; len--; } }
+
+  // Look for the head segment crossing an earlier segment. Returns a result obj
+  // describing the enclosed loop, or null. Scans from near-head backward so we
+  // resolve the most-recently-closed loop (matches player intent).
+  const result={poly:scratch, n:0, area:0};
+  function checkClose(){
+    if(len<4) return null;
+    const hx0=get(len-2).x, hy0=get(len-2).y, hx1=get(len-1).x, hy1=get(len-1).y;
+    const maxI=len-3-CONFIG.SELF_GRACE_SEGMENTS;
+    for(let i=maxI;i>=0;i--){
+      const a=get(i), b=get(i+1);
+      if(segHit(hx0,hy0,hx1,hy1, a.x,a.y,b.x,b.y, _hit)){
+        // loop polygon = hit point, then trail points i+1 .. len-2
+        let n=0; scratch[n].x=_hit.x; scratch[n].y=_hit.y; n++;
+        for(let k=i+1;k<=len-2;k++){ const p=get(k); scratch[n].x=p.x; scratch[n].y=p.y; n++; }
+        result.poly=scratch; result.n=n; result.area=polyArea(scratch,n);
+        return result;
+      }
+    }
+    return null;
+  }
+
+  // Hypothetical "if I closed now" loop for the greed/near-death preview: find
+  // the nearest earlier point to the head within PREVIEW_DIST and build its loop.
+  const preview={poly:scratch2, n:0, area:0, valid:false};
+  function previewLoop(){
+    preview.valid=false;
+    if(len<6) return preview;
+    const hx=get(len-1).x, hy=get(len-1).y;
+    const maxI=len-3-CONFIG.SELF_GRACE_SEGMENTS;
+    let bestI=-1, bestD=CONFIG.PREVIEW_DIST*CONFIG.PREVIEW_DIST;
+    for(let i=0;i<=maxI;i++){ const p=get(i); const d=dist2(hx,hy,p.x,p.y); if(d<bestD){ bestD=d; bestI=i; } }
+    if(bestI<0) return preview;
+    let n=0; for(let k=bestI;k<=len-1;k++){ const p=get(k); scratch2[n].x=p.x; scratch2[n].y=p.y; n++; }
+    preview.poly=scratch2; preview.n=n; preview.area=polyArea(scratch2,n); preview.valid=n>=3;
+    return preview;
+  }
+
+  // Near-miss: smallest distance from head to a non-adjacent segment (no cross).
+  function nearestApproach(){
+    if(len<6) return 1e9;
+    const hx=get(len-1).x, hy=get(len-1).y;
+    const maxI=len-3-CONFIG.SELF_GRACE_SEGMENTS;
+    let best=1e9;
+    for(let i=0;i<=maxI;i++){ const a=get(i), b=get(i+1); const d=pointSegDist(hx,hy,a.x,a.y,b.x,b.y); if(d<best) best=d; }
+    return best;
+  }
+
+  return { reset, push, dropOld, checkClose, previewLoop, nearestApproach,
+    get len(){return len;}, get(i){return get(i);} };
+})();
+
+// --- Drones -----------------------------------------------------------------
+const Drones=(()=>{
+  const pool=makePool(CONFIG.MAX_DRONES+4, ()=>({x:0,y:0,vx:0,vy:0,r:CONFIG.DRONE_RADIUS,phase:0,bonus:false,t:0,spawn:0}));
+  function spawnAt(x,y,bonus){
+    const d=pool.get(); if(!d) return null;
+    d.x=x; d.y=y; const a=rand(0,TAU);
+    d.vx=Math.cos(a); d.vy=Math.sin(a); d.phase=rand(0,TAU); d.bonus=!!bonus; d.t=0; d.spawn=0.0; d.r=bonus?CONFIG.DRONE_RADIUS*1.25:CONFIG.DRONE_RADIUS;
+    return d;
+  }
+  function update(dt, speed, W, H){
+    const a=pool.alive;
+    for(let i=0;i<a.length;i++){ const d=a[i];
+      d.t+=dt; if(d.spawn<1) d.spawn=Math.min(1,d.spawn+dt*3);
+      d.phase+=dt*1.6;
+      // gentle wander
+      if(Math.random()<0.01){ const ang=rand(0,TAU); d.vx=Math.cos(ang); d.vy=Math.sin(ang); }
+      d.x+=d.vx*speed*dt; d.y+=d.vy*speed*dt;
+      const m=22;
+      if(d.x<m){d.x=m;d.vx=Math.abs(d.vx);} if(d.x>W-m){d.x=W-m;d.vx=-Math.abs(d.vx);}
+      if(d.y<m){d.y=m;d.vy=Math.abs(d.vy);} if(d.y>H-m){d.y=H-m;d.vy=-Math.abs(d.vy);}
+    }
+  }
+  return { pool, spawnAt, update, freeAll:()=>pool.freeAll(), get alive(){return pool.alive;}, get count(){return pool.count;} };
+})();
+
+/* ============================== [GAME] ===================================== */
+const Game=(()=>{
+  // canvas + view
+  const canvas=document.getElementById('game');
+  const ctx=canvas.getContext('2d',{alpha:false});
+  let W=0,H=0,DPR=1, maxR=CONFIG.MAX_RADIUS, vignette=null, bgGrad=null, safeTop=0;
+
+  // run state
+  const STATE={BOOT:0,PLAYING:1,DYING:2,DEAD:3};
+  let state=STATE.BOOT;
+  const car={x:0,y:0,dir:0,r:CONFIG.MAX_RADIUS, invuln:0};
+  let score=0, displayScore=0, coinsRun=0;
+  let combo=0, comboTimer=0, comboBounce=0, pitchStep=0;
+  let elapsed=0, spawnTimer=0, difficulty=0, droneTarget=1, nextMilestone=CONFIG.MILESTONE_STEP;
+  let firstCaptureDone=false, hintAlpha=0, dyingTimer=0, prevBest=0, revivedThisRun=false;
+  let parallaxX=0, parallaxY=0;
+  let previewFrame=0, nearMissCd=0;
+
+  function resize(){
+    DPR=Math.min(window.devicePixelRatio||1, 2);
+    W=window.innerWidth; H=window.innerHeight;
+    canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    canvas.width=Math.round(W*DPR); canvas.height=Math.round(H*DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    maxR=Math.min(CONFIG.MAX_RADIUS, Math.min(W,H)*0.30);
+    // measure the notch / safe-area inset once so the canvas HUD never hides under it
+    safeTop=measureSafeTop();
+    // background + vignette gradients (rebuilt on resize; cached, drawn once/frame)
+    bgGrad=ctx.createRadialGradient(W/2,H*0.42,0, W/2,H*0.5, Math.max(W,H)*0.78);
+    bgGrad.addColorStop(0,'#12122a'); bgGrad.addColorStop(0.55,'#0c0c1a'); bgGrad.addColorStop(1,COL.bg);
+    vignette=ctx.createRadialGradient(W/2,H*0.46,Math.min(W,H)*0.2, W/2,H*0.5, Math.max(W,H)*0.72);
+    vignette.addColorStop(0,'rgba(0,0,0,0)'); vignette.addColorStop(1,'rgba(0,0,0,0.62)');
+  }
+
+  // read env(safe-area-inset-top) via a one-off probe (no per-frame cost)
+  function measureSafeTop(){
+    try{
+      const p=document.createElement('div');
+      p.style.cssText='position:fixed;top:0;left:0;width:0;height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none;';
+      document.body.appendChild(p); const h=p.offsetHeight||0; document.body.removeChild(p);
+      return Math.min(h,60);
+    }catch(e){ return 0; }
+  }
+
+  // ---- run lifecycle -------------------------------------------------------
+  function fullReset(){
+    // FULLY reset everything — no partial state survives a restart.
+    score=0; displayScore=0; coinsRun=0; combo=0; comboTimer=0; comboBounce=0; pitchStep=0;
+    elapsed=0; spawnTimer=0; difficulty=0; nextMilestone=CONFIG.MILESTONE_STEP;
+    dyingTimer=0; car.invuln=0; nearMissCd=0; revivedThisRun=false; previewState.valid=false; capFX.active=false;
+    Trail.reset(); Drones.freeAll(); Particles.freeAll(); Popups.freeAll(); FX.reset();
+    prevBest=Storage.data.highScore;
+    // Car starts mid-arena ALREADY drifting in a gentle circle (live within ~2s of
+    // load). firstCaptureDone resets every run so each restart opens with the same
+    // friction-free, guaranteed-first-capture intro.
+    car.x=W*0.5; car.y=H*0.56; car.dir=-Math.PI/2; car.r=Math.min(maxR,CONFIG.INTRO_RADIUS);
+    droneTarget=1; firstCaptureDone=false;
+    // Place ONE drone at the centre of the opening drift circle, so the very first
+    // action — an idle lap OR a hold, pressed at any moment — always closes a loop
+    // AROUND it (verified across input timings). Centre = car + R along turn-side normal.
+    const na=car.dir + CONFIG.TURN_DIR*Math.PI/2;
+    const off=CONFIG.INTRO_RADIUS*CONFIG.FIRST_DRONE_FRAC;
+    Drones.spawnAt(car.x+Math.cos(na)*off, car.y+Math.sin(na)*off, false);
+    hintAlpha = Storage.data.firstRunDone?0:1;  // "HOLD" hint on the very first run only
+    Audio.resetMusicClock(); Audio.setMusic(true);
+    state=STATE.PLAYING;
+  }
+
+  // ---- scoring + capture ---------------------------------------------------
+  function comboMult(){ return Math.max(1, combo); }
+  function addScore(n){ score+=n; if(score>=nextMilestone){ milestone(); } }
+  function milestone(){
+    nextMilestone+=CONFIG.MILESTONE_STEP;
+    Storage.data.coins+=CONFIG.MILESTONE_COINS; coinsRun+=CONFIG.MILESTONE_COINS; Storage.save();
+    Audio.fanfare(); FX.flash('rgba(0,240,255,0.18)',0.5);
+    Popups.spawn(W/2, H*0.30, 'MILESTONE +'+CONFIG.MILESTONE_COINS, COL.amber, 26);
+  }
+
+  // The capture FX: snap-fill the loop, pop drones, score, juice.
+  const capFX={active:false, t:0, poly:[], n:0, color:'#fff'};
+  for(let i=0;i<CONFIG.MAX_TRAIL_POINTS;i++) capFX.poly.push({x:0,y:0});
+
+  function doCapture(loop, caught){
+    const arenaArea=W*H;
+    let norm=clamp(loop.area/(arenaArea*CONFIG.AREA_REF_FRACTION), CONFIG.AREA_NORM_MIN, CONFIG.AREA_NORM_MAX);
+    combo=Math.min(CONFIG.COMBO_MAX, combo+1); comboTimer=CONFIG.COMBO_DECAY_TIME; comboBounce=1;
+    pitchStep++;
+    let gained=0; let centerX=0, centerY=0, bonusHit=false;
+    caught.forEach(d=>{ centerX+=d.x; centerY+=d.y; if(d.bonus) bonusHit=true; });
+    centerX/=caught.length; centerY/=caught.length;
+    const valEach=CONFIG.BASE_CAPTURE*norm*comboMult();
+    gained=Math.round(valEach*caught.length*(bonusHit?2:1));
+    addScore(gained);
+
+    // copy loop polygon into the capture-FX scratch for the snap-fill animation
+    capFX.n=loop.n; for(let i=0;i<loop.n;i++){ capFX.poly[i].x=loop.poly[i].x; capFX.poly[i].y=loop.poly[i].y; }
+    capFX.active=true; capFX.t=1; capFX.color=bonusHit?COL.cyan:COL.magenta;
+
+    // pop drones -> particles + free
+    caught.forEach(d=>{
+      Particles.burst(d.x,d.y, d.bonus?26:16, {spr:Sprites.amber, spMax:300, sizeMax:18});
+      Particles.burst(d.x,d.y, 8, {spr: capFX.color===COL.cyan?Sprites.cyan:Sprites.magenta, spMax:200, sizeMax:14});
+      Drones.pool.free(d);
+    });
+
+    // popups: points + multiplier (dopamine — treated as a core feature)
+    Popups.spawn(centerX, centerY, '+'+gained, COL.cyan, 34);
+    if(comboMult()>1) Popups.spawn(centerX, centerY-34, 'x'+comboMult()+'!', COL.magenta, 30);
+    // variable reward: clean big single loop => PERFECT bonus
+    if(caught.length>=1 && norm>=CONFIG.PERFECT_AREA){ Popups.spawn(centerX, centerY-66,'PERFECT!',COL.amber,26); Audio.bonus(); }
+    if(bonusHit){ Popups.spawn(centerX, centerY-66,'BONUS x2',COL.cyan,26); Audio.bonus(); }
+
+    // feel: shake + hit-stop scaled to the size of the moment
+    const big=caught.length>=CONFIG.HITSTOP_THRESHOLD;
+    FX.addShake(clamp(0.25+caught.length*0.18+norm*0.15, 0.2, 1.4));
+    if(big) FX.addHitstop(CONFIG.HITSTOP_BIG + (caught.length-2)*0.02);
+    if(combo>=CONFIG.CHROMA_COMBO) FX.setChroma(clamp((combo-CONFIG.CHROMA_COMBO+1)*0.15,0,0.7));
+    FX.flash(capFX.color==='#FF2D95'?'rgba(255,45,149,0.12)':'rgba(0,240,255,0.14)', 0.45);
+    Audio.capture(pitchStep);
+
+    // coins as a small variable drip (extra reason to chase combos)
+    if(Math.random()<0.5){ const c=1+ (bonusHit?2:0); Storage.data.coins+=c; coinsRun+=c; Storage.save(); Audio.coin(); }
+
+    // the lasso "fires": reset the live trail so the consumed loop is safe and
+    // can never re-trigger (legible + bug-free).
+    Trail.reset(); Trail.push(car.x,car.y, elapsed);
+
+    if(!firstCaptureDone){ firstCaptureDone=true; hintAlpha=0; if(!Storage.data.firstRunDone){ Storage.data.firstRunDone=true; Storage.save(); } droneTarget=CONFIG.MIN_DRONES; }
+  }
+
+  function die(){
+    if(state!==STATE.PLAYING) return;
+    if(car.invuln>0) return;            // post-revive grace
+    state=STATE.DYING; dyingTimer=0.7;
+    FX.addShake(1.5); FX.flash('rgba(255,23,68,0.5)',1.0); Audio.death();
+    Audio.setMusic(false);
+    // combo "shatters"
+    if(combo>1){ Particles.burst(W/2,H*0.18, 20, {spr:Sprites.red, spMax:240, sizeMax:18}); }
+    // big death burst at the car
+    Particles.burst(car.x,car.y, 30, {spr:Sprites.white, spMax:320, sizeMax:20});
+  }
+
+  function revive(){
+    // restore at the same score; clear hazards; brief invulnerability. Once per run.
+    revivedThisRun=true;
+    Trail.reset(); Drones.freeAll(); Particles.freeAll();
+    car.x=W*0.5; car.y=H*0.5; car.dir=-Math.PI/2; car.r=maxR; car.invuln=CONFIG.REVIVE_INVULN;
+    Trail.push(car.x,car.y,elapsed);
+    droneTarget=Math.max(CONFIG.MIN_DRONES, droneTarget);
+    state=STATE.PLAYING; Audio.setMusic(true); FX.flash('rgba(0,240,255,0.25)',0.6);
+  }
+
+  function gameOver(){
+    state=STATE.DEAD;
+    Storage.data.totalRuns=(Storage.data.totalRuns||0)+1;
+    const isBest=score>Storage.data.highScore;
+    if(isBest) Storage.data.highScore=score;
+    // credit the end-of-run coin bonus to BOTH the run tally and the real balance
+    const endBonus=Math.floor(score/100)*CONFIG.COINS_PER_100;
+    coinsRun += endBonus; Storage.data.coins += endBonus;
+    Storage.save();
+    UI.showGameOver({ score:Math.round(score), best:Storage.data.highScore, isBest:isBest,
+      coins:coinsRun, prevBest:prevBest, canRevive:!revivedThisRun });
+    if(isBest) Audio.fanfare();
+  }
+
+  // ---- spawn director ------------------------------------------------------
+  function updateDifficulty(){
+    let base;
+    if(elapsed<CONFIG.RAMP_GENTLE_TIME) base=(elapsed/CONFIG.RAMP_GENTLE_TIME)*0.25;
+    else base=0.25+((elapsed-CONFIG.RAMP_GENTLE_TIME)/(CONFIG.RAMP_FULL_TIME-CONFIG.RAMP_GENTLE_TIME))*0.75;
+    const sd=clamp(score/CONFIG.SCORE_FOR_MAX,0,1)*0.85;
+    difficulty=clamp(Math.max(base,sd),0,1);
+    if(firstCaptureDone) droneTarget=Math.round(lerp(CONFIG.MIN_DRONES, CONFIG.MAX_DRONES, difficulty));
+  }
+  function maybeSpawn(dt){
+    spawnTimer-=dt;
+    const interval=lerp(1.4,0.5,difficulty);
+    if(spawnTimer<=0 && Drones.count<droneTarget){
+      spawnTimer=interval;
+      // spawn away from the car so nothing pops in on top of the player
+      let x,y,tries=0;
+      do{ x=rand(60,W-60); y=rand(80,H-80); tries++; }while(dist(x,y,car.x,car.y)<maxR*1.4 && tries<12);
+      Drones.spawnAt(x,y, Math.random()<CONFIG.BONUS_DRONE_CHANCE);
+    }
+  }
+
+  // ---- car physics ---------------------------------------------------------
+  function updateCar(dt){
+    // radius eases toward target set by input (hold=tight, release=wide).
+    // Until the first capture the "wide" radius is capped to INTRO_RADIUS so the
+    // opening always resolves to a guaranteed capture (see fullReset).
+    const wide = firstCaptureDone ? maxR : Math.min(maxR, CONFIG.INTRO_RADIUS);
+    const targetR = Input.isHolding()? CONFIG.MIN_RADIUS : wide;
+    car.r = lerp(car.r, targetR, clamp(CONFIG.RADIUS_LERP*dt,0,1));
+    let omega = (CONFIG.CAR_SPEED/car.r)*CONFIG.TURN_DIR;
+    // soft containment: curve back from the wall (keeps the single death rule)
+    const m=CONFIG.WALL_MARGIN;
+    let push=0;
+    if(car.x<m) push+=(m-car.x)/m; if(car.x>W-m) push-=(car.x-(W-m))/m;
+    if(car.y<m) push+=(m-car.y)/m; if(car.y>H-m) push-=(car.y-(H-m))/m;
+    // when near a wall, briefly tighten in the turn direction to arc inward
+    const nearWall=(car.x<m*2||car.x>W-m*2||car.y<m*2||car.y>H-m*2);
+    if(nearWall){
+      // steer toward arena centre by nudging heading
+      const toCx=W/2-car.x, toCy=H/2-car.y; const desired=Math.atan2(toCy,toCx);
+      let diff=Math.atan2(Math.sin(desired-car.dir),Math.cos(desired-car.dir));
+      omega += diff*CONFIG.CONTAIN_STRENGTH*0.6;
+    }
+    car.dir += omega*dt;
+    car.x += Math.cos(car.dir)*CONFIG.CAR_SPEED*dt;
+    car.y += Math.sin(car.dir)*CONFIG.CAR_SPEED*dt;
+    car.x=clamp(car.x,6,W-6); car.y=clamp(car.y,6,H-6);
+    if(car.invuln>0) car.invuln-=dt;
+    // parallax target follows the car (subtle depth)
+    parallaxX=(car.x-W/2)*0.04; parallaxY=(car.y-H/2)*0.04;
+  }
+
+  // ---- main update ---------------------------------------------------------
+  function update(dt){
+    if(state===STATE.PLAYING){
+      elapsed+=dt;
+      updateDifficulty();
+      updateCar(dt);
+      // Intro guarantee: until the first capture, the single drone gently hovers at
+      // the centre of the car's CURRENT drift circle, so whatever loop the player
+      // closes (idle lap or held spiral) always encloses it. Bulletproof first win.
+      if(!firstCaptureDone && Drones.count>=1){
+        const d=Drones.alive[0];
+        const cx=car.x + car.r*Math.cos(car.dir + CONFIG.TURN_DIR*Math.PI/2);
+        const cy=car.y + car.r*Math.sin(car.dir + CONFIG.TURN_DIR*Math.PI/2);
+        const k=clamp(CONFIG.INTRO_DRONE_TRACK*dt,0,1); d.x+=(cx-d.x)*k; d.y+=(cy-d.y)*k;
+      }
+      // record trail point when we've moved far enough
+      const last=Trail.len>0?Trail.get(Trail.len-1):null;
+      if(!last || dist2(last.x,last.y,car.x,car.y) >= CONFIG.TRAIL_MIN_DIST*CONFIG.TRAIL_MIN_DIST){
+        Trail.push(car.x,car.y,elapsed);
+        // self-cross resolution (only on a freshly added head segment)
+        const loop=Trail.checkClose();
+        if(loop){
+          const caught=collectEnclosed(loop);
+          if(caught.length>0) doCapture(loop, caught);
+          else if(!firstCaptureDone || car.invuln>0){ Trail.reset(); Trail.push(car.x,car.y,elapsed); } // intro / post-revive grace: never punish, just break the trail
+          else die();                          // empty self-cross = death (the one legible rule)
+        }
+      }
+      Trail.dropOld(elapsed, CONFIG.TRAIL_LIFESPAN);
+
+      Drones.update(dt, lerp(CONFIG.DRONE_BASE_SPEED,CONFIG.DRONE_MAX_SPEED,difficulty), W, H);
+      maybeSpawn(dt);
+
+      // combo decay
+      if(combo>0){ comboTimer-=dt; if(comboTimer<=0){ combo=0; pitchStep=0; } }
+      comboBounce=Math.max(0, comboBounce-dt*3);
+
+      // greed/near-death preview + near-miss telegraph (throttled)
+      previewFrame=(previewFrame+1)%2;
+      updatePreview();
+      nearMissCd=Math.max(0,nearMissCd-dt);
+      if(car.invuln<=0 && firstCaptureDone){
+        const near=Trail.nearestApproach();
+        if(near<CONFIG.NEAR_MISS_DIST){ FX.nearMiss(); if(nearMissCd<=0){ Audio.tick(); nearMissCd=0.16; } } // throttle: no tick storm while skimming
+      }
+
+      // drift hum tracks tightness
+      const tight=1-(car.r-CONFIG.MIN_RADIUS)/Math.max(1,(maxR-CONFIG.MIN_RADIUS));
+      Audio.setDrift(clamp(tight,0,1), true);
+      Audio.updateMusic(true, difficulty);
+
+      // capture snap-fill animation timer
+      if(capFX.active){ capFX.t-=dt*7; if(capFX.t<=0) capFX.active=false; }
+    }
+    else if(state===STATE.DYING){
+      Audio.setDrift(0,false);
+      dyingTimer-=dt; if(dyingTimer<=0){ gameOver(); }
+    }
+    // FX + cosmetic systems always update so death/menus stay alive
+    FX.update(dt);
+    Particles.update(dt);
+    Popups.update(dt);
+    // smooth score counter
+    displayScore += (score-displayScore)*clamp(8*dt,0,1);
+    if(Math.abs(score-displayScore)<0.5) displayScore=score;
+  }
+
+  // gather drones strictly inside the loop polygon
+  const _caught=[];
+  function collectEnclosed(loop){
+    _caught.length=0;
+    const a=Drones.alive;
+    for(let i=0;i<a.length;i++){ const d=a[i]; if(d.spawn>0.5 && pointInPoly(d.x,d.y,loop.poly,loop.n)) _caught.push(d); }
+    return _caught;
+  }
+
+  // preview state for rendering (greed glow / danger warning)
+  const previewState={valid:false, danger:false, area:0, n:0, poly:null, ghost:0};
+  function updatePreview(){
+    if(previewFrame!==0){ return; }
+    const pv=Trail.previewLoop();
+    if(pv.valid){
+      // does the hypothetical loop enclose any drone?
+      let enclosed=0, gx=0, gy=0;
+      const a=Drones.alive;
+      for(let i=0;i<a.length;i++){ const d=a[i]; if(pointInPoly(d.x,d.y,pv.poly,pv.n)){ enclosed++; gx+=d.x; gy+=d.y; } }
+      previewState.valid=true; previewState.poly=pv.poly; previewState.n=pv.n; previewState.area=pv.area;
+      previewState.danger=(enclosed===0);
+      if(enclosed>0){
+        const arenaArea=W*H; const norm=clamp(pv.area/(arenaArea*CONFIG.AREA_REF_FRACTION),CONFIG.AREA_NORM_MIN,CONFIG.AREA_NORM_MAX);
+        previewState.ghost=Math.round(CONFIG.BASE_CAPTURE*norm*comboMult()*enclosed);
+        previewState.gx=gx/enclosed; previewState.gy=gy/enclosed-40;
+      } else previewState.ghost=0;
+    } else previewState.valid=false;
+  }
+
+  return {
+    canvas, get ctx(){return ctx;}, STATE, resize,
+    fullReset, revive, update,
+    get state(){return state;}, set state(s){state=s;},
+    get W(){return W;}, get H(){return H;}, get car(){return car;}, get maxR(){return maxR;},
+    get score(){return score;}, get displayScore(){return displayScore;},
+    get combo(){return combo;}, get comboBounce(){return comboBounce;},
+    get elapsed(){return elapsed;}, get difficulty(){return difficulty;},
+    get hintAlpha(){return hintAlpha;}, get capFX(){return capFX;}, get previewState(){return previewState;},
+    get parallaxX(){return parallaxX;}, get parallaxY(){return parallaxY;},
+    get vignette(){return vignette;}, get bgGrad(){return bgGrad;}, get prevBest(){return prevBest;}, get safeTop(){return safeTop;},
+  };
+})();
+
+/* ============================== [RENDER] =================================== */
+const Render=(()=>{
+  function drawGrid(ctx,W,H,px,py){
+    const sp=46; ctx.lineWidth=1; ctx.strokeStyle='rgba(26,26,46,0.9)'; ctx.beginPath();
+    const ox=-((px)%sp), oy=-((py)%sp);
+    for(let x=ox;x<W+sp;x+=sp){ ctx.moveTo(x,0); ctx.lineTo(x,H); }
+    for(let y=oy;y<H+sp;y+=sp){ ctx.moveTo(0,y); ctx.lineTo(W,y); }
+    ctx.stroke();
+  }
+
+  // hoisted so the draw pass allocates nothing per frame
+  const TRAIL_PASSES=[ {w:CONFIG.TRAIL_WIDTH*3.0, a:0.10}, {w:CONFIG.TRAIL_WIDTH*1.8, a:0.22}, {w:CONFIG.TRAIL_WIDTH, a:0.95} ];
+  function drawTrail(ctx, offX, offY){
+    const n=Trail.len; if(n<2) return;
+    const skin=Cosmetics.trail(); const rainbow=(skin.a==='rainbow');
+    const headShift=(Game.elapsed*60)%360;
+    // resolve the gradient endpoints ONCE (no per-segment object allocation)
+    let ar=0,ag=0,ab=0,br=0,bg=0,bb=0;
+    if(!rainbow){ const ca=hexToRgb(skin.a), cb=hexToRgb(skin.b); ar=ca.r;ag=ca.g;ab=ca.b;br=cb.r;bg=cb.g;bb=cb.b; }
+    ctx.lineCap='round'; ctx.lineJoin='round';
+    // additive multi-pass = a soft liquid bloom, far cheaper than shadowBlur
+    ctx.globalCompositeOperation='lighter';
+    for(let pi=0; pi<TRAIL_PASSES.length; pi++){
+      const pass=TRAIL_PASSES[pi]; ctx.lineWidth=pass.w;
+      for(let i=1;i<n;i++){
+        const p0=Trail.get(i-1), p1=Trail.get(i);
+        const tN=i/(n-1);                            // 0 tail -> 1 head
+        const age=clamp((Game.elapsed-p1.t)/CONFIG.TRAIL_LIFESPAN,0,1);
+        const fade=1-age; if(fade<=0.02) continue;   // older = dimmer
+        const alpha=pass.a*fade;
+        if(rainbow){ ctx.strokeStyle='hsla('+(((tN*300)+headShift)%360)+',100%,60%,'+alpha+')'; }
+        else { const r=(ar+(br-ar)*tN)|0, g=(ag+(bg-ag)*tN)|0, b=(ab+(bb-ab)*tN)|0; ctx.strokeStyle='rgba('+r+','+g+','+b+','+alpha+')'; }
+        ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y+offY); ctx.lineTo(p1.x+offX,p1.y+offY); ctx.stroke();
+      }
+    }
+    ctx.globalCompositeOperation='source-over';
+  }
+
+  function drawPreview(ctx,offX,offY){
+    const pv=Game.previewState; if(!pv.valid || pv.n<3) return;
+    ctx.save(); ctx.beginPath();
+    ctx.moveTo(pv.poly[0].x+offX,pv.poly[0].y+offY);
+    for(let i=1;i<pv.n;i++) ctx.lineTo(pv.poly[i].x+offX,pv.poly[i].y+offY);
+    ctx.closePath();
+    const pulse=0.10+0.05*Math.sin(performance.now()*0.012);
+    if(pv.danger){ ctx.fillStyle='rgba(255,23,68,'+(pulse*0.8)+')'; }
+    else ctx.fillStyle='rgba(0,240,255,'+pulse+')';
+    ctx.fill(); ctx.restore();
+    if(!pv.danger && pv.ghost>0){
+      ctx.globalAlpha=0.85; ctx.font='900 22px '+FONT_STACK; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle=COL.cyan; ctx.fillText('+'+pv.ghost, pv.gx+offX, pv.gy+offY); ctx.globalAlpha=1;
+    }
+  }
+
+  function drawCaptureFill(ctx,offX,offY){
+    const cf=Game.capFX; if(!cf.active || cf.n<3) return;
+    const t=clamp(cf.t,0,1); const scale=0.85+0.15*t;
+    ctx.save();
+    // snap-shut: scale slightly toward centroid as it flashes white->color
+    let cx=0,cy=0; for(let i=0;i<cf.n;i++){cx+=cf.poly[i].x;cy+=cf.poly[i].y;} cx/=cf.n; cy/=cf.n;
+    ctx.translate(cx+offX,cy+offY); ctx.scale(scale,scale); ctx.translate(-cx-offX,-cy-offY);
+    ctx.beginPath(); ctx.moveTo(cf.poly[0].x+offX,cf.poly[0].y+offY);
+    for(let i=1;i<cf.n;i++) ctx.lineTo(cf.poly[i].x+offX,cf.poly[i].y+offY); ctx.closePath();
+    const a=0.5*t; const cc=hexToRgb(cf.color);
+    ctx.fillStyle='rgba('+cc.r+','+cc.g+','+cc.b+','+a+')'; ctx.fill();
+    ctx.globalCompositeOperation='lighter';
+    ctx.fillStyle='rgba(255,255,255,'+(0.4*t)+')'; ctx.fill();
+    ctx.restore();
+  }
+
+  function drawDrones(ctx,offX,offY){
+    const a=Drones.alive;
+    ctx.globalCompositeOperation='lighter';
+    for(let i=0;i<a.length;i++){ const d=a[i];
+      const pop=0.85+0.15*Math.sin(d.phase); const s=d.r*(2.6)*pop*d.spawn;
+      const spr=d.bonus?Sprites.droneBonus:Sprites.drone;
+      ctx.globalAlpha=clamp(d.spawn,0,1);
+      ctx.drawImage(spr, d.x-s+offX, d.y-s+offY, s*2, s*2);
+    }
+    ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+    // solid cores
+    for(let i=0;i<a.length;i++){ const d=a[i]; const pop=0.85+0.15*Math.sin(d.phase);
+      ctx.beginPath(); ctx.fillStyle=d.bonus?'#aefff0':'#fff4d6';
+      ctx.arc(d.x+offX,d.y+offY, d.r*0.5*pop*d.spawn, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.strokeStyle=d.bonus?COL.cyan:COL.amber; ctx.lineWidth=2;
+      ctx.arc(d.x+offX,d.y+offY, d.r*0.95*d.spawn, 0, TAU); ctx.stroke();
+    }
+  }
+
+  function drawCar(ctx,offX,offY){
+    const car=Game.car; const skin=Cosmetics.car();
+    // glow
+    ctx.globalCompositeOperation='lighter';
+    const gs=46; ctx.globalAlpha=car.invuln>0?(0.5+0.5*Math.sin(performance.now()*0.02)):1;
+    ctx.drawImage(Sprites.car, car.x-gs+offX, car.y-gs+offY, gs*2, gs*2);
+    ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+    // body: a small bright dart pointing along travel
+    ctx.save(); ctx.translate(car.x+offX,car.y+offY); ctx.rotate(car.dir);
+    ctx.fillStyle=skin.color; ctx.beginPath();
+    ctx.moveTo(9,0); ctx.lineTo(-6,5); ctx.lineTo(-3,0); ctx.lineTo(-6,-5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(2,0,2.4,0,TAU); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawHUD(ctx,W,H){
+    const st=Game.safeTop;
+    // SCORE — large, top-center, cyan, tabular numerals so it never jitters
+    const s=Math.round(Game.displayScore).toString();
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.font='900 56px '+FONT_STACK;
+    ctx.fillStyle='rgba(0,240,255,0.25)'; ctx.fillText(s, W/2, 18+st+2);
+    ctx.fillStyle=COL.cyan; ctx.fillText(s, W/2, 18+st);
+    // BEST line (the target to beat)
+    ctx.font='800 15px '+FONT_STACK;
+    const beat=(Game.score>Game.prevBest && Game.prevBest>0);
+    const bestTxt = beat?'NEW BEST':'BEST '+Storage.data.highScore;
+    ctx.fillStyle=beat?COL.magenta:'#7f88ad';
+    ctx.fillText(bestTxt, W/2, 82+st);
+
+    // COMBO — punchy magenta, bounces on increment
+    if(Game.combo>1){
+      const sc=1+Game.comboBounce*0.5;
+      ctx.font='900 '+Math.round(40*sc)+'px '+FONT_STACK; ctx.textAlign='center';
+      ctx.fillStyle=COL.magenta; ctx.globalAlpha=0.9;
+      ctx.fillText('x'+Game.combo, W/2, 110+st); ctx.globalAlpha=1;
+    }
+
+    // COINS — top-left, below the shop button (no overlap on any aspect ratio)
+    ctx.textAlign='left'; ctx.font='900 19px '+FONT_STACK; ctx.fillStyle=COL.amber;
+    ctx.fillText('◉ '+Storage.data.coins, 18, 74+st);
+  }
+
+  function drawHint(ctx,W,H){
+    const a=Game.hintAlpha; if(a<=0) return;
+    const car=Game.car; const pulse=0.5+0.5*Math.sin(performance.now()*0.006);
+    ctx.globalAlpha=a*(0.5+0.5*pulse);
+    ctx.font='900 22px '+FONT_STACK; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='#fff'; ctx.fillText('HOLD', car.x, car.y+54);
+    ctx.globalAlpha=a*0.6; ctx.font='800 13px '+FONT_STACK; ctx.fillStyle='#9aa3c7';
+    ctx.fillText('to tighten the drift', car.x, car.y+76);
+    ctx.globalAlpha=1;
+  }
+
+  const _sh={x:0,y:0}; // reused each frame (no allocation)
+  function frame(){
+    const ctx=Game.ctx, W=Game.W, H=Game.H;
+    // background — subtle radial indigo gradient (premium depth)
+    ctx.fillStyle=Game.bgGrad||COL.bg; ctx.fillRect(0,0,W,H);
+    // screen shake offset
+    FX.shakeXY(_sh);
+    const offX=_sh.x, offY=_sh.y;
+    // parallax grid
+    drawGrid(ctx,W,H, Game.parallaxX+offX, Game.parallaxY+offY);
+
+    drawPreview(ctx,offX,offY);
+    drawCaptureFill(ctx,offX,offY);
+    drawTrail(ctx,offX,offY);
+
+    // subtle chromatic aberration on big combos: re-stroke trail with R/B offset
+    if(FX.chroma>0.02){
+      const k=FX.chroma*4;
+      ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=0.25*FX.chroma;
+      // cheap CA ghost of the trail head region
+      ctx.save(); ctx.translate(k,0); drawTrailGhost(ctx,offX,offY,'rgba(255,0,64,1)'); ctx.restore();
+      ctx.save(); ctx.translate(-k,0); drawTrailGhost(ctx,offX,offY,'rgba(0,200,255,1)'); ctx.restore();
+      ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+    }
+
+    drawDrones(ctx,offX,offY);
+    if(Game.state===Game.STATE.PLAYING||Game.state===Game.STATE.DYING) drawCar(ctx,offX,offY);
+    Particles.draw(ctx);
+    Popups.draw(ctx);
+
+    // near-miss shimmer (red vignette pulse)
+    if(FX.nearShimmer>0.02){ ctx.fillStyle='rgba(255,23,68,'+(FX.nearShimmer*0.10)+')'; ctx.fillRect(0,0,W,H); }
+
+    // vignette to focus the centre
+    if(Game.vignette){ ctx.fillStyle=Game.vignette; ctx.fillRect(0,0,W,H); }
+
+    drawHint(ctx,W,H);
+    if(Game.state===Game.STATE.PLAYING||Game.state===Game.STATE.DYING) drawHUD(ctx,W,H);
+  }
+  function drawTrailGhost(ctx,offX,offY,color){
+    const n=Trail.len; if(n<2) return; ctx.lineWidth=CONFIG.TRAIL_WIDTH; ctx.strokeStyle=color; ctx.lineCap='round';
+    ctx.beginPath();
+    const start=Math.max(1,n-26);
+    ctx.moveTo(Trail.get(start-1).x+offX, Trail.get(start-1).y+offY);
+    for(let i=start;i<n;i++){ ctx.lineTo(Trail.get(i).x+offX, Trail.get(i).y+offY); }
+    ctx.stroke();
+  }
+  return { frame };
+})();
+
+/* =============================== [UI] ====================================== */
+/* DOM overlays. Big touch targets, away from edges, no overlap on phone ratios. */
+const UI=(()=>{
+  const $=(id)=>document.getElementById(id);
+  const overEl=$('over'), shopEl=$('shop'), dailyEl=$('daily'), toastEl=$('toast');
+  let toastTimer=null;
+
+  function toast(msg){
+    toastEl.textContent=msg; toastEl.classList.add('show');
+    clearTimeout(toastTimer); toastTimer=setTimeout(()=>toastEl.classList.remove('show'),1600);
+  }
+  function hideAll(){ [overEl,shopEl,dailyEl].forEach(e=>e.classList.remove('show')); }
+
+  function updateNextUnlock(){
+    const next=Cosmetics.nextLocked();
+    if(next){
+      $('next-name').textContent='Next: '+next.name;
+      const have=Storage.data.coins, need=next.cost;
+      $('next-coins').textContent=Math.max(0,need-have);
+      $('next-bar').style.width=clamp(have/need*100,0,100)+'%';
+    } else {
+      $('next-name').textContent='All skins unlocked';
+      $('next-coins').textContent='0'; $('next-bar').style.width='100%';
+    }
+  }
+
+  function showGameOver(info){
+    // "SO CLOSE" near-miss framing + the next milestone they nearly hit
+    const next=Math.ceil((info.score+1)/CONFIG.MILESTONE_STEP)*CONFIG.MILESTONE_STEP;
+    const away=next-info.score;
+    $('over-score').textContent=info.score;
+    $('over-best').textContent=info.best;
+    $('over-coins').textContent='+'+info.coins;
+    $('over-newbest').classList.toggle('hidden', !info.isBest);
+    const hl=$('over-headline'); const eye=$('over-eyebrow');
+    if(info.isBest){ hl.textContent='NEW BEST!'; hl.classList.remove('close'); eye.textContent='Record'; }
+    else if(away<=Math.max(60, CONFIG.MILESTONE_STEP*0.4)){ hl.textContent='SO CLOSE'; hl.classList.add('close'); eye.textContent='Run Over'; }
+    else { hl.textContent='RUN OVER'; hl.classList.remove('close'); eye.textContent='Run Over'; }
+    $('over-near').innerHTML = info.isBest
+      ? 'You set a new personal best.'
+      : 'You were <b>'+away+'</b> from <b>'+next+'</b>.'+(info.best>info.score?' Best is <b>'+info.best+'</b>.':'');
+    updateNextUnlock();
+    // revive is offered at most once per run (the emotional-peak ad moment)
+    $('btn-revive').classList.toggle('hidden', info.canRevive===false);
+    hideAll(); overEl.classList.add('show');
+  }
+
+  // ---------- shop ----------
+  function renderSkinPreview(cv, item, isCar){
+    const g=cv.getContext('2d'); g.clearRect(0,0,cv.width,cv.height);
+    g.lineCap='round'; g.lineWidth=7;
+    if(isCar){
+      g.fillStyle=item.color; g.beginPath(); g.arc(cv.width/2,cv.height/2,12,0,TAU); g.fill();
+      g.strokeStyle='rgba(255,255,255,0.25)'; g.lineWidth=2; g.beginPath(); g.arc(cv.width/2,cv.height/2,18,0,TAU); g.stroke();
+      return;
+    }
+    const steps=24;
+    for(let i=0;i<steps;i++){
+      const t=i/(steps-1);
+      const x=10+t*(cv.width-20); const y=cv.height/2+Math.sin(t*Math.PI*2)*12;
+      let col;
+      if(item.a==='rainbow') col='hsl('+(t*300)+',100%,60%)';
+      else col=rgbStr(mixRgb(hexToRgb(item.a),hexToRgb(item.b),t),0.95);
+      if(i>0){ g.strokeStyle=col; g.beginPath(); g.moveTo(px,py); g.lineTo(x,y); g.stroke(); }
+      var px=x, py=y;
+    }
+  }
+  function buildShop(){
+    const grid=$('shop-grid'); grid.innerHTML='';
+    $('shop-coins').textContent=Storage.data.coins;
+    const items=Cosmetics.all();
+    items.forEach(item=>{
+      const isCar=item.id.indexOf('car_')===0;
+      const unlocked=Cosmetics.isUnlocked(item.id);
+      const equipped=isCar?Storage.data.equippedCar===item.id:Storage.data.equippedTrail===item.id;
+      const el=document.createElement('div'); el.className='skin'+(equipped?' equipped':'')+(unlocked?'':' locked');
+      const cv=document.createElement('canvas'); cv.width=110; cv.height=46; el.appendChild(cv);
+      const name=document.createElement('div'); name.className='name'; name.textContent=item.name; el.appendChild(name);
+      const state=document.createElement('div');
+      if(equipped){ state.className='state eq'; state.textContent='EQUIPPED'; }
+      else if(unlocked){ state.className='state un'; state.textContent='TAP TO EQUIP'; }
+      else { state.className='cost'; state.innerHTML='<span class="mini-coin"></span>'+item.cost; }
+      el.appendChild(state);
+      // small "watch to unlock" affordance on locked items (rewarded-ad driver)
+      if(!unlocked){ const ad=document.createElement('div'); ad.className='state un'; ad.textContent='▶ or watch ad'; ad.style.marginTop='-2px'; el.appendChild(ad); }
+      el.addEventListener('click',()=>onSkinTap(item,isCar,unlocked));
+      grid.appendChild(el);
+      renderSkinPreview(cv,item,isCar);
+    });
+  }
+  function onSkinTap(item,isCar,unlocked){
+    if(unlocked){
+      if(isCar) Storage.data.equippedCar=item.id; else Storage.data.equippedTrail=item.id;
+      Storage.save(); Audio.tick(); buildShop(); return;
+    }
+    if(Storage.data.coins>=item.cost){
+      Storage.data.coins-=item.cost; Cosmetics.unlock(item.id);
+      if(isCar) Storage.data.equippedCar=item.id; else Storage.data.equippedTrail=item.id;
+      Storage.save(); Audio.coin(); toast('Unlocked '+item.name+'!'); buildShop(); updateNextUnlock();
+    } else {
+      // not enough coins -> offer rewarded unlock
+      AdSDK.showRewarded(
+        ()=>{ Cosmetics.unlock(item.id); if(isCar)Storage.data.equippedCar=item.id; else Storage.data.equippedTrail=item.id; Storage.save(); Audio.fanfare(); toast('Unlocked '+item.name+'!'); buildShop(); updateNextUnlock(); },
+        ()=>{ toast('Need '+(item.cost-Storage.data.coins)+' more coins'); }
+      );
+    }
+  }
+  function openShop(){ buildShop(); hideAll(); shopEl.classList.add('show'); }
+  function closeShop(){ shopEl.classList.remove('show'); if(Game.state===Game.STATE.DEAD) overEl.classList.add('show'); }
+
+  // ---------- daily ----------
+  function checkDaily(){
+    const today=new Date().toISOString().slice(0,10);
+    if(Storage.data.lastDaily===today) return false;
+    const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
+    if(Storage.data.lastDaily===yesterday) Storage.data.streak=(Storage.data.streak||0)+1; else Storage.data.streak=1;
+    const amount=20+Math.min(80,(Storage.data.streak-1)*10);
+    $('daily-streak').textContent='DAY '+Storage.data.streak;
+    $('daily-sub').textContent=Storage.data.streak>1?'Streak going strong — keep it up!':'Welcome, drifter.';
+    $('daily-amount').textContent='+'+amount;
+    dailyEl.dataset.amount=amount; dailyEl.dataset.today=today;
+    hideAll(); dailyEl.classList.add('show');
+    return true;
+  }
+  function claimDaily(){
+    const amount=parseInt(dailyEl.dataset.amount)||20;
+    Storage.data.coins+=amount; Storage.data.lastDaily=dailyEl.dataset.today; Storage.save();
+    Audio.coin(); toast('+'+amount+' coins'); dailyEl.classList.remove('show');
+    // after daily, begin a fresh run
+    startRun();
+  }
+
+  // ---------- run flow ----------
+  function startRun(){ hideAll(); Game.fullReset(); }
+  function playAgain(){ Audio.tick(); AdSDK.showInterstitial(()=>{ startRun(); }); }
+
+  function wire(){
+    $('btn-again').addEventListener('click',playAgain);
+    $('btn-openshop').addEventListener('click',openShop);
+    $('btn-shop').addEventListener('click',()=>{ Audio.unlock(); openShop(); });
+    $('btn-shop-close').addEventListener('click',closeShop);
+    $('btn-daily-claim').addEventListener('click',claimDaily);
+    $('btn-revive').addEventListener('click',()=>{
+      const btn=$('btn-revive');
+      AdSDK.showRewarded(
+        ()=>{ overEl.classList.remove('show'); Game.revive(); btn.classList.add('hidden'); },
+        (err)=>{ // ad-block / skip fallback: a revive can't be partial, so explain + don't soft-lock
+          toast('Ad unavailable — play again'); }
+      );
+    });
+    $('btn-double').addEventListener('click',()=>{
+      const btn=$('btn-double');
+      AdSDK.showRewarded(
+        ()=>{ const add=coinsAddDouble(1.0); toast('+'+add+' bonus coins'); btn.setAttribute('disabled','true'); },
+        ()=>{ const add=coinsAddDouble(CONFIG.DOUBLE_COINS_PARTIAL-1); toast('Ad unavailable — +'+add+' coins anyway'); btn.setAttribute('disabled','true'); } // graceful partial
+      );
+    });
+    $('btn-mute').addEventListener('click',()=>{
+      Audio.unlock(); const m=!Audio.isMuted(); Audio.setMuted(m); Storage.set('muted',m);
+      $('btn-mute').innerHTML=m?'&#128263;':'&#128266;';
+    });
+  }
+  function coinsAddDouble(mult){
+    // doubles THIS run's earned coins (already added once at game over)
+    const base=parseInt($('over-coins').textContent.replace('+',''))||0;
+    const add=Math.max(1,Math.round(base*mult));
+    Storage.data.coins+=add; Storage.save(); $('shop-coins') && ($('shop-coins').textContent=Storage.data.coins);
+    return add;
+  }
+
+  return { toast, showGameOver, openShop, closeShop, checkDaily, startRun, wire, updateNextUnlock, buildShop };
+})();
+
+/* ============================== [LOOP] ===================================== */
+(function boot(){
+  Sprites.build();
+  Storage.load();
+  // restore mute preference
+  if(Storage.data.muted){ /* applied on unlock */ }
+  Game.resize();
+  UI.wire();
+  // mute button initial glyph
+  document.getElementById('btn-mute').innerHTML=Storage.data.muted?'&#128263;':'&#128266;';
+
+  // endowed progress: on a brand-new save, gift coins ~60% toward the first skin
+  if(!Storage.data.endowed){
+    const first=Cosmetics.nextLocked();
+    if(first){ Storage.data.coins=Math.max(Storage.data.coins, Math.ceil(first.cost*0.6)); }
+    Storage.data.endowed=true; Storage.save();
+  }
+
+  // resume audio + apply mute on the first interaction (autoplay-safe)
+  Input.onFirstInteraction(()=>{ Audio.unlock(); if(Storage.data.muted) Audio.setMuted(true); Audio.resume(); });
+
+  // lifecycle: pause on tab-away, resume cleanly (no dt spike)
+  let hidden=false;
+  document.addEventListener('visibilitychange',()=>{
+    hidden=document.hidden;
+    if(hidden){ Audio.setDrift(0,false); Audio.setMusic(false); }
+    else { lastT=performance.now(); if(Game.state===Game.STATE.PLAYING) Audio.setMusic(true); Audio.resume(); }
+  });
+  window.addEventListener('resize',()=>Game.resize());
+  window.addEventListener('orientationchange',()=>setTimeout(()=>Game.resize(),120));
+
+  // start: go straight into play (no menu). Show daily once per day first.
+  if(!UI.checkDaily()) Game.fullReset();
+
+  // fixed-timestep update, decoupled render
+  const STEP=1/60; let acc=0, lastT=performance.now();
+  function tick(now){
+    requestAnimationFrame(tick);
+    if(hidden) { lastT=now; return; }
+    let dt=(now-lastT)/1000; lastT=now;
+    if(dt>0.25) dt=0.25;                 // clamp huge gaps (tab return / breakpoints)
+    FX.tickRealtime(dt);                 // hit-stop timer runs in real time (~100ms micro-pause)
+    dt*=FX.timeScale();                  // then apply the slow-mo to the sim
+    acc+=dt;
+    let steps=0;
+    while(acc>=STEP && steps<5){ Game.update(STEP); acc-=STEP; steps++; }
+    if(steps===5) acc=0;                 // avoid spiral of death on weak hardware
+    Render.frame();
+  }
+  requestAnimationFrame(tick);
+
+  // expose for SDK integration + live tuning from console
+  window.DriftLasso={ CONFIG, Storage, AdSDK, Audio, Game, Cosmetics };
+})();
+</script>
+</body>
+</html>
