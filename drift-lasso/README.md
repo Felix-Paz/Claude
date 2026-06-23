@@ -47,23 +47,27 @@ trail-resets so the first try literally cannot fail. Verified across **every inp
 
 ## Cast & hazards
 
-Everything has googly eyes that track you, blink, and emote — and behaves differently:
+A whole cast of googly-eyed characters, each with its own personality:
 
 - 🟠 **Wanderer** — drifts lazily. Bread-and-butter points.
-- 🟢 **Runner** — a teal coward that **panics and flees** when you get close (worth `1.6×`). Chasing them down is the fun.
-- ⭐ **Gold star** — rare, fast, **`3×`** points + a fanfare. Variable-reward dopamine.
-- 🟣 **Bomb** — a spiky purple grump. **Do NOT lasso it:** wrapping a bomb spoils the loop, **shatters your combo**, and stings (`BONK!`) — but never kills you (the one death rule stays "empty self-cross"). The greed preview turns **red** when a closing loop would catch one.
-- 🌈 **Power-up orb** — rare; **drive over it** to grab a ~7s power: **FRENZY** (score ×2), **MAGNET** (reels critters in), or **SLO-MO** (everything slows).
+- 🔹 **Sprout** — tiny + zippy, comes in crowds; easy, low value.
+- 🔵 **Lunker** — big + slow + worth a lot, but hard to fit inside a loop.
+- 🟢 **Runner** — a teal coward that **panics and flees** when you get close (`1.6×`).
+- 🟣 **Magnet** — drawn toward your trail; it *comes to you* (then clusters dangerously).
+- 🟩 **Glutton** — **eats other critters and grows**; lasso a fat one for a jackpot (`2× + 0.8×` per critter eaten).
+- ⭐ **Gold star** — rare, fast, **`3×`** + a fanfare. Variable-reward dopamine.
+- 💣 **Bomb** — a spiky grump with a **lit fuse** that slowly **homes on you**. Do NOT lasso it: wrapping one spoils the loop, **shatters your combo**, and stings (`BONK!`) — but never kills you. The greed preview turns **red** when a loop would catch one.
+- 🌈 **Power-up orb** — rare; **drive over it** for a ~7s power: **FRENZY** (×2), **MAGNET**, or **SLO-MO**.
 
-Your trail is a **fence** — drones can't cross your live line, so once you start circling them they're trapped (close the mouth to seal the catch). The tail **grows longer** the more you catch in a run: bigger lassos, bigger risk.
+**SWARMS:** the director periodically dumps a **crazy crowd** (a telegraphed `SWARM!`) — the big "up" in a deliberate ups-and-downs density rhythm so the arena never feels monotonous.
 
-Captures fire **witty callouts** (`YOINK!`, `GOTCHA!`, `ROUNDUP!`…), candy confetti, a camera punch, and a rising-pitch combo ladder.
+Your trail is a **fence** (critters can't cross your live line — trap them, then seal the mouth) and the snake **grows longer + fatter** the more you circle. Captures fire **witty callouts** (`YOINK!`, `GOTCHA!`, `ROUNDUP!`…), confetti, a camera punch, and a rising-pitch combo ladder.
 
 ---
 
 ## Purpose: levels, goals, garage
 
-- **Levels = themed maps** — every **`LEVEL_STEP` (500) points = a level**, shown as a progress bar under the score + a `LV` chip. Each level-up fires a banner, pays coins, nudges difficulty, and **swaps the whole biome**: a crossfading sky, a different floor motif, and a witty name banner. The cast (the cartoon critters) stays for legibility; the *world* changes. Biomes cycle: **Neon Grid → Deep Space → Coral Reef → Disco Fever → Wild West → Candy Rush** (`BIOMES` array — add your own with a name, two sky colours, and a floor type: `grid/stars/bubbles/checker/dunes/sprinkles`).
+- **Levels = themed maps** — every **`LEVEL_STEP` (500) points = a level**, shown as a progress bar under the score + a `LV` chip. Each level-up fires a banner, pays coins, nudges difficulty, and **swaps the whole biome**: a crossfading sky, a different floor motif, and a witty name banner. The cast (the cartoon critters) stays for legibility; the *world* changes. **12 worlds** cycle: Neon Grid · Deep Space · Coral Reef · Disco Fever · Wild West · Candy Rush · Jungle Fever · Arctic · Volcano · Cloud Nine · The Matrix · Rainbow Road (`BIOMES` array — add your own with a name, two sky colours, and a floor type: `grid/stars/bubbles/checker/dunes/sprinkles/snow/waves/clouds`).
 - **Objectives** — 3 rotating goals (in the Garage now): *Lasso 9 runners*, *Hit a x6 combo*, *Catch a gold star*… complete one → coins + fanfare → replaced. The longer-term "one more run" hook. (The old daily-streak is gone.)
 - **Garage** — 9 trail skins + **make-your-own custom trail** (pick two colours), 6 car skins, and **equippable superpowers** (🧲 Magnet · 🛡️ Shield · 🔥 Hot Start). Buy with coins or watch a rewarded ad.
 
