@@ -63,7 +63,7 @@ Captures fire **witty callouts** (`YOINK!`, `GOTCHA!`, `ROUNDUP!`…), candy con
 
 ## Purpose: levels, goals, garage
 
-- **Levels** — every **`LEVEL_STEP` (500) points = a level**, shown as a big progress bar under the score *and* a `LV` chip top-right. Each level-up fires a banner, pays coins, **changes the background colour**, and nudges difficulty. That bar is the thing you're always chasing.
+- **Levels = themed maps** — every **`LEVEL_STEP` (500) points = a level**, shown as a progress bar under the score + a `LV` chip. Each level-up fires a banner, pays coins, nudges difficulty, and **swaps the whole biome**: a crossfading sky, a different floor motif, and a witty name banner. The cast (the cartoon critters) stays for legibility; the *world* changes. Biomes cycle: **Neon Grid → Deep Space → Coral Reef → Disco Fever → Wild West → Candy Rush** (`BIOMES` array — add your own with a name, two sky colours, and a floor type: `grid/stars/bubbles/checker/dunes/sprinkles`).
 - **Objectives** — 3 rotating goals (in the Garage now): *Lasso 9 runners*, *Hit a x6 combo*, *Catch a gold star*… complete one → coins + fanfare → replaced. The longer-term "one more run" hook. (The old daily-streak is gone.)
 - **Garage** — 9 trail skins + **make-your-own custom trail** (pick two colours), 6 car skins, and **equippable superpowers** (🧲 Magnet · 🛡️ Shield · 🔥 Hot Start). Buy with coins or watch a rewarded ad.
 
