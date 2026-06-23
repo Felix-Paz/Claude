@@ -236,14 +236,11 @@
 /* Every number a designer would touch lives here. See README "Tuning". */
 const CONFIG = {
   // --- CAR / DRIFT ---------------------------------------------------------
-  CAR_SPEED: 250,        // px/sec forward travel (constant; the player only steers the curve)
-  HOLD_RADIUS: 80,       // finger DOWN -> curl into a loop (the lasso). Smaller = tighter lasso.
-  ROAM_RADIUS: 1500,     // finger UP -> drive (near-)straight to roam & chase. Bigger = straighter.
-  RADIUS_LERP: 9,        // how fast the curve eases between roam and curl (1/sec)
-  TURN_DIR: 1,           // which way the car curls while held (+1 = clockwise)
-  INTRO_DRONE_TRACK: 10, // intro drone hovers at the prospective curl-centre this strongly (1/sec)
-                         // (tuned so HOLDING at ANY moment, on ANY screen size, always closes a
-                         //  CAPTURING loop on the first run — proven in _dev/control2.explore.js)
+  CAR_SPEED: 250,        // px/sec forward travel (constant)
+  TURN_RATE: 2.7,        // rad/sec while steering -> lasso radius = CAR_SPEED/TURN_RATE (~93px)
+  STEER_LERP: 16,        // how quickly the steering input ramps in (snappy, not jittery)
+                         // DIRECT STEERING: ← / → (or A / D) on desktop; hold the LEFT or RIGHT
+                         // half of the screen on phone. No input = drive straight.
 
   // --- TRAIL (the hero) ----------------------------------------------------
   TRAIL_LIFESPAN: 2.6,   // seconds a trail point stays alive (hazard + lasso window)
@@ -260,7 +257,13 @@ const CONFIG = {
   DRONE_MAX_SPEED: 58,   // px/sec at difficulty 1
   MIN_DRONES: 3,         // floor once the game gets going
   MAX_DRONES: 15,        // ceiling at full difficulty
-  BONUS_DRONE_CHANCE: 0.12, // chance a spawned drone is a high-value "bonus" (variable reward)
+  RUNNER_FLEE: 130,      // px: runners panic & flee when the car gets this close
+  // spawn mix (a spawned drone rolls these in order): bonus star, runner, bomb, else wanderer
+  BONUS_CHANCE: 0.07,    // rare gold star — big points (variable reward)
+  RUNNER_CHANCE: 0.30,   // teal coward that flees you — worth more, more fun to catch
+  BOMB_CHANCE: 0.16,     // purple grump you must NOT lasso — wrapping it spoils the loop
+  BOMB_AFTER_SCORE: 400, // bombs only start appearing once the player has the basics
+  RUNNER_VALUE: 1.6, BONUS_VALUE: 3.0, // score multipliers per type
 
   // --- DIFFICULTY RAMP -----------------------------------------------------
   RAMP_GENTLE_TIME: 20,  // sec of deliberately gentle intro (no wall)
@@ -572,28 +575,37 @@ const AdSDK=(()=>{
    We listen on window and ignore presses that begin on UI (buttons/overlays)
    so the controls never fight the menus. preventDefault stops scroll/zoom. */
 const Input=(()=>{
-  let holding=false; const onFirst=[];
-  let firstDone=false;
+  // Direct steering: -1 = turn LEFT, +1 = turn RIGHT, 0 = drive straight.
+  // Phone: hold the LEFT or RIGHT half of the screen. Desktop: ← / → or A / D.
+  let keyL=false, keyR=false, touch=0, active=null;
+  const onFirst=[]; let firstDone=false;
   function fireFirst(){ if(firstDone) return; firstDone=true; Audio.unlock(); onFirst.forEach(f=>f()); }
   function isUI(t){ return t && t.closest && t.closest('.ui-btn,.overlay,#ad,.toast'); }
+  function steer(){ return clamp((keyL?-1:0)+(keyR?1:0)+touch, -1, 1); }
+  function sideFromX(x){ return x < window.innerWidth/2 ? -1 : 1; }
   function down(e){
     fireFirst();
     if(isUI(e.target)) return;        // let the UI handle its own taps
     if(e.cancelable) e.preventDefault();
-    holding=true;
+    active=e.pointerId; touch=sideFromX(e.clientX);
   }
-  function up(e){ holding=false; }
+  function move(e){ if(active===e.pointerId){ if(e.cancelable) e.preventDefault(); touch=sideFromX(e.clientX); } }
+  function up(e){ if(active===e.pointerId || e.pointerId===undefined){ active=null; touch=0; } }
   window.addEventListener('pointerdown',down,{passive:false});
+  window.addEventListener('pointermove',move,{passive:false});
   window.addEventListener('pointerup',up,{passive:false});
   window.addEventListener('pointercancel',up,{passive:false});
-  // keyboard mapping for desktop (space / arrow down / mouse already covered)
-  window.addEventListener('keydown',(e)=>{ if(e.code==='Space'||e.code==='ArrowDown'||e.code==='Enter'){ fireFirst(); if(!isUI(document.activeElement)){ e.preventDefault(); holding=true; } } });
-  window.addEventListener('keyup',(e)=>{ if(e.code==='Space'||e.code==='ArrowDown'||e.code==='Enter'){ holding=false; } });
+  // keyboard mapping for desktop
+  window.addEventListener('keydown',(e)=>{
+    const c=e.code; if(c==='ArrowLeft'||c==='KeyA'){ fireFirst(); keyL=true; e.preventDefault(); }
+    else if(c==='ArrowRight'||c==='KeyD'){ fireFirst(); keyR=true; e.preventDefault(); }
+  });
+  window.addEventListener('keyup',(e)=>{ const c=e.code; if(c==='ArrowLeft'||c==='KeyA')keyL=false; else if(c==='ArrowRight'||c==='KeyD')keyR=false; });
   // stop the page from scrolling/zooming under the game
   window.addEventListener('touchmove',(e)=>{ if(e.cancelable) e.preventDefault(); },{passive:false});
   window.addEventListener('gesturestart',(e)=>e.preventDefault());
   window.addEventListener('dblclick',(e)=>e.preventDefault());
-  return { isHolding:()=>holding, onFirstInteraction:(f)=>onFirst.push(f) };
+  return { steer, onFirstInteraction:(f)=>onFirst.push(f) };
 })();
 
 /* ============================== [POOL] ===================================== */
@@ -646,13 +658,30 @@ const Sprites=(()=>{
     grd.addColorStop(0,'rgba(36,26,77,0.42)'); grd.addColorStop(0.7,'rgba(36,26,77,0.22)'); grd.addColorStop(1,'rgba(36,26,77,0)');
     g.fillStyle=grd; g.fillRect(0,0,size,size); return c;
   }
+  // spiky grump (the bomb) — a dark ball ringed with ink spikes
+  function spiky(diam, base, hi, dark){
+    const s=diam+PAD*2, c=document.createElement('canvas'); c.width=c.height=s;
+    const g=c.getContext('2d'); const cx=s/2, cy=s/2, R=diam/2;
+    g.fillStyle=COL.ink;
+    for(let i=0;i<10;i++){ const a=i/10*TAU; g.beginPath();
+      g.moveTo(cx+Math.cos(a)*R*0.78, cy+Math.sin(a)*R*0.78);
+      g.lineTo(cx+Math.cos(a)*(R+5), cy+Math.sin(a)*(R+5));
+      g.lineTo(cx+Math.cos(a+0.32)*R*0.78, cy+Math.sin(a+0.32)*R*0.78); g.closePath(); g.fill(); }
+    g.beginPath(); g.arc(cx,cy,R*0.86,0,TAU); g.fillStyle=COL.ink; g.fill();
+    const ir=R*0.78, grd=g.createRadialGradient(cx-ir*0.38,cy-ir*0.42,ir*0.1, cx,cy,ir);
+    grd.addColorStop(0,hi); grd.addColorStop(0.5,base); grd.addColorStop(1,dark);
+    g.beginPath(); g.arc(cx,cy,ir,0,TAU); g.fillStyle=grd; g.fill();
+    return c;
+  }
   return {
-    car:null, drone:null, droneBonus:null, shadow:null,
+    car:null, drone:null, droneRun:null, droneBonus:null, bomb:null, shadow:null,
     white:null, cyan:null, magenta:null, amber:null, red:null, pad:PAD,
     build(){
       this.car=ball(46, '#FFFFFF', '#FFFFFF', COL.carRim);
       this.drone=ball(40, COL.drone, COL.droneHi, COL.droneDark);
+      this.droneRun=ball(40, '#36DCC0', '#C7FFF3', '#11907D');   // teal coward
       this.droneBonus=ball(46, COL.bonus, COL.bonusHi, COL.bonusDark);
+      this.bomb=spiky(42, '#7C5BE0', '#C9B6FF', '#4A2EA0');      // purple grump
       this.shadow=shadow(96);
       this.white=dot(64,'rgba(255,255,255,1)');
       this.cyan=dot(72,'rgba(0,229,255,1)');
@@ -878,26 +907,40 @@ const Trail=(()=>{
     get len(){return len;}, get(i){return get(i);} };
 })();
 
-// --- Drones -----------------------------------------------------------------
+// --- Drones (little characters: wanderers, runners, bonus stars, bombs) ------
+const DTYPE={ WANDER:0, RUNNER:1, BONUS:2, BOMB:3 };
 const Drones=(()=>{
-  const pool=makePool(CONFIG.MAX_DRONES+4, ()=>({x:0,y:0,vx:0,vy:0,r:CONFIG.DRONE_RADIUS,phase:0,bonus:false,t:0,spawn:0}));
-  function spawnAt(x,y,bonus){
+  const pool=makePool(CONFIG.MAX_DRONES+6, ()=>({x:0,y:0,vx:0,vy:0,r:CONFIG.DRONE_RADIUS,phase:0,type:0,t:0,spawn:0,blink:0,scared:0,ex:0,ey:0}));
+  function spawnAt(x,y,type){
     const d=pool.get(); if(!d) return null;
-    d.x=x; d.y=y; const a=rand(0,TAU);
-    d.vx=Math.cos(a); d.vy=Math.sin(a); d.phase=rand(0,TAU); d.bonus=!!bonus; d.t=0; d.spawn=0.0; d.r=bonus?CONFIG.DRONE_RADIUS*1.25:CONFIG.DRONE_RADIUS;
+    d.x=x; d.y=y; const a=rand(0,TAU); d.vx=Math.cos(a); d.vy=Math.sin(a);
+    d.phase=rand(0,TAU); d.type=type||DTYPE.WANDER; d.t=0; d.spawn=0; d.blink=rand(1.5,5); d.scared=0; d.ex=0; d.ey=0;
+    d.r=CONFIG.DRONE_RADIUS*(d.type===DTYPE.BONUS?1.28:d.type===DTYPE.BOMB?1.12:1);
     return d;
   }
-  function update(dt, speed, W, H){
+  function update(dt, diff, W, H, carX, carY){
+    const base=lerp(CONFIG.DRONE_BASE_SPEED,CONFIG.DRONE_MAX_SPEED,diff);
     const a=pool.alive;
     for(let i=0;i<a.length;i++){ const d=a[i];
       d.t+=dt; if(d.spawn<1) d.spawn=Math.min(1,d.spawn+dt*3);
       d.phase+=dt*1.6;
-      // gentle wander
-      if(Math.random()<0.01){ const ang=rand(0,TAU); d.vx=Math.cos(ang); d.vy=Math.sin(ang); }
-      d.x+=d.vx*speed*dt; d.y+=d.vy*speed*dt;
-      const m=22;
+      d.blink-=dt; if(d.blink<-0.12) d.blink=rand(1.8,5.5);   // blink ~120ms, then wait
+      d.scared=Math.max(0, d.scared-dt*2);
+      let sp=base;
+      if(d.type===DTYPE.RUNNER){
+        const dx=d.x-carX, dy=d.y-carY, dd=Math.hypot(dx,dy)||1;
+        if(dd<CONFIG.RUNNER_FLEE){ d.vx=dx/dd; d.vy=dy/dd; sp=base*2.1; d.scared=1; }   // PANIC, flee the car
+        else if(Math.random()<0.012){ const ang=rand(0,TAU); d.vx=Math.cos(ang); d.vy=Math.sin(ang); }
+      } else if(d.type===DTYPE.BOMB){ sp=base*0.55; if(Math.random()<0.008){ const ang=rand(0,TAU); d.vx=Math.cos(ang); d.vy=Math.sin(ang); } }
+      else if(d.type===DTYPE.BONUS){ sp=base*1.35; if(Math.random()<0.02){ const ang=rand(0,TAU); d.vx=Math.cos(ang); d.vy=Math.sin(ang); } }
+      else { if(Math.random()<0.01){ const ang=rand(0,TAU); d.vx=Math.cos(ang); d.vy=Math.sin(ang); } }
+      d.x+=d.vx*sp*dt; d.y+=d.vy*sp*dt;
+      const m=24;
       if(d.x<m){d.x=m;d.vx=Math.abs(d.vx);} if(d.x>W-m){d.x=W-m;d.vx=-Math.abs(d.vx);}
       if(d.y<m){d.y=m;d.vy=Math.abs(d.vy);} if(d.y>H-m){d.y=H-m;d.vy=-Math.abs(d.vy);}
+      // eyes glance toward the car (smoothed)
+      const ax=carX-d.x, ay=carY-d.y, al=Math.hypot(ax,ay)||1, mx=d.r*0.18;
+      d.ex+=((ax/al)*mx - d.ex)*clamp(8*dt,0,1); d.ey+=((ay/al)*mx - d.ey)*clamp(8*dt,0,1);
     }
   }
   return { pool, spawnAt, update, freeAll:()=>pool.freeAll(), get alive(){return pool.alive;}, get count(){return pool.count;} };
@@ -913,13 +956,15 @@ const Game=(()=>{
   // run state
   const STATE={BOOT:0,PLAYING:1,DYING:2,DEAD:3};
   let state=STATE.BOOT;
-  const car={x:0,y:0,dir:0,r:CONFIG.ROAM_RADIUS, invuln:0};
+  const car={x:0,y:0,dir:0, invuln:0};
+  let steerSmooth=0;     // eased steering input (-1..1)
   let score=0, displayScore=0, coinsRun=0;
   let combo=0, comboTimer=0, comboBounce=0, pitchStep=0;
   let elapsed=0, spawnTimer=0, difficulty=0, droneTarget=1, nextMilestone=CONFIG.MILESTONE_STEP;
   let firstCaptureDone=false, hintAlpha=0, dyingTimer=0, prevBest=0, revivedThisRun=false;
   let parallaxX=0, parallaxY=0;
   let previewFrame=0, nearMissCd=0;
+  const LASSO_R=CONFIG.CAR_SPEED/CONFIG.TURN_RATE; // the radius a held turn carves (~93px)
 
   function resize(){
     DPR=Math.min(window.devicePixelRatio||1, 2);
@@ -951,18 +996,18 @@ const Game=(()=>{
     // FULLY reset everything — no partial state survives a restart.
     score=0; displayScore=0; coinsRun=0; combo=0; comboTimer=0; comboBounce=0; pitchStep=0;
     elapsed=0; spawnTimer=0; difficulty=0; nextMilestone=CONFIG.MILESTONE_STEP;
-    dyingTimer=0; car.invuln=0; nearMissCd=0; revivedThisRun=false; previewState.valid=false; capFX.active=false;
+    dyingTimer=0; car.invuln=0; nearMissCd=0; revivedThisRun=false; steerSmooth=0; previewState.valid=false; capFX.active=false;
     Trail.reset(); Drones.freeAll(); Particles.freeAll(); Popups.freeAll(); FX.reset();
     prevBest=Storage.data.highScore;
-    // Car starts low-centre already ROAMING upward into the arena (live within ~1s of
-    // load). firstCaptureDone resets every run so each restart opens the same way.
-    car.x=W*0.5; car.y=H*0.62; car.dir=-Math.PI/2; car.r=CONFIG.ROAM_RADIUS;
-    droneTarget=1; firstCaptureDone=false;
-    // Place ONE drone at the prospective curl-centre (car + HOLD_RADIUS along the turn-
-    // side normal). It tracks that centre during the intro, so the first HOLD — pressed
-    // at ANY moment, on ANY screen size — always curls a loop AROUND it. Never a death.
-    const na=car.dir + CONFIG.TURN_DIR*Math.PI/2;
-    Drones.spawnAt(car.x+Math.cos(na)*CONFIG.HOLD_RADIUS, car.y+Math.sin(na)*CONFIG.HOLD_RADIUS, false);
+    // Car starts low-centre driving up into the arena (live within ~1s of load).
+    car.x=W*0.5; car.y=H*0.62; car.dir=-Math.PI/2;
+    droneTarget=3; firstCaptureDone=false;
+    // Opening clump: one drone at the LEFT-turn centre and one at the RIGHT-turn centre
+    // (plus one ahead), so whichever way the player first steers, a loop wraps a drone —
+    // and intro deaths are softened to trail-resets, so the first try can't fail.
+    Drones.spawnAt(car.x-LASSO_R, car.y, DTYPE.WANDER);
+    Drones.spawnAt(car.x+LASSO_R, car.y, DTYPE.WANDER);
+    Drones.spawnAt(car.x, car.y-LASSO_R*1.1, DTYPE.WANDER);
     hintAlpha = Storage.data.firstRunDone?0:1;  // "HOLD" hint on the very first run only
     Audio.resetMusicClock(); Audio.setMusic(true);
     state=STATE.PLAYING;
@@ -982,51 +1027,67 @@ const Game=(()=>{
   const capFX={active:false, t:0, poly:[], n:0, color:'#fff'};
   for(let i=0;i<CONFIG.MAX_TRAIL_POINTS;i++) capFX.poly.push({x:0,y:0});
 
+  const CAPWORDS=['YOINK!','GOTCHA!','ROUNDUP!','SNAGGED!','WRANGLED!','NICE!','SWEET!','LASSO!','BOOM!','HOWDY!'];
+  const BONKWORDS=['NOPE!','YIKES!','BONK!','OOF!'];
+  function droneValue(d){ return d.type===DTYPE.BONUS?CONFIG.BONUS_VALUE : d.type===DTYPE.RUNNER?CONFIG.RUNNER_VALUE : 1; }
+
   function doCapture(loop, caught){
-    const arenaArea=W*H;
-    let norm=clamp(loop.area/(arenaArea*CONFIG.AREA_REF_FRACTION), CONFIG.AREA_NORM_MIN, CONFIG.AREA_NORM_MAX);
-    combo=Math.min(CONFIG.COMBO_MAX, combo+1); comboTimer=CONFIG.COMBO_DECAY_TIME; comboBounce=1;
-    pitchStep++;
-    let gained=0; let centerX=0, centerY=0, bonusHit=false;
-    caught.forEach(d=>{ centerX+=d.x; centerY+=d.y; if(d.bonus) bonusHit=true; });
+    // centroid (for popups / fx), and split bombs from the catch
+    let centerX=0, centerY=0; for(let i=0;i<caught.length;i++){ centerX+=caught[i].x; centerY+=caught[i].y; }
     centerX/=caught.length; centerY/=caught.length;
-    const valEach=CONFIG.BASE_CAPTURE*norm*comboMult();
-    gained=Math.round(valEach*caught.length*(bonusHit?2:1));
-    addScore(gained);
+    const hasBomb=caught.some(d=>d.type===DTYPE.BOMB);
 
-    // copy loop polygon into the capture-FX scratch for the snap-fill animation
+    // copy the loop polygon for the snap-fill animation either way
     capFX.n=loop.n; for(let i=0;i<loop.n;i++){ capFX.poly[i].x=loop.poly[i].x; capFX.poly[i].y=loop.poly[i].y; }
-    capFX.active=true; capFX.t=1; capFX.color=bonusHit?COL.cyan:COL.magenta;
+    capFX.active=true; capFX.t=1;
 
-    // pop drones -> candy confetti + sparkle + free
+    if(hasBomb){
+      // wrapping a bomb SPOILS the loop: lose the combo, no points, sharp BONK.
+      // (Fair, not fatal — the one death rule stays "empty self-cross".)
+      capFX.color=COL.red; combo=0; pitchStep=0;
+      caught.forEach(d=>{ if(d.type===DTYPE.BOMB){ d.scared=1; Particles.burst(d.x,d.y,18,{confetti:true,colors:[COL.red,'#FFFFFF','#FF8DA0'],spMax:300,sizeMax:9}); } });
+      Popups.spawn(centerX, centerY, BONKWORDS[(Math.random()*BONKWORDS.length)|0], COL.red, 34);
+      Popups.spawn(centerX, centerY-38, 'combo lost', '#8a83ad', 20);
+      FX.addShake(0.9); FX.flash('rgba(255,59,92,0.22)',0.6); Audio.death();
+      Trail.reset(); Trail.push(car.x,car.y, elapsed);
+      return;
+    }
+
+    const norm=clamp(loop.area/(W*H*CONFIG.AREA_REF_FRACTION), CONFIG.AREA_NORM_MIN, CONFIG.AREA_NORM_MAX);
+    combo=Math.min(CONFIG.COMBO_MAX, combo+1); comboTimer=CONFIG.COMBO_DECAY_TIME; comboBounce=1; pitchStep++;
+    let valueSum=0, bonusHit=false;
+    caught.forEach(d=>{ valueSum+=droneValue(d); if(d.type===DTYPE.BONUS) bonusHit=true; });
+    const gained=Math.round(CONFIG.BASE_CAPTURE*norm*comboMult()*valueSum);
+    addScore(gained);
+    capFX.color=bonusHit?COL.amber:COL.magenta;
+
+    // pop the little critters -> candy confetti + sparkle
     caught.forEach(d=>{
-      Particles.burst(d.x,d.y, d.bonus?30:20, {confetti:true, spMax:340, sizeMax:9});
-      Particles.burst(d.x,d.y, 7, {spr:Sprites.white, spMax:180, sizeMax:13}); // sparkle shine
+      Particles.burst(d.x,d.y, d.type===DTYPE.BONUS?34:20, {confetti:true, spMax:340, sizeMax:9});
+      Particles.burst(d.x,d.y, 7, {spr:Sprites.white, spMax:180, sizeMax:13});
       Drones.pool.free(d);
     });
 
-    // popups: points + multiplier (dopamine — treated as a core feature)
+    // popups: a witty callout + the points + multiplier (dopamine core)
+    Popups.spawn(centerX, centerY-40, CAPWORDS[(Math.random()*CAPWORDS.length)|0], COL.magenta, 30);
     Popups.spawn(centerX, centerY, '+'+gained, COL.white, 36);
-    if(comboMult()>1) Popups.spawn(centerX, centerY-36, 'x'+comboMult()+'!', COL.magenta, 32);
-    // variable reward: clean big single loop => PERFECT bonus
-    if(caught.length>=1 && norm>=CONFIG.PERFECT_AREA){ Popups.spawn(centerX, centerY-70,'PERFECT!',COL.amber,28); Audio.bonus(); }
-    if(bonusHit){ Popups.spawn(centerX, centerY-70,'BONUS x2',COL.cyan,28); Audio.bonus(); }
+    if(comboMult()>1) Popups.spawn(centerX, centerY-78, 'x'+comboMult()+'!', COL.cyan, 30);
+    if(caught.length>=1 && norm>=CONFIG.PERFECT_AREA){ Popups.spawn(centerX, centerY-112,'PERFECT!',COL.amber,28); Audio.bonus(); }
+    if(bonusHit){ Popups.spawn(centerX, centerY-112,'STAR x3',COL.amber,28); Audio.bonus(); }
 
-    // feel: shake + hit-stop + camera punch scaled to the size of the moment
+    // feel: shake + hit-stop + camera punch scaled to the moment
     const big=caught.length>=CONFIG.HITSTOP_THRESHOLD;
     FX.addShake(clamp(0.25+caught.length*0.18+norm*0.15, 0.2, 1.4));
     FX.addZoom(clamp(0.03+caught.length*0.02+norm*0.01, 0.03, 0.12));
     if(big) FX.addHitstop(CONFIG.HITSTOP_BIG + (caught.length-2)*0.02);
     if(combo>=CONFIG.CHROMA_COMBO) FX.setChroma(clamp((combo-CONFIG.CHROMA_COMBO+1)*0.15,0,0.7));
-    FX.flash(bonusHit?'rgba(0,229,255,0.14)':'rgba(255,73,195,0.13)', 0.45);
+    FX.flash(bonusHit?'rgba(255,176,32,0.14)':'rgba(255,73,195,0.13)', 0.45);
     Audio.capture(pitchStep);
 
     // coins as a small variable drip (extra reason to chase combos)
-    if(Math.random()<0.5){ const c=1+ (bonusHit?2:0); Storage.data.coins+=c; coinsRun+=c; Storage.save(); Audio.coin(); }
+    if(Math.random()<0.5){ const c=1+(bonusHit?2:0); Storage.data.coins+=c; coinsRun+=c; Storage.save(); Audio.coin(); }
 
-    // the lasso "fires": reset the live trail so the consumed loop is safe and
-    // can never re-trigger (legible + bug-free).
-    Trail.reset(); Trail.push(car.x,car.y, elapsed);
+    Trail.reset(); Trail.push(car.x,car.y, elapsed); // lasso "fires" -> consumed loop is safe
 
     if(!firstCaptureDone){ firstCaptureDone=true; hintAlpha=0; if(!Storage.data.firstRunDone){ Storage.data.firstRunDone=true; Storage.save(); } droneTarget=CONFIG.MIN_DRONES; }
   }
@@ -1048,10 +1109,10 @@ const Game=(()=>{
     // restore at the same score; clear hazards; brief invulnerability. Once per run.
     revivedThisRun=true;
     Trail.reset(); Drones.freeAll(); Particles.freeAll();
-    car.x=W*0.5; car.y=H*0.5; car.dir=-Math.PI/2; car.r=CONFIG.ROAM_RADIUS; car.invuln=CONFIG.REVIVE_INVULN;
+    car.x=W*0.5; car.y=H*0.5; car.dir=-Math.PI/2; steerSmooth=0; car.invuln=CONFIG.REVIVE_INVULN;
     Trail.push(car.x,car.y,elapsed);
     droneTarget=Math.max(CONFIG.MIN_DRONES, droneTarget);
-    state=STATE.PLAYING; Audio.setMusic(true); FX.flash('rgba(0,240,255,0.25)',0.6);
+    state=STATE.PLAYING; Audio.setMusic(true); FX.flash('rgba(0,229,255,0.25)',0.6);
   }
 
   function gameOver(){
@@ -1085,37 +1146,36 @@ const Game=(()=>{
       // spawn away from the car so nothing pops in on top of the player
       let x,y,tries=0;
       do{ x=rand(60,W-60); y=rand(80,H-80); tries++; }while(dist(x,y,car.x,car.y)<150 && tries<12);
-      Drones.spawnAt(x,y, Math.random()<CONFIG.BONUS_DRONE_CHANCE);
+      Drones.spawnAt(x,y, pickType());
     }
   }
+  function pickType(){
+    const r=Math.random();
+    if(r<CONFIG.BONUS_CHANCE) return DTYPE.BONUS;
+    if(r<CONFIG.BONUS_CHANCE+CONFIG.RUNNER_CHANCE) return DTYPE.RUNNER;
+    if(score>=CONFIG.BOMB_AFTER_SCORE && r<CONFIG.BONUS_CHANCE+CONFIG.RUNNER_CHANCE+CONFIG.BOMB_CHANCE) return DTYPE.BOMB;
+    return DTYPE.WANDER;
+  }
 
-  // ---- car physics ---------------------------------------------------------
+  // ---- car physics: DIRECT STEERING ---------------------------------------
   function updateCar(dt){
-    // THE control scheme: RELEASE = roam (near-straight travel so you can chase),
-    // HOLD = curl into a lasso loop. Time your holds to wrap drones; release to escape.
-    const targetR = Input.isHolding()? CONFIG.HOLD_RADIUS : CONFIG.ROAM_RADIUS;
-    car.r = lerp(car.r, targetR, clamp(CONFIG.RADIUS_LERP*dt,0,1));
-    let omega = (CONFIG.CAR_SPEED/car.r)*CONFIG.TURN_DIR;
-    // soft containment: curve back from the wall (keeps the single death rule)
-    const m=CONFIG.WALL_MARGIN;
-    let push=0;
-    if(car.x<m) push+=(m-car.x)/m; if(car.x>W-m) push-=(car.x-(W-m))/m;
-    if(car.y<m) push+=(m-car.y)/m; if(car.y>H-m) push-=(car.y-(H-m))/m;
-    // when near a wall, briefly tighten in the turn direction to arc inward
-    const nearWall=(car.x<m*2||car.x>W-m*2||car.y<m*2||car.y>H-m*2);
-    if(nearWall){
-      // steer toward arena centre by nudging heading
-      const toCx=W/2-car.x, toCy=H/2-car.y; const desired=Math.atan2(toCy,toCx);
-      let diff=Math.atan2(Math.sin(desired-car.dir),Math.cos(desired-car.dir));
-      omega += diff*CONFIG.CONTAIN_STRENGTH*0.6;
+    // steer = -1 (left) / 0 (straight) / +1 (right); eased for a smooth feel
+    steerSmooth += (Input.steer()-steerSmooth)*clamp(CONFIG.STEER_LERP*dt,0,1);
+    let omega = steerSmooth * CONFIG.TURN_RATE;
+    // soft containment: if heading toward a wall, nudge back toward centre (no wall death)
+    const m=CONFIG.WALL_MARGIN*2.2;
+    if(car.x<m||car.x>W-m||car.y<m||car.y>H-m){
+      const desired=Math.atan2(H/2-car.y, W/2-car.x);
+      const diff=Math.atan2(Math.sin(desired-car.dir),Math.cos(desired-car.dir));
+      const edge=clamp((m-Math.min(car.x,car.y,W-car.x,H-car.y))/m,0,1);
+      omega += diff*CONFIG.CONTAIN_STRENGTH*edge;
     }
     car.dir += omega*dt;
     car.x += Math.cos(car.dir)*CONFIG.CAR_SPEED*dt;
     car.y += Math.sin(car.dir)*CONFIG.CAR_SPEED*dt;
     car.x=clamp(car.x,6,W-6); car.y=clamp(car.y,6,H-6);
     if(car.invuln>0) car.invuln-=dt;
-    // parallax target follows the car (subtle depth)
-    parallaxX=(car.x-W/2)*0.04; parallaxY=(car.y-H/2)*0.04;
+    parallaxX=(car.x-W/2)*0.04; parallaxY=(car.y-H/2)*0.04; // subtle depth
   }
 
   // ---- main update ---------------------------------------------------------
@@ -1124,16 +1184,6 @@ const Game=(()=>{
       elapsed+=dt;
       updateDifficulty();
       updateCar(dt);
-      // Intro guarantee: until the first capture, the single drone gently hovers at
-      // the centre of the car's CURRENT drift circle, so whatever loop the player
-      // closes (idle lap or held spiral) always encloses it. Bulletproof first win.
-      if(!firstCaptureDone && Drones.count>=1){
-        const d=Drones.alive[0];
-        // hover at the centre of the circle the car WOULD carve if it held now
-        const cx=car.x + CONFIG.HOLD_RADIUS*Math.cos(car.dir + CONFIG.TURN_DIR*Math.PI/2);
-        const cy=car.y + CONFIG.HOLD_RADIUS*Math.sin(car.dir + CONFIG.TURN_DIR*Math.PI/2);
-        const k=clamp(CONFIG.INTRO_DRONE_TRACK*dt,0,1); d.x+=(cx-d.x)*k; d.y+=(cy-d.y)*k;
-      }
       // record trail point when we've moved far enough
       const last=Trail.len>0?Trail.get(Trail.len-1):null;
       if(!last || dist2(last.x,last.y,car.x,car.y) >= CONFIG.TRAIL_MIN_DIST*CONFIG.TRAIL_MIN_DIST){
@@ -1149,7 +1199,7 @@ const Game=(()=>{
       }
       Trail.dropOld(elapsed, CONFIG.TRAIL_LIFESPAN);
 
-      Drones.update(dt, lerp(CONFIG.DRONE_BASE_SPEED,CONFIG.DRONE_MAX_SPEED,difficulty), W, H);
+      Drones.update(dt, difficulty, W, H, car.x, car.y);
       maybeSpawn(dt);
 
       // combo decay
@@ -1165,9 +1215,8 @@ const Game=(()=>{
         if(near<CONFIG.NEAR_MISS_DIST){ FX.nearMiss(); if(nearMissCd<=0){ Audio.tick(); nearMissCd=0.16; } } // throttle: no tick storm while skimming
       }
 
-      // drift hum tracks tightness
-      const tight=clamp(1-(car.r-CONFIG.HOLD_RADIUS)/240, 0, 1); // 1 while curling, 0 while roaming
-      Audio.setDrift(tight, true);
+      // drift hum tracks how hard you're steering
+      Audio.setDrift(Math.abs(steerSmooth), true);
       Audio.updateMusic(true, difficulty);
 
       // capture snap-fill animation timer
@@ -1201,15 +1250,15 @@ const Game=(()=>{
     if(previewFrame!==0){ return; }
     const pv=Trail.previewLoop();
     if(pv.valid){
-      // does the hypothetical loop enclose any drone?
-      let enclosed=0, gx=0, gy=0;
+      // would the loop enclose drones? (a bomb inside => DANGER, not reward)
+      let enclosed=0, valSum=0, gx=0, gy=0, bomb=false;
       const a=Drones.alive;
-      for(let i=0;i<a.length;i++){ const d=a[i]; if(pointInPoly(d.x,d.y,pv.poly,pv.n)){ enclosed++; gx+=d.x; gy+=d.y; } }
+      for(let i=0;i<a.length;i++){ const d=a[i]; if(pointInPoly(d.x,d.y,pv.poly,pv.n)){ if(d.type===DTYPE.BOMB) bomb=true; else { enclosed++; valSum+=droneValue(d); } gx+=d.x; gy+=d.y; } }
       previewState.valid=true; previewState.poly=pv.poly; previewState.n=pv.n; previewState.area=pv.area;
-      previewState.danger=(enclosed===0);
-      if(enclosed>0){
+      previewState.danger=(bomb || enclosed===0);   // empty OR contains a bomb = bad
+      if(enclosed>0 && !bomb){
         const arenaArea=W*H; const norm=clamp(pv.area/(arenaArea*CONFIG.AREA_REF_FRACTION),CONFIG.AREA_NORM_MIN,CONFIG.AREA_NORM_MAX);
-        previewState.ghost=Math.round(CONFIG.BASE_CAPTURE*norm*comboMult()*enclosed);
+        previewState.ghost=Math.round(CONFIG.BASE_CAPTURE*norm*comboMult()*valSum);
         previewState.gx=gx/enclosed; previewState.gy=gy/enclosed-40;
       } else previewState.ghost=0;
     } else previewState.valid=false;
@@ -1313,16 +1362,51 @@ const Render=(()=>{
 
   function drawDrones(ctx,offX,offY){
     const a=Drones.alive;
-    // shadows first (all drones), then the glossy balls
+    // shadows first (all drones), then the glossy balls + faces
     for(let i=0;i<a.length;i++){ const d=a[i]; if(d.spawn<0.2) continue; drawShadow(ctx,d.x+offX,d.y+offY,d.r*d.spawn); }
     for(let i=0;i<a.length;i++){ const d=a[i];
-      const pop=(0.92+0.10*Math.sin(d.phase))*d.spawn;        // gentle idle bob
-      const spr=d.bonus?Sprites.droneBonus:Sprites.drone;
+      const scared=d.scared>0.05;
+      const pop=(0.92+0.10*Math.sin(d.phase) + (scared?0.06*Math.sin(performance.now()*0.05):0))*d.spawn;
+      const spr = d.type===DTYPE.BONUS?Sprites.droneBonus : d.type===DTYPE.RUNNER?Sprites.droneRun : d.type===DTYPE.BOMB?Sprites.bomb : Sprites.drone;
       const s=(d.r+Sprites.pad)*2*pop;
+      const dx=d.x+offX, dy=d.y-d.r*0.12+offY; // tiny lift = floaty
       ctx.globalAlpha=clamp(d.spawn,0,1);
-      ctx.drawImage(spr, d.x-s/2+offX, d.y-(s/2)-d.r*0.12+offY, s, s); // tiny lift = floaty
+      ctx.drawImage(spr, dx-s/2, dy-s/2, s, s);
+      ctx.globalAlpha=1;
+      drawFace(ctx, d, dx, dy, scared);
     }
-    ctx.globalAlpha=1;
+  }
+
+  // googly eyes (+ expressions) — the personality layer
+  function drawFace(ctx, d, x, y, scared){
+    if(d.spawn<0.5) return;
+    const r=d.r, blinking=d.blink<0;
+    const eo=r*0.42, ey=-r*0.12, er=r*0.30;            // eye offset / size
+    const bomb=(d.type===DTYPE.BOMB);
+    // whites
+    ctx.fillStyle='#FFFFFF';
+    if(blinking){
+      ctx.lineWidth=Math.max(2,r*0.12); ctx.strokeStyle=COL.ink; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(x-eo-er*0.6,y+ey); ctx.lineTo(x-eo+er*0.6,y+ey);
+      ctx.moveTo(x+eo-er*0.6,y+ey); ctx.lineTo(x+eo+er*0.6,y+ey); ctx.stroke();
+    } else {
+      const ew=scared?er*1.15:er;
+      ctx.beginPath(); ctx.arc(x-eo,y+ey,ew,0,TAU); ctx.arc(x+eo,y+ey,ew,0,TAU); ctx.fill();
+      // pupils glance toward the car
+      ctx.fillStyle=COL.ink; const pr=er*(scared?0.42:0.55);
+      ctx.beginPath(); ctx.arc(x-eo+d.ex,y+ey+d.ey,pr,0,TAU); ctx.arc(x+eo+d.ex,y+ey+d.ey,pr,0,TAU); ctx.fill();
+    }
+    // expression: bomb scowls; scared = little "o" mouth; otherwise content
+    ctx.strokeStyle=COL.ink; ctx.lineWidth=Math.max(2,r*0.11); ctx.lineCap='round';
+    if(bomb){
+      ctx.beginPath(); ctx.moveTo(x-eo-er*0.5,y+ey-er*0.9); ctx.lineTo(x-eo+er*0.6,y+ey-er*0.4);
+      ctx.moveTo(x+eo+er*0.5,y+ey-er*0.9); ctx.lineTo(x+eo-er*0.6,y+ey-er*0.4); ctx.stroke(); // angry brows
+      ctx.beginPath(); ctx.arc(x,y+r*0.42,er*0.5,Math.PI*1.15,Math.PI*1.85); ctx.stroke();    // frown
+    } else if(scared){
+      ctx.fillStyle=COL.ink; ctx.beginPath(); ctx.ellipse(x,y+r*0.42,er*0.34,er*0.46,0,0,TAU); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.arc(x,y+r*0.30,er*0.55,0.12*Math.PI,0.88*Math.PI); ctx.stroke();   // smile
+    }
   }
 
   function drawCar(ctx,offX,offY){
@@ -1366,11 +1450,16 @@ const Render=(()=>{
   function drawHint(ctx,W,H){
     const a=Game.hintAlpha; if(a<=0) return;
     const car=Game.car; const pulse=0.6+0.4*Math.sin(performance.now()*0.006);
-    ctx.globalAlpha=a; ctx.textAlign='center'; ctx.textBaseline='middle';
-    inkText(ctx,'HOLD', car.x, car.y+58, Math.round(24*(0.95+0.1*pulse)), COL.white);
-    ctx.font='800 13px '+FONT_STACK; ctx.lineWidth=4; ctx.strokeStyle=COL.ink;
-    ctx.strokeText('to lasso the drone', car.x, car.y+82); ctx.fillStyle='#EAF2FF';
-    ctx.fillText('to lasso the drone', car.x, car.y+82);
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    // big left/right steering arrows flanking the car (teach the touch zones)
+    ctx.globalAlpha=a*(0.55+0.45*pulse);
+    inkText(ctx,'◀', car.x-72, car.y, 44, COL.white);
+    inkText(ctx,'▶', car.x+72, car.y, 44, COL.white);
+    ctx.globalAlpha=a;
+    inkText(ctx,'STEER', car.x, car.y+66, Math.round(22*(0.95+0.1*pulse)), COL.white);
+    ctx.font='800 13px '+FONT_STACK; ctx.lineWidth=4; ctx.lineJoin='round'; ctx.strokeStyle=COL.ink;
+    ctx.strokeText('hold a side to circle a drone', car.x, car.y+90); ctx.fillStyle='#EAF2FF';
+    ctx.fillText('hold a side to circle a drone', car.x, car.y+90);
     ctx.globalAlpha=1;
   }
 

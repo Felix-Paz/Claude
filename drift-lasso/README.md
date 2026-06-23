@@ -2,11 +2,12 @@
 
 A portal-ready, single-mechanic **hypercasual** web game with a **bold cartoon 2.5D** look
 (glossy 3D-style balls, soft shadows, candy colours, thick ink outlines) fused with `.io`-style
-area capture. You drive a glossy ball that leaves a thick candy ribbon; **release to roam
-(drive nearly straight), hold to curl the ribbon into a lasso** and pop floating drones by
-closing a loop around them. Cross your own live trail with nothing enclosed and you die. Greed kills.
+area capture. You drive a glossy ball that leaves a thick candy ribbon; **steer left/right** and
+circle the little drones with your trail to pop them. Cross your own live trail with nothing
+enclosed and you die. Greed kills. The arena is full of **characters** — googly-eyed wanderers,
+teal cowards that flee you, rare gold stars, and spiky purple bombs you must *not* lasso.
 
-> One mechanic. Release to roam, hold to lasso. Depth comes from escalation, not features.
+> Steer, circle, pop. Depth comes from escalation + a cast of critters, not menus.
 
 The entire game ships as **one self-contained `index.html`** — vanilla JS + HTML5 Canvas 2D, no
 dependencies, no external fonts/CDNs, no network calls. It is playable within 2–3 seconds of load.
@@ -26,20 +27,34 @@ python3 -m http.server 8000
 
 That's it. No build step, no install. To deploy, upload `index.html` (the rest is optional dev tooling).
 
-**Controls:** release (finger up) = roam / drive nearly straight to chase; press & hold = curl your
-trail into a lasso loop. Time your holds to wrap drones, release to escape. Touch, mouse, or keyboard
+**Controls — direct steering:** the car always drives forward; you steer it.
+**Phone:** hold the **left or right half** of the screen to turn that way. **Desktop:** `←` / `→`
+or `A` / `D`. No input = drive straight. Circle a drone to lasso it. Touch, mouse, or keyboard
 (`Space` / `↓` / `Enter`) all map to the same single "hold" input.
 
 ---
 
 ## The first 10 seconds (guaranteed)
 
-There is no menu, logo, or tutorial. On load the car is already roaming into the arena with **one
-drone hovering right beside it**, and a single fading "HOLD" hint. Until the player's first capture,
-that drone tracks the centre of the circle the car *would* carve if it curled now, so the very first
-**hold** — pressed immediately, late, after roaming, as a tap, or as a mash — **always** curls a
-capturing loop and never a cheap death. Verified by simulation across every screen size and hold
-timing (see `_dev/sim.test.js`): first capture lands in **2–3.3 s**, every time; roaming never kills.
+There is no menu, logo, or tutorial. On load the car drives into the arena flanked by big pulsing
+**◀ ▶ steering arrows** and a small clump of drones placed at the left- *and* right-turn centres —
+so whichever way the player first steers, their loop wraps a drone. Intro deaths are softened to
+trail-resets, so the first try can't fail. Verified by simulation across 6 screen sizes
+(`_dev/sim.test.js`): steering **either** direction from the start captures in **~2–3.7 s**, and
+just driving straight never self-crosses (no cheap death while you learn).
+
+---
+
+## Cast & hazards
+
+Everything has googly eyes that track you, blink, and emote — and behaves differently:
+
+- 🟠 **Wanderer** — drifts lazily. Bread-and-butter points.
+- 🟢 **Runner** — a teal coward that **panics and flees** when you get close (worth `1.6×`). Chasing them down is the fun.
+- ⭐ **Gold star** — rare, fast, **`3×`** points + a fanfare. Variable-reward dopamine.
+- 🟣 **Bomb** — a spiky purple grump. **Do NOT lasso it:** wrapping a bomb spoils the loop, **shatters your combo**, and stings (`BONK!`) — but never kills you (the one death rule stays "empty self-cross"). The greed preview turns **red** when a closing loop would catch one.
+
+Captures fire **witty callouts** (`YOINK!`, `GOTCHA!`, `ROUNDUP!`…), candy confetti, a camera punch, and a rising-pitch combo ladder.
 
 ---
 
@@ -137,9 +152,10 @@ All live in the **`CONFIG`** object at the very top of the script, named for dat
 
 | Constant | What it does | Default |
 |---|---|---|
-| `CAR_SPEED` | Constant forward speed (px/s) | `252` |
-| `HOLD_RADIUS` / `ROAM_RADIUS` | Curl radius when held (lasso size) / near-straight radius when released (roam) | `80` / `1500` |
-| `RADIUS_LERP` | How snappily the radius responds to input | `8.5` |
+| `CAR_SPEED` | Constant forward speed (px/s) | `250` |
+| `TURN_RATE` / `STEER_LERP` | How sharply you turn (lasso radius = `CAR_SPEED/TURN_RATE` ≈ 93px) / steering responsiveness | `2.7` / `16` |
+| `RUNNER_CHANCE` / `BONUS_CHANCE` / `BOMB_CHANCE` | Spawn mix: fleeing runners / rare gold stars / bombs-to-avoid | `0.30` / `0.07` / `0.16` |
+| `RUNNER_FLEE`, `BOMB_AFTER_SCORE`, `RUNNER_VALUE`, `BONUS_VALUE` | Flee distance, when bombs unlock, score multipliers | `130`, `400`, `1.6`, `3.0` |
 | `TRAIL_LIFESPAN` | Seconds a trail point lives = the self-collision **hazard window** | `2.6` |
 | `SELF_GRACE_SEGMENTS` | **Forgiving-hitbox grace** near the head (the single most important feel knob) | `6` |
 | `NEAR_MISS_DIST` | Proximity that triggers the "almost died!" shimmer + tick | `24` |
@@ -148,7 +164,6 @@ All live in the **`CONFIG`** object at the very top of the script, named for dat
 | `RAMP_GENTLE_TIME` | Seconds of deliberately gentle intro (no wall) | `20` |
 | `RAMP_FULL_TIME` / `SCORE_FOR_MAX` | How long / how much score to approach max difficulty | `150` / `6000` |
 | `BASE_CAPTURE`, `AREA_*`, `COMBO_MAX`, `COMBO_DECAY_TIME` | Scoring + combo shape | — |
-| `INTRO_DRONE_TRACK` | How strongly the intro drone hovers at the prospective curl-centre | `10` |
 | `HITSTOP_BIG`, `SHAKE_DECAY`, `CHROMA_COMBO` | Juice intensity | — |
 | `WALL_DEATH` | Wall is lethal? Kept `false` → **one** death rule (self-cross only); soft containment instead | `false` |
 | `INTERSTITIAL_EVERY_RUNS`, `REVIVE_INVULN`, `DOUBLE_COINS_PARTIAL` | Monetization pacing | `3`, `1.3`, `1.5` |
