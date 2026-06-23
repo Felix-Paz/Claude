@@ -153,8 +153,15 @@
   .goal .greward{ font-size:13px; font-weight:900; color:#b9770a; white-space:nowrap; }
   .goal.done .greward{ color:#1a9d2e; }
   /* garage section header + equipped power chip */
+  .wallet-big{ font-size:32px; }
+  .wallet-big .coin{ width:26px; height:26px; }
+  .wallet-big .run-delta{ font-size:16px; color:#1a9d2e; font-weight:900; }
   .shop-sec{ grid-column:1/-1; text-align:left; font-size:12px; letter-spacing:2px; font-weight:900; color:var(--purple); text-transform:uppercase; margin:6px 2px 0; }
   .skin .pico{ font-size:30px; line-height:1; margin:3px 0; }
+  .skin-wide{ grid-column:1/-1; }
+  .swatches{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:2px; }
+  .sw{ width:24px; height:24px; border-radius:7px; border:2px solid var(--ink); cursor:pointer; }
+  .sw.on{ box-shadow:0 0 0 3px var(--cyan); }
   .hidden{ display:none !important; }
   a{ color:var(--purple); }
 </style>
@@ -176,25 +183,15 @@
         <text x="180" y="60" text-anchor="middle" font-family="'Segoe UI',system-ui,Arial" font-size="52" font-weight="900" fill="#00E5FF" stroke="#241A4D" stroke-width="7" paint-order="stroke" letter-spacing="1">DRIFT</text>
         <text x="180" y="116" text-anchor="middle" font-family="'Segoe UI',system-ui,Arial" font-size="52" font-weight="900" fill="#FF49C3" stroke="#241A4D" stroke-width="7" paint-order="stroke" letter-spacing="4">LASSO</text>
       </svg>
-      <div class="eyebrow" id="over-eyebrow">Run Over</div>
-      <div class="headline" id="over-headline">SO CLOSE</div>
       <div class="score-big" id="over-score">0</div>
       <div class="best-row"><span>BEST <b id="over-best">0</b></span><span id="over-lvl">LV 1</span><span id="over-newbest" class="hidden" style="color:var(--magenta)">NEW BEST!</span></div>
-      <div class="near" id="over-near"></div>
-      <div class="wallet"><span class="coin"></span><span id="over-coins">+0</span><span style="color:#6b6493;font-weight:700;font-size:13px">this run</span></div>
+      <div class="wallet wallet-big"><span class="coin"></span><span id="over-coinTotal">0</span><span class="run-delta" id="over-coins">+0</span></div>
 
-      <div class="goals" id="goals"></div>
-
-      <button class="btn reward" id="btn-revive">REVIVE &amp; CONTINUE <span class="tag">&#9654; AD</span></button>
+      <button class="btn reward" id="btn-revive">REVIVE <span class="tag">&#9654; AD</span></button>
       <button class="btn primary big" id="btn-again">PLAY AGAIN</button>
       <div class="btn-row">
         <button class="btn reward" id="btn-double">2&#215; COINS <span class="tag">&#9654;</span></button>
         <button class="btn ghost" id="btn-openshop">GARAGE</button>
-      </div>
-
-      <div class="progress-wrap">
-        <div class="progress-label"><span id="next-name">Next unlock</span><span>in <b id="next-coins">0</b></span></div>
-        <div class="bar"><i id="next-bar"></i></div>
       </div>
     </div>
   </div>
@@ -205,6 +202,7 @@
       <div class="eyebrow">Garage</div>
       <div class="headline" style="font-size:clamp(26px,8vw,40px)">CUSTOMISE</div>
       <div class="wallet"><span class="coin"></span><span id="shop-coins">0</span></div>
+      <div class="goals" id="goals"></div>
       <div class="shop-grid" id="shop-grid"></div>
       <button class="btn primary" id="btn-shop-close">BACK</button>
     </div>
@@ -285,6 +283,12 @@ const CONFIG = {
   BOMB_CHANCE: 0.16,     // purple grump you must NOT lasso — wrapping it spoils the loop
   BOMB_AFTER_SCORE: 400, // bombs only start appearing once the player has the basics
   RUNNER_VALUE: 1.6, BONUS_VALUE: 3.0, // score multipliers per type
+
+  // --- DIFFICULTY DIRECTOR (the win→tension→relief rhythm) ------------------
+  TENSION_PERIOD: 24,    // sec per tension wave (calm troughs = easy wins, peaks = pressure)
+  RELIEF_TIME: 6,        // sec of calm after a revive (guaranteed quick win to recover)
+  DDA_REF: 1400,         // recent-average score that = "skilled"; below it the game eases off
+  DDA_MAX_EASE: 0.35,    // how much a struggling player's difficulty is reduced (0..1)
 
   // --- PROGRESSION + POWERS -----------------------------------------------
   LEVEL_STEP: 500,       // score per level-up (purpose: climb the levels)
@@ -414,9 +418,11 @@ const Storage=(()=>{
   const KEY='driftlasso.save.v1';
   const defaults={
     highScore:0, coins:0, totalRuns:0, bestLevel:1,
-    unlocked:['neon','car_core','pow_none'], equippedTrail:'neon', equippedCar:'car_core', equippedPower:'pow_none',
+    unlocked:['neon','custom','car_core','pow_none'], equippedTrail:'neon', equippedCar:'car_core', equippedPower:'pow_none',
     muted:false, firstRunDone:false, endowed:false, sinceInterstitial:0,
     objectives:null,   // [{id,prog}] persisted; seeded on first load
+    recentScores:[],   // last few run scores -> rubber-band difficulty (DDA)
+    customA:'#00E5FF', customB:'#FFD23F', // player's custom trail colours
   };
   let data=Object.assign({},defaults);
   function _read(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
@@ -838,6 +844,7 @@ const FX=(()=>{
    pre-discounted via "endowed progress" so the collection feels already begun. */
 const Cosmetics=(()=>{
   const TRAILS=[
+    {id:'custom',   name:'Custom',     cost:0,   a:'custom', b:'custom', custom:true},
     {id:'neon',     name:'Neon Drift', cost:0,   a:'#00E5FF', b:'#FF49C3'},
     {id:'inferno',  name:'Inferno',    cost:140, a:'#FFE259', b:'#FF1744'},
     {id:'voltage',  name:'Voltage',    cost:220, a:'#AEEBFF', b:'#7C4DFF'},
@@ -865,7 +872,7 @@ const Cosmetics=(()=>{
   ];
   function isUnlocked(id){ return Storage.data.unlocked.indexOf(id)>=0; }
   function unlock(id){ if(!isUnlocked(id)){ Storage.data.unlocked.push(id); Storage.save(); } }
-  function trail(){ return TRAILS.find(t=>t.id===Storage.data.equippedTrail)||TRAILS[0]; }
+  function trail(){ const t=TRAILS.find(t=>t.id===Storage.data.equippedTrail)||TRAILS[1]; return t.custom?{id:'custom',a:Storage.data.customA,b:Storage.data.customB}:t; }
   function car(){ return CARS.find(c=>c.id===Storage.data.equippedCar)||CARS[0]; }
   function power(){ return POWERS.find(p=>p.id===Storage.data.equippedPower)||POWERS[0]; }
   function all(){ return TRAILS.concat(CARS).concat(POWERS); }
@@ -985,11 +992,11 @@ const Trail=(()=>{
 // --- Drones (little characters: wanderers, runners, bonus stars, bombs, power orbs)
 const DTYPE={ WANDER:0, RUNNER:1, BONUS:2, BOMB:3, POWER:4 };
 const Drones=(()=>{
-  const pool=makePool(CONFIG.MAX_DRONES+8, ()=>({x:0,y:0,vx:0,vy:0,r:CONFIG.DRONE_RADIUS,phase:0,type:0,t:0,spawn:0,blink:0,scared:0,ex:0,ey:0}));
-  function spawnAt(x,y,type){
+  const pool=makePool(CONFIG.MAX_DRONES+8, ()=>({x:0,y:0,vx:0,vy:0,r:CONFIG.DRONE_RADIUS,phase:0,type:0,t:0,spawn:0,blink:0,scared:0,ex:0,ey:0,intro:false}));
+  function spawnAt(x,y,type,intro){
     const d=pool.get(); if(!d) return null;
     d.x=x; d.y=y; const a=rand(0,TAU); d.vx=Math.cos(a); d.vy=Math.sin(a);
-    d.phase=rand(0,TAU); d.type=type||DTYPE.WANDER; d.t=0; d.spawn=0; d.blink=rand(1.5,5); d.scared=0; d.ex=0; d.ey=0;
+    d.phase=rand(0,TAU); d.type=type||DTYPE.WANDER; d.t=0; d.spawn=0; d.blink=rand(1.5,5); d.scared=0; d.ex=0; d.ey=0; d.intro=!!intro;
     d.r=CONFIG.DRONE_RADIUS*(d.type===DTYPE.BONUS?1.28:d.type===DTYPE.POWER?1.35:d.type===DTYPE.BOMB?1.12:1);
     return d;
   }
@@ -1019,6 +1026,12 @@ const Drones=(()=>{
       d.phase+=dt*1.6;
       d.blink-=dt; if(d.blink<-0.12) d.blink=rand(1.8,5.5);
       d.scared=Math.max(0, d.scared-dt*2);
+      // eyes glance toward the car (smoothed) — every drone, every frame
+      const ax=carX-d.x, ay=carY-d.y, al=Math.hypot(ax,ay)||1, mx=d.r*0.18;
+      d.ex+=((ax/al)*mx - d.ex)*clamp(8*dt,0,1); d.ey+=((ay/al)*mx - d.ey)*clamp(8*dt,0,1);
+      // INTRO drones sit perfectly still and ignore fence/magnet, so the guaranteed
+      // first capture can never be nudged out of the closing loop.
+      if(d.intro) continue;
       let sp=base;
       if(d.type===DTYPE.RUNNER){
         const dx=d.x-carX, dy=d.y-carY, dd=Math.hypot(dx,dy)||1;
@@ -1035,9 +1048,6 @@ const Drones=(()=>{
       if(d.x<m){d.x=m;d.vx=Math.abs(d.vx);} if(d.x>W-m){d.x=W-m;d.vx=-Math.abs(d.vx);}
       if(d.y<m){d.y=m;d.vy=Math.abs(d.vy);} if(d.y>H-m){d.y=H-m;d.vy=-Math.abs(d.vy);}
       if(d.type!==DTYPE.POWER) fence(d);   // power orbs ignore the fence (easy to grab)
-      // eyes glance toward the car (smoothed)
-      const ax=carX-d.x, ay=carY-d.y, al=Math.hypot(ax,ay)||1, mx=d.r*0.18;
-      d.ex+=((ax/al)*mx - d.ex)*clamp(8*dt,0,1); d.ey+=((ay/al)*mx - d.ey)*clamp(8*dt,0,1);
     }
   }
   return { pool, spawnAt, update, freeAll:()=>pool.freeAll(), get alive(){return pool.alive;}, get count(){return pool.count;} };
@@ -1064,6 +1074,19 @@ const Game=(()=>{
   let level=1, levelBanner=0, tailExtra=0;          // progression: level + growing tail
   let powerKind='', powerTimer=0, powerBanner=0;    // in-run power-up (FRENZY/MAGNET/SLOMO)
   let shieldArmed=false, powerupTimer=8;            // equipped shield; power-orb spawn clock
+  let reliefTimer=0, ddaEase=0;                     // director: post-revive calm; rubber-band ease
+  // per-level background sky (crossfades on level-up)
+  const LEVEL_SKIES=[['#5AD1FF','#6A5BFF'],['#FF9CE6','#7C5BE0'],['#6AE0C0','#2E8FFF'],['#FFC36A','#FF6FA0'],['#A98BFF','#3A2E8F'],['#5AE0FF','#2EC4A0']];
+  let skyFrom=null, skyTgt=null, skyCur=null, skyT=1;
+  function buildBg(){ if(!skyCur) return; const t=skyCur[0],b=skyCur[1]; bgGrad=ctx.createLinearGradient(0,0,0,H);
+    bgGrad.addColorStop(0,'rgb('+(t.r|0)+','+(t.g|0)+','+(t.b|0)+')'); bgGrad.addColorStop(1,'rgb('+(b.r|0)+','+(b.g|0)+','+(b.b|0)+')'); }
+  function setSky(idx,instant){ const p=LEVEL_SKIES[((idx%LEVEL_SKIES.length)+LEVEL_SKIES.length)%LEVEL_SKIES.length];
+    const tgt=[hexToRgb(p[0]),hexToRgb(p[1])];
+    if(instant||!skyCur){ skyCur=[hexToRgb(p[0]),hexToRgb(p[1])]; skyTgt=tgt; skyT=1; buildBg(); return; }
+    skyFrom=[Object.assign({},skyCur[0]),Object.assign({},skyCur[1])]; skyTgt=tgt; skyT=0;
+  }
+  function stepSky(dt){ if(skyT>=1||!skyTgt||!skyFrom) return; skyT=Math.min(1,skyT+dt/0.8);
+    for(let k=0;k<2;k++){ skyCur[k].r=lerp(skyFrom[k].r,skyTgt[k].r,skyT); skyCur[k].g=lerp(skyFrom[k].g,skyTgt[k].g,skyT); skyCur[k].b=lerp(skyFrom[k].b,skyTgt[k].b,skyT); } buildBg(); }
   const LASSO_R=CONFIG.CAR_SPEED/CONFIG.TURN_RATE; // the radius a held turn carves (~93px)
   function trailLifespan(){ return CONFIG.TRAIL_LIFESPAN + tailExtra; } // tail grows as you catch more
   function scoreMult(){ return powerKind==='FRENZY'?2:1; }
@@ -1076,9 +1099,8 @@ const Game=(()=>{
     ctx.setTransform(DPR,0,0,DPR,0,0);
     // measure the notch / safe-area inset once so the canvas HUD never hides under it
     safeTop=measureSafeTop();
-    // bright candy sky + soft vignette (rebuilt on resize; cached, drawn once/frame)
-    bgGrad=ctx.createLinearGradient(0,0,0,H);
-    bgGrad.addColorStop(0,COL.sky1); bgGrad.addColorStop(0.55,'#5aa8ff'); bgGrad.addColorStop(1,COL.sky2);
+    // per-level sky (cached; crossfades on level-up) + soft vignette
+    if(!skyCur) setSky(0,true); else buildBg();
     vignette=ctx.createRadialGradient(W/2,H*0.44,Math.min(W,H)*0.34, W/2,H*0.5, Math.max(W,H)*0.78);
     vignette.addColorStop(0,'rgba(36,26,77,0)'); vignette.addColorStop(1,'rgba(36,26,77,0.34)');
   }
@@ -1099,9 +1121,13 @@ const Game=(()=>{
     score=0; displayScore=0; coinsRun=0; combo=0; comboTimer=0; comboBounce=0; pitchStep=0;
     elapsed=0; spawnTimer=0; difficulty=0; nextMilestone=CONFIG.MILESTONE_STEP;
     dyingTimer=0; car.invuln=0; nearMissCd=0; revivedThisRun=false; steerSmooth=0; previewState.valid=false; capFX.active=false;
-    level=1; levelBanner=0; tailExtra=0; powerKind=''; powerTimer=0; powerBanner=0; powerupTimer=rand(7,11);
+    level=1; levelBanner=0; tailExtra=0; powerKind=''; powerTimer=0; powerBanner=0; powerupTimer=rand(7,11); reliefTimer=0;
     Trail.reset(); Drones.freeAll(); Particles.freeAll(); Popups.freeAll(); FX.reset();
     prevBest=Storage.data.highScore;
+    setSky(0, true);                                // level-1 background colour (instant)
+    // rubber-band: ease difficulty for players whose recent runs are short
+    const rs=Storage.data.recentScores||[]; const avg=rs.length? rs.reduce((a,b)=>a+b,0)/rs.length : 0;
+    ddaEase=clamp(1-avg/CONFIG.DDA_REF,0,1)*CONFIG.DDA_MAX_EASE;
     Objectives.refresh();                           // fresh goals; "best" goals reset
     // equipped superpowers
     const pw=Cosmetics.power().id;
@@ -1109,13 +1135,11 @@ const Game=(()=>{
     if(pw==='pow_hot'){ combo=3; comboTimer=CONFIG.COMBO_DECAY_TIME; pitchStep=3; }
     // Car starts low-centre driving up into the arena (live within ~1s of load).
     car.x=W*0.5; car.y=H*0.62; car.dir=-Math.PI/2;
-    droneTarget=3; firstCaptureDone=false;
-    // Opening clump: one drone at the LEFT-turn centre and one at the RIGHT-turn centre
-    // (plus one ahead), so whichever way the player first steers, a loop wraps a drone —
-    // and intro deaths are softened to trail-resets, so the first try can't fail.
-    Drones.spawnAt(car.x-LASSO_R, car.y, DTYPE.WANDER);
-    Drones.spawnAt(car.x+LASSO_R, car.y, DTYPE.WANDER);
-    Drones.spawnAt(car.x, car.y-LASSO_R*1.1, DTYPE.WANDER);
+    droneTarget=1; firstCaptureDone=false;
+    // ONE intro drone that tracks the car's turn-centre (see update). Whatever the
+    // player does — steer left, right, or nothing (auto-curl) — the loop wraps it.
+    const na=car.dir+Math.PI/2;
+    Drones.spawnAt(car.x+Math.cos(na)*LASSO_R, car.y+Math.sin(na)*LASSO_R, DTYPE.WANDER, true);
     hintAlpha = Storage.data.firstRunDone?0:1;  // "HOLD" hint on the very first run only
     Audio.resetMusicClock(); Audio.setMusic(true);
     state=STATE.PLAYING;
@@ -1231,6 +1255,7 @@ const Game=(()=>{
     Trail.push(car.x,car.y,elapsed);
     droneTarget=Math.max(CONFIG.MIN_DRONES, droneTarget);
     state=STATE.PLAYING; Audio.setMusic(true); FX.flash('rgba(0,229,255,0.25)',0.6);
+    reliefTimer=CONFIG.RELIEF_TIME;   // calm window so you get a quick win back
   }
 
   function gameOver(){
@@ -1238,6 +1263,8 @@ const Game=(()=>{
     Storage.data.totalRuns=(Storage.data.totalRuns||0)+1;
     const isBest=score>Storage.data.highScore;
     if(isBest) Storage.data.highScore=score;
+    // rolling window of recent scores -> next run's rubber-band difficulty
+    const rs=Storage.data.recentScores||[]; rs.push(Math.round(score)); while(rs.length>5) rs.shift(); Storage.data.recentScores=rs;
     // credit the end-of-run coin bonus to BOTH the run tally and the real balance
     const endBonus=Math.floor(score/100)*CONFIG.COINS_PER_100;
     coinsRun += endBonus; Storage.data.coins += endBonus;
@@ -1247,21 +1274,31 @@ const Game=(()=>{
     if(isBest) Audio.fanfare();
   }
 
-  // ---- spawn director ------------------------------------------------------
-  function updateDifficulty(){
-    let base;
-    if(elapsed<CONFIG.RAMP_GENTLE_TIME) base=(elapsed/CONFIG.RAMP_GENTLE_TIME)*0.25;
-    else base=0.25+((elapsed-CONFIG.RAMP_GENTLE_TIME)/(CONFIG.RAMP_FULL_TIME-CONFIG.RAMP_GENTLE_TIME))*0.75;
-    const sd=clamp(score/CONFIG.SCORE_FOR_MAX,0,1)*0.85;
-    difficulty=clamp(Math.max(base,sd),0,1);
-    if(firstCaptureDone) droneTarget=Math.round(lerp(CONFIG.MIN_DRONES, CONFIG.MAX_DRONES, difficulty));
+  // ---- difficulty DIRECTOR -------------------------------------------------
+  // Layers, low→high: (1) a gentle FLOOR ramp by time, eased for strugglers (DDA);
+  // (2) a TENSION wave so it breathes easy→hard→easy (win, then pressure, then win);
+  // (3) RELIEF after a revive (guaranteed recovery win). Bombs only past onboarding
+  // and mostly at tension peaks. This manufactures the win/lose rhythm.
+  let spawnInterval=1.2, bombChance=0, tension=0;
+  function director(dt){
+    if(reliefTimer>0) reliefTimer-=dt;
+    const relief = reliefTimer>0;
+    let floorD;
+    if(elapsed<CONFIG.RAMP_GENTLE_TIME) floorD=(elapsed/CONFIG.RAMP_GENTLE_TIME)*0.22;          // very easy onboarding
+    else floorD=0.22+((elapsed-CONFIG.RAMP_GENTLE_TIME)/(CONFIG.RAMP_FULL_TIME-CONFIG.RAMP_GENTLE_TIME))*0.78;
+    floorD=clamp(floorD - ddaEase, 0, 1);                                                       // ease strugglers
+    tension=0.5+0.5*Math.sin(elapsed*TAU/CONFIG.TENSION_PERIOD - Math.PI/2);                    // starts in a trough
+    difficulty=clamp(floorD*(0.7+0.45*tension)*(relief?0.5:1), 0, 1);                           // drives drone speed + music
+    droneTarget=Math.round(lerp(CONFIG.MIN_DRONES,CONFIG.MAX_DRONES,floorD) + tension*2 - (relief?3:0));
+    droneTarget=clamp(droneTarget, relief?2:CONFIG.MIN_DRONES, CONFIG.MAX_DRONES);
+    spawnInterval=lerp(1.5,0.5,floorD)*(1.25-0.55*tension);
+    bombChance=(level>=3 && !relief) ? CONFIG.BOMB_CHANCE*(0.35+0.85*tension) : 0;
+    if(!firstCaptureDone){ droneTarget=1; difficulty=0; }                                        // intro: only the tracking drone, calm
   }
   function maybeSpawn(dt){
     spawnTimer-=dt;
-    const interval=lerp(1.4,0.5,difficulty);
     if(spawnTimer<=0 && Drones.count<droneTarget){
-      spawnTimer=interval;
-      // spawn away from the car so nothing pops in on top of the player
+      spawnTimer=spawnInterval;
       let x,y,tries=0;
       do{ x=rand(60,W-60); y=rand(80,H-80); tries++; }while(dist(x,y,car.x,car.y)<150 && tries<12);
       Drones.spawnAt(x,y, pickType());
@@ -1271,7 +1308,7 @@ const Game=(()=>{
     const r=Math.random();
     if(r<CONFIG.BONUS_CHANCE) return DTYPE.BONUS;
     if(r<CONFIG.BONUS_CHANCE+CONFIG.RUNNER_CHANCE) return DTYPE.RUNNER;
-    if(score>=CONFIG.BOMB_AFTER_SCORE && r<CONFIG.BONUS_CHANCE+CONFIG.RUNNER_CHANCE+CONFIG.BOMB_CHANCE) return DTYPE.BOMB;
+    if(r<CONFIG.BONUS_CHANCE+CONFIG.RUNNER_CHANCE+bombChance) return DTYPE.BOMB;
     return DTYPE.WANDER;
   }
 
@@ -1280,8 +1317,9 @@ const Game=(()=>{
   function levelUp(){
     levelBanner=1.7;
     Storage.data.coins+=8; coinsRun+=8; if(level>(Storage.data.bestLevel||1)) Storage.data.bestLevel=level; Storage.save();
-    Audio.fanfare(); FX.flash('rgba(0,229,255,0.16)',0.5); FX.addZoom(0.05); FX.addShake(0.4);
+    Audio.fanfare(); FX.flash('rgba(255,255,255,0.18)',0.6); FX.addZoom(0.06); FX.addShake(0.5);
     Popups.spawn(W/2, H*0.36, 'LEVEL '+level, COL.cyan, 42);
+    setSky(level-1);                 // background colour shifts each level
     Objectives.bump('level', level);
   }
 
@@ -1306,7 +1344,12 @@ const Game=(()=>{
   // ---- car physics: DIRECT STEERING ---------------------------------------
   function updateCar(dt){
     // steer = -1 (left) / 0 (straight) / +1 (right); eased for a smooth feel
-    steerSmooth += (Input.steer()-steerSmooth)*clamp(CONFIG.STEER_LERP*dt,0,1);
+    let s=Input.steer();
+    // GUARANTEED first win: if the player hasn't touched anything yet, auto-curl
+    // (after a short grace) so the car laps the still opening clump on its own —
+    // kept short so the car stays beside the clump and the loop wraps it.
+    if(!firstCaptureDone && s===0 && elapsed>0.25) s=1;
+    steerSmooth += (s-steerSmooth)*clamp(CONFIG.STEER_LERP*dt,0,1);
     let omega = steerSmooth * CONFIG.TURN_RATE;
     // soft containment: if heading toward a wall, nudge back toward centre (no wall death)
     const m=CONFIG.WALL_MARGIN*2.2;
@@ -1326,11 +1369,19 @@ const Game=(()=>{
 
   // ---- main update ---------------------------------------------------------
   function update(dt){
+    stepSky(dt);   // crossfade the level background colour
     if(state===STATE.PLAYING){
       elapsed+=dt;
-      updateDifficulty();
+      director(dt);
       updateLevel();
       updateCar(dt);
+      // INTRO guarantee: the lone intro drone hovers at the car's turn-centre for
+      // whichever way it's currently turning, so the first loop always wraps it.
+      if(!firstCaptureDone && Drones.count>=1){
+        const d=Drones.alive[0], sign=steerSmooth>=0?1:-1, a=car.dir+sign*Math.PI/2;
+        const cx=car.x+Math.cos(a)*LASSO_R, cy=car.y+Math.sin(a)*LASSO_R, k=clamp(10*dt,0,1);
+        d.x+=(cx-d.x)*k; d.y+=(cy-d.y)*k;
+      }
       // record trail point when we've moved far enough
       const last=Trail.len>0?Trail.get(Trail.len-1):null;
       if(!last || dist2(last.x,last.y,car.x,car.y) >= CONFIG.TRAIL_MIN_DIST*CONFIG.TRAIL_MIN_DIST){
@@ -1711,9 +1762,9 @@ const UI=(()=>{
   }
   function hideAll(){ [overEl,shopEl].forEach(e=>e.classList.remove('show')); }
 
-  // objectives panel on the game-over card (the "purpose")
+  // objectives panel (lives in the Garage now — game-over stays clean)
   function renderGoals(){
-    const wrap=$('goals'); wrap.innerHTML='';
+    const wrap=$('goals'); if(!wrap) return; wrap.innerHTML='';
     Objectives.list().forEach(ob=>{
       const d=Objectives.DEFS[ob.key]; const done=ob.done;
       const el=document.createElement('div'); el.className='goal'+(done?' done':'');
@@ -1726,39 +1777,16 @@ const UI=(()=>{
     });
   }
 
-  function updateNextUnlock(){
-    const next=Cosmetics.nextLocked();
-    if(next){
-      $('next-name').textContent='Next: '+next.name;
-      const have=Storage.data.coins, need=next.cost;
-      $('next-coins').textContent=Math.max(0,need-have);
-      $('next-bar').style.width=clamp(have/need*100,0,100)+'%';
-    } else {
-      $('next-name').textContent='All skins unlocked';
-      $('next-coins').textContent='0'; $('next-bar').style.width='100%';
-    }
-  }
-
+  // CLEAN game-over: logo, score + best + level, total coins, then the buttons.
   function showGameOver(info){
-    // "SO CLOSE" near-miss framing + the next milestone they nearly hit
-    const next=Math.ceil((info.score+1)/CONFIG.MILESTONE_STEP)*CONFIG.MILESTONE_STEP;
-    const away=next-info.score;
     $('over-score').textContent=info.score;
     $('over-best').textContent=info.best;
-    $('over-coins').textContent='+'+info.coins;
-    $('over-newbest').classList.toggle('hidden', !info.isBest);
-    const hl=$('over-headline'); const eye=$('over-eyebrow');
-    if(info.isBest){ hl.textContent='NEW BEST!'; hl.classList.remove('close'); eye.textContent='Record'; }
-    else if(away<=Math.max(60, CONFIG.MILESTONE_STEP*0.4)){ hl.textContent='SO CLOSE'; hl.classList.add('close'); eye.textContent='Run Over'; }
-    else { hl.textContent='RUN OVER'; hl.classList.remove('close'); eye.textContent='Run Over'; }
     $('over-lvl').textContent='LV '+(info.level||1);
-    $('over-near').innerHTML = info.isBest
-      ? 'You set a new personal best.'
-      : 'You were <b>'+away+'</b> from <b>'+next+'</b>.'+(info.best>info.score?' Best is <b>'+info.best+'</b>.':'');
-    renderGoals();
-    updateNextUnlock();
-    // revive is offered at most once per run (the emotional-peak ad moment)
+    $('over-newbest').classList.toggle('hidden', !info.isBest);
+    $('over-coinTotal').textContent=Storage.data.coins;     // total balance, front and centre
+    $('over-coins').textContent='+'+info.coins;             // earned this run
     $('btn-revive').classList.toggle('hidden', info.canRevive===false);
+    $('btn-double').removeAttribute('disabled');
     hideAll(); overEl.classList.add('show');
   }
 
@@ -1787,13 +1815,33 @@ const UI=(()=>{
   function buildShop(){
     const grid=$('shop-grid'); grid.innerHTML='';
     $('shop-coins').textContent=Storage.data.coins;
+    renderGoals();   // current objectives live here now
     section(grid,'Trails',Cosmetics.TRAILS); section(grid,'Cars',Cosmetics.CARS); section(grid,'Powers',Cosmetics.POWERS);
   }
   function section(grid,title,items){
     const h=document.createElement('div'); h.className='shop-sec'; h.textContent=title; grid.appendChild(h);
     items.forEach(item=>grid.appendChild(card(item)));
   }
+  const PAL=['#00E5FF','#FF49C3','#FFD23F','#7CFF6B','#FF8A3D','#B16BFF','#FFFFFF','#FF3B5C'];
+  function customCard(){
+    const equipped=Storage.data.equippedTrail==='custom';
+    const el=document.createElement('div'); el.className='skin skin-wide'+(equipped?' equipped':'');
+    const cv=document.createElement('canvas'); cv.width=110; cv.height=40; el.appendChild(cv);
+    setTimeout(()=>renderTrailPreview(cv,{a:Storage.data.customA,b:Storage.data.customB}),0);
+    const name=document.createElement('div'); name.className='name'; name.textContent='Custom — make your own'; el.appendChild(name);
+    ['customA','customB'].forEach(ch=>{
+      const row=document.createElement('div'); row.className='swatches';
+      PAL.forEach(c=>{ const sw=document.createElement('span'); sw.className='sw'+(Storage.data[ch]===c?' on':''); sw.style.background=c;
+        sw.addEventListener('click',(e)=>{ e.stopPropagation(); Storage.data[ch]=c; Storage.data.equippedTrail='custom'; Storage.save(); Audio.tick(); buildShop(); });
+        row.appendChild(sw); });
+      el.appendChild(row);
+    });
+    const state=document.createElement('div'); state.className='state '+(equipped?'eq':'un'); state.textContent=equipped?'EQUIPPED':'TAP TO EQUIP'; el.appendChild(state);
+    el.addEventListener('click',()=>{ Storage.data.equippedTrail='custom'; Storage.save(); Audio.tick(); buildShop(); });
+    return el;
+  }
   function card(item){
+    if(item.id==='custom') return customCard();
     const cat=catOf(item), unlocked=Cosmetics.isUnlocked(item.id), equipped=equippedId(cat)===item.id;
     const el=document.createElement('div'); el.className='skin'+(equipped?' equipped':'');
     if(cat==='power'){ const p=document.createElement('div'); p.className='pico'; p.textContent=item.pico; el.appendChild(p); }
@@ -1813,10 +1861,10 @@ const UI=(()=>{
     if(unlocked){ setEquipped(cat,item.id); Storage.save(); Audio.tick(); buildShop(); return; }
     if(Storage.data.coins>=item.cost){
       Storage.data.coins-=item.cost; Cosmetics.unlock(item.id); setEquipped(cat,item.id);
-      Storage.save(); Audio.coin(); toast('Unlocked '+item.name+'!'); buildShop(); updateNextUnlock();
+      Storage.save(); Audio.coin(); toast('Unlocked '+item.name+'!'); buildShop();
     } else {
       AdSDK.showRewarded(
-        ()=>{ Cosmetics.unlock(item.id); setEquipped(cat,item.id); Storage.save(); Audio.fanfare(); toast('Unlocked '+item.name+'!'); buildShop(); updateNextUnlock(); },
+        ()=>{ Cosmetics.unlock(item.id); setEquipped(cat,item.id); Storage.save(); Audio.fanfare(); toast('Unlocked '+item.name+'!'); buildShop(); },
         ()=>{ toast('Need '+(item.cost-Storage.data.coins)+' more coins'); }
       );
     }
@@ -1857,11 +1905,12 @@ const UI=(()=>{
     // doubles THIS run's earned coins (already added once at game over)
     const base=parseInt($('over-coins').textContent.replace('+',''))||0;
     const add=Math.max(1,Math.round(base*mult));
-    Storage.data.coins+=add; Storage.save(); $('shop-coins') && ($('shop-coins').textContent=Storage.data.coins);
+    Storage.data.coins+=add; Storage.save();
+    $('over-coinTotal').textContent=Storage.data.coins;   // reflect the new balance live
     return add;
   }
 
-  return { toast, showGameOver, openShop, closeShop, startRun, wire, updateNextUnlock, buildShop };
+  return { toast, showGameOver, openShop, closeShop, startRun, wire, buildShop };
 })();
 
 /* ============================== [LOOP] ===================================== */

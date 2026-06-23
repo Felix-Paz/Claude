@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" font-family="'Segoe UI',system-ui,Arial,sans-serif">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5AD1FF"/><stop offset="1" stop-color="#6A5BFF"/></linearGradient>
+    <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00E5FF"/><stop offset="1" stop-color="#FF49C3"/></linearGradient>
+  </defs>
+  <rect width="1080" height="1350" fill="url(#sky)"/>
+  <rect width="1080" height="1350" fill="#241A4D" opacity="0.55"/>
+
+  <!-- card -->
+  <g>
+    <rect x="96" y="150" width="888" height="1010" rx="40" fill="#241A4D" opacity="0.4"/>
+    <rect x="90" y="140" width="888" height="1010" rx="40" fill="#FFF7EC" stroke="#241A4D" stroke-width="8"/>
+  </g>
+
+  <!-- logo -->
+  <g transform="translate(534,250) scale(1.15)">
+    <path d="M196 30 C150 8 70 12 60 48 C52 78 104 92 150 80" fill="none" stroke="url(#lg)" stroke-width="11" stroke-linecap="round" transform="translate(-180,-66)"/>
+    <circle cx="-30" cy="14" r="9" fill="#FFB020" stroke="#241A4D" stroke-width="4"/>
+    <text x="0" y="-6" text-anchor="middle" font-size="52" font-weight="900" fill="#00E5FF" stroke="#241A4D" stroke-width="7" paint-order="stroke">DRIFT</text>
+    <text x="0" y="50" text-anchor="middle" font-size="52" font-weight="900" fill="#FF49C3" stroke="#241A4D" stroke-width="7" paint-order="stroke" letter-spacing="4">LASSO</text>
+  </g>
+
+  <!-- score + best/level -->
+  <text x="540" y="500" text-anchor="middle" font-size="120" font-weight="900" fill="#FF49C3" stroke="#241A4D" stroke-width="10" paint-order="stroke">1,820</text>
+  <text x="540" y="560" text-anchor="middle" font-size="30" font-weight="900" fill="#6b6493">BEST <tspan fill="#241A4D">1,960</tspan>   ·   <tspan fill="#00E5FF">LV 6</tspan></text>
+
+  <!-- total coins (front and centre) + run delta -->
+  <g transform="translate(540,640)">
+    <circle cx="-78" cy="-10" r="22" fill="#FFC93A" stroke="#241A4D" stroke-width="5"/>
+    <text x="-44" y="6" font-size="46" font-weight="900" fill="#b9770a">134</text>
+    <text x="86" y="2" font-size="22" font-weight="900" fill="#1a9d2e">+58</text>
+  </g>
+
+  <!-- buttons -->
+  <g>
+    <rect x="170" y="700" width="740" height="104" rx="18" fill="#241A4D"/>
+    <rect x="170" y="694" width="740" height="104" rx="18" fill="#FF49C3" stroke="#241A4D" stroke-width="6"/>
+    <text x="540" y="758" text-anchor="middle" font-size="34" font-weight="900" fill="#FFFFFF">REVIVE  ▶ AD</text>
+
+    <rect x="170" y="838" width="740" height="132" rx="20" fill="#241A4D"/>
+    <rect x="170" y="830" width="740" height="132" rx="20" fill="#00E5FF" stroke="#241A4D" stroke-width="6"/>
+    <text x="540" y="912" text-anchor="middle" font-size="44" font-weight="900" fill="#241A4D">PLAY AGAIN</text>
+
+    <rect x="170" y="1004" width="356" height="98" rx="18" fill="#241A4D"/>
+    <rect x="170" y="998" width="356" height="98" rx="18" fill="#FF49C3" stroke="#241A4D" stroke-width="6"/>
+    <text x="348" y="1056" text-anchor="middle" font-size="30" font-weight="900" fill="#FFFFFF">2&#215; COINS ▶</text>
+
+    <rect x="554" y="1004" width="356" height="98" rx="18" fill="#241A4D"/>
+    <rect x="554" y="998" width="356" height="98" rx="18" fill="#FFFFFF" stroke="#241A4D" stroke-width="6"/>
+    <text x="732" y="1056" text-anchor="middle" font-size="30" font-weight="900" fill="#241A4D">GARAGE</text>
+  </g>
+</svg>

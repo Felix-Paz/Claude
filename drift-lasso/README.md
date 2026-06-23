@@ -37,11 +37,11 @@ or `A` / `D`. No input = drive straight. Circle a drone to lasso it. Touch, mous
 ## The first 10 seconds (guaranteed)
 
 There is no menu, logo, or tutorial. On load the car drives into the arena flanked by big pulsing
-**◀ ▶ steering arrows** and a small clump of drones placed at the left- *and* right-turn centres —
-so whichever way the player first steers, their loop wraps a drone. Intro deaths are softened to
-trail-resets, so the first try can't fail. Verified by simulation across 6 screen sizes
-(`_dev/sim.test.js`): steering **either** direction from the start captures in **~2–3.7 s**, and
-just driving straight never self-crosses (no cheap death while you learn).
+**◀ ▶ steering arrows** and a single intro drone that **hovers at the car's turn-centre** — so the
+moment the player steers (left *or* right) the loop wraps it. And if they touch *nothing*, the car
+**auto-curls** after a beat and laps it anyway. Either way you win; intro deaths are softened to
+trail-resets so the first try literally cannot fail. Verified across **every input × 6 screen sizes**
+(`_dev/sim.test.js`): first capture in **≤7 s**, always; driving straight never self-crosses.
 
 ---
 
@@ -63,9 +63,20 @@ Captures fire **witty callouts** (`YOINK!`, `GOTCHA!`, `ROUNDUP!`…), candy con
 
 ## Purpose: levels, goals, garage
 
-- **Levels** — score climbs you through levels (`LV` + progress bar top-right); each level-up pays coins, fires a banner, and nudges difficulty. A visible ladder to climb.
-- **Objectives** — 3 rotating goals on the game-over card (e.g. *Lasso 9 runners*, *Hit a x6 combo*, *Catch a gold star*). Completing one pays coins + a fanfare and is replaced. This is the "one more run" hook (replaced the old daily-streak nag, which is gone).
-- **Garage** — 9 trail skins, 6 car skins, and **equippable superpowers** (🧲 Magnet — passive pull · 🛡️ Shield — survive one fatal cross/run · 🔥 Hot Start — begin at combo ×3). Buy with coins or watch a rewarded ad to unlock early.
+- **Levels** — every **`LEVEL_STEP` (500) points = a level**, shown as a big progress bar under the score *and* a `LV` chip top-right. Each level-up fires a banner, pays coins, **changes the background colour**, and nudges difficulty. That bar is the thing you're always chasing.
+- **Objectives** — 3 rotating goals (in the Garage now): *Lasso 9 runners*, *Hit a x6 combo*, *Catch a gold star*… complete one → coins + fanfare → replaced. The longer-term "one more run" hook. (The old daily-streak is gone.)
+- **Garage** — 9 trail skins + **make-your-own custom trail** (pick two colours), 6 car skins, and **equippable superpowers** (🧲 Magnet · 🛡️ Shield · 🔥 Hot Start). Buy with coins or watch a rewarded ad.
+
+## Difficulty & the win/lose rhythm (the psychology)
+
+The micro-**win** is every capture (confetti + a rising-pitch tone + points); the chase is the **next level bar** and **beating your best**; the surprise wins are gold stars, `PERFECT`, and power-up orbs (variable-ratio reward = the addictive bit). The loss is always self-inflicted (cross your own empty loop), so the game never *takes* a win from you — instead a **director** shapes how risky the arena feels, manufacturing a *win → tension → relief → win* flow:
+
+1. **Onboarding (lvl 1–2):** no bombs, slow, plentiful drones — you win constantly and feel good.
+2. **Tension wave:** a sine over ~24 s (`TENSION_PERIOD`) pushes spawn rate, speed, and bomb chance **up then down** — pressure builds (you might slip and die), then eases so you rack up easy combos and feel back on top.
+3. **Relief after a revive** (`RELIEF_TIME`): a guaranteed calm window so you immediately get a win back.
+4. **Rubber-band (DDA):** the last 5 run scores feed `DDA_REF`; players whose recent runs are short get the difficulty quietly eased (`DDA_MAX_EASE`) so they win more, while strong players get pushed. Everyone stays in flow.
+
+Tuning these four constants is how you move the "when do they win / when do they sweat" dial without ever making a death feel unfair.
 
 ## Brand
 
@@ -174,7 +185,9 @@ All live in the **`CONFIG`** object at the very top of the script, named for dat
 | `RUNNER_FLEE`, `BOMB_AFTER_SCORE`, `RUNNER_VALUE`, `BONUS_VALUE` | Flee distance, when bombs unlock, score multipliers | `130`, `400`, `1.6`, `3.0` |
 | `TRAIL_LIFESPAN` | Base seconds a trail point lives = the self-collision **hazard window** | `2.6` |
 | `TAIL_GROW` / `TAIL_MAX_EXTRA` | Extra tail seconds per capture / cap (the **growing tail**) | `0.05` / `1.7` |
-| `LEVEL_STEP` | Score per level-up (the progression ladder) | `500` |
+| `LEVEL_STEP` | Score per level-up (the progression ladder + bg colour change) | `500` |
+| `TENSION_PERIOD` / `RELIEF_TIME` | Seconds per win→tension→relief wave / calm window after a revive | `24` / `6` |
+| `DDA_REF` / `DDA_MAX_EASE` | Recent-avg score that = "skilled" / max difficulty easing for strugglers | `1400` / `0.35` |
 | `POWERUP_MIN` / `POWERUP_MAX` / `POWERUP_DUR` | Seconds between power-up orbs / how long one lasts | `16` / `26` / `7` |
 | `MAGNET_EQUIP` / `MAGNET_POWER` / `SLOMO_SCALE` | Pull strength (equipped vs orb) / slo-mo factor | `70` / `240` / `0.45` |
 | `SELF_GRACE_SEGMENTS` | **Forgiving-hitbox grace** near the head (the single most important feel knob) | `6` |

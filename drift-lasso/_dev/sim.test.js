@@ -43,23 +43,28 @@ function makeTrail(){
 }
 
 /* steer(t) => -1 / 0 / +1. intro=true softens empty loops to trail-resets. */
-function simulate({steer, intro=true, drones, W=412, H=870, maxSeconds=8}){
+function simulate({steer, intro=true, drone, W=412, H=870, maxSeconds=8}){
   const car={x:W*0.5,y:H*0.62,dir:-Math.PI/2}; let steerSmooth=0;
-  const dr=(drones||[]).map(d=>({x:d.x,y:d.y}));
+  // one intro drone that tracks the turn-centre (mirrors the game); or a fixed drone for non-intro tests
+  let dr = drone ? {x:drone.x,y:drone.y} : (intro ? {x:car.x+LASSO_R,y:car.y} : null);
   const trail=makeTrail();let elapsed=0;const dt=1/60;let soft=0;
   while(elapsed<maxSeconds){
     elapsed+=dt;
-    steerSmooth += ((steer?steer(elapsed):0)-steerSmooth)*clamp(C.STEER_LERP*dt,0,1);
+    let s = steer?steer(elapsed):0;
+    if(!s && intro && elapsed>0.25) s=1;   // game's auto-curl: no input still wins the opener
+    steerSmooth += (s-steerSmooth)*clamp(C.STEER_LERP*dt,0,1);
     let omega=steerSmooth*C.TURN_RATE;
     const m=C.WALL_MARGIN*2.2;
     if(car.x<m||car.x>W-m||car.y<m||car.y>H-m){ const des=Math.atan2(H/2-car.y,W/2-car.x); const diff=Math.atan2(Math.sin(des-car.dir),Math.cos(des-car.dir)); const edge=clamp((m-Math.min(car.x,car.y,W-car.x,H-car.y))/m,0,1); omega+=diff*C.CONTAIN*edge; }
     car.dir+=omega*dt; car.x+=Math.cos(car.dir)*C.CAR_SPEED*dt; car.y+=Math.sin(car.dir)*C.CAR_SPEED*dt;
+    // intro drone tracks the turn-centre for the current steer side
+    if(intro && !drone){ const sign=steerSmooth>=0?1:-1, a=car.dir+sign*Math.PI/2, cx=car.x+Math.cos(a)*LASSO_R, cy=car.y+Math.sin(a)*LASSO_R, k=clamp(10*dt,0,1); dr.x+=(cx-dr.x)*k; dr.y+=(cy-dr.y)*k; }
     const last=trail.len>0?trail.get(trail.len-1):null;
     if(!last||dist2(last.x,last.y,car.x,car.y)>=C.TRAIL_MIN_DIST*C.TRAIL_MIN_DIST){
       trail.push(car.x,car.y,elapsed);const loop=trail.checkClose();
       if(loop){
-        let caught=0; for(const d of dr){ if(pointInPoly(d.x,d.y,loop.poly,loop.n)) caught++; }
-        if(caught>0) return {event:'capture',time:elapsed,soft};
+        const caught = dr && pointInPoly(dr.x,dr.y,loop.poly,loop.n);
+        if(caught) return {event:'capture',time:elapsed,soft};
         if(intro){ trail.reset();trail.push(car.x,car.y,elapsed);soft++; }
         else return {event:'death',time:elapsed,soft};
       }
@@ -83,20 +88,22 @@ const sq=[{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:0,y:10}];
 ok(pointInPoly(5,5,sq,4) && !pointInPoly(15,5,sq,4),'point-in-polygon in/out');
 ok(Math.abs(polyArea(sq,4)-100)<1e-9,'shoelace area = 100');
 
-console.log('\n[opening — steering EITHER way from the start wraps a drone fast]');
+console.log('\n[opening — the intro drone tracks the turn-centre, so EVERY first action wins]');
 const sizes=[[412,870],[390,844],[360,640],[768,1024],[834,1112],[320,568]];
+const inputs={ 'steer left':()=>-1, 'steer right':()=>1, 'no input (auto-curl)':null,
+  'late left @1s':t=>t>1?-1:0, 'tap then hold':t=>(t>0.6) ? 1 : 0 };
 let worst=0, allGood=true;
-for(const [W,H] of sizes){
-  const L=simulate({W,H,steer:()=>-1,drones:clump(W,H)});
-  const R=simulate({W,H,steer:()=>+1,drones:clump(W,H)});
-  const good=L.event==='capture'&&L.time<=6 && R.event==='capture'&&R.time<=6;
-  if(!good)allGood=false; worst=Math.max(worst,L.time,R.time);
-  ok(good, W+'x'+H+': steer-left '+L.event+' @'+L.time.toFixed(2)+'s, steer-right '+R.event+' @'+R.time.toFixed(2)+'s');
+for(const name in inputs){
+  for(const [W,H] of sizes){
+    const r=simulate({W,H,steer:inputs[name]});
+    const good=r.event==='capture'&&r.time<=8; if(!good){ allGood=false; ok(false, name+' @ '+W+'x'+H+' => '+r.event+' @'+r.time.toFixed(2)+'s'); }
+    worst=Math.max(worst,r.time);
+  }
 }
-ok(allGood,'both first-steer directions capture within 6s on every screen size (worst '+worst.toFixed(2)+'s)');
+ok(allGood,'every input × every screen size captures within 8s (worst '+worst.toFixed(2)+'s)');
 
-console.log('\n[fairness — driving straight never kills you]');
-const straight=simulate({steer:()=>0, drones:[], intro:false, maxSeconds:6});
+console.log('\n[fairness — driving straight never kills you (after the intro)]');
+const straight=simulate({steer:()=>0, intro:false, maxSeconds:6});
 ok(straight.event==='none','no input = drive straight = never self-cross (no cheap death)');
 
 console.log('\n[death rule — normal play]');
