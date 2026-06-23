@@ -86,11 +86,22 @@
   </g>
   <text x="540" y="540" text-anchor="middle" font-size="56" font-weight="900" fill="#FF49C3" stroke="#241A4D" stroke-width="8" paint-order="stroke">YOINK!  +540</text>
 
+  <!-- rare POWER-UP orb (drive over to grab) -->
+  <g transform="translate(872,930)">
+    <circle r="46" fill="#FFFFFF" opacity="0.35"/>
+    <circle r="30" fill="#241A4D"/><circle r="27" fill="#FF8A3D"/>
+    <path d="M0 -20 L6 -6 L21 -6 L9 4 L13 19 L0 10 L-13 19 L-9 4 L-21 -6 L-6 -6 Z" fill="#FFFFFF"/>
+  </g>
+
   <!-- HUD -->
   <text x="540" y="120" text-anchor="middle" font-size="118" font-weight="900" fill="#FFFFFF" stroke="#241A4D" stroke-width="13" paint-order="stroke" letter-spacing="2">2,480</text>
   <text x="540" y="250" text-anchor="middle" font-size="34" font-weight="900" fill="#FF49C3" stroke="#241A4D" stroke-width="7" paint-order="stroke">x4</text>
   <text x="540" y="210" text-anchor="middle" font-size="30" font-weight="900" fill="#EAF2FF" stroke="#241A4D" stroke-width="6" paint-order="stroke">BEST 1,960</text>
   <text x="40" y="150" font-size="40" font-weight="900" fill="#FFB020" stroke="#241A4D" stroke-width="7" paint-order="stroke">&#9673; 128</text>
+  <!-- level + progress (top-right) -->
+  <text x="1040" y="150" text-anchor="end" font-size="40" font-weight="900" fill="#00E5FF" stroke="#241A4D" stroke-width="7" paint-order="stroke">LV 5</text>
+  <rect x="916" y="168" width="124" height="16" rx="8" fill="#EADFCE" stroke="#241A4D" stroke-width="4"/>
+  <rect x="916" y="168" width="78" height="16" rx="8" fill="#00E5FF"/>
 
   <rect width="1080" height="1350" fill="url(#vig)"/>
 </svg>

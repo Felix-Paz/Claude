@@ -53,8 +53,23 @@ Everything has googly eyes that track you, blink, and emote — and behaves diff
 - 🟢 **Runner** — a teal coward that **panics and flees** when you get close (worth `1.6×`). Chasing them down is the fun.
 - ⭐ **Gold star** — rare, fast, **`3×`** points + a fanfare. Variable-reward dopamine.
 - 🟣 **Bomb** — a spiky purple grump. **Do NOT lasso it:** wrapping a bomb spoils the loop, **shatters your combo**, and stings (`BONK!`) — but never kills you (the one death rule stays "empty self-cross"). The greed preview turns **red** when a closing loop would catch one.
+- 🌈 **Power-up orb** — rare; **drive over it** to grab a ~7s power: **FRENZY** (score ×2), **MAGNET** (reels critters in), or **SLO-MO** (everything slows).
+
+Your trail is a **fence** — drones can't cross your live line, so once you start circling them they're trapped (close the mouth to seal the catch). The tail **grows longer** the more you catch in a run: bigger lassos, bigger risk.
 
 Captures fire **witty callouts** (`YOINK!`, `GOTCHA!`, `ROUNDUP!`…), candy confetti, a camera punch, and a rising-pitch combo ladder.
+
+---
+
+## Purpose: levels, goals, garage
+
+- **Levels** — score climbs you through levels (`LV` + progress bar top-right); each level-up pays coins, fires a banner, and nudges difficulty. A visible ladder to climb.
+- **Objectives** — 3 rotating goals on the game-over card (e.g. *Lasso 9 runners*, *Hit a x6 combo*, *Catch a gold star*). Completing one pays coins + a fanfare and is replaced. This is the "one more run" hook (replaced the old daily-streak nag, which is gone).
+- **Garage** — 9 trail skins, 6 car skins, and **equippable superpowers** (🧲 Magnet — passive pull · 🛡️ Shield — survive one fatal cross/run · 🔥 Hot Start — begin at combo ×3). Buy with coins or watch a rewarded ad to unlock early.
+
+## Brand
+
+Name **Drift Lasso** (searchable on "drift", portal-friendly). The look is a locked palette — **Ink** `#241A4D` outline, **Cyan** `#00E5FF` + **Magenta** `#FF49C3` (the lasso), **Amber** `#FFB020` (coins/targets), candy **Sky** gradient — used consistently across game, HUD, menus, logo, and favicon. The logo (a lasso loop around a drone) appears on the game-over card and as the browser tab icon; it never blocks first play.
 
 ---
 
@@ -79,7 +94,8 @@ jump straight to the system you want to tune. Search for `[NAME]`:
 | `[ENTITIES]` | Trail (ring buffer + self-cross), Drones |
 | `[GAME]` | State machine, spawn director, scoring, combo, collision/capture |
 | `[RENDER]` | The draw pass |
-| `[UI]` | DOM overlays: game-over, garage/shop, daily reward |
+| `[UI]` | DOM overlays: game-over (logo + objectives), garage/shop |
+| `[OBJECTIVES]` | Rotating goals = the game's "purpose"; persisted, paid in coins |
 | `[LOOP]` | Fixed-timestep update + rAF render + lifecycle (pause/resize/DPR) |
 
 The update loop is **fixed-timestep (1/60)** and decoupled from render, with delta-time clamping so
@@ -156,7 +172,11 @@ All live in the **`CONFIG`** object at the very top of the script, named for dat
 | `TURN_RATE` / `STEER_LERP` | How sharply you turn (lasso radius = `CAR_SPEED/TURN_RATE` ≈ 93px) / steering responsiveness | `2.7` / `16` |
 | `RUNNER_CHANCE` / `BONUS_CHANCE` / `BOMB_CHANCE` | Spawn mix: fleeing runners / rare gold stars / bombs-to-avoid | `0.30` / `0.07` / `0.16` |
 | `RUNNER_FLEE`, `BOMB_AFTER_SCORE`, `RUNNER_VALUE`, `BONUS_VALUE` | Flee distance, when bombs unlock, score multipliers | `130`, `400`, `1.6`, `3.0` |
-| `TRAIL_LIFESPAN` | Seconds a trail point lives = the self-collision **hazard window** | `2.6` |
+| `TRAIL_LIFESPAN` | Base seconds a trail point lives = the self-collision **hazard window** | `2.6` |
+| `TAIL_GROW` / `TAIL_MAX_EXTRA` | Extra tail seconds per capture / cap (the **growing tail**) | `0.05` / `1.7` |
+| `LEVEL_STEP` | Score per level-up (the progression ladder) | `500` |
+| `POWERUP_MIN` / `POWERUP_MAX` / `POWERUP_DUR` | Seconds between power-up orbs / how long one lasts | `16` / `26` / `7` |
+| `MAGNET_EQUIP` / `MAGNET_POWER` / `SLOMO_SCALE` | Pull strength (equipped vs orb) / slo-mo factor | `70` / `240` / `0.45` |
 | `SELF_GRACE_SEGMENTS` | **Forgiving-hitbox grace** near the head (the single most important feel knob) | `6` |
 | `NEAR_MISS_DIST` | Proximity that triggers the "almost died!" shimmer + tick | `24` |
 | `MIN_DRONES` / `MAX_DRONES` | Drone count floor / ceiling | `3` / `15` |

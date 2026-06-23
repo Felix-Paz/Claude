@@ -12,6 +12,8 @@
 <meta property="og:type" content="website" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
+<!-- brand favicon: amber drone inside a cyan→magenta lasso loop on ink (inline, no network) -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23241A4D'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2300E5FF'/%3E%3Cstop offset='1' stop-color='%23FF49C3'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='34' r='17' fill='none' stroke='url(%23g)' stroke-width='6'/%3E%3Ccircle cx='32' cy='34' r='7' fill='%23FFB020'/%3E%3C/svg%3E" />
 <style>
   /* ---------------------------------------------------------------------------
      Drift Lasso — BOLD CARTOON 2.5D styles. Self-contained, no external fonts/CDN
@@ -133,6 +135,26 @@
   #ad .ad-actions{ display:flex; gap:10px; justify-content:center; }
   #ad .ad-actions .btn{ min-height:48px; font-size:16px; }
 
+  /* brand logo on the game-over card */
+  .logo{ width:min(240px,66vw); height:auto; display:block; margin:0 auto 2px; }
+  /* PLAY AGAIN is the hero action — biggest button on the screen */
+  .btn.big{ min-height:76px; font-size:24px; box-shadow:0 8px 0 var(--ink); }
+  .btn.big:active{ transform:translateY(5px); box-shadow:0 3px 0 var(--ink); }
+  #over-lvl{ color:var(--cyan); font-weight:900; }
+  /* objectives / goals */
+  .goals{ width:100%; max-width:380px; display:flex; flex-direction:column; gap:7px; }
+  .goal{ display:flex; align-items:center; gap:9px; background:var(--white); border:3px solid var(--ink); border-radius:13px; padding:8px 11px; box-shadow:0 3px 0 var(--ink); }
+  .goal.done{ background:#E9FFE9; }
+  .goal .gicon{ font-size:18px; }
+  .goal .gtext{ flex:1; min-width:0; text-align:left; }
+  .goal .gname{ font-size:13px; font-weight:900; color:var(--ink); }
+  .goal .gbar{ height:8px; border-radius:999px; background:#EADFce; border:2px solid var(--ink); overflow:hidden; margin-top:4px; }
+  .goal .gbar > i{ display:block; height:100%; background:linear-gradient(90deg,var(--cyan),var(--magenta)); }
+  .goal .greward{ font-size:13px; font-weight:900; color:#b9770a; white-space:nowrap; }
+  .goal.done .greward{ color:#1a9d2e; }
+  /* garage section header + equipped power chip */
+  .shop-sec{ grid-column:1/-1; text-align:left; font-size:12px; letter-spacing:2px; font-weight:900; color:var(--purple); text-transform:uppercase; margin:6px 2px 0; }
+  .skin .pico{ font-size:30px; line-height:1; margin:3px 0; }
   .hidden{ display:none !important; }
   a{ color:var(--purple); }
 </style>
@@ -147,24 +169,33 @@
   <!-- GAME OVER -->
   <div id="over" class="overlay">
     <div class="panel">
+      <svg id="logo" class="logo" viewBox="0 0 360 132" aria-label="Drift Lasso">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00E5FF"/><stop offset="1" stop-color="#FF49C3"/></linearGradient></defs>
+        <path d="M196 30 C150 8 70 12 60 48 C52 78 104 92 150 80" fill="none" stroke="url(#lg)" stroke-width="11" stroke-linecap="round"/>
+        <circle cx="150" cy="80" r="9" fill="#FFB020" stroke="#241A4D" stroke-width="4"/>
+        <text x="180" y="60" text-anchor="middle" font-family="'Segoe UI',system-ui,Arial" font-size="52" font-weight="900" fill="#00E5FF" stroke="#241A4D" stroke-width="7" paint-order="stroke" letter-spacing="1">DRIFT</text>
+        <text x="180" y="116" text-anchor="middle" font-family="'Segoe UI',system-ui,Arial" font-size="52" font-weight="900" fill="#FF49C3" stroke="#241A4D" stroke-width="7" paint-order="stroke" letter-spacing="4">LASSO</text>
+      </svg>
       <div class="eyebrow" id="over-eyebrow">Run Over</div>
       <div class="headline" id="over-headline">SO CLOSE</div>
       <div class="score-big" id="over-score">0</div>
-      <div class="best-row"><span>BEST <b id="over-best">0</b></span><span id="over-newbest" class="hidden" style="color:var(--magenta)">NEW BEST!</span></div>
+      <div class="best-row"><span>BEST <b id="over-best">0</b></span><span id="over-lvl">LV 1</span><span id="over-newbest" class="hidden" style="color:var(--magenta)">NEW BEST!</span></div>
       <div class="near" id="over-near"></div>
-      <div class="wallet"><span class="coin"></span><span id="over-coins">+0</span><span style="color:#9aa3c7;font-weight:700;font-size:13px">this run</span></div>
+      <div class="wallet"><span class="coin"></span><span id="over-coins">+0</span><span style="color:#6b6493;font-weight:700;font-size:13px">this run</span></div>
+
+      <div class="goals" id="goals"></div>
 
       <button class="btn reward" id="btn-revive">REVIVE &amp; CONTINUE <span class="tag">&#9654; AD</span></button>
+      <button class="btn primary big" id="btn-again">PLAY AGAIN</button>
       <div class="btn-row">
         <button class="btn reward" id="btn-double">2&#215; COINS <span class="tag">&#9654;</span></button>
-        <button class="btn primary" id="btn-again">PLAY AGAIN</button>
+        <button class="btn ghost" id="btn-openshop">GARAGE</button>
       </div>
 
       <div class="progress-wrap">
         <div class="progress-label"><span id="next-name">Next unlock</span><span>in <b id="next-coins">0</b></span></div>
         <div class="bar"><i id="next-bar"></i></div>
       </div>
-      <button class="btn ghost" id="btn-openshop">OPEN GARAGE</button>
     </div>
   </div>
 
@@ -172,21 +203,10 @@
   <div id="shop" class="overlay">
     <div class="panel">
       <div class="eyebrow">Garage</div>
-      <div class="headline" style="font-size:clamp(28px,9vw,44px)">SKINS</div>
+      <div class="headline" style="font-size:clamp(26px,8vw,40px)">CUSTOMISE</div>
       <div class="wallet"><span class="coin"></span><span id="shop-coins">0</span></div>
       <div class="shop-grid" id="shop-grid"></div>
       <button class="btn primary" id="btn-shop-close">BACK</button>
-    </div>
-  </div>
-
-  <!-- DAILY REWARD -->
-  <div id="daily" class="overlay">
-    <div class="panel">
-      <div class="eyebrow">Daily Streak</div>
-      <div class="headline" id="daily-streak">DAY 1</div>
-      <div class="sub" id="daily-sub">Welcome back, drifter.</div>
-      <div class="wallet" style="font-size:30px"><span class="coin" style="width:26px;height:26px"></span><span id="daily-amount">+25</span></div>
-      <button class="btn primary" id="btn-daily-claim">CLAIM</button>
     </div>
   </div>
 
@@ -228,7 +248,8 @@
      [COSMETICS]   trail + car skins, coins, unlocks
      [GAME]        state machine, spawn director, scoring, collisions
      [RENDER]      the draw pass
-     [UI]          DOM overlays (game over, shop, daily)
+     [OBJECTIVES]  rotating goals = the game's "purpose" (paid in coins)
+     [UI]          DOM overlays (game over + logo + objectives, garage/shop)
      [LOOP]        fixed-timestep update + rAF render + lifecycle
 ============================================================================= */
 
@@ -264,6 +285,16 @@ const CONFIG = {
   BOMB_CHANCE: 0.16,     // purple grump you must NOT lasso — wrapping it spoils the loop
   BOMB_AFTER_SCORE: 400, // bombs only start appearing once the player has the basics
   RUNNER_VALUE: 1.6, BONUS_VALUE: 3.0, // score multipliers per type
+
+  // --- PROGRESSION + POWERS -----------------------------------------------
+  LEVEL_STEP: 500,       // score per level-up (purpose: climb the levels)
+  TAIL_GROW: 0.05,       // seconds added to the trail per capture (tail grows as you catch)
+  TAIL_MAX_EXTRA: 1.7,   // cap on the bonus tail length
+  POWERUP_MIN: 16, POWERUP_MAX: 26, // seconds between rare power-up orbs
+  POWERUP_DUR: 7,        // seconds a collected power-up lasts
+  MAGNET_EQUIP: 70,      // px/sec pull from the equipped Magnet power
+  MAGNET_POWER: 240,     // px/sec pull from a collected MAGNET orb
+  SLOMO_SCALE: 0.45,     // drone speed factor during a SLO-MO orb
 
   // --- DIFFICULTY RAMP -----------------------------------------------------
   RAMP_GENTLE_TIME: 20,  // sec of deliberately gentle intro (no wall)
@@ -382,10 +413,10 @@ if(typeof module!=='undefined' && module.exports){
 const Storage=(()=>{
   const KEY='driftlasso.save.v1';
   const defaults={
-    highScore:0, coins:0, totalRuns:0,
-    unlocked:['neon','car_core'], equippedTrail:'neon', equippedCar:'car_core',
-    muted:false, firstRunDone:false, endowed:false,
-    lastDaily:'', streak:0, sinceInterstitial:0,
+    highScore:0, coins:0, totalRuns:0, bestLevel:1,
+    unlocked:['neon','car_core','pow_none'], equippedTrail:'neon', equippedCar:'car_core', equippedPower:'pow_none',
+    muted:false, firstRunDone:false, endowed:false, sinceInterstitial:0,
+    objectives:null,   // [{id,prog}] persisted; seeded on first load
   };
   let data=Object.assign({},defaults);
   function _read(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
@@ -807,31 +838,75 @@ const FX=(()=>{
    pre-discounted via "endowed progress" so the collection feels already begun. */
 const Cosmetics=(()=>{
   const TRAILS=[
-    {id:'neon',     name:'Neon Drift', cost:0,   a:'#00F0FF', b:'#FF2D95'},
+    {id:'neon',     name:'Neon Drift', cost:0,   a:'#00E5FF', b:'#FF49C3'},
     {id:'inferno',  name:'Inferno',    cost:140, a:'#FFE259', b:'#FF1744'},
-    {id:'voltage',  name:'Voltage',    cost:240, a:'#AEEBFF', b:'#7C4DFF'},
-    {id:'spectrum', name:'Spectrum',   cost:420, a:'rainbow', b:'rainbow'},
-    {id:'gold',     name:'24 Karat',   cost:650, a:'#FFF1A8', b:'#FFB800'},
-    {id:'chrome',   name:'Chrome',     cost:900, a:'#FFFFFF', b:'#9AD7FF'},
+    {id:'voltage',  name:'Voltage',    cost:220, a:'#AEEBFF', b:'#7C4DFF'},
+    {id:'slime',    name:'Slime',      cost:300, a:'#D4FF3D', b:'#00C853'},
+    {id:'bubblegum',name:'Bubblegum',  cost:380, a:'#FFD1F0', b:'#FF49C3'},
+    {id:'spectrum', name:'Rainbow',    cost:520, a:'rainbow', b:'rainbow'},
+    {id:'lava',     name:'Lava Lamp',  cost:640, a:'#FF8A3D', b:'#B16BFF'},
+    {id:'gold',     name:'24 Karat',   cost:800, a:'#FFF1A8', b:'#FFB020'},
+    {id:'chrome',   name:'Chrome',     cost:1000,a:'#FFFFFF', b:'#9AD7FF'},
   ];
   const CARS=[
-    {id:'car_core', name:'Pulse',  cost:0,   color:'#FFFFFF'},
-    {id:'car_amber',name:'Ember',  cost:180, color:'#FFB800'},
-    {id:'car_mag',  name:'Vapor',  cost:320, color:'#FF2D95'},
-    {id:'car_gold', name:'Bullion',cost:500, color:'#FFD24A'},
+    {id:'car_core', name:'Pulse',   cost:0,   color:'#FFFFFF'},
+    {id:'car_amber',name:'Ember',   cost:160, color:'#FFB020'},
+    {id:'car_mag',  name:'Vapor',   cost:280, color:'#FF49C3'},
+    {id:'car_lime', name:'Zap',     cost:380, color:'#C6FF4D'},
+    {id:'car_gold', name:'Bullion', cost:520, color:'#FFD24A'},
+    {id:'car_void', name:'Void',    cost:700, color:'#9B6BFF'},
+  ];
+  // equippable superpowers (one active). Effects applied in Game.
+  const POWERS=[
+    {id:'pow_none',  name:'None',      cost:0,   pico:'🚫', desc:'No power'},
+    {id:'pow_magnet',name:'Magnet',    cost:260, pico:'🧲', desc:'Pulls drones toward you'},
+    {id:'pow_shield',name:'Shield',    cost:420, pico:'🛡️', desc:'Survive one fatal cross / run'},
+    {id:'pow_hot',   name:'Hot Start', cost:340, pico:'🔥', desc:'Begin each run at combo x3'},
   ];
   function isUnlocked(id){ return Storage.data.unlocked.indexOf(id)>=0; }
   function unlock(id){ if(!isUnlocked(id)){ Storage.data.unlocked.push(id); Storage.save(); } }
   function trail(){ return TRAILS.find(t=>t.id===Storage.data.equippedTrail)||TRAILS[0]; }
   function car(){ return CARS.find(c=>c.id===Storage.data.equippedCar)||CARS[0]; }
-  function all(){ return TRAILS.concat(CARS); }
+  function power(){ return POWERS.find(p=>p.id===Storage.data.equippedPower)||POWERS[0]; }
+  function all(){ return TRAILS.concat(CARS).concat(POWERS); }
   // cheapest locked item -> drives the "next unlock" goal bar
   function nextLocked(){
     let best=null;
     all().forEach(it=>{ if(!isUnlocked(it.id) && it.cost>0){ if(!best||it.cost<best.cost) best=it; } });
     return best;
   }
-  return { TRAILS, CARS, isUnlocked, unlock, trail, car, all, nextLocked };
+  return { TRAILS, CARS, POWERS, isUnlocked, unlock, trail, car, power, all, nextLocked };
+})();
+
+/* ============================ [OBJECTIVES] ================================= */
+/* Rotating goals = the game's "purpose" beyond high score. 3 active at a time,
+   persisted; completing one pays coins + a fanfare and is replaced next run.
+   Count goals (runners/stars) accumulate across runs; "best" goals reset each run. */
+const Objectives=(()=>{
+  const DEFS={
+    runner:{icon:'🟢', label:t=>'Lasso '+t+' runners',           tiers:[6,9,12],   reward:40, count:true},
+    star:  {icon:'⭐', label:t=>'Catch '+t+' gold star'+(t>1?'s':''), tiers:[2,3], reward:55, count:true},
+    combo: {icon:'🔗', label:t=>'Hit a x'+t+' combo',            tiers:[5,6,8],    reward:35, count:false},
+    loop:  {icon:'🎯', label:t=>'Lasso '+t+' in one loop',       tiers:[3,4],      reward:50, count:false},
+    level: {icon:'🚀', label:t=>'Reach level '+t,                tiers:[4,6,9],    reward:40, count:false},
+    score: {icon:'💯', label:t=>'Score '+t+' in a run',          tiers:[1500,2500],reward:30, count:false},
+  };
+  const KEYS=Object.keys(DEFS);
+  function makeOne(avoid){ const pool=KEYS.filter(k=>!avoid.includes(k)); const k=pool[(Math.random()*pool.length)|0]||KEYS[0]; const d=DEFS[k]; return {key:k, t:d.tiers[(Math.random()*d.tiers.length)|0], prog:0, done:false}; }
+  function make(){ const out=[]; for(let i=0;i<3;i++) out.push(makeOne(out.map(o=>o.key))); return out; }
+  function seed(){ if(!Array.isArray(Storage.data.objectives)||Storage.data.objectives.length!==3){ Storage.data.objectives=make(); Storage.save(); } }
+  function refresh(){ // at run start: replace completed, reset per-run "best" goals
+    const o=Storage.data.objectives;
+    for(let i=0;i<o.length;i++){ if(o[i].done) o[i]=makeOne(o.map(x=>x.key)); else if(!DEFS[o[i].key].count) o[i].prog=0; }
+    Storage.save();
+  }
+  function complete(ob){ const d=DEFS[ob.key]; ob.done=true; Storage.data.coins+=d.reward; Storage.save();
+    if(typeof UI!=='undefined') UI.toast('GOAL! '+d.label(ob.t)+'  +'+d.reward); if(typeof Audio!=='undefined') Audio.fanfare(); }
+  function bump(key,val){ const o=Storage.data.objectives; let ch=false;
+    for(const ob of o){ if(ob.key===key && !ob.done){ const d=DEFS[ob.key]; ob.prog = d.count? ob.prog+val : Math.max(ob.prog,val); if(ob.prog>=ob.t) complete(ob); ch=true; } }
+    if(ch) Storage.save();
+  }
+  return { DEFS, seed, refresh, bump, list:()=>Storage.data.objectives||[] };
 })();
 
 /* ============================ [ENTITIES] =================================== */
@@ -907,37 +982,59 @@ const Trail=(()=>{
     get len(){return len;}, get(i){return get(i);} };
 })();
 
-// --- Drones (little characters: wanderers, runners, bonus stars, bombs) ------
-const DTYPE={ WANDER:0, RUNNER:1, BONUS:2, BOMB:3 };
+// --- Drones (little characters: wanderers, runners, bonus stars, bombs, power orbs)
+const DTYPE={ WANDER:0, RUNNER:1, BONUS:2, BOMB:3, POWER:4 };
 const Drones=(()=>{
-  const pool=makePool(CONFIG.MAX_DRONES+6, ()=>({x:0,y:0,vx:0,vy:0,r:CONFIG.DRONE_RADIUS,phase:0,type:0,t:0,spawn:0,blink:0,scared:0,ex:0,ey:0}));
+  const pool=makePool(CONFIG.MAX_DRONES+8, ()=>({x:0,y:0,vx:0,vy:0,r:CONFIG.DRONE_RADIUS,phase:0,type:0,t:0,spawn:0,blink:0,scared:0,ex:0,ey:0}));
   function spawnAt(x,y,type){
     const d=pool.get(); if(!d) return null;
     d.x=x; d.y=y; const a=rand(0,TAU); d.vx=Math.cos(a); d.vy=Math.sin(a);
     d.phase=rand(0,TAU); d.type=type||DTYPE.WANDER; d.t=0; d.spawn=0; d.blink=rand(1.5,5); d.scared=0; d.ex=0; d.ey=0;
-    d.r=CONFIG.DRONE_RADIUS*(d.type===DTYPE.BONUS?1.28:d.type===DTYPE.BOMB?1.12:1);
+    d.r=CONFIG.DRONE_RADIUS*(d.type===DTYPE.BONUS?1.28:d.type===DTYPE.POWER?1.35:d.type===DTYPE.BOMB?1.12:1);
     return d;
   }
-  function update(dt, diff, W, H, carX, carY){
-    const base=lerp(CONFIG.DRONE_BASE_SPEED,CONFIG.DRONE_MAX_SPEED,diff);
+  // push a drone back out of the live trail so it can't slip across your lasso
+  // (the trail is a FENCE). The newest few segments near the head are the "mouth"
+  // — left open so drones can still be herded in and so the car isn't blocked.
+  function fence(d){
+    const n=Trail.len; if(n<8) return;
+    const minD=d.r + CONFIG.TRAIL_WIDTH*0.5 + 1; const minD2=minD*minD;
+    const maxI=n-6;  // skip ~5 head segments (the mouth)
+    for(let i=0;i<maxI;i++){
+      const a=Trail.get(i), b=Trail.get(i+1);
+      const ux=b.x-a.x, uy=b.y-a.y, L2=ux*ux+uy*uy; if(L2<1) continue;
+      let t=((d.x-a.x)*ux+(d.y-a.y)*uy)/L2; t=clamp(t,0,1);
+      const cx=a.x+t*ux, cy=a.y+t*uy, dx=d.x-cx, dy=d.y-cy, dd2=dx*dx+dy*dy;
+      if(dd2<minD2){ const dd=Math.sqrt(dd2)||1, nx=dx/dd, ny=dy/dd;
+        d.x=cx+nx*minD; d.y=cy+ny*minD;          // shove out to the fence surface
+        const vn=d.vx*nx+d.vy*ny; if(vn<0){ d.vx-=2*vn*nx; d.vy-=2*vn*ny; } // reflect inward velocity
+      }
+    }
+  }
+  function update(dt, diff, W, H, carX, carY, magnet, speedScale){
+    const base=lerp(CONFIG.DRONE_BASE_SPEED,CONFIG.DRONE_MAX_SPEED,diff)*(speedScale||1);
     const a=pool.alive;
     for(let i=0;i<a.length;i++){ const d=a[i];
       d.t+=dt; if(d.spawn<1) d.spawn=Math.min(1,d.spawn+dt*3);
       d.phase+=dt*1.6;
-      d.blink-=dt; if(d.blink<-0.12) d.blink=rand(1.8,5.5);   // blink ~120ms, then wait
+      d.blink-=dt; if(d.blink<-0.12) d.blink=rand(1.8,5.5);
       d.scared=Math.max(0, d.scared-dt*2);
       let sp=base;
       if(d.type===DTYPE.RUNNER){
         const dx=d.x-carX, dy=d.y-carY, dd=Math.hypot(dx,dy)||1;
-        if(dd<CONFIG.RUNNER_FLEE){ d.vx=dx/dd; d.vy=dy/dd; sp=base*2.1; d.scared=1; }   // PANIC, flee the car
+        if(dd<CONFIG.RUNNER_FLEE){ d.vx=dx/dd; d.vy=dy/dd; sp=base*2.1; d.scared=1; }
         else if(Math.random()<0.012){ const ang=rand(0,TAU); d.vx=Math.cos(ang); d.vy=Math.sin(ang); }
       } else if(d.type===DTYPE.BOMB){ sp=base*0.55; if(Math.random()<0.008){ const ang=rand(0,TAU); d.vx=Math.cos(ang); d.vy=Math.sin(ang); } }
       else if(d.type===DTYPE.BONUS){ sp=base*1.35; if(Math.random()<0.02){ const ang=rand(0,TAU); d.vx=Math.cos(ang); d.vy=Math.sin(ang); } }
+      else if(d.type===DTYPE.POWER){ sp=base*0.6; if(Math.random()<0.02){ const ang=rand(0,TAU); d.vx=Math.cos(ang); d.vy=Math.sin(ang); } }
       else { if(Math.random()<0.01){ const ang=rand(0,TAU); d.vx=Math.cos(ang); d.vy=Math.sin(ang); } }
       d.x+=d.vx*sp*dt; d.y+=d.vy*sp*dt;
+      // MAGNET (equipped or power-up): gently reel non-bomb critters toward the car
+      if(magnet>0 && d.type!==DTYPE.BOMB){ const dx=carX-d.x, dy=carY-d.y, dd=Math.hypot(dx,dy)||1; if(dd<360){ d.x+=(dx/dd)*magnet*dt; d.y+=(dy/dd)*magnet*dt; } }
       const m=24;
       if(d.x<m){d.x=m;d.vx=Math.abs(d.vx);} if(d.x>W-m){d.x=W-m;d.vx=-Math.abs(d.vx);}
       if(d.y<m){d.y=m;d.vy=Math.abs(d.vy);} if(d.y>H-m){d.y=H-m;d.vy=-Math.abs(d.vy);}
+      if(d.type!==DTYPE.POWER) fence(d);   // power orbs ignore the fence (easy to grab)
       // eyes glance toward the car (smoothed)
       const ax=carX-d.x, ay=carY-d.y, al=Math.hypot(ax,ay)||1, mx=d.r*0.18;
       d.ex+=((ax/al)*mx - d.ex)*clamp(8*dt,0,1); d.ey+=((ay/al)*mx - d.ey)*clamp(8*dt,0,1);
@@ -964,7 +1061,12 @@ const Game=(()=>{
   let firstCaptureDone=false, hintAlpha=0, dyingTimer=0, prevBest=0, revivedThisRun=false;
   let parallaxX=0, parallaxY=0;
   let previewFrame=0, nearMissCd=0;
+  let level=1, levelBanner=0, tailExtra=0;          // progression: level + growing tail
+  let powerKind='', powerTimer=0, powerBanner=0;    // in-run power-up (FRENZY/MAGNET/SLOMO)
+  let shieldArmed=false, powerupTimer=8;            // equipped shield; power-orb spawn clock
   const LASSO_R=CONFIG.CAR_SPEED/CONFIG.TURN_RATE; // the radius a held turn carves (~93px)
+  function trailLifespan(){ return CONFIG.TRAIL_LIFESPAN + tailExtra; } // tail grows as you catch more
+  function scoreMult(){ return powerKind==='FRENZY'?2:1; }
 
   function resize(){
     DPR=Math.min(window.devicePixelRatio||1, 2);
@@ -997,8 +1099,14 @@ const Game=(()=>{
     score=0; displayScore=0; coinsRun=0; combo=0; comboTimer=0; comboBounce=0; pitchStep=0;
     elapsed=0; spawnTimer=0; difficulty=0; nextMilestone=CONFIG.MILESTONE_STEP;
     dyingTimer=0; car.invuln=0; nearMissCd=0; revivedThisRun=false; steerSmooth=0; previewState.valid=false; capFX.active=false;
+    level=1; levelBanner=0; tailExtra=0; powerKind=''; powerTimer=0; powerBanner=0; powerupTimer=rand(7,11);
     Trail.reset(); Drones.freeAll(); Particles.freeAll(); Popups.freeAll(); FX.reset();
     prevBest=Storage.data.highScore;
+    Objectives.refresh();                           // fresh goals; "best" goals reset
+    // equipped superpowers
+    const pw=Cosmetics.power().id;
+    shieldArmed=(pw==='pow_shield');
+    if(pw==='pow_hot'){ combo=3; comboTimer=CONFIG.COMBO_DECAY_TIME; pitchStep=3; }
     // Car starts low-centre driving up into the arena (live within ~1s of load).
     car.x=W*0.5; car.y=H*0.62; car.dir=-Math.PI/2;
     droneTarget=3; firstCaptureDone=false;
@@ -1055,11 +1163,16 @@ const Game=(()=>{
 
     const norm=clamp(loop.area/(W*H*CONFIG.AREA_REF_FRACTION), CONFIG.AREA_NORM_MIN, CONFIG.AREA_NORM_MAX);
     combo=Math.min(CONFIG.COMBO_MAX, combo+1); comboTimer=CONFIG.COMBO_DECAY_TIME; comboBounce=1; pitchStep++;
-    let valueSum=0, bonusHit=false;
-    caught.forEach(d=>{ valueSum+=droneValue(d); if(d.type===DTYPE.BONUS) bonusHit=true; });
-    const gained=Math.round(CONFIG.BASE_CAPTURE*norm*comboMult()*valueSum);
+    let valueSum=0, bonusHit=false, runners=0, stars=0;
+    caught.forEach(d=>{ valueSum+=droneValue(d); if(d.type===DTYPE.BONUS){ bonusHit=true; stars++; } if(d.type===DTYPE.RUNNER) runners++; });
+    const gained=Math.round(CONFIG.BASE_CAPTURE*norm*comboMult()*valueSum*scoreMult());
     addScore(gained);
     capFX.color=bonusHit?COL.amber:COL.magenta;
+    // tail grows as you catch more critters this run
+    tailExtra=Math.min(CONFIG.TAIL_MAX_EXTRA, tailExtra+CONFIG.TAIL_GROW*caught.length);
+    // objectives progress
+    if(runners) Objectives.bump('runner',runners); if(stars) Objectives.bump('star',stars);
+    Objectives.bump('loop',caught.length); Objectives.bump('combo',comboMult()); Objectives.bump('score',score);
 
     // pop the little critters -> candy confetti + sparkle
     caught.forEach(d=>{
@@ -1095,6 +1208,11 @@ const Game=(()=>{
   function die(){
     if(state!==STATE.PLAYING) return;
     if(car.invuln>0) return;            // post-revive grace
+    if(shieldArmed){                    // equipped Shield power: save the run once
+      shieldArmed=false; Trail.reset(); Trail.push(car.x,car.y,elapsed); car.invuln=1.3;
+      Popups.spawn(car.x, car.y-30, 'SHIELD!', COL.cyan, 30); FX.flash('rgba(0,229,255,0.3)',0.7); FX.addShake(0.7); Audio.bonus();
+      return;
+    }
     state=STATE.DYING; dyingTimer=0.7;
     FX.addShake(1.5); FX.flash('rgba(255,59,92,0.5)',1.0); Audio.death();
     Audio.setMusic(false);
@@ -1125,7 +1243,7 @@ const Game=(()=>{
     coinsRun += endBonus; Storage.data.coins += endBonus;
     Storage.save();
     UI.showGameOver({ score:Math.round(score), best:Storage.data.highScore, isBest:isBest,
-      coins:coinsRun, prevBest:prevBest, canRevive:!revivedThisRun });
+      coins:coinsRun, prevBest:prevBest, canRevive:!revivedThisRun, level:level });
     if(isBest) Audio.fanfare();
   }
 
@@ -1157,6 +1275,34 @@ const Game=(()=>{
     return DTYPE.WANDER;
   }
 
+  // ---- levels (the "purpose": climb them) ---------------------------------
+  function updateLevel(){ const lv=1+Math.floor(score/CONFIG.LEVEL_STEP); if(lv>level){ level=lv; levelUp(); } }
+  function levelUp(){
+    levelBanner=1.7;
+    Storage.data.coins+=8; coinsRun+=8; if(level>(Storage.data.bestLevel||1)) Storage.data.bestLevel=level; Storage.save();
+    Audio.fanfare(); FX.flash('rgba(0,229,255,0.16)',0.5); FX.addZoom(0.05); FX.addShake(0.4);
+    Popups.spawn(W/2, H*0.36, 'LEVEL '+level, COL.cyan, 42);
+    Objectives.bump('level', level);
+  }
+
+  // ---- in-run power-up orbs ------------------------------------------------
+  const POWER_KINDS=['FRENZY','MAGNET','SLOMO'];
+  function hasPowerOrb(){ const a=Drones.alive; for(let i=0;i<a.length;i++) if(a[i].type===DTYPE.POWER) return true; return false; }
+  function spawnPowerup(){ let x,y,tries=0; do{ x=rand(70,W-70); y=rand(110,H-110); tries++; }while(dist(x,y,car.x,car.y)<170 && tries<14); Drones.spawnAt(x,y,DTYPE.POWER); }
+  function collectPowerups(){
+    const a=Drones.alive;
+    for(let i=a.length-1;i>=0;i--){ const d=a[i]; if(d.type!==DTYPE.POWER) continue;
+      if(d.spawn>0.4 && dist(d.x,d.y,car.x,car.y) < d.r+20){
+        powerKind=POWER_KINDS[(Math.random()*POWER_KINDS.length)|0]; powerTimer=CONFIG.POWERUP_DUR; powerBanner=1.4;
+        Particles.burst(d.x,d.y,30,{confetti:true,spMax:360,sizeMax:9}); Particles.burst(d.x,d.y,12,{spr:Sprites.white,spMax:220,sizeMax:15});
+        Popups.spawn(d.x,d.y-30, powerKind+'!', COL.cyan, 32); Audio.bonus(); FX.addShake(0.6); FX.addZoom(0.06);
+        Drones.pool.free(d);
+      }
+    }
+  }
+  function magnetStrength(){ let m=(Cosmetics.power().id==='pow_magnet')?CONFIG.MAGNET_EQUIP:0; if(powerKind==='MAGNET') m=Math.max(m,CONFIG.MAGNET_POWER); return m; }
+  function speedScale(){ return powerKind==='SLOMO'?CONFIG.SLOMO_SCALE:1; }
+
   // ---- car physics: DIRECT STEERING ---------------------------------------
   function updateCar(dt){
     // steer = -1 (left) / 0 (straight) / +1 (right); eased for a smooth feel
@@ -1183,6 +1329,7 @@ const Game=(()=>{
     if(state===STATE.PLAYING){
       elapsed+=dt;
       updateDifficulty();
+      updateLevel();
       updateCar(dt);
       // record trail point when we've moved far enough
       const last=Trail.len>0?Trail.get(Trail.len-1):null;
@@ -1197,10 +1344,17 @@ const Game=(()=>{
           else die();                          // empty self-cross = death (the one legible rule)
         }
       }
-      Trail.dropOld(elapsed, CONFIG.TRAIL_LIFESPAN);
+      Trail.dropOld(elapsed, trailLifespan());
 
-      Drones.update(dt, difficulty, W, H, car.x, car.y);
+      Drones.update(dt, difficulty, W, H, car.x, car.y, magnetStrength(), speedScale());
       maybeSpawn(dt);
+
+      // power-up orbs: timers + occasional spawn + pickup-by-driving-over
+      if(powerTimer>0){ powerTimer-=dt; if(powerTimer<=0) powerKind=''; }
+      powerBanner=Math.max(0,powerBanner-dt); levelBanner=Math.max(0,levelBanner-dt);
+      powerupTimer-=dt;
+      if(powerupTimer<=0 && firstCaptureDone){ powerupTimer=rand(CONFIG.POWERUP_MIN,CONFIG.POWERUP_MAX); if(!hasPowerOrb()&&!powerKind) spawnPowerup(); }
+      collectPowerups();
 
       // combo decay
       if(combo>0){ comboTimer-=dt; if(comboTimer<=0){ combo=0; pitchStep=0; } }
@@ -1275,6 +1429,8 @@ const Game=(()=>{
     get hintAlpha(){return hintAlpha;}, get capFX(){return capFX;}, get previewState(){return previewState;},
     get parallaxX(){return parallaxX;}, get parallaxY(){return parallaxY;},
     get vignette(){return vignette;}, get bgGrad(){return bgGrad;}, get prevBest(){return prevBest;}, get safeTop(){return safeTop;},
+    get level(){return level;}, get levelBanner(){return levelBanner;}, get trailLifespan(){return trailLifespan();},
+    get powerKind(){return powerKind;}, get powerTimer(){return powerTimer;}, get powerBanner(){return powerBanner;},
   };
 })();
 
@@ -1303,17 +1459,17 @@ const Render=(()=>{
     let ar=0,ag=0,ab=0,br=0,bg=0,bb=0;
     if(!rainbow){ const ca=hexToRgb(skin.a), cb=hexToRgb(skin.b); ar=ca.r;ag=ca.g;ab=ca.b;br=cb.r;bg=cb.g;bb=cb.b; }
     ctx.lineCap='round'; ctx.lineJoin='round';
-    const core=CONFIG.TRAIL_WIDTH;
+    const core=CONFIG.TRAIL_WIDTH, life=Game.trailLifespan;
     // PASS 1 — ink outline (whole ribbon first, so cores always sit on top)
     ctx.lineWidth=core+8; ctx.strokeStyle=COL.ink;
     for(let i=1;i<n;i++){ const p0=Trail.get(i-1),p1=Trail.get(i);
-      const fade=1-clamp((Game.elapsed-p1.t)/CONFIG.TRAIL_LIFESPAN,0,1); if(fade<=0.04) continue;
+      const fade=1-clamp((Game.elapsed-p1.t)/life,0,1); if(fade<=0.04) continue;
       ctx.globalAlpha=fade; ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y+offY); ctx.lineTo(p1.x+offX,p1.y+offY); ctx.stroke();
     }
     // PASS 2 — solid candy core (cyan -> pink)
     ctx.lineWidth=core;
     for(let i=1;i<n;i++){ const p0=Trail.get(i-1),p1=Trail.get(i);
-      const tN=i/(n-1); const fade=1-clamp((Game.elapsed-p1.t)/CONFIG.TRAIL_LIFESPAN,0,1); if(fade<=0.04) continue;
+      const tN=i/(n-1); const fade=1-clamp((Game.elapsed-p1.t)/life,0,1); if(fade<=0.04) continue;
       ctx.globalAlpha=fade;
       if(rainbow) ctx.strokeStyle='hsl('+(((tN*300)+headShift)%360)+',100%,62%)';
       else { const r=(ar+(br-ar)*tN)|0,g=(ag+(bg-ag)*tN)|0,b=(ab+(bb-ab)*tN)|0; ctx.strokeStyle='rgb('+r+','+g+','+b+')'; }
@@ -1322,7 +1478,7 @@ const Render=(()=>{
     // PASS 3 — glossy white sheen highlight running along the ribbon
     ctx.lineWidth=core*0.32; ctx.strokeStyle='rgba(255,255,255,0.75)';
     for(let i=1;i<n;i++){ const p1=Trail.get(i);
-      const fade=1-clamp((Game.elapsed-p1.t)/CONFIG.TRAIL_LIFESPAN,0,1); if(fade<=0.2) continue;
+      const fade=1-clamp((Game.elapsed-p1.t)/life,0,1); if(fade<=0.2) continue;
       const p0=Trail.get(i-1); ctx.globalAlpha=fade*0.5;
       ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y-core*0.18+offY); ctx.lineTo(p1.x+offX,p1.y-core*0.18+offY); ctx.stroke();
     }
@@ -1365,16 +1521,31 @@ const Render=(()=>{
     // shadows first (all drones), then the glossy balls + faces
     for(let i=0;i<a.length;i++){ const d=a[i]; if(d.spawn<0.2) continue; drawShadow(ctx,d.x+offX,d.y+offY,d.r*d.spawn); }
     for(let i=0;i<a.length;i++){ const d=a[i];
+      const dx=d.x+offX, dy=d.y-d.r*0.12+offY; // tiny lift = floaty
+      if(d.type===DTYPE.POWER){ drawPowerOrb(ctx, d, dx, dy); continue; }
       const scared=d.scared>0.05;
       const pop=(0.92+0.10*Math.sin(d.phase) + (scared?0.06*Math.sin(performance.now()*0.05):0))*d.spawn;
       const spr = d.type===DTYPE.BONUS?Sprites.droneBonus : d.type===DTYPE.RUNNER?Sprites.droneRun : d.type===DTYPE.BOMB?Sprites.bomb : Sprites.drone;
       const s=(d.r+Sprites.pad)*2*pop;
-      const dx=d.x+offX, dy=d.y-d.r*0.12+offY; // tiny lift = floaty
       ctx.globalAlpha=clamp(d.spawn,0,1);
       ctx.drawImage(spr, dx-s/2, dy-s/2, s, s);
       ctx.globalAlpha=1;
       drawFace(ctx, d, dx, dy, scared);
     }
+  }
+
+  // the rare power-up: a pulsing rainbow orb with a star + glow (drive over to grab)
+  function drawPowerOrb(ctx, d, x, y){
+    const t=performance.now()*0.004, r=d.r*(1+0.10*Math.sin(t*3))*d.spawn, hue=(t*120)%360;
+    ctx.globalAlpha=clamp(d.spawn,0,1)*0.9; ctx.globalCompositeOperation='lighter';
+    ctx.drawImage(Sprites.white, x-r*2.2, y-r*2.2, r*4.4, r*4.4);
+    ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=clamp(d.spawn,0,1);
+    ctx.beginPath(); ctx.arc(x,y,r+3,0,TAU); ctx.fillStyle=COL.ink; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.fillStyle='hsl('+hue+',100%,62%)'; ctx.fill();
+    // little white star
+    ctx.fillStyle='#fff'; ctx.save(); ctx.translate(x,y); ctx.rotate(t);
+    ctx.beginPath(); for(let k=0;k<5;k++){ const a1=k*2*Math.PI/5-Math.PI/2, a2=a1+Math.PI/5; ctx.lineTo(Math.cos(a1)*r*0.7,Math.sin(a1)*r*0.7); ctx.lineTo(Math.cos(a2)*r*0.3,Math.sin(a2)*r*0.3); } ctx.closePath(); ctx.fill();
+    ctx.restore(); ctx.globalAlpha=1;
   }
 
   // googly eyes (+ expressions) — the personality layer
@@ -1445,7 +1616,26 @@ const Render=(()=>{
     // COINS — top-left, below the shop button
     ctx.textAlign='left';
     inkText(ctx, '◉ '+Storage.data.coins, 16, 74+st, 22, COL.amber);
+    // LEVEL — top-right, below the mute button, with a progress-to-next bar
+    ctx.textAlign='right';
+    inkText(ctx, 'LV '+Game.level, W-16, 74+st, 22, COL.cyan);
+    const frac=(Game.score%CONFIG.LEVEL_STEP)/CONFIG.LEVEL_STEP, bw=84, bx=W-16-bw, by=102+st;
+    ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle=COL.ink;
+    ctx.fillStyle='#EADFce'; roundRect(ctx,bx,by,bw,9,4); ctx.fill(); ctx.stroke();
+    ctx.fillStyle=COL.cyan; if(frac>0){ roundRect(ctx,bx,by,Math.max(4,bw*frac),9,4); ctx.fill(); }
+    // LEVEL-UP banner
+    if(Game.levelBanner>0){ const a=clamp(Game.levelBanner/1.7,0,1); ctx.globalAlpha=clamp(a*1.6,0,1); ctx.textAlign='center';
+      inkText(ctx,'LEVEL '+Game.level+'!', W/2, H*0.30, 46, COL.cyan); ctx.globalAlpha=1; }
+    // POWER-UP active banner + countdown bar
+    if(Game.powerKind){ ctx.textAlign='center';
+      const pulse=1+0.08*Math.sin(performance.now()*0.02);
+      inkText(ctx, Game.powerKind+'!', W/2, H-78-st, Math.round(26*pulse), COL.amber);
+      const pf=clamp(Game.powerTimer/CONFIG.POWERUP_DUR,0,1), pw=140, px=(W-pw)/2, py=H-46;
+      ctx.lineWidth=3; ctx.strokeStyle=COL.ink; ctx.fillStyle='#EADFce'; roundRect(ctx,px,py,pw,10,5); ctx.fill(); ctx.stroke();
+      ctx.fillStyle=COL.amber; if(pf>0){ roundRect(ctx,px,py,Math.max(5,pw*pf),10,5); ctx.fill(); }
+    }
   }
+  function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
   function drawHint(ctx,W,H){
     const a=Game.hintAlpha; if(a<=0) return;
@@ -1512,14 +1702,29 @@ const Render=(()=>{
 /* DOM overlays. Big touch targets, away from edges, no overlap on phone ratios. */
 const UI=(()=>{
   const $=(id)=>document.getElementById(id);
-  const overEl=$('over'), shopEl=$('shop'), dailyEl=$('daily'), toastEl=$('toast');
+  const overEl=$('over'), shopEl=$('shop'), toastEl=$('toast');
   let toastTimer=null;
 
   function toast(msg){
     toastEl.textContent=msg; toastEl.classList.add('show');
-    clearTimeout(toastTimer); toastTimer=setTimeout(()=>toastEl.classList.remove('show'),1600);
+    clearTimeout(toastTimer); toastTimer=setTimeout(()=>toastEl.classList.remove('show'),1700);
   }
-  function hideAll(){ [overEl,shopEl,dailyEl].forEach(e=>e.classList.remove('show')); }
+  function hideAll(){ [overEl,shopEl].forEach(e=>e.classList.remove('show')); }
+
+  // objectives panel on the game-over card (the "purpose")
+  function renderGoals(){
+    const wrap=$('goals'); wrap.innerHTML='';
+    Objectives.list().forEach(ob=>{
+      const d=Objectives.DEFS[ob.key]; const done=ob.done;
+      const el=document.createElement('div'); el.className='goal'+(done?' done':'');
+      const pct=Math.min(100, Math.round(ob.prog/ob.t*100));
+      el.innerHTML='<span class="gicon">'+d.icon+'</span>'+
+        '<span class="gtext"><span class="gname">'+d.label(ob.t)+'</span>'+
+        (done?'':'<span class="gbar"><i style="width:'+pct+'%"></i></span>')+'</span>'+
+        '<span class="greward">'+(done?'✓ +'+d.reward:'+'+d.reward)+'</span>';
+      wrap.appendChild(el);
+    });
+  }
 
   function updateNextUnlock(){
     const next=Cosmetics.nextLocked();
@@ -1546,99 +1751,78 @@ const UI=(()=>{
     if(info.isBest){ hl.textContent='NEW BEST!'; hl.classList.remove('close'); eye.textContent='Record'; }
     else if(away<=Math.max(60, CONFIG.MILESTONE_STEP*0.4)){ hl.textContent='SO CLOSE'; hl.classList.add('close'); eye.textContent='Run Over'; }
     else { hl.textContent='RUN OVER'; hl.classList.remove('close'); eye.textContent='Run Over'; }
+    $('over-lvl').textContent='LV '+(info.level||1);
     $('over-near').innerHTML = info.isBest
       ? 'You set a new personal best.'
       : 'You were <b>'+away+'</b> from <b>'+next+'</b>.'+(info.best>info.score?' Best is <b>'+info.best+'</b>.':'');
+    renderGoals();
     updateNextUnlock();
     // revive is offered at most once per run (the emotional-peak ad moment)
     $('btn-revive').classList.toggle('hidden', info.canRevive===false);
     hideAll(); overEl.classList.add('show');
   }
 
-  // ---------- shop ----------
-  function renderSkinPreview(cv, item, isCar){
-    const g=cv.getContext('2d'); g.clearRect(0,0,cv.width,cv.height);
-    g.lineCap='round'; g.lineWidth=7;
-    if(isCar){
-      g.fillStyle=item.color; g.beginPath(); g.arc(cv.width/2,cv.height/2,12,0,TAU); g.fill();
-      g.strokeStyle='rgba(255,255,255,0.25)'; g.lineWidth=2; g.beginPath(); g.arc(cv.width/2,cv.height/2,18,0,TAU); g.stroke();
-      return;
+  // ---------- shop / garage ----------
+  function catOf(item){ return item.id.indexOf('car_')===0?'car' : item.id.indexOf('pow_')===0?'power' : 'trail'; }
+  function equippedId(cat){ return cat==='car'?Storage.data.equippedCar : cat==='power'?Storage.data.equippedPower : Storage.data.equippedTrail; }
+  function setEquipped(cat,id){ if(cat==='car')Storage.data.equippedCar=id; else if(cat==='power')Storage.data.equippedPower=id; else Storage.data.equippedTrail=id; }
+  function renderTrailPreview(cv, item){
+    const g=cv.getContext('2d'); g.clearRect(0,0,cv.width,cv.height); g.lineCap='round';
+    const steps=26;
+    for(let i=1;i<steps;i++){
+      const t=i/(steps-1), pt=(i-1)/(steps-1);
+      const x=10+t*(cv.width-20), y=cv.height/2+Math.sin(t*Math.PI*2)*12;
+      const x0=10+pt*(cv.width-20), y0=cv.height/2+Math.sin(pt*Math.PI*2)*12;
+      let col = item.a==='rainbow' ? 'hsl('+(t*300)+',100%,60%)' : rgbStr(mixRgb(hexToRgb(item.a),hexToRgb(item.b),t),1);
+      g.lineWidth=9; g.strokeStyle=COL.ink; g.beginPath(); g.moveTo(x0,y0); g.lineTo(x,y); g.stroke();
+      g.lineWidth=6; g.strokeStyle=col; g.beginPath(); g.moveTo(x0,y0); g.lineTo(x,y); g.stroke();
     }
-    const steps=24;
-    for(let i=0;i<steps;i++){
-      const t=i/(steps-1);
-      const x=10+t*(cv.width-20); const y=cv.height/2+Math.sin(t*Math.PI*2)*12;
-      let col;
-      if(item.a==='rainbow') col='hsl('+(t*300)+',100%,60%)';
-      else col=rgbStr(mixRgb(hexToRgb(item.a),hexToRgb(item.b),t),0.95);
-      if(i>0){ g.strokeStyle=col; g.beginPath(); g.moveTo(px,py); g.lineTo(x,y); g.stroke(); }
-      var px=x, py=y;
-    }
+  }
+  function renderCarPreview(cv, item){
+    const g=cv.getContext('2d'); g.clearRect(0,0,cv.width,cv.height); const cx=cv.width/2, cy=cv.height/2;
+    g.beginPath(); g.arc(cx,cy,16,0,TAU); g.fillStyle=COL.ink; g.fill();
+    g.beginPath(); g.arc(cx,cy,13,0,TAU); g.fillStyle=item.color; g.fill();
+    g.beginPath(); g.ellipse(cx-4,cy-5,5,3,-0.6,0,TAU); g.fillStyle='rgba(255,255,255,0.9)'; g.fill();
   }
   function buildShop(){
     const grid=$('shop-grid'); grid.innerHTML='';
     $('shop-coins').textContent=Storage.data.coins;
-    const items=Cosmetics.all();
-    items.forEach(item=>{
-      const isCar=item.id.indexOf('car_')===0;
-      const unlocked=Cosmetics.isUnlocked(item.id);
-      const equipped=isCar?Storage.data.equippedCar===item.id:Storage.data.equippedTrail===item.id;
-      const el=document.createElement('div'); el.className='skin'+(equipped?' equipped':'')+(unlocked?'':' locked');
-      const cv=document.createElement('canvas'); cv.width=110; cv.height=46; el.appendChild(cv);
-      const name=document.createElement('div'); name.className='name'; name.textContent=item.name; el.appendChild(name);
-      const state=document.createElement('div');
-      if(equipped){ state.className='state eq'; state.textContent='EQUIPPED'; }
-      else if(unlocked){ state.className='state un'; state.textContent='TAP TO EQUIP'; }
-      else { state.className='cost'; state.innerHTML='<span class="mini-coin"></span>'+item.cost; }
-      el.appendChild(state);
-      // small "watch to unlock" affordance on locked items (rewarded-ad driver)
-      if(!unlocked){ const ad=document.createElement('div'); ad.className='state un'; ad.textContent='▶ or watch ad'; ad.style.marginTop='-2px'; el.appendChild(ad); }
-      el.addEventListener('click',()=>onSkinTap(item,isCar,unlocked));
-      grid.appendChild(el);
-      renderSkinPreview(cv,item,isCar);
-    });
+    section(grid,'Trails',Cosmetics.TRAILS); section(grid,'Cars',Cosmetics.CARS); section(grid,'Powers',Cosmetics.POWERS);
   }
-  function onSkinTap(item,isCar,unlocked){
-    if(unlocked){
-      if(isCar) Storage.data.equippedCar=item.id; else Storage.data.equippedTrail=item.id;
-      Storage.save(); Audio.tick(); buildShop(); return;
-    }
+  function section(grid,title,items){
+    const h=document.createElement('div'); h.className='shop-sec'; h.textContent=title; grid.appendChild(h);
+    items.forEach(item=>grid.appendChild(card(item)));
+  }
+  function card(item){
+    const cat=catOf(item), unlocked=Cosmetics.isUnlocked(item.id), equipped=equippedId(cat)===item.id;
+    const el=document.createElement('div'); el.className='skin'+(equipped?' equipped':'');
+    if(cat==='power'){ const p=document.createElement('div'); p.className='pico'; p.textContent=item.pico; el.appendChild(p); }
+    else { const cv=document.createElement('canvas'); cv.width=110; cv.height=46; el.appendChild(cv); setTimeout(()=>{ cat==='car'?renderCarPreview(cv,item):renderTrailPreview(cv,item); },0); }
+    const name=document.createElement('div'); name.className='name'; name.textContent=item.name; el.appendChild(name);
+    if(cat==='power' && item.desc){ const ds=document.createElement('div'); ds.className='state un'; ds.textContent=item.desc; el.appendChild(ds); }
+    const state=document.createElement('div');
+    if(equipped){ state.className='state eq'; state.textContent='EQUIPPED'; }
+    else if(unlocked){ state.className='state un'; state.textContent='TAP TO EQUIP'; }
+    else { state.className='cost'; state.innerHTML='<span class="mini-coin"></span>'+item.cost; }
+    el.appendChild(state);
+    if(!unlocked){ const ad=document.createElement('div'); ad.className='state un'; ad.textContent='▶ or watch ad'; el.appendChild(ad); }
+    el.addEventListener('click',()=>onTap(item,cat,unlocked));
+    return el;
+  }
+  function onTap(item,cat,unlocked){
+    if(unlocked){ setEquipped(cat,item.id); Storage.save(); Audio.tick(); buildShop(); return; }
     if(Storage.data.coins>=item.cost){
-      Storage.data.coins-=item.cost; Cosmetics.unlock(item.id);
-      if(isCar) Storage.data.equippedCar=item.id; else Storage.data.equippedTrail=item.id;
+      Storage.data.coins-=item.cost; Cosmetics.unlock(item.id); setEquipped(cat,item.id);
       Storage.save(); Audio.coin(); toast('Unlocked '+item.name+'!'); buildShop(); updateNextUnlock();
     } else {
-      // not enough coins -> offer rewarded unlock
       AdSDK.showRewarded(
-        ()=>{ Cosmetics.unlock(item.id); if(isCar)Storage.data.equippedCar=item.id; else Storage.data.equippedTrail=item.id; Storage.save(); Audio.fanfare(); toast('Unlocked '+item.name+'!'); buildShop(); updateNextUnlock(); },
+        ()=>{ Cosmetics.unlock(item.id); setEquipped(cat,item.id); Storage.save(); Audio.fanfare(); toast('Unlocked '+item.name+'!'); buildShop(); updateNextUnlock(); },
         ()=>{ toast('Need '+(item.cost-Storage.data.coins)+' more coins'); }
       );
     }
   }
   function openShop(){ buildShop(); hideAll(); shopEl.classList.add('show'); }
   function closeShop(){ shopEl.classList.remove('show'); if(Game.state===Game.STATE.DEAD) overEl.classList.add('show'); }
-
-  // ---------- daily ----------
-  function checkDaily(){
-    const today=new Date().toISOString().slice(0,10);
-    if(Storage.data.lastDaily===today) return false;
-    const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
-    if(Storage.data.lastDaily===yesterday) Storage.data.streak=(Storage.data.streak||0)+1; else Storage.data.streak=1;
-    const amount=20+Math.min(80,(Storage.data.streak-1)*10);
-    $('daily-streak').textContent='DAY '+Storage.data.streak;
-    $('daily-sub').textContent=Storage.data.streak>1?'Streak going strong — keep it up!':'Welcome, drifter.';
-    $('daily-amount').textContent='+'+amount;
-    dailyEl.dataset.amount=amount; dailyEl.dataset.today=today;
-    hideAll(); dailyEl.classList.add('show');
-    return true;
-  }
-  function claimDaily(){
-    const amount=parseInt(dailyEl.dataset.amount)||20;
-    Storage.data.coins+=amount; Storage.data.lastDaily=dailyEl.dataset.today; Storage.save();
-    Audio.coin(); toast('+'+amount+' coins'); dailyEl.classList.remove('show');
-    // after daily, begin a fresh run
-    startRun();
-  }
 
   // ---------- run flow ----------
   function startRun(){ hideAll(); Game.fullReset(); }
@@ -1649,7 +1833,6 @@ const UI=(()=>{
     $('btn-openshop').addEventListener('click',openShop);
     $('btn-shop').addEventListener('click',()=>{ Audio.unlock(); openShop(); });
     $('btn-shop-close').addEventListener('click',closeShop);
-    $('btn-daily-claim').addEventListener('click',claimDaily);
     $('btn-revive').addEventListener('click',()=>{
       const btn=$('btn-revive');
       AdSDK.showRewarded(
@@ -1678,7 +1861,7 @@ const UI=(()=>{
     return add;
   }
 
-  return { toast, showGameOver, openShop, closeShop, checkDaily, startRun, wire, updateNextUnlock, buildShop };
+  return { toast, showGameOver, openShop, closeShop, startRun, wire, updateNextUnlock, buildShop };
 })();
 
 /* ============================== [LOOP] ===================================== */
@@ -1692,6 +1875,7 @@ const UI=(()=>{
   // mute button initial glyph
   document.getElementById('btn-mute').innerHTML=Storage.data.muted?'&#128263;':'&#128266;';
 
+  Objectives.seed();   // create the first 3 goals if none exist
   // endowed progress: on a brand-new save, gift coins ~60% toward the first skin
   if(!Storage.data.endowed){
     const first=Cosmetics.nextLocked();
@@ -1712,8 +1896,8 @@ const UI=(()=>{
   window.addEventListener('resize',()=>Game.resize());
   window.addEventListener('orientationchange',()=>setTimeout(()=>Game.resize(),120));
 
-  // start: go straight into play (no menu). Show daily once per day first.
-  if(!UI.checkDaily()) Game.fullReset();
+  // start: straight into play — no menu, no logo wall (logo lives on game-over)
+  Game.fullReset();
 
   // fixed-timestep update, decoupled render
   const STEP=1/60; let acc=0, lastT=performance.now();

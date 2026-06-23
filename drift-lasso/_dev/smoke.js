@@ -20,7 +20,7 @@ function makeCtx(){
     canvas:null,
     setTransform:noop, transform:noop, scale:noop, translate:noop, rotate:noop, save:noop, restore:noop,
     fillRect:noop, clearRect:noop, strokeRect:noop,
-    beginPath:noop, closePath:noop, moveTo:noop, lineTo:noop, arc:noop, ellipse:noop, rect:noop, roundRect:noop, quadraticCurveTo:noop, bezierCurveTo:noop,
+    beginPath:noop, closePath:noop, moveTo:noop, lineTo:noop, arc:noop, arcTo:noop, ellipse:noop, rect:noop, roundRect:noop, quadraticCurveTo:noop, bezierCurveTo:noop,
     fill:noop, stroke:noop, clip:noop,
     fillText:noop, strokeText:noop, measureText:()=>({width:10}),
     drawImage:noop, putImageData:noop, getImageData:()=>({data:new Uint8ClampedArray(4)}),
@@ -58,7 +58,7 @@ function makeEl(tag){
 
 /* ---- document / window / globals ---- */
 const byId=new Map();
-const ELEMENT_IDS=['game','flash','btn-shop','btn-mute','over','over-eyebrow','over-headline','over-score','over-best','over-newbest','over-near','over-coins','btn-revive','btn-double','btn-again','next-name','next-coins','next-bar','btn-openshop','shop','shop-coins','shop-grid','btn-shop-close','daily','daily-streak','daily-sub','daily-amount','btn-daily-claim','ad','ad-title','ad-sub','ad-bar','ad-skip','toast'];
+const ELEMENT_IDS=['game','flash','btn-shop','btn-mute','over','logo','over-eyebrow','over-headline','over-score','over-best','over-lvl','over-newbest','over-near','over-coins','goals','btn-revive','btn-double','btn-again','next-name','next-coins','next-bar','btn-openshop','shop','shop-coins','shop-grid','btn-shop-close','ad','ad-title','ad-sub','ad-bar','ad-skip','toast'];
 ELEMENT_IDS.forEach(id=>{ const el=makeEl(id==='game'?'canvas':'div'); el.id=id; byId.set(id,el); });
 
 const documentMock={
@@ -123,12 +123,15 @@ const DL=sandbox.window.DriftLasso;
 step('DriftLasso exposed', ()=>{ if(!DL||!DL.Game) throw new Error('window.DriftLasso missing'); });
 
 console.log('\n[input + gameplay frames]');
-step('first interaction (pointerdown) unlocks audio', ()=>{ fire(windowMock,'pointerdown',{target:byId.get('game'),cancelable:true,preventDefault(){}}); });
-step('force a run (fullReset -> PLAYING)', ()=>{ DL.Game.fullReset(); });
+// steer RIGHT by holding the right half of the screen (clientX past centre)
+function steerRight(){ fire(windowMock,'pointerdown',{pointerId:1,target:byId.get('game'),clientX:windowMock.innerWidth*0.8,cancelable:true,preventDefault(){}}); }
+function release(){ fire(windowMock,'pointerup',{pointerId:1}); }
+step('first interaction unlocks audio', ()=>{ steerRight(); });
+step('force a run (fullReset -> PLAYING)', ()=>{ DL.Game.fullReset(); steerRight(); });
 function pump(n){ for(let i=0;i<n && rafQueue.length;i++){ const cb=rafQueue.shift(); perfNow+=16.7; cb(perfNow); } }
-step('pump 60 frames while HOLDING (tighten -> first capture)', ()=>{ pump(60); });
-step('release + pump 120 frames (widen, spawns, combos)', ()=>{ fire(windowMock,'pointerup',{}); pump(120); });
-step('hold again + pump 90 frames', ()=>{ fire(windowMock,'pointerdown',{target:byId.get('game'),cancelable:true,preventDefault(){}}); pump(90); });
+step('steer in a circle ~240 frames -> first capture (exercises doCapture/objectives)', ()=>{ pump(240); });
+step('release + pump 120 frames (straight roam, spawns)', ()=>{ release(); pump(120); });
+step('keyboard steer (ArrowRight) + pump 200 (more captures, level/tail growth)', ()=>{ fire(windowMock,'keydown',{code:'ArrowRight',preventDefault(){}}); pump(200); fire(windowMock,'keyup',{code:'ArrowRight'}); });
 step('tab-away then back (visibilitychange)', ()=>{ documentMock.hidden=true; fire(documentMock,'visibilitychange',{}); pump(3); documentMock.hidden=false; fire(documentMock,'visibilitychange',{}); pump(10); });
 step('resize event', ()=>{ windowMock.innerWidth=375; windowMock.innerHeight=667; fire(windowMock,'resize',{}); pump(3); });
 step('keyboard input (space)', ()=>{ fire(windowMock,'keydown',{code:'Space',preventDefault(){}}); pump(5); fire(windowMock,'keyup',{code:'Space'}); pump(5); });
@@ -141,7 +144,6 @@ function clickAndDrain(id){ fire(byId.get(id),'click',{target:byId.get(id),preve
 step('open shop (builds skin previews)', ()=>{ clickAndDrain('btn-shop'); });
 step('shop back', ()=>{ clickAndDrain('btn-shop-close'); });
 step('mute toggle', ()=>{ clickAndDrain('btn-mute'); clickAndDrain('btn-mute'); });
-step('daily claim', ()=>{ if(byId.get('btn-daily-claim')) clickAndDrain('btn-daily-claim'); });
 step('double-coins (rewarded ad path)', ()=>{ clickAndDrain('btn-double'); });
 step('open shop + tap a locked skin (rewarded/unlock path)', ()=>{ clickAndDrain('btn-shop'); const grid=byId.get('shop-grid'); if(grid.children.length){ fire(grid.children[grid.children.length-1],'click',{target:grid.children[grid.children.length-1],preventDefault(){}}); pump(40);} clickAndDrain('btn-shop-close'); });
 step('revive (rewarded ad path)', ()=>{ clickAndDrain('btn-revive'); });
