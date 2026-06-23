@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" font-family="'Segoe UI',system-ui,Arial,sans-serif">
+<defs>
+  <linearGradient id="s0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5AD1FF"/><stop offset="1" stop-color="#6A5BFF"/></linearGradient>
+  <linearGradient id="s1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A2A6E"/><stop offset="1" stop-color="#0E0B2A"/></linearGradient>
+  <linearGradient id="s2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#36D6E0"/><stop offset="1" stop-color="#1E5FBF"/></linearGradient>
+  <linearGradient id="s3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF7AD0"/><stop offset="1" stop-color="#7C3DD6"/></linearGradient>
+  <linearGradient id="s4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC36A"/><stop offset="1" stop-color="#FF7A4D"/></linearGradient>
+  <linearGradient id="s5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB6E1"/><stop offset="1" stop-color="#7ED9FF"/></linearGradient>
+  <radialGradient id="ball" cx="0.36" cy="0.3" r="0.8"><stop offset="0" stop-color="#fff"/><stop offset="0.7" stop-color="#fff"/><stop offset="1" stop-color="#8FE6FF"/></radialGradient>
+  <clipPath id="cc"><rect x="0" y="0" width="465" height="380" rx="26"/></clipPath>
+</defs>
+<rect width="1080" height="1350" fill="#241A4D"/>
+<text x="540" y="74" text-anchor="middle" font-size="50" font-weight="900" fill="#FFFFFF" stroke="#241A4D" stroke-width="8" paint-order="stroke">EACH LEVEL · A NEW MAP</text>
+
+<!-- a reusable ball-with-face is inlined per card -->
+<!-- ROW 0 -->
+<g transform="translate(60,110)">
+  <g clip-path="url(#cc)"><rect width="465" height="380" fill="url(#s0)"/>
+    <g stroke="#fff" stroke-opacity="0.16" stroke-width="3"><path d="M93 0V380 M186 0V380 M279 0V380 M372 0V380 M0 95H465 M0 190H465 M0 285H465"/></g>
+    <g transform="translate(232,200)"><circle r="34" fill="#241A4D"/><circle r="29" fill="url(#ball)"/><circle cx="-10" cy="-4" r="7" fill="#241A4D"/><circle cx="10" cy="-4" r="7" fill="#241A4D"/></g>
+  </g>
+  <rect width="465" height="380" rx="26" fill="none" stroke="#241A4D" stroke-width="7"/>
+  <text x="232" y="350" text-anchor="middle" font-size="34" font-weight="900" fill="#00E5FF" stroke="#241A4D" stroke-width="6" paint-order="stroke">NEON GRID</text>
+</g>
+<g transform="translate(555,110)">
+  <g clip-path="url(#cc)"><rect width="465" height="380" fill="url(#s1)"/>
+    <circle cx="360" cy="80" r="56" fill="#9B6BFF" opacity="0.6"/>
+    <g fill="#fff"><circle cx="40" cy="60" r="3"/><circle cx="120" cy="120" r="2"/><circle cx="200" cy="40" r="2.5"/><circle cx="300" cy="150" r="2"/><circle cx="90" cy="240" r="3"/><circle cx="420" cy="200" r="2.5"/><circle cx="160" cy="300" r="2"/><circle cx="260" cy="250" r="3"/></g>
+    <g transform="translate(232,210)"><circle r="34" fill="#241A4D"/><circle r="29" fill="url(#ball)"/><circle cx="-10" cy="-4" r="7" fill="#241A4D"/><circle cx="10" cy="-4" r="7" fill="#241A4D"/></g>
+  </g>
+  <rect width="465" height="380" rx="26" fill="none" stroke="#241A4D" stroke-width="7"/>
+  <text x="232" y="350" text-anchor="middle" font-size="34" font-weight="900" fill="#9B6BFF" stroke="#241A4D" stroke-width="6" paint-order="stroke">DEEP SPACE</text>
+</g>
+<!-- ROW 1 -->
+<g transform="translate(60,520)">
+  <g clip-path="url(#cc)"><rect width="465" height="380" fill="url(#s2)"/>
+    <g fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="3"><circle cx="80" cy="120" r="20"/><circle cx="300" cy="80" r="14"/><circle cx="380" cy="220" r="24"/><circle cx="150" cy="280" r="16"/></g>
+    <g transform="translate(232,200)"><circle r="34" fill="#241A4D"/><circle r="29" fill="url(#ball)"/><circle cx="-10" cy="-4" r="7" fill="#241A4D"/><circle cx="10" cy="-4" r="7" fill="#241A4D"/></g>
+  </g>
+  <rect width="465" height="380" rx="26" fill="none" stroke="#241A4D" stroke-width="7"/>
+  <text x="232" y="350" text-anchor="middle" font-size="34" font-weight="900" fill="#19E3C8" stroke="#241A4D" stroke-width="6" paint-order="stroke">CORAL REEF</text>
+</g>
+<g transform="translate(555,520)">
+  <g clip-path="url(#cc)"><rect width="465" height="380" fill="url(#s3)"/>
+    <g fill="#fff" fill-opacity="0.12"><rect x="0" y="0" width="74" height="74"/><rect x="148" y="0" width="74" height="74"/><rect x="296" y="0" width="74" height="74"/><rect x="444" y="0" width="74" height="74"/><rect x="74" y="74" width="74" height="74"/><rect x="222" y="74" width="74" height="74"/><rect x="370" y="74" width="74" height="74"/><rect x="0" y="148" width="74" height="74"/><rect x="148" y="148" width="74" height="74"/><rect x="296" y="148" width="74" height="74"/><rect x="74" y="222" width="74" height="74"/><rect x="222" y="222" width="74" height="74"/><rect x="370" y="222" width="74" height="74"/></g>
+    <g transform="translate(232,190)"><circle r="34" fill="#241A4D"/><circle r="29" fill="url(#ball)"/><circle cx="-10" cy="-4" r="7" fill="#241A4D"/><circle cx="10" cy="-4" r="7" fill="#241A4D"/></g>
+  </g>
+  <rect width="465" height="380" rx="26" fill="none" stroke="#241A4D" stroke-width="7"/>
+  <text x="232" y="350" text-anchor="middle" font-size="34" font-weight="900" fill="#FFD23F" stroke="#241A4D" stroke-width="6" paint-order="stroke">DISCO FEVER</text>
+</g>
+<!-- ROW 2 -->
+<g transform="translate(60,930)">
+  <g clip-path="url(#cc)"><rect width="465" height="380" fill="url(#s4)"/>
+    <path d="M0 380 L0 250 Q116 220 232 250 Q348 280 465 250 L465 380Z" fill="#C8742E" opacity="0.5"/>
+    <path d="M0 380 L0 310 Q116 290 232 312 Q348 334 465 310 L465 380Z" fill="#A85A1E" opacity="0.6"/>
+    <g transform="translate(232,180)"><circle r="34" fill="#241A4D"/><circle r="29" fill="url(#ball)"/><circle cx="-10" cy="-4" r="7" fill="#241A4D"/><circle cx="10" cy="-4" r="7" fill="#241A4D"/></g>
+  </g>
+  <rect width="465" height="380" rx="26" fill="none" stroke="#241A4D" stroke-width="7"/>
+  <text x="232" y="350" text-anchor="middle" font-size="34" font-weight="900" fill="#FFE0B0" stroke="#241A4D" stroke-width="6" paint-order="stroke">WILD WEST</text>
+</g>
+<g transform="translate(555,930)">
+  <g clip-path="url(#cc)"><rect width="465" height="380" fill="url(#s5)"/>
+    <g><rect x="40" y="60" width="7" height="18" rx="3" fill="#FF49C3" transform="rotate(20 43 69)"/><rect x="150" y="120" width="7" height="18" rx="3" fill="#FFD23F" transform="rotate(-30 153 129)"/><rect x="320" y="70" width="7" height="18" rx="3" fill="#7CFF6B" transform="rotate(40 323 79)"/><rect x="400" y="180" width="7" height="18" rx="3" fill="#00E5FF" transform="rotate(15 403 189)"/><rect x="90" y="250" width="7" height="18" rx="3" fill="#FF8A3D" transform="rotate(-15 93 259)"/><rect x="360" y="280" width="7" height="18" rx="3" fill="#B16BFF" transform="rotate(25 363 289)"/></g>
+    <g transform="translate(232,190)"><circle r="34" fill="#241A4D"/><circle r="29" fill="url(#ball)"/><circle cx="-10" cy="-4" r="7" fill="#241A4D"/><circle cx="10" cy="-4" r="7" fill="#241A4D"/></g>
+  </g>
+  <rect width="465" height="380" rx="26" fill="none" stroke="#241A4D" stroke-width="7"/>
+  <text x="232" y="350" text-anchor="middle" font-size="34" font-weight="900" fill="#FF49C3" stroke="#241A4D" stroke-width="6" paint-order="stroke">CANDY RUSH</text>
+</g>
+</svg>
