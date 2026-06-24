@@ -1,0 +1,6 @@
+# Marble Maze is a no-build static project. These only appear if you run
+# tooling locally; they should never be committed.
+node_modules/
+package-lock.json
+*.log
+.DS_Store
