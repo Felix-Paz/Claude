@@ -171,13 +171,24 @@
   .acct-bar{ width:100%; max-width:380px; height:12px; }
   .acct-bar > i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--cyan),var(--purple)); transition:width .5s ease; }
   .near.teaser b{ color:var(--cyan); }
-  .badge-daily{ font-size:12px; font-weight:900; color:#b9770a; letter-spacing:.5px; }
-  .btn.daily{ background:linear-gradient(90deg,#FFD86B,var(--amber)); }
+
+  /* ---- game-over: a clear 3-tier hierarchy + desktop-wide layout ---- */
+  .over-panel{ width:min(560px,94vw); }                /* widen so it doesn't crumple in the centre on desktop */
+  .over-panel .score-big{ line-height:.9; }
+  /* TIER 1 — the hero action (biggest thing on screen) */
+  .btn.hero{ background:var(--cyan); width:100%; max-width:none; min-height:78px; font-size:25px; box-shadow:0 8px 0 var(--ink); }
+  .btn.hero:active{ transform:translateY(5px); box-shadow:0 3px 0 var(--ink); }
+  /* TIER 2 — ad-reward group, visually distinct (magenta + ▶ chip) and labelled */
+  .bonus-group{ width:100%; border:3px dashed rgba(36,26,77,.35); border-radius:16px; padding:9px 10px 11px; display:flex; flex-direction:column; gap:8px; }
+  .bonus-label{ font-size:11px; letter-spacing:1.5px; font-weight:900; color:#8a83ad; text-align:center; }
+  .btn.bonus{ background:var(--magenta); color:var(--white); min-height:52px; font-size:16px; }
+  .btn.bonus::before{ content:"\25B6"; font-size:12px; margin-right:6px; opacity:.9; }
+  /* TIER 3 — small secondary nav (icons + short labels), never competes with PLAY AGAIN */
+  .nav-row{ display:flex; gap:8px; width:100%; flex-wrap:wrap; }
+  .btn.nav{ flex:1 1 40%; min-width:120px; min-height:46px; font-size:14px; background:var(--white); box-shadow:0 4px 0 var(--ink); }
+  .btn.nav:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--ink); }
   /* leaderboard */
-  .board-tabs{ display:flex; gap:8px; width:100%; max-width:380px; }
-  .tab{ flex:1; min-height:40px; border:3px solid var(--ink); border-radius:12px; background:var(--white); color:var(--ink); font:900 14px/1 inherit; box-shadow:0 3px 0 var(--ink); cursor:pointer; }
-  .tab.on{ background:var(--cyan); }
-  .board-list{ width:100%; max-width:380px; display:flex; flex-direction:column; gap:6px; max-height:46vh; overflow-y:auto; padding:2px; }
+  .board-list{ width:100%; max-width:420px; display:flex; flex-direction:column; gap:6px; max-height:52vh; overflow-y:auto; padding:2px; }
   .brow{ display:flex; align-items:center; gap:10px; background:var(--white); border:3px solid var(--ink); border-radius:12px; padding:8px 12px; box-shadow:0 3px 0 var(--ink); }
   .brow.me{ background:#E9FBFF; box-shadow:0 3px 0 var(--ink), 0 0 0 3px var(--cyan) inset; }
   .brow .rank{ font-size:14px; font-weight:900; color:var(--purple); width:30px; text-align:left; }
@@ -187,6 +198,19 @@
   .set-row{ display:flex; align-items:center; justify-content:space-between; width:100%; max-width:380px; background:var(--white); border:3px solid var(--ink); border-radius:14px; padding:12px 14px; box-shadow:0 3px 0 var(--ink); font-size:15px; font-weight:900; color:var(--ink); }
   .toggle{ min-width:74px; min-height:38px; border:3px solid var(--ink); border-radius:999px; background:#EADFce; color:var(--ink); font:900 14px/1 inherit; cursor:pointer; box-shadow:0 3px 0 var(--ink); }
   .toggle.on{ background:var(--cyan); }
+  /* garage: wider on desktop + a responsive grid that fills the space */
+  .garage-panel{ width:min(680px,96vw); }
+  .garage-panel .shop-grid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); max-height:56vh; }
+  /* rarity corner badge on each skin tile */
+  .skin{ position:relative; }
+  .skin .rar{ position:absolute; top:6px; right:6px; font-size:9px; font-weight:900; letter-spacing:.6px; padding:2px 6px; border-radius:999px; border:2px solid var(--ink); color:var(--ink); }
+  .skin.locked{ filter:saturate(.85); }
+  .skin .cost.afford{ color:#1a9d2e; }
+  .skin .cost.cant{ color:#c0392b; }
+  /* custom editor card */
+  .style-row{ display:flex; gap:5px; flex-wrap:wrap; justify-content:center; margin-top:4px; }
+  .stylechip{ font-size:10px; font-weight:900; letter-spacing:.4px; text-transform:uppercase; padding:4px 8px; border-radius:999px; border:2px solid var(--ink); background:var(--white); cursor:pointer; color:var(--ink); }
+  .stylechip.on{ background:var(--magenta); color:#fff; }
   .hidden{ display:none !important; }
   a{ color:var(--purple); }
 </style>
@@ -200,7 +224,7 @@
 
   <!-- GAME OVER -->
   <div id="over" class="overlay">
-    <div class="panel">
+    <div class="panel over-panel">
       <svg id="logo" class="logo" viewBox="0 0 380 168" aria-label="Drift Lasso">
         <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00E5FF"/><stop offset="0.5" stop-color="#8A5BFF"/><stop offset="1" stop-color="#FF49C3"/></linearGradient></defs>
         <!-- swinging lasso rope: a big loop + a coiled tail, ink-shadowed -->
@@ -220,7 +244,6 @@
           <text x="190" y="152" font-size="58" fill="#FF49C3" stroke="#241A4D" stroke-width="7" paint-order="stroke" letter-spacing="6">LASSO</text>
         </g>
       </svg>
-      <div class="badge-daily hidden" id="over-dailybadge">★ DAILY CHALLENGE</div>
       <div class="score-big" id="over-score">0</div>
       <div class="best-row"><span>BEST <b id="over-best">0</b></span><span id="over-lvl">LV 1</span><span id="over-newbest" class="hidden" style="color:var(--magenta)">NEW BEST!</span></div>
       <div class="wallet wallet-big"><span class="coin"></span><span id="over-coinTotal">0</span><span class="run-delta" id="over-coins">+0</span></div>
@@ -228,36 +251,37 @@
       <!-- account spine: title + level + XP bar -->
       <div class="acct"><span class="acct-title" id="over-title">Rookie Wrangler</span><span class="acct-lv" id="over-acctlv">ACCT LV 1</span></div>
       <div class="bar acct-bar"><i id="over-xpfill"></i></div>
-      <!-- leaderboard rank nudge + Zeigarnik teaser (closest goal / daily) -->
+      <!-- rank nudge + Zeigarnik teaser (closest goal) -->
       <div class="near" id="over-rank"></div>
       <div class="near teaser" id="over-teaser"></div>
 
-      <button class="btn reward" id="btn-revive">REVIVE <span class="tag">&#9654; AD</span></button>
-      <button class="btn primary big" id="btn-again">PLAY AGAIN</button>
-      <div class="btn-row">
-        <button class="btn daily" id="btn-daily">&#9733; DAILY</button>
-        <button class="btn ghost" id="btn-share">SHARE</button>
+      <!-- TIER 1 — the one hero action -->
+      <button class="btn hero" id="btn-again">PLAY AGAIN</button>
+
+      <!-- TIER 2 — ad-rewards, clearly grouped so they don't read as navigation -->
+      <div class="bonus-group">
+        <div class="bonus-label">&#9654; WATCH A SHORT AD FOR A BONUS</div>
+        <div class="btn-row">
+          <button class="btn bonus" id="btn-revive">REVIVE</button>
+          <button class="btn bonus" id="btn-double">2&#215; COINS</button>
+        </div>
       </div>
-      <div class="btn-row">
-        <button class="btn reward" id="btn-double">2&#215; COINS <span class="tag">&#9654;</span></button>
-        <button class="btn ghost" id="btn-openshop">GARAGE</button>
-      </div>
-      <div class="btn-row">
-        <button class="btn ghost" id="btn-board">LEADERBOARD</button>
-        <button class="btn ghost" id="btn-settings">SETTINGS</button>
+
+      <!-- TIER 3 — small secondary navigation -->
+      <div class="nav-row">
+        <button class="btn nav" id="btn-openshop">&#128295; Garage</button>
+        <button class="btn nav" id="btn-board">&#127942; Ranks</button>
+        <button class="btn nav" id="btn-share">&#128228; Share</button>
+        <button class="btn nav" id="btn-settings">&#9881; Settings</button>
       </div>
     </div>
   </div>
 
-  <!-- LEADERBOARD -->
+  <!-- LEADERBOARD (weekly) -->
   <div id="board" class="overlay">
     <div class="panel">
-      <div class="eyebrow">Leaderboard</div>
+      <div class="eyebrow">This Week</div>
       <div class="headline" style="font-size:clamp(26px,8vw,40px)">RANKINGS</div>
-      <div class="board-tabs">
-        <button class="tab on" id="tab-daily">DAILY</button>
-        <button class="tab" id="tab-weekly">WEEKLY</button>
-      </div>
       <div class="board-list" id="board-list"></div>
       <button class="btn primary" id="btn-board-close">BACK</button>
     </div>
@@ -279,7 +303,7 @@
 
   <!-- SHOP / GARAGE -->
   <div id="shop" class="overlay">
-    <div class="panel">
+    <div class="panel garage-panel">
       <div class="eyebrow">Garage</div>
       <div class="headline" style="font-size:clamp(26px,8vw,40px)">CUSTOMISE</div>
       <div class="wallet"><span class="coin"></span><span id="shop-coins">0</span></div>
@@ -316,11 +340,10 @@
      [RNG]         seedable PRNG — ALL gameplay randomness routes here (V2)
      [UTIL]        math + geometry (segment intersect, point-in-poly, area)
      [STORAGE]     persistence abstraction (localStorage now, cloud-save later)
-     [DAILY]       UTC daily seed, streak, daily-best (V2)
      [PERF]        one-time FPS probe -> device tier (visual-only governor) (V2)
      [AUDIO]       procedural WebAudio engine (autoplay-safe, mute toggle)
      [ADSDK]       ad interface stub (rewarded/interstitial + fallbacks)
-     [LEADER]      leaderboard abstraction (local now, portal seam later) (V2)
+     [LEADER]      weekly leaderboard (local now, portal seam later) (V2)
      [META]        account XP, mastery tiers, titles, collection, sets (V2)
      [INPUT]       pointer/touch/mouse/keyboard/gamepad -> steer axis
      [POOL]        generic object pool (zero per-frame allocation)
@@ -329,21 +352,20 @@
      [PARTICLES]   pooled particle system (cosmetic RNG = Math.random)
      [POPUPS]      pooled score popups
      [FX]          screen shake, hit-stop, flashes, chroma, near-miss
-     [COSMETICS]   trail + car skins, coins, unlocks
-     [GHOST]       record/replay input timeline -> translucent ghost car (V2)
+     [COSMETICS]   trail STYLES + car skins (rarity tiers), coins, unlocks (V2)
      [OBJECTIVES]  rotating goals = the game's "purpose" (paid in coins)
      [GAME]        state machine, spawn director, scoring, collisions
-     [RENDER]      the draw pass
+     [RENDER]      the draw pass (trail-style dispatch)
      [SHARE]       offscreen branded score-card PNG (V2)
      [UI]          DOM overlays (game over + logo + objectives, garage/shop)
      [LOOP]        fixed-timestep update + rAF render + lifecycle
 
-   V2 INVARIANTS (do not break):
+   INVARIANTS (do not break):
      • ONE death rule: empty self-cross. No new fatal conditions.
      • Determinism: same seed + same effective-steer timeline => identical run.
        Gameplay randomness is consumed ONLY inside the fixed-timestep update via
        RNG; render-rate/cosmetic randomness uses Math.random so display FPS and
-       the PERF governor can never desync the sim, a daily, or a ghost.
+       the PERF governor can never desync the sim.
      • Zero per-frame heap alloc on the hot path (pools / pre-alloc buffers).
 ============================================================================= */
 
@@ -443,13 +465,10 @@ const CONFIG = {
 
   // ======================= V2 ADDITIONS (below) ============================
   // --- A/B EXPERIMENT HARNESS ---------------------------------------------
-  // Two flagged experiments. Flip here (or via ?ab= URL / window.DriftLasso)
-  // to run the key tests. Both ship-safe; defaults match V1 feel.
-  AB_STEERING: 'half',        // 'half' = hold L/R screen half (shipped V1) | 'curl' = hold-to-curl (auto side)
-  AB_ONBOARDING: 'ghostdemo', // 'ghostdemo' = active traced-loop demo (V2) | 'hint' = static arrows (V1)
+  // One flagged steering experiment. Flip here (or via ?ab= URL). Both ship-safe.
+  AB_STEERING: 'half',        // 'half' = hold L/R screen half (shipped) | 'curl' = hold-to-curl (one button)
 
   // --- ONBOARDING ----------------------------------------------------------
-  GHOST_DEMO_DUR: 1.8,        // sec the first-run auto-traced lasso demo plays (skippable, <2s)
   GARAGE_TOAST_MILESTONE: 1,  // which milestone (1st) fires the one-time "Spend coins in Garage" toast
 
   // --- PERF GOVERNOR (visual-only; NEVER changes gameplay/difficulty/RNG) ---
@@ -459,30 +478,20 @@ const CONFIG = {
   PERF_PARTICLE_LOW: 0.45,    // particle-count multiplier on LOW tier
   PERF_PARTICLE_MID: 0.75,    // particle-count multiplier on MID tier
 
-  // --- DAILY CHALLENGE -----------------------------------------------------
-  DAILY_REWARD_COINS: 60,     // one-shot reward for the first qualifying daily run per UTC day
-  DAILY_QUALIFY_SCORE: 1,     // min score for a daily run to "count" (kept tiny: tone stays playful)
-  STREAK_BONUS_COINS: 10,     // extra coins per consecutive daily day (added to base reward)
-
-  // --- LEADERBOARD (local placeholder; portal API drops into LEADER.provider)
-  LEADER_TABLE_SIZE: 24,      // entries kept per board (daily/weekly)
-  LEADER_RIVALS: 14,          // synthetic rival scores seeded per board for a reachable rank nudge
+  // --- LEADERBOARD (local weekly board; portal API drops into LEADER.provider)
+  LEADER_TABLE_SIZE: 24,      // entries kept on the weekly board
+  LEADER_RIVALS: 14,          // synthetic rival scores seeded per week for a reachable rank nudge
 
   // --- META / ACCOUNT XP ---------------------------------------------------
   XP_PER_SCORE: 0.05,         // account XP per point of run score
   XP_PER_CAPTURE: 3,          // account XP per drone captured
   XP_PER_PERFECT: 12,         // account XP per PERFECT loop
   XP_PER_OBJECTIVE: 40,       // account XP per objective completed in the run
-  XP_DAILY_BONUS: 60,         // flat account XP bonus for completing the daily
   XP_LEVEL_BASE: 120,         // XP for account level 2; curve = BASE * level^XP_LEVEL_POW
   XP_LEVEL_POW: 1.35,         // gentle, never-ending account-level curve exponent
 
-  // --- GHOSTS --------------------------------------------------------------
-  GHOST_MAX_CHANGES: 4000,    // cap on recorded steer-change events (RLE) per run
-  GHOST_ALPHA: 0.42,          // translucency of the replayed ghost car
-
   // --- RARE MOMENTS --------------------------------------------------------
-  GOLDEN_SWARM_CHANCE: 0.08,  // chance a swarm event is the rare all-gold swarm (routed through RNG => dailies fair)
+  GOLDEN_SWARM_CHANCE: 0.08,  // chance a swarm event is the rare all-gold swarm (RNG-routed)
 };
 
 /* Palette — the whole game is colour-coded: cool = safe/score, amber = target,
@@ -607,10 +616,9 @@ const Storage=(()=>{
     muted:false, firstRunDone:false, endowed:false, sinceInterstitial:0,
     objectives:null,   // [{id,prog}] persisted; seeded on first load
     recentScores:[],   // last few run scores -> rubber-band difficulty (DDA)
-    customA:'#00E5FF', customB:'#FFD23F', // player's custom trail colours
+    customA:'#00E5FF', customB:'#FFD23F', customStyle:'comet', // player's custom trail (colours + chosen STYLE)
     // ---- V2 fields ----
     accountXP:0, accountLevel:1, masteryTier:0, prestige:0,   // [META] account spine
-    streak:0, lastDailyDate:'', dailyBest:{},                 // [DAILY] challenge state
     weeklyBest:{},                                            // [LEADER] best per ISO week
     collectionSeen:[],                                        // cosmetics the player has ever owned (collection meter)
     garageHinted:false, schemaV:2,                            // one-time "spend coins" toast; schema marker
@@ -626,7 +634,7 @@ const Storage=(()=>{
   function migrateV1(v1){
     const m=Object.assign({},defaults);
     const keep=['highScore','coins','totalRuns','bestLevel','unlocked','equippedTrail','equippedCar',
-                'equippedPower','muted','firstRunDone','endowed','objectives','recentScores','customA','customB'];
+                'equippedPower','muted','firstRunDone','endowed','objectives','recentScores','customA','customB','customStyle'];
     keep.forEach(k=>{ if(v1[k]!==undefined && v1[k]!==null) m[k]=v1[k]; });
     if(!Array.isArray(m.unlocked)) m.unlocked=defaults.unlocked.slice();
     return m;
@@ -643,7 +651,6 @@ const Storage=(()=>{
     if(!Array.isArray(m.unlocked)) m.unlocked=defaults.unlocked.slice();
     if(!Array.isArray(m.recentScores)) m.recentScores=[];
     if(!Array.isArray(m.collectionSeen)) m.collectionSeen=[];
-    if(typeof m.dailyBest!=='object'||!m.dailyBest) m.dailyBest={};
     if(typeof m.weeklyBest!=='object'||!m.weeklyBest) m.weeklyBest={};
     m.settings = (typeof m.settings==='object'&&m.settings) ? Object.assign({},defaults.settings,m.settings) : Object.assign({},defaults.settings);
     setData(m);
@@ -651,47 +658,6 @@ const Storage=(()=>{
   function save(){ _write(data); }
   return { data, load, save,
     get:(k)=>data[k], set:(k,v)=>{ data[k]=v; save(); } };
-})();
-
-/* ============================== [DAILY] ==================================== */
-/* Today's challenge seed + streak. The seed is derived purely from the UTC date
-   so every player worldwide gets the SAME arena on a given day (fair daily
-   leaderboard). Streak is gentle: it grows on consecutive days and quietly
-   resets if a day is missed — never any loss-anxiety copy. */
-const DAILY=(()=>{
-  let isDailyRun=false;
-  const pad=n=>(n<10?'0':'')+n;
-  function utcDateStr(d){ d=d||new Date(); return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate()); }
-  function hashStr(str){ let h=2166136261>>>0; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0)||1; } // FNV-1a
-  function seedForToday(){ return hashStr('driftlasso/'+utcDateStr()); }
-  function todayKey(){ return utcDateStr(); }
-  // ISO-8601 week key, e.g. "2026-W26" — the weekly leaderboard bucket.
-  function isoWeekKey(d){
-    const dt=new Date(d?Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()):Date.now());
-    const day=(dt.getUTCDay()+6)%7; dt.setUTCDate(dt.getUTCDate()-day+3);
-    const firstThu=new Date(Date.UTC(dt.getUTCFullYear(),0,4));
-    const week=1+Math.round(((dt-firstThu)/86400000 - 3 + ((firstThu.getUTCDay()+6)%7))/7);
-    return dt.getUTCFullYear()+'-W'+pad(week);
-  }
-  function isYesterday(prev){ if(!prev) return false; const y=new Date(); y.setUTCDate(y.getUTCDate()-1); return prev===utcDateStr(y); }
-  // First qualifying daily run per UTC day grants a one-shot (streak-scaled) reward.
-  function recordResult(score){
-    const today=todayKey(), D=Storage.data;
-    const firstToday = D.lastDailyDate!==today;
-    let reward=0, streakUp=false;
-    if(firstToday && score>=CONFIG.DAILY_QUALIFY_SCORE){
-      D.streak = isYesterday(D.lastDailyDate) ? (D.streak||0)+1 : 1;  // continue or (re)start — missed days reset silently
-      D.lastDailyDate=today; streakUp=true;
-      reward = CONFIG.DAILY_REWARD_COINS + CONFIG.STREAK_BONUS_COINS*(D.streak-1);
-      D.coins += reward;
-    }
-    D.dailyBest=D.dailyBest||{}; if(!(today in D.dailyBest) || score>D.dailyBest[today]) D.dailyBest[today]=Math.round(score);
-    Storage.save();
-    return { firstToday, reward, streak:D.streak||0, streakUp };
-  }
-  function bestToday(){ return (Storage.data.dailyBest||{})[todayKey()]||0; }
-  return { get isDailyRun(){return isDailyRun;}, set isDailyRun(v){isDailyRun=v;},
-           seedForToday, utcDateStr, todayKey, isoWeekKey, recordResult, bestToday };
 })();
 
 /* ============================== [PERF] ===================================== */
@@ -739,14 +705,14 @@ const Audio=(()=>{
     try{
       const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
       ctx=new AC();
-      master=ctx.createGain(); master.gain.value=muted?0:0.9; master.connect(ctx.destination);
+      master=ctx.createGain(); master.gain.value=muted?0:0.5; master.connect(ctx.destination);  // gentler overall level
       music=ctx.createGain(); music.gain.value=0.0; music.connect(master); // fades in during play
       // noise buffer for death / texture
       noiseBuf=ctx.createBuffer(1, ctx.sampleRate*0.5, ctx.sampleRate);
       const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
-      // persistent drift hum
-      drift=ctx.createOscillator(); drift.type='sawtooth'; drift.frequency.value=70;
-      driftFilter=ctx.createBiquadFilter(); driftFilter.type='lowpass'; driftFilter.frequency.value=300;
+      // persistent drift hum — a SOFT, heavily-filtered triangle (no harsh sawtooth drone)
+      drift=ctx.createOscillator(); drift.type='triangle'; drift.frequency.value=60;
+      driftFilter=ctx.createBiquadFilter(); driftFilter.type='lowpass'; driftFilter.frequency.value=240;
       driftGain=ctx.createGain(); driftGain.gain.value=0;
       drift.connect(driftFilter); driftFilter.connect(driftGain); driftGain.connect(master);
       drift.start();
@@ -776,10 +742,11 @@ const Audio=(()=>{
     tone(base*1.5,'sine',0.25,0.005,0.14);    // a fifth for shine
     tone(base*2,'sine',0.12,0.005,0.10);
   }
-  function bonus(){ if(!ready)return; tone(1318,'triangle',0.4,0.005,0.18); tone(1760,'sine',0.25,0.01,0.2); }
-  function coin(){ tone(880,'square',0.18,0.004,0.05); tone(1320,'square',0.16,0.02,0.06); }
-  function tick(){ tone(2200,'sine',0.05,0.002,0.03); }
-  function nearMiss(){ tone(1500,'sawtooth',0.06,0.003,0.05); }
+  function bonus(){ if(!ready)return; tone(1318,'triangle',0.32,0.005,0.18); tone(1760,'sine',0.18,0.01,0.2); }
+  function coin(){ tone(880,'triangle',0.14,0.004,0.06); tone(1320,'sine',0.10,0.02,0.07); }   // softer "blip", not a square buzz
+  // near-miss telegraph: a soft, low, infrequent sine pip (NOT a piercing high tick)
+  function tick(){ tone(760,'sine',0.045,0.004,0.06); }
+  function nearMiss(){ tone(540,'sine',0.04,0.004,0.07); }
 
   function fanfare(){
     if(!ready) return; const seq=[523,659,784,1046];
@@ -796,52 +763,43 @@ const Audio=(()=>{
   }
 
   // Continuous drift hum tracks how tight the drift is (intensity 0..1).
+  // Kept very quiet + low-passed so it reads as a faint cushion, never a drone.
   function setDrift(intensity, playing){
     if(!ready) return; const t=ctx.currentTime;
-    driftGain.gain.setTargetAtTime(playing?(0.02+0.05*intensity):0, t, 0.08);
-    driftFilter.frequency.setTargetAtTime(260+intensity*900, t, 0.08);
-    drift.frequency.setTargetAtTime(60+intensity*55, t, 0.08);
+    driftGain.gain.setTargetAtTime(playing?(0.004+0.02*intensity):0, t, 0.12);
+    driftFilter.frequency.setTargetAtTime(200+intensity*380, t, 0.12);
+    drift.frequency.setTargetAtTime(55+intensity*35, t, 0.12);
   }
-  function setMusic(on,intensity){ if(!ready) return; music.gain.setTargetAtTime(on?0.5:0.0, ctx.currentTime, 0.4); }
+  function setMusic(on,intensity){ if(!ready) return; music.gain.setTargetAtTime(on?0.26:0.0, ctx.currentTime, 0.5); }
 
-  // Low pulsing synth bassline; tempo speeds up with difficulty.
+  // Soft, sparse pulse — a rounded triangle through a low filter (not a sawtooth
+  // drone). Rests on the off-steps so it breathes; tempo eases up with difficulty.
   function updateMusic(playing, difficulty){
     if(!ready || !playing) return;
     const now=ctx.currentTime;
-    const beat=lerp(0.50,0.30,clamp(difficulty,0,1));
+    const beat=lerp(0.55,0.36,clamp(difficulty,0,1));
     while(bassNext < now+0.1){
       const t0=Math.max(bassNext, now);
       const semi=BASS[bassStep%BASS.length];
-      const f=ROOT*Math.pow(2,semi/12);
-      const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=f;
-      const fl=ctx.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value=420;
-      const g=ctx.createGain(); g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.5,t0+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+beat*0.9);
-      o.connect(fl); fl.connect(g); g.connect(music); o.start(t0); o.stop(t0+beat);
+      if((bassStep%BASS.length)!==1 && (bassStep%BASS.length)!==3){          // skip a couple of steps = sparser, calmer
+        const f=ROOT*Math.pow(2,semi/12);
+        const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=f;
+        const fl=ctx.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value=300;
+        const g=ctx.createGain(); g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.26,t0+0.03); g.gain.exponentialRampToValueAtTime(0.0001,t0+beat*0.85);
+        o.connect(fl); fl.connect(g); g.connect(music); o.start(t0); o.stop(t0+beat);
+      }
       bassStep++; bassNext += beat;
     }
   }
   function resetMusicClock(){ if(ready) bassNext=ctx.currentTime; bassStep=0; }
 
-  // ---- V2 cues (each distinct so the ear can tell them apart) ----
-  // Daily-challenge complete: a bright ascending arpeggio flourish (longer than fanfare).
-  function dailyComplete(){ if(!ready) return; const seq=[523,659,784,1046,1318,1568];
-    seq.forEach((f,i)=> setTimeout(()=>{ tone(f,'triangle',0.42,0.01,0.26); tone(f*2,'sine',0.16,0.01,0.22); }, i*70)); }
-  // Streak up: a quick two-note "ka-ching" rise (climbs a touch with the streak number).
-  function streakUp(n){ if(!ready) return; const s=clamp(n||1,1,8); tone(660*Math.pow(2,(s-1)/24),'square',0.22,0.004,0.08);
-    setTimeout(()=>tone(990*Math.pow(2,(s-1)/24),'square',0.2,0.01,0.12), 90); }
-  // Ghost cue: rising blip = you OVERTOOK the ghost; falling = it overtook you.
-  function ghost(overtook){ if(!ready) return; const t0=ctx.currentTime;
-    const o=ctx.createOscillator(); o.type='sine'; const a=overtook?700:520, b=overtook?1100:340;
-    o.frequency.setValueAtTime(a,t0); o.frequency.exponentialRampToValueAtTime(b,t0+0.18);
-    const g=ctx.createGain(); g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.22,t0+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+0.2);
-    o.connect(g); g.connect(master); o.start(t0); o.stop(t0+0.22); }
-  // Account level-up: a warm bell-like chime, clearly distinct from the in-run level fanfare.
+  // Account level-up: a warm bell-like chime, distinct from the in-run level fanfare.
   function accountLevel(){ if(!ready) return; [784,1046,1318].forEach((f,i)=> setTimeout(()=>{
-    tone(f,'sine',0.34,0.01,0.5); tone(f*2.005,'sine',0.10,0.01,0.5); }, i*110)); }
+    tone(f,'sine',0.30,0.01,0.5); tone(f*2.005,'sine',0.08,0.01,0.5); }, i*110)); }
 
   return { unlock, resume, setMuted, isMuted, capture, bonus, coin, tick, nearMiss,
            fanfare, death, setDrift, setMusic, updateMusic, resetMusicClock,
-           dailyComplete, streakUp, ghost, accountLevel,
+           accountLevel,
            get ready(){return ready;} };
 })();
 
@@ -913,21 +871,26 @@ const AdSDK=(()=>{
 })();
 
 /* ============================== [LEADER] =================================== */
-/* Leaderboard abstraction. Mirrors the AdSDK pattern EXACTLY: one `provider`
-   object behind a stable interface. The local provider is Storage-backed with a
-   daily board (keyed by seed) and a weekly board (keyed by ISO week). To drop in
-   a portal board later (CrazyGames/Poki), implement submit/fetch on a new
-   provider and call LEADER.setProvider(...) — nothing else in the game changes.
+/* Weekly leaderboard. Mirrors the AdSDK pattern EXACTLY: one `provider` object
+   behind a stable interface. The local provider is Storage-backed, keyed by ISO
+   week. To drop in a portal board later (CrazyGames/Poki), implement submit/fetch
+   on a new provider and call LEADER.setProvider(...) — nothing else changes.
 
-   Solo-offline boards can't show a real rank, so the local provider seeds each
-   board with deterministic synthetic "rivals" derived from the seed (stable for
-   the day/week, identical for everyone) — purely to power the "you're N from #M"
-   nudge. They vanish the moment a real provider is wired in. */
+   A solo-offline board can't show a real rank, so the local provider seeds the
+   week with deterministic synthetic "rivals" — purely to power the "N from #M"
+   nudge with a reachable target. They vanish the moment a real provider is wired in. */
 const LEADER=(()=>{
+  const pad=n=>(n<10?'0':'')+n;
+  // ISO-8601 week key, e.g. "2026-W26" — the weekly board bucket.
+  function weekKey(d){
+    const dt=new Date(d?Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()):Date.now());
+    const day=(dt.getUTCDay()+6)%7; dt.setUTCDate(dt.getUTCDate()-day+3);
+    const firstThu=new Date(Date.UTC(dt.getUTCFullYear(),0,4));
+    const week=1+Math.round(((dt-firstThu)/86400000 - 3 + ((firstThu.getUTCDay()+6)%7))/7);
+    return dt.getUTCFullYear()+'-W'+pad(week);
+  }
   // ---- swap this object for the real portal adapter at integration time -----
   const localProvider=(()=>{
-    function board(kind,key){ const D=Storage.data; const root = kind==='daily'?'_lbDaily':'_lbWeekly';
-      D[root]=D[root]||{}; D[root][key]=D[root][key]||null; return {root,key}; }
     function rivals(seedStr){ // deterministic rivals from a private RNG (never touches gameplay RNG)
       let h=2166136261>>>0; for(let i=0;i<seedStr.length;i++){ h^=seedStr.charCodeAt(i); h=Math.imul(h,16777619); }
       let s=(h>>>0)||1; const rnd=()=>{ s=(s+0x6D2B79F5)|0; let t=Math.imul(s^(s>>>15),1|s); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; };
@@ -936,29 +899,27 @@ const LEADER=(()=>{
     }
     return {
       // returns {rank, total, ahead:{score}|null, top, you} after inserting `score`
-      submit(kind,key,score){
-        const D=Storage.data, root = kind==='daily'?'_lbDaily':'_lbWeekly';
-        D[root]=D[root]||{};
-        let list=D[root][key];
-        if(!list){ list=rivals(key); }                 // first time today/this week: seed the rivals
-        // keep one "you" row = your best on this board
+      submit(key,score){
+        const D=Storage.data; D._lbWeekly=D._lbWeekly||{};
+        let list=D._lbWeekly[key] || rivals(key);        // first time this week: seed the rivals
         let me=list.find(e=>e.me); if(!me){ me={name:'You',score:0,me:true}; list.push(me); }
         if(score>me.score) me.score=Math.round(score);
         list.sort((a,b)=>b.score-a.score);
         if(list.length>CONFIG.LEADER_TABLE_SIZE) list=list.slice(0,Math.max(CONFIG.LEADER_TABLE_SIZE, list.findIndex(e=>e.me)+1));
-        D[root][key]=list; Storage.save();
+        D._lbWeekly[key]=list; Storage.save();
         const rank=list.indexOf(me)+1;
-        const ahead = rank>1 ? list[rank-2] : null;     // the entry directly above you (the reachable target)
+        const ahead = rank>1 ? list[rank-2] : null;      // the entry directly above you (the reachable target)
         return { rank, total:list.length, ahead:ahead?{score:ahead.score}:null, top:list[0]?list[0].score:me.score, you:me.score };
       },
-      fetch(kind,key){ const D=Storage.data, root=kind==='daily'?'_lbDaily':'_lbWeekly'; return (D[root]&&D[root][key])||[]; },
+      fetch(key){ const D=Storage.data; return (D._lbWeekly&&D._lbWeekly[key])||[]; },
     };
   })();
   let provider=localProvider;
   return {
+    weekKey,
     setProvider(p){ provider=p||localProvider; },
-    submit(kind,key,score){ try{ return provider.submit(kind,key,score); }catch(e){ return null; } },
-    fetch(kind,key){ try{ return provider.fetch(kind,key); }catch(e){ return []; } },
+    submit(key,score){ try{ return provider.submit(key,score); }catch(e){ return null; } },
+    fetch(key){ try{ return provider.fetch(key); }catch(e){ return []; } },
   };
 })();
 
@@ -1008,13 +969,11 @@ const Input=(()=>{
     else if(c==='ArrowRight'||c==='KeyD'){ fireFirst(); keyR=true; e.preventDefault(); }
   });
   window.addEventListener('keyup',(e)=>{ const c=e.code; if(c==='ArrowLeft'||c==='KeyA')keyL=false; else if(c==='ArrowRight'||c==='KeyD')keyR=false; });
-  // stop the page from scrolling/zooming under the game
-  window.addEventListener('touchmove',(e)=>{ if(e.cancelable) e.preventDefault(); },{passive:false});
+  // stop the page from scrolling/zooming under the GAME — but let the UI overlays
+  // (garage / leaderboard / settings) scroll natively on mobile.
+  window.addEventListener('touchmove',(e)=>{ if(e.cancelable && !isUI(e.target)) e.preventDefault(); },{passive:false});
   window.addEventListener('gesturestart',(e)=>e.preventDefault());
   window.addEventListener('dblclick',(e)=>e.preventDefault());
-  // any input aborts the skippable onboarding demo
-  window.addEventListener('pointerdown',()=>{ if(typeof Onboard!=='undefined') Onboard.skip(); },{passive:true});
-  window.addEventListener('keydown',()=>{ if(typeof Onboard!=='undefined') Onboard.skip(); },{passive:true});
   return { steer, onFirstInteraction:(f)=>onFirst.push(f), get held(){return active!==null||keyL||keyR;} };
 })();
 
@@ -1218,52 +1177,72 @@ const FX=(()=>{
 })();
 
 /* ============================ [COSMETICS] ================================== */
-/* Trail + car skins. Cheap to make, strong for retention, and a rewarded-ad
-   driver ("unlock early — watch a video"). One trail skin is FREE; the next is
-   pre-discounted via "endowed progress" so the collection feels already begun. */
+/* Trail + car skins with RARITY tiers. Each trail is a STYLE, not just a colour
+   pair — stripes, dashes, comet sparkles, lightning, pixels, flame, stardust,
+   galaxy, glow — rendered by drawTrail's style dispatch. The CUSTOM trail is the
+   power-user option: pick two colours AND a base style. Purchases cost coins. */
 const Cosmetics=(()=>{
+  // every trail names a render `style` (see RENDER.drawTrail). a/b = its palette.
   const TRAILS=[
-    {id:'custom',   name:'Custom',     cost:0,   a:'custom', b:'custom', custom:true},
-    {id:'neon',     name:'Neon Drift', cost:0,   a:'#00E5FF', b:'#FF49C3'},
-    {id:'inferno',  name:'Inferno',    cost:140, a:'#FFE259', b:'#FF1744'},
-    {id:'voltage',  name:'Voltage',    cost:220, a:'#AEEBFF', b:'#7C4DFF'},
-    {id:'slime',    name:'Slime',      cost:300, a:'#D4FF3D', b:'#00C853'},
-    {id:'bubblegum',name:'Bubblegum',  cost:380, a:'#FFD1F0', b:'#FF49C3'},
-    {id:'spectrum', name:'Rainbow',    cost:520, a:'rainbow', b:'rainbow'},
-    {id:'lava',     name:'Lava Lamp',  cost:640, a:'#FF8A3D', b:'#B16BFF'},
-    {id:'gold',     name:'24 Karat',   cost:800, a:'#FFF1A8', b:'#FFB020'},
-    {id:'chrome',   name:'Chrome',     cost:1000,a:'#FFFFFF', b:'#9AD7FF'},
-    // prestige-only: not buyable; granted by META.prestige(). cost:-1 hides it from the shop grid.
-    {id:'prestige', name:'Prestige',   cost:-1,  a:'#FFD700', b:'#FF49C3', prestigeOnly:true},
+    {id:'custom',  name:'Custom',     cost:0,    rarity:'common',    custom:true},
+    {id:'neon',    name:'Neon',       cost:0,    rarity:'common',    style:'solid',    a:'#00E5FF', b:'#FF49C3'},
+    {id:'ember',   name:'Ember',      cost:90,   rarity:'common',    style:'solid',    a:'#FFD86B', b:'#FF1744'},
+    {id:'mint',    name:'Mint',       cost:90,   rarity:'common',    style:'solid',    a:'#D4FF3D', b:'#00C853'},
+    {id:'candy',   name:'Candy Cane', cost:220,  rarity:'rare',      style:'stripes',  a:'#FF3B5C', b:'#FFFFFF'},
+    {id:'dotline', name:'Dotline',    cost:200,  rarity:'rare',      style:'dashed',   a:'#00E5FF', b:'#7C4DFF'},
+    {id:'comet',   name:'Comet',      cost:300,  rarity:'rare',      style:'comet',    a:'#AEEBFF', b:'#FFFFFF'},
+    {id:'pixel',   name:'8-Bit',      cost:320,  rarity:'rare',      style:'pixel',    a:'#7CFF6B', b:'#00C853'},
+    {id:'electric',name:'Electric',   cost:520,  rarity:'epic',      style:'electric', a:'#AEEBFF', b:'#7C4DFF'},
+    {id:'flame',   name:'Inferno',    cost:560,  rarity:'epic',      style:'flame',    a:'#FFE259', b:'#FF1744'},
+    {id:'stars',   name:'Stardust',   cost:600,  rarity:'epic',      style:'stars',    a:'#FFF1A8', b:'#B16BFF'},
+    {id:'galaxy',  name:'Galaxy',     cost:950,  rarity:'legendary', style:'galaxy',   a:'#6A5BFF', b:'#FF49C3'},
+    {id:'gold',    name:'24 Karat',   cost:1100, rarity:'legendary', style:'glow',     a:'#FFF1A8', b:'#FFB020'},
+    // prestige-only: not buyable; granted by META.prestige(). cost:-1 hides it until earned.
+    {id:'prestige',name:'Prestige',   cost:-1,   rarity:'legendary', style:'rainbow',  a:'#FFD700', b:'#FF49C3', prestigeOnly:true},
   ];
+  // styles the CUSTOM editor can choose from (a curated subset that reads well in 2 colours)
+  const CUSTOM_STYLES=['solid','stripes','dashed','comet','electric','flame','glow','rainbow'];
   const CARS=[
-    {id:'car_core', name:'Pulse',   cost:0,   color:'#FFFFFF'},
-    {id:'car_amber',name:'Ember',   cost:160, color:'#FFB020'},
-    {id:'car_mag',  name:'Vapor',   cost:280, color:'#FF49C3'},
-    {id:'car_lime', name:'Zap',     cost:380, color:'#C6FF4D'},
-    {id:'car_gold', name:'Bullion', cost:520, color:'#FFD24A'},
-    {id:'car_void', name:'Void',    cost:700, color:'#9B6BFF'},
+    {id:'car_core', name:'Pulse',   cost:0,   rarity:'common',    color:'#FFFFFF'},
+    {id:'car_amber',name:'Ember',   cost:140, rarity:'common',    color:'#FFB020'},
+    {id:'car_mag',  name:'Vapor',   cost:200, rarity:'common',    color:'#FF49C3'},
+    {id:'car_lime', name:'Zap',     cost:320, rarity:'rare',      color:'#C6FF4D'},
+    {id:'car_gold', name:'Bullion', cost:560, rarity:'epic',      color:'#FFD24A'},
+    {id:'car_void', name:'Void',    cost:700, rarity:'epic',      color:'#9B6BFF'},
+    {id:'car_halo', name:'Halo',    cost:900, rarity:'legendary', color:'#00E5FF'},
   ];
   // equippable superpowers (one active). Effects applied in Game.
   const POWERS=[
-    {id:'pow_none',  name:'None',      cost:0,   pico:'🚫', desc:'No power'},
-    {id:'pow_magnet',name:'Magnet',    cost:260, pico:'🧲', desc:'Pulls drones toward you'},
-    {id:'pow_shield',name:'Shield',    cost:420, pico:'🛡️', desc:'Survive one fatal cross / run'},
-    {id:'pow_hot',   name:'Hot Start', cost:340, pico:'🔥', desc:'Begin each run at combo x3'},
+    {id:'pow_none',  name:'None',      cost:0,   rarity:'common', pico:'🚫', desc:'No power'},
+    {id:'pow_magnet',name:'Magnet',    cost:260, rarity:'rare',   pico:'🧲', desc:'Pulls drones toward you'},
+    {id:'pow_shield',name:'Shield',    cost:420, rarity:'epic',   pico:'🛡️', desc:'Survive one fatal cross / run'},
+    {id:'pow_hot',   name:'Hot Start', cost:340, rarity:'rare',   pico:'🔥', desc:'Begin each run at combo x3'},
   ];
+  const RARITY={
+    common:   {label:'COMMON',    col:'#9AA0B5', order:0},
+    rare:     {label:'RARE',      col:'#19E3C8', order:1},
+    epic:     {label:'EPIC',      col:'#B16BFF', order:2},
+    legendary:{label:'LEGENDARY', col:'#FFB020', order:3},
+  };
   function isUnlocked(id){ return Storage.data.unlocked.indexOf(id)>=0; }
   function unlock(id){ if(!isUnlocked(id)){ Storage.data.unlocked.push(id); Storage.save(); } }
-  function trail(){ const t=TRAILS.find(t=>t.id===Storage.data.equippedTrail)||TRAILS[1]; return t.custom?{id:'custom',a:Storage.data.customA,b:Storage.data.customB}:t; }
+  // the equipped trail, resolved (custom pulls colours + chosen style from Storage)
+  function trail(){
+    const t=TRAILS.find(t=>t.id===Storage.data.equippedTrail)||TRAILS[1];
+    if(t.custom) return {id:'custom', style:Storage.data.customStyle||'solid', a:Storage.data.customA, b:Storage.data.customB};
+    return t;
+  }
   function car(){ return CARS.find(c=>c.id===Storage.data.equippedCar)||CARS[0]; }
   function power(){ return POWERS.find(p=>p.id===Storage.data.equippedPower)||POWERS[0]; }
   function all(){ return TRAILS.concat(CARS).concat(POWERS); }
+  function canAfford(item){ return Storage.data.coins>=item.cost; }
   // cheapest locked item -> drives the "next unlock" goal bar
   function nextLocked(){
     let best=null;
     all().forEach(it=>{ if(!isUnlocked(it.id) && it.cost>0){ if(!best||it.cost<best.cost) best=it; } });
     return best;
   }
-  return { TRAILS, CARS, POWERS, isUnlocked, unlock, trail, car, power, all, nextLocked };
+  return { TRAILS, CARS, POWERS, RARITY, CUSTOM_STYLES, isUnlocked, unlock, trail, car, power, all, canAfford, nextLocked };
 })();
 
 /* ============================== [META] ===================================== */
@@ -1290,8 +1269,7 @@ const META=(()=>{
   function recordRun(stats){
     const D=Storage.data;
     let xp=Math.round((stats.score||0)*CONFIG.XP_PER_SCORE + (stats.captures||0)*CONFIG.XP_PER_CAPTURE
-      + (stats.perfects||0)*CONFIG.XP_PER_PERFECT + (stats.objectives||0)*CONFIG.XP_PER_OBJECTIVE
-      + (stats.daily?CONFIG.XP_DAILY_BONUS:0));
+      + (stats.perfects||0)*CONFIG.XP_PER_PERFECT + (stats.objectives||0)*CONFIG.XP_PER_OBJECTIVE);
     if(xp<0) xp=0;
     const before=D.accountLevel||1;
     D.accountXP=(D.accountXP||0)+xp;
@@ -1308,8 +1286,8 @@ const META=(()=>{
     Cosmetics.all().forEach(it=>{ if(Cosmetics.isUnlocked(it.id) && D.collectionSeen.indexOf(it.id)<0) D.collectionSeen.push(it.id); }); Storage.save(); }
   // SET bonuses: equip a whole family => a purely VISUAL flourish (no stats)
   const SETS=[
-    {id:'gilded', name:'Gilded',      trail:'gold',    car:'car_gold', flourish:'sparkle'},
-    {id:'void',   name:'Void Walker', trail:'voltage', car:'car_void', flourish:'aura'},
+    {id:'gilded', name:'Gilded',      trail:'gold',   car:'car_gold', flourish:'sparkle'},
+    {id:'void',   name:'Void Walker', trail:'galaxy', car:'car_void', flourish:'aura'},
   ];
   function activeSet(){ for(const s of SETS){ if(Storage.data.equippedTrail===s.trail && Storage.data.equippedCar===s.car) return s; } return null; }
   function canPrestige(){ return (Storage.data.accountLevel||1)>=40; }
@@ -1506,77 +1484,6 @@ const Drones=(()=>{
   return { pool, spawnAt, update, freeAll:()=>pool.freeAll(), get alive(){return pool.alive;}, get count(){return pool.count;} };
 })();
 
-/* ============================== [GHOST] ==================================== */
-/* Records the run's EFFECTIVE-steer timeline (RLE) + a coarse score timeline,
-   then replays the steer through the SHARED car physics (Game.stepCar) to drive a
-   translucent ghost car. The car path depends only on steer + arena size (NOT on
-   RNG/drones), so a stored ghost replays correctly even on a different seed — and
-   the score timeline lets us play a "you vs best" overtake cue. Stored compactly
-   in localStorage (separate keys keep the main save lean). */
-const GHOST=(()=>{
-  const SAMPLE=0.5;                              // score sampled every 0.5s (compact)
-  let recording=false, seed=1, lastS=99, lastSampleT=-1;
-  const ev=[], sc=[];                            // ev:[t,s,...]  sc:[t,score,...]
-  function startRecord(sd){ recording=true; seed=sd>>>0; lastS=99; lastSampleT=-1; ev.length=0; sc.length=0; }
-  function noteSteer(t,s){ if(recording && s!==lastS && ev.length<CONFIG.GHOST_MAX_CHANGES*2){ ev.push(+t.toFixed(3), s); lastS=s; } }
-  function noteScore(t,score){ if(recording && (lastSampleT<0 || t-lastSampleT>=SAMPLE)){ sc.push(+t.toFixed(2), Math.round(score)); lastSampleT=t; } }
-  function stopRecord(){ recording=false; }
-  function _put(k,payload,score){ try{ const p=JSON.parse(localStorage.getItem(k)); if(p&&p.score>=score) return; }catch(e){} try{ localStorage.setItem(k,payload); }catch(e){} }
-  // persist as best-ever (any seed) and, for daily runs, as that seed's best
-  function commit(kind, finalScore){
-    const payload=JSON.stringify({seed:seed, score:Math.round(finalScore), ev:ev.slice(), sc:sc.slice()});
-    _put('dl.ghost.best', payload, finalScore);
-    if(kind==='daily') _put('dl.ghost.daily.'+seed, payload, finalScore);
-  }
-  // ---- replay ----
-  const car={x:0,y:0,dir:0,ss:0};
-  let active=false, rep=null, lastCmp=0, lastCue=-9;
-  function loadReplay(kind, sd){ active=false; rep=null; lastCmp=0; lastCue=-9;
-    let d=null; try{ d=JSON.parse(localStorage.getItem(kind==='daily'?('dl.ghost.daily.'+sd):'dl.ghost.best')); }catch(e){}
-    if(d && d.ev) rep=d; }
-  function begin(x,y,dir){ if(!rep){ active=false; return; } car.x=x; car.y=y; car.dir=dir; car.ss=0; active=true; }
-  function steerAt(t){ if(!rep||!rep.ev.length) return 0; let s=0; for(let i=0;i<rep.ev.length;i+=2){ if(rep.ev[i]<=t) s=rep.ev[i+1]; else break; } return s; }
-  function scoreAt(t){ if(!rep||!rep.sc||!rep.sc.length) return 0; let v=0; for(let i=0;i<rep.sc.length;i+=2){ if(rep.sc[i]<=t) v=rep.sc[i+1]; else break; } return v; }
-  function step(dt, elapsed){ if(active) Game.stepCar(car, steerAt(elapsed), dt); }      // shared physics => exact path
-  function compare(elapsed, playerScore){       // fire overtake/overtaken cue at most ~1/sec
-    if(!active||!rep) return;
-    const g=scoreAt(elapsed), cmp = playerScore>g?1:(playerScore<g?-1:0);
-    if(cmp!==lastCmp && cmp!==0 && elapsed-lastCue>1.0){ Audio.ghost(cmp>0); lastCue=elapsed; }
-    lastCmp=cmp;
-  }
-  return { startRecord, noteSteer, noteScore, stopRecord, commit, loadReplay, begin, step, compare, scoreAt,
-           get active(){return active;}, get car(){return car;}, get finalScore(){return rep?rep.score:0;} };
-})();
-
-/* ============================= [ONBOARD] ================================== */
-/* Active first-run lesson. Game's auto-curl already drives the car into a closed
-   loop around the lone intro drone; this layer makes that an obvious, skippable
-   DEMO: a translucent "watch" car, a dashed guide ring tracing the loop it's
-   about to snap shut, and a fade-in of control. Any input aborts instantly
-   (Input calls Onboard.skip). Kept under 2s (CONFIG.GHOST_DEMO_DUR). */
-const Onboard=(()=>{
-  let active=false, t=0;
-  function start(){ if(Storage.data.firstRunDone){ active=false; return; } active=true; t=0; }
-  function skip(){ active=false; }
-  function update(dt){ if(active){ t+=dt; if(t>=CONFIG.GHOST_DEMO_DUR) active=false; } }
-  function carAlpha(){ return active ? lerp(0.40,0.96, clamp(t/CONFIG.GHOST_DEMO_DUR,0,1)) : 1; } // control fades IN
-  function draw(ctx,W,H,carX,carY,dir,lr){
-    if(!active) return;
-    const a=dir+Math.PI/2, cx=carX+Math.cos(a)*lr, cy=carY+Math.sin(a)*lr;   // the auto-curl turn centre
-    const pulse=0.5+0.5*Math.sin(performance.now()*0.006);
-    ctx.save();
-    ctx.setLineDash([10,10]); ctx.lineDashOffset=-performance.now()*0.03;
-    ctx.lineWidth=3.5; ctx.strokeStyle='rgba(0,229,255,'+(0.45+0.35*pulse)+')';
-    ctx.beginPath(); ctx.arc(cx,cy,lr,0,TAU); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.globalAlpha=0.9; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.font='900 20px '+FONT_STACK; ctx.lineJoin='round'; ctx.lineWidth=5; ctx.strokeStyle=COL.ink;
-    ctx.strokeText('WATCH — circle the drone', W/2, H*0.82); ctx.fillStyle=COL.white; ctx.fillText('WATCH — circle the drone', W/2, H*0.82);
-    ctx.restore();
-  }
-  return { start, skip, update, draw, carAlpha, get active(){return active;} };
-})();
-
 /* ============================== [GAME] ===================================== */
 const Game=(()=>{
   // canvas + view
@@ -1677,12 +1584,9 @@ const Game=(()=>{
   // ---- run lifecycle -------------------------------------------------------
   function fullReset(opts){
     opts=opts||{};
-    const daily=!!opts.daily;
-    DAILY.isDailyRun=daily;
-    // SEED FIRST — the keystone. Daily runs use today's shared UTC seed (so every
-    // player faces an identical arena); normal runs use a fresh random seed. After
-    // this line every gameplay rand()/RNG draw is deterministic for (seed+inputs).
-    runSeed = (opts.seed!=null) ? (opts.seed>>>0||1) : (daily ? DAILY.seedForToday() : ((Math.random()*0xFFFFFFFF)>>>0||1));
+    // SEED the run. A fixed seed (test) or a fresh random seed. After this line
+    // every gameplay rand()/RNG draw is deterministic for (seed + input timeline).
+    runSeed = (opts.seed!=null) ? (opts.seed>>>0||1) : ((Math.random()*0xFFFFFFFF)>>>0||1);
     RNG.seed(runSeed);
     // FULLY reset everything — no partial state survives a restart.
     score=0; displayScore=0; coinsRun=0; combo=0; comboTimer=0; comboBounce=0; pitchStep=0;
@@ -1690,34 +1594,27 @@ const Game=(()=>{
     dyingTimer=0; car.invuln=0; nearMissCd=0; revivedThisRun=false; steerSmooth=0; previewState.valid=false; capFX.active=false;
     level=1; levelBanner=0; tailExtra=0; powerKind=''; powerTimer=0; powerBanner=0; powerupTimer=rand(7,11); reliefTimer=0;
     swarmTimer=rand(CONFIG.SWARM_MIN,CONFIG.SWARM_MAX); swarmActive=0; swarmBanner=0; goldenSwarm=false;
-    runCaptures=0; runPerfects=0; runObjectives=0; bestLoopArea=0; bestLoopN=0;   // V2 per-run tallies
+    runCaptures=0; runPerfects=0; runObjectives=0; bestLoopArea=0; bestLoopN=0;   // per-run tallies
     Trail.reset(); Drones.freeAll(); Particles.freeAll(); Popups.freeAll(); FX.reset();
     prevBest=Storage.data.highScore;
     setSky(0, true);                                // level-1 background colour (instant)
-    // rubber-band: ease difficulty for players whose recent runs are short.
-    // DAILY (and test) runs disable DDA entirely — identical difficulty = a fair leaderboard.
-    if(daily||opts.test){ ddaEase=0; }
+    // rubber-band: ease difficulty for players whose recent runs are short (test runs skip it)
+    if(opts.test){ ddaEase=0; }
     else { const rs=Storage.data.recentScores||[]; const avg=rs.length? rs.reduce((a,b)=>a+b,0)/rs.length : 0;
       ddaEase=clamp(1-avg/CONFIG.DDA_REF,0,1)*CONFIG.DDA_MAX_EASE; }
     Objectives.refresh();                           // fresh goals; "best" goals reset
-    // GHOST: record this run's effective-steer timeline + load any ghost to race
-    GHOST.startRecord(runSeed);
-    GHOST.loadReplay(daily?'daily':'best', runSeed);
     // equipped superpowers (neutralised in deterministic test runs for a clean comparison)
     const pw=opts.test?'pow_none':Cosmetics.power().id;
     shieldArmed=(pw==='pow_shield');
     if(pw==='pow_hot'){ combo=3; comboTimer=CONFIG.COMBO_DECAY_TIME; pitchStep=3; }
     // Car starts low-centre driving up into the arena (live within ~1s of load).
     car.x=W*0.5; car.y=H*0.62; car.dir=-Math.PI/2;
-    GHOST.begin(car.x,car.y,car.dir);               // ghost car shares the same start
     droneTarget=1; firstCaptureDone=false;
     // ONE intro drone that tracks the car's turn-centre (see update). Whatever the
     // player does — steer left, right, or nothing (auto-curl) — the loop wraps it.
     const na=car.dir+Math.PI/2;
     Drones.spawnAt(car.x+Math.cos(na)*LASSO_R, car.y+Math.sin(na)*LASSO_R, DTYPE.WANDER, true);
-    // active onboarding (ghost demo) on the very first run; otherwise truthful control hint
-    hintAlpha = Storage.data.firstRunDone?0:1;
-    if(!Storage.data.firstRunDone && CONFIG.AB_ONBOARDING==='ghostdemo'){ Onboard.start(); hintAlpha=0; }
+    hintAlpha = Storage.data.firstRunDone?0:1;       // truthful control hint on the very first run
     Audio.resetMusicClock(); Audio.setMusic(true);
     state=STATE.PLAYING;
   }
@@ -1746,7 +1643,6 @@ const Game=(()=>{
     case DTYPE.MAGNET:return CONFIG.MAGNET_VALUE; case DTYPE.GLUTTON:return 2+(d.eaten||0)*0.8; default:return 1; } }
 
   function doCapture(loop, caught){
-    const demoWin=Onboard.active;          // first capture happening DURING the onboarding demo -> celebratory LASSO!
     // centroid (for popups / fx), and split bombs from the catch
     let centerX=0, centerY=0; for(let i=0;i<caught.length;i++){ centerX+=caught[i].x; centerY+=caught[i].y; }
     centerX/=caught.length; centerY/=caught.length;
@@ -1759,8 +1655,9 @@ const Game=(()=>{
     if(hasBomb){
       // wrapping a bomb SPOILS the loop: lose the combo, no points, sharp BONK.
       // (Fair, not fatal — the one death rule stays "empty self-cross".)
+      // The bomb DETONATES and is removed; any non-bomb critters caught alongside survive.
       capFX.color=COL.red; combo=0; pitchStep=0;
-      caught.forEach(d=>{ if(d.type===DTYPE.BOMB){ d.scared=1; Particles.burst(d.x,d.y,18,{confetti:true,colors:[COL.red,'#FFFFFF','#FF8DA0'],spMax:300,sizeMax:9}); } });
+      caught.forEach(d=>{ if(d.type===DTYPE.BOMB){ Particles.burst(d.x,d.y,22,{confetti:true,colors:[COL.red,'#FFFFFF','#FF8DA0'],spMax:320,sizeMax:9}); Particles.burst(d.x,d.y,8,{spr:Sprites.white,spMax:200,sizeMax:14}); Drones.pool.free(d); } });
       Popups.spawn(centerX, centerY, BONKWORDS[(Math.random()*BONKWORDS.length)|0], COL.red, 34);
       Popups.spawn(centerX, centerY-38, 'combo lost', '#8a83ad', 20);
       FX.addShake(0.9); FX.flash('rgba(255,59,92,0.22)',0.6); Audio.death();
@@ -1793,12 +1690,8 @@ const Game=(()=>{
       Drones.pool.free(d);
     });
 
-    // popups: a witty callout + the points + multiplier (dopamine core).
-    // ONLY the onboarding demo's first capture forces the celebratory "LASSO!" +
-    // extra confetti; every other capture keeps V1's random call-words (no regression).
-    if(demoWin){ Onboard.skip(); Popups.spawn(centerX, centerY-40, 'LASSO!', COL.magenta, 36);
-      Particles.burst(centerX, centerY, 40, {confetti:true, spMax:380, sizeMax:10}); }
-    else Popups.spawn(centerX, centerY-40, CAPWORDS[(Math.random()*CAPWORDS.length)|0], COL.magenta, 30);
+    // popups: a witty callout + the points + multiplier (dopamine core)
+    Popups.spawn(centerX, centerY-40, CAPWORDS[(Math.random()*CAPWORDS.length)|0], COL.magenta, 30);
     Popups.spawn(centerX, centerY, '+'+gained, COL.white, 36);
     if(comboMult()>1) Popups.spawn(centerX, centerY-78, 'x'+comboMult()+'!', COL.cyan, 30);
     if(caught.length>=1 && isPerfect){ Popups.spawn(centerX, centerY-112,'PERFECT!',COL.amber,28); Audio.bonus(); }
@@ -1840,64 +1733,48 @@ const Game=(()=>{
   }
 
   function revive(){
-    // restore at the same score; clear hazards; brief invulnerability. Once per run.
+    // Restore the run EXACTLY as it was — keep every drone, particle, the score,
+    // level and combo. Only the fatal trail is cleared and a brief invulnerability
+    // granted, at the car's current spot (no teleport, nothing vanishes).
     revivedThisRun=true;
-    Trail.reset(); Drones.freeAll(); Particles.freeAll();
-    car.x=W*0.5; car.y=H*0.5; car.dir=-Math.PI/2; steerSmooth=0; car.invuln=CONFIG.REVIVE_INVULN;
-    Trail.push(car.x,car.y,elapsed);
-    droneTarget=Math.max(CONFIG.MIN_DRONES, droneTarget);
+    Trail.reset(); Trail.push(car.x,car.y,elapsed);
+    steerSmooth=0; car.invuln=CONFIG.REVIVE_INVULN;
     state=STATE.PLAYING; Audio.setMusic(true); FX.flash('rgba(0,229,255,0.25)',0.6);
     reliefTimer=CONFIG.RELIEF_TIME;   // calm window so you get a quick win back
   }
 
-  // Closest-to-complete objective + daily status -> pulls an immediate restart (Zeigarnik).
+  // Closest-to-complete objective -> pulls an immediate restart (Zeigarnik).
   function buildTeaser(){
     let best=null, bestFrac=-1;
     Objectives.list().forEach(ob=>{ if(ob.done) return; const d=Objectives.DEFS[ob.key]; const frac=clamp(ob.prog/ob.t,0,1);
       if(frac>bestFrac){ bestFrac=frac; best={icon:d.icon, label:d.label(ob.t), prog:ob.prog, t:ob.t, frac}; } });
     const obj = best ? (best.icon+' '+best.label+'  '+Math.min(best.prog,best.t)+'/'+best.t+(best.frac>=0.6?' — so close!':'')) : '';
-    const playedToday = Storage.data.lastDailyDate===DAILY.todayKey();
-    const daily = playedToday ? ('Daily done ✓  streak '+(Storage.data.streak||0)+' 🔥') : 'Daily ready — one run! →';
-    return { obj, daily, playedToday };
+    return { obj };
   }
 
   function gameOver(){
-    GHOST.stopRecord();
     Storage.data.totalRuns=(Storage.data.totalRuns||0)+1;
     const finalScore=Math.round(score);
     const isBest=finalScore>(Storage.data.highScore||0);
     if(isBest) Storage.data.highScore=finalScore;
-    const wasDaily=DAILY.isDailyRun;
-    // recent scores -> next run's DDA (skip daily so its fixed difficulty doesn't bias normal play)
-    if(!wasDaily){ const rs=Storage.data.recentScores||[]; rs.push(finalScore); while(rs.length>5) rs.shift(); Storage.data.recentScores=rs; }
+    // rolling window of recent scores -> next run's rubber-band difficulty
+    const rs=Storage.data.recentScores||[]; rs.push(finalScore); while(rs.length>5) rs.shift(); Storage.data.recentScores=rs;
     // end-of-run coin bonus to BOTH the run tally and the real balance
     const endBonus=Math.floor(finalScore/100)*CONFIG.COINS_PER_100;
     coinsRun += endBonus; Storage.data.coins += endBonus;
-
-    // META: account XP for the run (score + captures + perfects + objectives [+ daily])
-    const objDone=Objectives.runCompleted||0;
-    const metaRes=META.recordRun({ score:finalScore, captures:runCaptures, perfects:runPerfects, objectives:objDone, daily:wasDaily });
+    // META: account XP for the run (score + captures + perfects + objectives)
+    const metaRes=META.recordRun({ score:finalScore, captures:runCaptures, perfects:runPerfects, objectives:(Objectives.runCompleted||0) });
     META.noteOwned();
-    // DAILY: streak + one-shot reward on the first qualifying run of the day
-    let dailyRes=null;
-    if(wasDaily){ dailyRes=DAILY.recordResult(finalScore); if(dailyRes.reward) coinsRun+=dailyRes.reward; }
-    // LEADER: weekly board gets every run; the daily board only gets daily runs
-    // (keyed by today's shared seed) so its ranking is apples-to-apples.
-    const wKey=DAILY.isoWeekKey();
-    const dRank=wasDaily? LEADER.submit('daily', 'seed'+runSeed, finalScore) : null;
-    const wRank=LEADER.submit('weekly', wKey, finalScore);
+    // LEADER: submit to the weekly board + rank/nudge
+    const wKey=LEADER.weekKey();
+    const wRank=LEADER.submit(wKey, finalScore);
     Storage.data.weeklyBest=Storage.data.weeklyBest||{}; if(finalScore>(Storage.data.weeklyBest[wKey]||0)) Storage.data.weeklyBest[wKey]=finalScore;
-    // GHOST: persist the run's path as best-ever (and per-seed for dailies)
-    GHOST.commit(wasDaily?'daily':'best', finalScore);
     Storage.save();
 
     cardInfo={ score:finalScore, best:Storage.data.highScore, isBest, coins:coinsRun, prevBest,
-      canRevive:!revivedThisRun, level, meta:metaRes, daily:dailyRes, isDaily:wasDaily,
-      rank:(wasDaily?dRank:wRank), rankKind:(wasDaily?'Daily':'Weekly'), teaser:buildTeaser(), ghostFinal:GHOST.finalScore };
+      canRevive:!revivedThisRun, level, meta:metaRes, rank:wRank, teaser:buildTeaser() };
 
     if(metaRes.leveledTo) Audio.accountLevel();
-    if(dailyRes && dailyRes.streakUp){ Audio.streakUp(dailyRes.streak); setTimeout(()=>Audio.dailyComplete(), 220); }
-
     // peak-end: a ~1s slow-mo replay of the biggest loop + NEW BEST ribbon BEFORE the card
     if(isBest && bestLoopN>=3){ startPeakEnd(); }
     else { showCard(); if(isBest) Audio.fanfare(); }
@@ -2027,8 +1904,6 @@ const Game=(()=>{
     car.x=_ps.x; car.y=_ps.y; car.dir=_ps.dir; steerSmooth=_ps.ss;
     if(car.invuln>0) car.invuln-=dt;
     parallaxX=(car.x-W/2)*0.04; parallaxY=(car.y-H/2)*0.04; // subtle depth
-    // GHOST: record the EFFECTIVE steer (post auto-curl) + a coarse score sample
-    GHOST.noteSteer(elapsed, s); GHOST.noteScore(elapsed, score);
   }
 
   // ---- main update ---------------------------------------------------------
@@ -2036,12 +1911,9 @@ const Game=(()=>{
     stepSky(dt);   // crossfade the level background colour
     if(state===STATE.PLAYING){
       elapsed+=dt;
-      Onboard.update(dt);                         // first-run demo presentation timer (skippable)
       director(dt);
       updateLevel();
       updateCar(dt);
-      GHOST.step(dt, elapsed);                     // advance the racing ghost car along its recorded path
-      GHOST.compare(elapsed, score);               // overtake / overtaken cue (you vs best)
       // INTRO guarantee: the lone intro drone hovers at the car's turn-centre for
       // whichever way it's currently turning, so the first loop always wraps it.
       if(!firstCaptureDone && Drones.count>=1){
@@ -2192,7 +2064,7 @@ const Game=(()=>{
     get decoStars(){return decoStars;}, get decoBub(){return decoBub;}, get decoSprk(){return decoSprk;},
     // ---- V2 render/state accessors ----
     get peakEnd(){return peakEnd;}, get bestLoopPoly(){return bestLoopPoly;}, get bestLoopN(){return bestLoopN;},
-    get runSeed(){return runSeed;}, get isDaily(){return DAILY.isDailyRun;},
+    get runSeed(){return runSeed;}, get droneCount(){return Drones.count;},
     // ---- dev/test harness: deterministic headless run + self-check ----
     _setSteerOverride(fn){ _steerOverride=fn; },
     selfTest, runHeadless,
@@ -2260,40 +2132,93 @@ const Render=(()=>{
     ctx.drawImage(Sprites.shadow, -s, -s, s*2, s*2); ctx.restore();
   }
 
+  // ---- trail-STYLE renderer ----------------------------------------------
+  // Each equipped skin names a `style`; drawTrail dispatches to these passes.
+  // Helpers + the palette scratch (_pal) live at module scope so NO closures or
+  // arrays are allocated per frame (per-segment colour strings match V1).
+  const _pal={rainbow:false, ar:0,ag:0,ab:0,br:0,bg:0,bb:0, a:'#fff', b:'#fff', shift:0};
+  function palColor(tN){
+    if(_pal.rainbow) return 'hsl('+(((tN*300)+_pal.shift)%360)+',100%,62%)';
+    return 'rgb('+((_pal.ar+(_pal.br-_pal.ar)*tN)|0)+','+((_pal.ag+(_pal.bg-_pal.ag)*tN)|0)+','+((_pal.ab+(_pal.bb-_pal.ab)*tN)|0)+')';
+  }
+  function trFade(p1,life){ return 1-clamp((Game.elapsed-p1.t)/life,0,1); }
+  function trInk(ctx,n,oX,oY,width,life){ ctx.lineWidth=width; ctx.strokeStyle=COL.ink;
+    for(let i=1;i<n;i++){ const p0=Trail.get(i-1),p1=Trail.get(i); const f=trFade(p1,life); if(f<=0.04) continue;
+      ctx.globalAlpha=f; ctx.beginPath(); ctx.moveTo(p0.x+oX,p0.y+oY); ctx.lineTo(p1.x+oX,p1.y+oY); ctx.stroke(); } }
+  function trCore(ctx,n,oX,oY,width,life,dashed){ ctx.lineWidth=width; if(dashed) ctx.setLineDash([width*1.7,width*1.5]);
+    for(let i=1;i<n;i++){ const p0=Trail.get(i-1),p1=Trail.get(i); const tN=i/(n-1); const f=trFade(p1,life); if(f<=0.04) continue;
+      ctx.globalAlpha=f; ctx.strokeStyle=palColor(tN); ctx.beginPath(); ctx.moveTo(p0.x+oX,p0.y+oY); ctx.lineTo(p1.x+oX,p1.y+oY); ctx.stroke(); }
+    if(dashed) ctx.setLineDash([]); }
+  function trSheen(ctx,n,oX,oY,core,life){ if(!PERF.allowSheen()) return; ctx.lineWidth=core*0.32; ctx.strokeStyle='rgba(255,255,255,0.75)';
+    for(let i=1;i<n;i++){ const p1=Trail.get(i); const f=trFade(p1,life); if(f<=0.2) continue; const p0=Trail.get(i-1); ctx.globalAlpha=f*0.5;
+      ctx.beginPath(); ctx.moveTo(p0.x+oX,p0.y-core*0.18+oY); ctx.lineTo(p1.x+oX,p1.y-core*0.18+oY); ctx.stroke(); } }
+  function trGlow(ctx,n,oX,oY,w,life){ ctx.globalCompositeOperation='lighter'; ctx.lineWidth=w*1.8;
+    for(let i=1;i<n;i++){ const p0=Trail.get(i-1),p1=Trail.get(i); const tN=i/(n-1); const f=trFade(p1,life); if(f<=0.1) continue;
+      ctx.globalAlpha=f*0.16; ctx.strokeStyle=palColor(tN); ctx.beginPath(); ctx.moveTo(p0.x+oX,p0.y+oY); ctx.lineTo(p1.x+oX,p1.y+oY); ctx.stroke(); }
+    ctx.globalCompositeOperation='source-over'; }
+  function trStar(ctx,x,y,r,col,a){ ctx.globalAlpha=a; ctx.fillStyle=col; ctx.beginPath();
+    for(let k=0;k<10;k++){ const ang=k*Math.PI/5-Math.PI/2, rad=(k&1)?r*0.42:r; const px=x+Math.cos(ang)*rad, py=y+Math.sin(ang)*rad; k?ctx.lineTo(px,py):ctx.moveTo(px,py); } ctx.closePath(); ctx.fill(); }
+  // sparkle/ember emitter from the head (cosmetic only — Math.random + PERF-scaled, never the sim RNG)
+  function trEmit(colors){ if(Game.state!==Game.STATE.PLAYING || Trail.len<2) return;
+    if(Math.random()<0.45){ const h=Trail.get(Trail.len-1);
+      Particles.burst(h.x,h.y,1, colors? {confetti:true,colors:colors,spMax:130,sizeMax:6} : {spr:Sprites.white,spMax:90,sizeMax:9}); } }
+
   function drawTrail(ctx, offX, offY){
     const n=Trail.len; if(n<2) return;
-    const skin=Cosmetics.trail(); const rainbow=(skin.a==='rainbow');
-    const headShift=(Game.elapsed*60)%360;
-    let ar=0,ag=0,ab=0,br=0,bg=0,bb=0;
-    if(!rainbow){ const ca=hexToRgb(skin.a), cb=hexToRgb(skin.b); ar=ca.r;ag=ca.g;ab=ca.b;br=cb.r;bg=cb.g;bb=cb.b; }
+    const skin=Cosmetics.trail(); const style=skin.style||'solid';
     ctx.lineCap='round'; ctx.lineJoin='round';
     const life=Game.trailLifespan;
     const core=CONFIG.TRAIL_WIDTH*(1+(life-CONFIG.TRAIL_LIFESPAN)*0.18); // snake fattens as it grows
-    // PASS 1 — ink outline (whole ribbon first, so cores always sit on top)
-    ctx.lineWidth=core+8; ctx.strokeStyle=COL.ink;
-    for(let i=1;i<n;i++){ const p0=Trail.get(i-1),p1=Trail.get(i);
-      const fade=1-clamp((Game.elapsed-p1.t)/life,0,1); if(fade<=0.04) continue;
-      ctx.globalAlpha=fade; ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y+offY); ctx.lineTo(p1.x+offX,p1.y+offY); ctx.stroke();
+    // load the palette scratch
+    _pal.rainbow=(style==='rainbow'); _pal.shift=(Game.elapsed*60)%360;
+    if(!_pal.rainbow){ const ca=hexToRgb(skin.a||'#00E5FF'), cb=hexToRgb(skin.b||'#FF49C3');
+      _pal.ar=ca.r;_pal.ag=ca.g;_pal.ab=ca.b;_pal.br=cb.r;_pal.bg=cb.g;_pal.bb=cb.b; _pal.a=skin.a; _pal.b=skin.b; }
+    switch(style){
+      case 'stripes':   // alternating ~2-segment bands of A / B (candy cane)
+        trInk(ctx,n,offX,offY,core+8,life); ctx.lineWidth=core;
+        for(let i=1;i<n;i++){ const p0=Trail.get(i-1),p1=Trail.get(i); const f=trFade(p1,life); if(f<=0.04) continue;
+          ctx.globalAlpha=f; ctx.strokeStyle=((i>>1)&1)?_pal.b:_pal.a; ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y+offY); ctx.lineTo(p1.x+offX,p1.y+offY); ctx.stroke(); }
+        trSheen(ctx,n,offX,offY,core,life); break;
+      case 'dashed':    // gapped dashes
+        trInk(ctx,n,offX,offY,core+8,life); trCore(ctx,n,offX,offY,core,life,true); trSheen(ctx,n,offX,offY,core,life); break;
+      case 'pixel': {   // square stamps (8-bit)
+        const half=core*0.85;
+        for(let i=0;i<n;i+=2){ const p=Trail.get(i); const f=trFade(p,life); if(f<=0.06) continue; const tN=i/(n-1);
+          ctx.globalAlpha=f; ctx.fillStyle=COL.ink; ctx.fillRect(p.x-half-1+offX,p.y-half-1+offY,half*2+2,half*2+2);
+          ctx.fillStyle=palColor(tN); ctx.fillRect(p.x-half+offX,p.y-half+offY,half*2,half*2); } break; }
+      case 'electric': {// jagged lightning core + bright white inner bolt
+        trInk(ctx,n,offX,offY,core+6,life); ctx.lineWidth=core*0.85;
+        for(let i=1;i<n;i++){ const p0=Trail.get(i-1),p1=Trail.get(i); const f=trFade(p1,life); if(f<=0.04) continue; const tN=i/(n-1);
+          const dx=p1.x-p0.x,dy=p1.y-p0.y,L=Math.hypot(dx,dy)||1, j=Math.sin(i*0.9+performance.now()*0.02)*core*0.55;
+          ctx.globalAlpha=f; ctx.strokeStyle=palColor(tN); ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y+offY); ctx.lineTo(p1.x+(-dy/L)*j+offX,p1.y+(dx/L)*j+offY); ctx.stroke(); }
+        ctx.lineWidth=core*0.3; ctx.strokeStyle='rgba(255,255,255,0.85)';
+        for(let i=1;i<n;i++){ const p0=Trail.get(i-1),p1=Trail.get(i); const f=trFade(p1,life); if(f<=0.2) continue; ctx.globalAlpha=f*0.7;
+          ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y+offY); ctx.lineTo(p1.x+offX,p1.y+offY); ctx.stroke(); } break; }
+      case 'flame':     // warm gradient, flickering width + rising embers
+        trInk(ctx,n,offX,offY,core+8,life); trCore(ctx,n,offX,offY,core*(1+0.12*Math.sin(performance.now()*0.03)),life,false);
+        trEmit(['#FFE259','#FF8A3D','#FF1744']); trSheen(ctx,n,offX,offY,core,life); break;
+      case 'comet':     // glossy core + glow + sparkle tail
+        trInk(ctx,n,offX,offY,core+8,life); if(PERF.allowSheen()) trGlow(ctx,n,offX,offY,core,life);
+        trCore(ctx,n,offX,offY,core,life,false); trEmit(null); trSheen(ctx,n,offX,offY,core,life); break;
+      case 'stars': {   // faint line + star stamps
+        trCore(ctx,n,offX,offY,core*0.4,life,false);
+        for(let i=0;i<n;i+=3){ const p=Trail.get(i); const f=trFade(p,life); if(f<=0.08) continue; trStar(ctx,p.x+offX,p.y+offY,core*0.95,palColor(i/(n-1)),f); } break; }
+      case 'galaxy': {  // deep nebula core + twinkling star field
+        trInk(ctx,n,offX,offY,core+8,life); trCore(ctx,n,offX,offY,core,life,false);
+        ctx.globalCompositeOperation='lighter';
+        for(let i=0;i<n;i+=2){ const p=Trail.get(i); const f=trFade(p,life); if(f<=0.1) continue;
+          ctx.globalAlpha=f*(0.5+0.5*Math.sin(performance.now()*0.01+i)); ctx.fillStyle='#fff';
+          ctx.beginPath(); ctx.arc(p.x+offX+Math.sin(i*2.3)*core*0.55, p.y+offY+Math.cos(i*1.7)*core*0.55, 1.6, 0, TAU); ctx.fill(); }
+        ctx.globalCompositeOperation='source-over'; break; }
+      case 'glow':      // strong additive bloom around the core
+        trInk(ctx,n,offX,offY,core+8,life); if(PERF.allowSheen()) trGlow(ctx,n,offX,offY,core*1.1,life);
+        trCore(ctx,n,offX,offY,core,life,false); trSheen(ctx,n,offX,offY,core,life); break;
+      case 'rainbow':
+      case 'solid':
+      default:
+        trInk(ctx,n,offX,offY,core+8,life); trCore(ctx,n,offX,offY,core,life,false); trSheen(ctx,n,offX,offY,core,life); break;
     }
-    // PASS 2 — solid candy core (cyan -> pink)
-    ctx.lineWidth=core;
-    for(let i=1;i<n;i++){ const p0=Trail.get(i-1),p1=Trail.get(i);
-      const tN=i/(n-1); const fade=1-clamp((Game.elapsed-p1.t)/life,0,1); if(fade<=0.04) continue;
-      ctx.globalAlpha=fade;
-      if(rainbow) ctx.strokeStyle='hsl('+(((tN*300)+headShift)%360)+',100%,62%)';
-      else { const r=(ar+(br-ar)*tN)|0,g=(ag+(bg-ag)*tN)|0,b=(ab+(bb-ab)*tN)|0; ctx.strokeStyle='rgb('+r+','+g+','+b+')'; }
-      ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y+offY); ctx.lineTo(p1.x+offX,p1.y+offY); ctx.stroke();
-    }
-    // PASS 3 — glossy white sheen highlight running along the ribbon (skipped on LOW tier)
-    if(PERF.allowSheen()){
-      ctx.lineWidth=core*0.32; ctx.strokeStyle='rgba(255,255,255,0.75)';
-      for(let i=1;i<n;i++){ const p1=Trail.get(i);
-        const fade=1-clamp((Game.elapsed-p1.t)/life,0,1); if(fade<=0.2) continue;
-        const p0=Trail.get(i-1); ctx.globalAlpha=fade*0.5;
-        ctx.beginPath(); ctx.moveTo(p0.x+offX,p0.y-core*0.18+offY); ctx.lineTo(p1.x+offX,p1.y-core*0.18+offY); ctx.stroke();
-      }
-      ctx.globalAlpha=1;
-    }
+    ctx.globalAlpha=1; ctx.setLineDash([]); ctx.globalCompositeOperation='source-over';
   }
 
   function drawPreview(ctx,offX,offY){
@@ -2411,18 +2336,6 @@ const Render=(()=>{
     }
   }
 
-  // translucent ghost car following the recorded best path ("you vs your best")
-  function drawGhostCar(ctx,offX,offY){
-    if(!GHOST.active) return; const g=GHOST.car; const s=(23+Sprites.pad)*2;
-    ctx.save(); ctx.globalAlpha=CONFIG.GHOST_ALPHA;
-    ctx.drawImage(Sprites.car, g.x-s/2+offX, g.y-s/2-3+offY, s, s);
-    ctx.translate(g.x+offX,g.y-3+offY); ctx.rotate(g.dir);
-    ctx.fillStyle=COL.ink; ctx.beginPath(); ctx.moveTo(13,0); ctx.lineTo(2,7); ctx.lineTo(5,0); ctx.lineTo(2,-7); ctx.closePath(); ctx.fill();
-    ctx.restore();
-    // tiny ghost tag so it's never mistaken for the player
-    ctx.save(); ctx.globalAlpha=CONFIG.GHOST_ALPHA+0.2; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.font='800 11px '+FONT_STACK; ctx.fillStyle='#EAF2FF'; ctx.fillText('best', g.x+offX, g.y-22+offY); ctx.restore();
-  }
   // SET-bonus flourish (cosmetic only): Gilded => gold sparkle orbit; Void => violet aura
   function drawSetFlourish(ctx,x,y,set,r){
     const t=performance.now()*0.004; ctx.save(); ctx.globalCompositeOperation='lighter';
@@ -2434,11 +2347,10 @@ const Render=(()=>{
   function drawCar(ctx,offX,offY){
     const car=Game.car;
     const blink = car.invuln>0 ? (0.45+0.55*Math.abs(Math.sin(performance.now()*0.02))) : 1;
-    const oa=Onboard.carAlpha();        // first-run demo: car fades IN as control yields
     drawShadow(ctx, car.x+offX, car.y+offY, 22);
     const s=(23+Sprites.pad)*2;
     const set=META.activeSet(); if(set && PERF.tier!=='low') drawSetFlourish(ctx, car.x+offX, car.y-3+offY, set, 22);
-    ctx.globalAlpha=blink*oa;
+    ctx.globalAlpha=blink;
     ctx.drawImage(Sprites.car, car.x-s/2+offX, car.y-s/2-3+offY, s, s);
     ctx.globalAlpha=1;
     // bold ink direction arrow on top of the ball
@@ -2504,11 +2416,6 @@ const Render=(()=>{
       ctx.lineWidth=3; ctx.strokeStyle=COL.ink; ctx.fillStyle='#EADFce'; roundRect(ctx,px,py,pw,10,5); ctx.fill(); ctx.stroke();
       ctx.fillStyle=COL.amber; if(pf>0){ roundRect(ctx,px,py,Math.max(5,pw*pf),10,5); ctx.fill(); }
     }
-    // DAILY badge (centre, just under the score) so the mode is always legible
-    if(Game.isDaily){ ctx.textAlign='center'; inkText(ctx,'★ DAILY', W/2, 138+st, 16, COL.amber); }
-    // GHOST race indicator: are you AHEAD or BEHIND your best at this moment?
-    if(GHOST.active){ const g=GHOST.scoreAt(Game.elapsed); const ahead=Game.score>=g;
-      ctx.textAlign='center'; inkText(ctx, ahead?'▲ AHEAD':'▼ BEHIND', W/2, H-104-st, 15, ahead?'#7CFF6B':'#FF8DA0'); }
   }
   function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
@@ -2566,12 +2473,11 @@ const Render=(()=>{
       ctx.save(); ctx.translate(-k,0); drawTrailGhost(ctx,0,0,'rgba(0,210,255,1)'); ctx.restore();
       ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
     }
-    if(playing) drawGhostCar(ctx,0,0);                  // race ghost under the live car
     drawDrones(ctx,0,0);
     if(playing) drawCar(ctx,0,0);
     Particles.draw(ctx);
     Popups.draw(ctx);
-    if(playing){ Onboard.draw(ctx,W,H, Game.car.x, Game.car.y, Game.car.dir, CONFIG.CAR_SPEED/CONFIG.TURN_RATE); drawHint(ctx,W,H); }
+    if(playing) drawHint(ctx,W,H);
     ctx.restore();
 
     // ---- full-screen overlays (no camera transform) ----
@@ -2646,7 +2552,7 @@ const SHARE=(()=>{
     Render.drawHeroLoop(g, S/2, S*0.40, S*0.27);
     // score (big, tabular) + label
     g.textAlign='center'; g.textBaseline='middle'; g.lineJoin='round';
-    g.font='900 64px '+FONT_STACK; g.lineWidth=12; g.strokeStyle=COL.ink; g.strokeText(info.isDaily?'DAILY':'SCORE', S/2, S*0.70); g.fillStyle='#EAF2FF'; g.fillText(info.isDaily?'DAILY':'SCORE', S/2, S*0.70);
+    g.font='900 64px '+FONT_STACK; g.lineWidth=12; g.strokeStyle=COL.ink; g.strokeText('SCORE', S/2, S*0.70); g.fillStyle='#EAF2FF'; g.fillText('SCORE', S/2, S*0.70);
     g.font='900 170px '+FONT_STACK; g.lineWidth=20; g.strokeStyle=COL.ink; g.strokeText(String(info.score), S/2, S*0.80); g.fillStyle=COL.magenta; g.fillText(String(info.score), S/2, S*0.80);
     // rank line
     if(info.rankText){ g.font='900 44px '+FONT_STACK; g.lineWidth=9; g.strokeStyle=COL.ink; g.strokeText(info.rankText, S/2, S*0.885); g.fillStyle=COL.amber; g.fillText(info.rankText, S/2, S*0.885); }
@@ -2676,7 +2582,7 @@ const SHARE=(()=>{
 const UI=(()=>{
   const $=(id)=>document.getElementById(id);
   const overEl=$('over'), shopEl=$('shop'), boardEl=$('board'), setEl=$('settings'), toastEl=$('toast');
-  let toastTimer=null, boardTab='daily';
+  let toastTimer=null, lastCard=null;
 
   function toast(msg){
     toastEl.textContent=msg; toastEl.classList.add('show');
@@ -2702,14 +2608,13 @@ const UI=(()=>{
   // ---------- rank nudge: always a reachable next target ----------
   function rankText(rank){
     if(!rank) return '';
-    if(rank.rank===1) return '#1 — top of the board! 🏆';
+    if(rank.rank===1) return '#1 — top of the week! 🏆';
     const gap = rank.ahead ? Math.max(1, rank.ahead.score - rank.you) : 0;
     return '#'+rank.rank+' of '+rank.total + (rank.ahead? ('  ·  '+gap+' from #'+(rank.rank-1)) : '');
   }
   // CLEAN game-over: logo, score, account spine, rank nudge + teaser, then buttons.
   function showGameOver(info){
     lastCard=info;
-    $('over-dailybadge').classList.toggle('hidden', !info.isDaily);
     $('over-score').textContent=info.score;
     $('over-best').textContent=info.best;
     $('over-lvl').textContent='LV '+(info.level||1);
@@ -2721,38 +2626,44 @@ const UI=(()=>{
     $('over-title').textContent=META.title();
     $('over-acctlv').textContent='ACCT LV '+lp.L;
     $('over-xpfill').style.width=Math.round(lp.frac*100)+'%';
-    // rank nudge
+    // weekly rank nudge (always a reachable next target)
     const rt=rankText(info.rank);
-    $('over-rank').innerHTML = rt ? (info.rankKind+': <b>'+rt+'</b>') : '';
-    // Zeigarnik teaser (closest goal + daily) — pulls an immediate restart
-    const te=info.teaser||{obj:'',daily:''};
-    $('over-teaser').innerHTML = (te.daily?('<b>'+te.daily+'</b>'):'') + (te.obj? ('<br>'+te.obj):'');
-    // celebratory daily beat (toast) if the daily was completed this run
-    if(info.daily && info.daily.streakUp){ toast('DAILY DONE! +'+info.daily.reward+'  ·  streak '+info.daily.streak+' 🔥'); }
+    $('over-rank').innerHTML = rt ? ('This week: <b>'+rt+'</b>') : '';
+    // Zeigarnik teaser (closest goal) — pulls an immediate restart
+    const te=info.teaser||{obj:''};
+    $('over-teaser').innerHTML = te.obj ? ('Almost: <b>'+te.obj+'</b>') : '';
     // account level-up beat
     if(info.meta && info.meta.leveledTo){ toast('ACCOUNT LV '+info.meta.to+'!  '+META.title()); }
     $('btn-revive').classList.toggle('hidden', info.canRevive===false);
     $('btn-double').removeAttribute('disabled');
-    // daily button: if already played today, relabel (no dread)
-    $('btn-daily').textContent = (Storage.data.lastDailyDate===DAILY.todayKey()) ? '★ DAILY ✓' : '★ DAILY';
     hideAll(); overEl.classList.add('show');
   }
-  let lastCard=null;
 
   // ---------- shop / garage ----------
   function catOf(item){ return item.id.indexOf('car_')===0?'car' : item.id.indexOf('pow_')===0?'power' : 'trail'; }
   function equippedId(cat){ return cat==='car'?Storage.data.equippedCar : cat==='power'?Storage.data.equippedPower : Storage.data.equippedTrail; }
   function setEquipped(cat,id){ if(cat==='car')Storage.data.equippedCar=id; else if(cat==='power')Storage.data.equippedPower=id; else Storage.data.equippedTrail=id; }
+  // STYLE-AWARE preview so each skin looks unmistakably different in the garage.
   function renderTrailPreview(cv, item){
-    const g=cv.getContext('2d'); g.clearRect(0,0,cv.width,cv.height); g.lineCap='round';
-    const steps=26;
-    for(let i=1;i<steps;i++){
-      const t=i/(steps-1), pt=(i-1)/(steps-1);
-      const x=10+t*(cv.width-20), y=cv.height/2+Math.sin(t*Math.PI*2)*12;
-      const x0=10+pt*(cv.width-20), y0=cv.height/2+Math.sin(pt*Math.PI*2)*12;
-      let col = item.a==='rainbow' ? 'hsl('+(t*300)+',100%,60%)' : rgbStr(mixRgb(hexToRgb(item.a),hexToRgb(item.b),t),1);
-      g.lineWidth=9; g.strokeStyle=COL.ink; g.beginPath(); g.moveTo(x0,y0); g.lineTo(x,y); g.stroke();
-      g.lineWidth=6; g.strokeStyle=col; g.beginPath(); g.moveTo(x0,y0); g.lineTo(x,y); g.stroke();
+    const g=cv.getContext('2d'); g.clearRect(0,0,cv.width,cv.height); g.lineCap='round'; g.lineJoin='round';
+    const style=item.style||(item.custom?(Storage.data.customStyle||'solid'):'solid');
+    const A=item.a||Storage.data.customA||'#00E5FF', B=item.b||Storage.data.customB||'#FF49C3';
+    const rainbow=(style==='rainbow'), W=cv.width, H=cv.height, steps=30;
+    const px=t=>9+t*(W-18), py=t=>H/2+Math.sin(t*Math.PI*2)*11;
+    const col=t=> rainbow?('hsl('+(t*300)+',100%,60%)'):rgbStr(mixRgb(hexToRgb(A),hexToRgb(B),t),1);
+    if(style==='pixel'){ for(let i=0;i<steps;i++){ const t=i/(steps-1); g.fillStyle=COL.ink; g.fillRect(px(t)-5,py(t)-5,10,10); g.fillStyle=col(t); g.fillRect(px(t)-4,py(t)-4,8,8);} return; }
+    if(style==='stars'){ for(let i=0;i<steps;i+=2){ const t=i/(steps-1),x=px(t),y=py(t),r=5; g.fillStyle=col(t); g.beginPath();
+      for(let k=0;k<10;k++){const ang=k*Math.PI/5-Math.PI/2,rad=(k&1)?r*0.42:r,sx=x+Math.cos(ang)*rad,sy=y+Math.sin(ang)*rad;k?g.lineTo(sx,sy):g.moveTo(sx,sy);} g.closePath(); g.fill(); } return; }
+    for(let i=1;i<steps;i++){ const t=i/(steps-1), pt=(i-1)/(steps-1);
+      const x=px(t),y=py(t),x0=px(pt),y0=py(pt);
+      g.lineWidth=9; g.strokeStyle=COL.ink; g.beginPath(); g.moveTo(x0,y0); g.lineTo(x,y); g.stroke();   // ink
+      let c=col(t), dash=false, yy=y, yy0=y0;
+      if(style==='stripes') c=((i>>1)&1)?B:A;
+      else if(style==='dashed') dash=true;
+      else if(style==='electric'){ yy=y+Math.sin(i*1.6)*4; yy0=y0+Math.sin((i-1)*1.6)*4; }
+      if(style==='glow'||style==='comet'||style==='flame'){ g.save(); g.globalAlpha=0.45; g.lineWidth=13; g.strokeStyle=c; g.beginPath(); g.moveTo(x0,y0); g.lineTo(x,y); g.stroke(); g.restore(); }
+      g.lineWidth=6; g.strokeStyle=c; if(dash) g.setLineDash([7,6]);
+      g.beginPath(); g.moveTo(x0,yy0); g.lineTo(x,yy); g.stroke(); if(dash) g.setLineDash([]);
     }
   }
   function renderCarPreview(cv, item){
@@ -2777,12 +2688,16 @@ const UI=(()=>{
     items.forEach(item=>{ if(item.cost<0 && !Cosmetics.isUnlocked(item.id)) return; grid.appendChild(card(item)); }); // hide prestige-only until earned
   }
   const PAL=['#00E5FF','#FF49C3','#FFD23F','#7CFF6B','#FF8A3D','#B16BFF','#FFFFFF','#FF3B5C'];
+  // The CUSTOM trail is the power-user option: TWO colours AND a chosen STYLE — so
+  // it's far more than the colour-only skins were, and distinct from every preset.
   function customCard(){
     const equipped=Storage.data.equippedTrail==='custom';
     const el=document.createElement('div'); el.className='skin skin-wide'+(equipped?' equipped':'');
-    const cv=document.createElement('canvas'); cv.width=110; cv.height=40; el.appendChild(cv);
-    setTimeout(()=>renderTrailPreview(cv,{a:Storage.data.customA,b:Storage.data.customB}),0);
-    const name=document.createElement('div'); name.className='name'; name.textContent='Custom — make your own'; el.appendChild(name);
+    const badge=document.createElement('div'); badge.className='rar'; badge.textContent='CUSTOM'; badge.style.color=Cosmetics.RARITY.legendary.col; badge.style.background='#FFF7EC'; el.appendChild(badge);
+    const cv=document.createElement('canvas'); cv.width=130; cv.height=46; el.appendChild(cv);
+    setTimeout(()=>renderTrailPreview(cv,{custom:true,a:Storage.data.customA,b:Storage.data.customB,style:Storage.data.customStyle}),0);
+    const name=document.createElement('div'); name.className='name'; name.textContent='Custom — your own design'; el.appendChild(name);
+    // colour pickers
     ['customA','customB'].forEach(ch=>{
       const row=document.createElement('div'); row.className='swatches';
       PAL.forEach(c=>{ const sw=document.createElement('span'); sw.className='sw'+(Storage.data[ch]===c?' on':''); sw.style.background=c;
@@ -2790,6 +2705,12 @@ const UI=(()=>{
         row.appendChild(sw); });
       el.appendChild(row);
     });
+    // STYLE chips — the key upgrade: custom isn't just colours any more
+    const sr=document.createElement('div'); sr.className='style-row';
+    Cosmetics.CUSTOM_STYLES.forEach(st=>{ const chip=document.createElement('span'); chip.className='stylechip'+(Storage.data.customStyle===st?' on':''); chip.textContent=st;
+      chip.addEventListener('click',(e)=>{ e.stopPropagation(); Storage.data.customStyle=st; Storage.data.equippedTrail='custom'; Storage.save(); Audio.tick(); buildShop(); });
+      sr.appendChild(chip); });
+    el.appendChild(sr);
     const state=document.createElement('div'); state.className='state '+(equipped?'eq':'un'); state.textContent=equipped?'EQUIPPED':'TAP TO EQUIP'; el.appendChild(state);
     el.addEventListener('click',()=>{ Storage.data.equippedTrail='custom'; Storage.save(); Audio.tick(); buildShop(); });
     return el;
@@ -2797,48 +2718,47 @@ const UI=(()=>{
   function card(item){
     if(item.id==='custom') return customCard();
     const cat=catOf(item), unlocked=Cosmetics.isUnlocked(item.id), equipped=equippedId(cat)===item.id;
-    const el=document.createElement('div'); el.className='skin'+(equipped?' equipped':'');
+    const el=document.createElement('div'); el.className='skin'+(equipped?' equipped':'')+(unlocked?'':' locked');
+    // rarity corner badge
+    const rar=Cosmetics.RARITY[item.rarity||'common']; const rb=document.createElement('div'); rb.className='rar'; rb.textContent=rar.label; rb.style.color=rar.col; rb.style.background='#FFF7EC'; el.appendChild(rb);
     if(cat==='power'){ const p=document.createElement('div'); p.className='pico'; p.textContent=item.pico; el.appendChild(p); }
-    else { const cv=document.createElement('canvas'); cv.width=110; cv.height=46; el.appendChild(cv); setTimeout(()=>{ cat==='car'?renderCarPreview(cv,item):renderTrailPreview(cv,item); },0); }
+    else { const cv=document.createElement('canvas'); cv.width=130; cv.height=46; el.appendChild(cv); setTimeout(()=>{ cat==='car'?renderCarPreview(cv,item):renderTrailPreview(cv,item); },0); }
     const name=document.createElement('div'); name.className='name'; name.textContent=item.name; el.appendChild(name);
     if(cat==='power' && item.desc){ const ds=document.createElement('div'); ds.className='state un'; ds.textContent=item.desc; el.appendChild(ds); }
     const state=document.createElement('div');
     if(equipped){ state.className='state eq'; state.textContent='EQUIPPED'; }
     else if(unlocked){ state.className='state un'; state.textContent='TAP TO EQUIP'; }
-    else { state.className='cost'; state.innerHTML='<span class="mini-coin"></span>'+item.cost; }
+    else { const afford=Cosmetics.canAfford(item); state.className='cost '+(afford?'afford':'cant'); state.innerHTML='<span class="mini-coin"></span>'+item.cost+(afford?'  ·  BUY':''); }
     el.appendChild(state);
-    if(!unlocked){ const ad=document.createElement('div'); ad.className='state un'; ad.textContent='▶ or watch ad'; el.appendChild(ad); }
     el.addEventListener('click',()=>onTap(item,cat,unlocked));
     return el;
   }
+  // COINS-ONLY purchase engine: an item is gated by its price and the coins are
+  // actually spent. No free unlocks. (Already-owned -> equip; can't afford -> tell them.)
   function onTap(item,cat,unlocked){
     if(unlocked){ setEquipped(cat,item.id); Storage.save(); Audio.tick(); buildShop(); return; }
+    if(item.cost<0) return;                                  // prestige-only: not buyable here
     if(Storage.data.coins>=item.cost){
       Storage.data.coins-=item.cost; Cosmetics.unlock(item.id); setEquipped(cat,item.id);
-      Storage.save(); Audio.coin(); toast('Unlocked '+item.name+'!'); buildShop();
+      Storage.save(); Audio.coin(); toast('Unlocked '+item.name+'!  −'+item.cost+' coins'); buildShop();
     } else {
-      AdSDK.showRewarded(
-        ()=>{ Cosmetics.unlock(item.id); setEquipped(cat,item.id); Storage.save(); Audio.fanfare(); toast('Unlocked '+item.name+'!'); buildShop(); },
-        ()=>{ toast('Need '+(item.cost-Storage.data.coins)+' more coins'); }
-      );
+      Audio.tick(); toast('Need '+(item.cost-Storage.data.coins)+' more coins for '+item.name);
     }
   }
   function backToCard(){ if(Game.state===Game.STATE.DEAD) overEl.classList.add('show'); }
   function openShop(){ buildShop(); hideAll(); shopEl.classList.add('show'); }
   function closeShop(){ shopEl.classList.remove('show'); backToCard(); }
 
-  // ---------- leaderboard ----------
+  // ---------- leaderboard (weekly) ----------
   function renderBoard(){
     const list=$('board-list'); list.innerHTML='';
-    const key = boardTab==='daily' ? ('seed'+DAILY.seedForToday()) : DAILY.isoWeekKey();
-    const rows = LEADER.fetch(boardTab, key) || [];
-    if(!rows.length){ const e=document.createElement('div'); e.className='near'; e.textContent = boardTab==='daily' ? 'Play today’s Daily to join the board!' : 'Play a run to join this week’s board!'; list.appendChild(e); return; }
+    const rows = LEADER.fetch(LEADER.weekKey()) || [];
+    if(!rows.length){ const e=document.createElement('div'); e.className='near'; e.textContent='Play a run to join this week’s board!'; list.appendChild(e); return; }
     rows.forEach((r,i)=>{ const el=document.createElement('div'); el.className='brow'+(r.me?' me':'');
       el.innerHTML='<span class="rank">#'+(i+1)+'</span><span class="who">'+(r.me?'You':'Rival')+'</span><span class="sc">'+r.score+'</span>';
       list.appendChild(el); });
   }
-  function setTab(t){ boardTab=t; $('tab-daily').classList.toggle('on',t==='daily'); $('tab-weekly').classList.toggle('on',t==='weekly'); renderBoard(); }
-  function openBoard(){ hideAll(); setTab(boardTab); boardEl.classList.add('show'); }
+  function openBoard(){ hideAll(); renderBoard(); boardEl.classList.add('show'); }
   function closeBoard(){ boardEl.classList.remove('show'); backToCard(); }
 
   // ---------- settings (accessibility + sound + prestige) ----------
@@ -2857,23 +2777,19 @@ const UI=(()=>{
   function doShare(){
     if(!lastCard){ return; }
     const rt=rankText(lastCard.rank);
-    SHARE.share({ score:lastCard.score, isDaily:lastCard.isDaily, rankText: rt? (lastCard.rankKind+' '+rt.split('·')[0].trim()) : '' });
+    SHARE.share({ score:lastCard.score, rankText: rt? rt.split('·')[0].trim() : '' });
     toast('Score card ready!');
   }
 
   // ---------- run flow ----------
   function startRun(opts){ hideAll(); Game.fullReset(opts||{}); }
   function playAgain(){ Audio.tick(); AdSDK.showInterstitial(()=>{ startRun(); }); }
-  function startDaily(){ Audio.tick(); hideAll(); Game.fullReset({daily:true}); toast('Daily Challenge — same arena for everyone today'); }
 
   function wire(){
     $('btn-again').addEventListener('click',playAgain);
-    $('btn-daily').addEventListener('click',startDaily);
     $('btn-share').addEventListener('click',doShare);
     $('btn-board').addEventListener('click',openBoard);
     $('btn-board-close').addEventListener('click',closeBoard);
-    $('tab-daily').addEventListener('click',()=>setTab('daily'));
-    $('tab-weekly').addEventListener('click',()=>setTab('weekly'));
     $('btn-settings').addEventListener('click',openSettings);
     $('btn-settings-close').addEventListener('click',closeSettings);
     $('btn-openshop').addEventListener('click',openShop);
@@ -2912,17 +2828,16 @@ const UI=(()=>{
     return add;
   }
 
-  return { toast, showGameOver, openShop, closeShop, openBoard, openSettings, startRun, startDaily, wire, buildShop };
+  return { toast, showGameOver, openShop, closeShop, openBoard, openSettings, startRun, wire, buildShop, _buy:onTap };
 })();
 
 /* ============================== [LOOP] ===================================== */
 (function boot(){
   Sprites.build();
   Storage.load();
-  // A/B harness: allow ?ab=curl,hint (or window overrides) to flip the experiments.
+  // A/B: allow ?ab=curl (or ?ab=half) to flip the steering scheme.
   try{ const q=new URLSearchParams(location.search).get('ab');
-    if(q){ if(/curl/.test(q)) CONFIG.AB_STEERING='curl'; if(/half/.test(q)) CONFIG.AB_STEERING='half';
-            if(/hint/.test(q)) CONFIG.AB_ONBOARDING='hint'; if(/ghost|demo/.test(q)) CONFIG.AB_ONBOARDING='ghostdemo'; } }catch(e){}
+    if(q){ if(/curl/.test(q)) CONFIG.AB_STEERING='curl'; if(/half/.test(q)) CONFIG.AB_STEERING='half'; } }catch(e){}
   // restore mute preference
   if(Storage.data.muted){ /* applied on unlock */ }
   Game.resize();
@@ -2973,7 +2888,7 @@ const UI=(()=>{
   requestAnimationFrame(tick);
 
   // expose for SDK integration + live tuning + the dev determinism harness (Game.selfTest)
-  window.DriftLasso={ CONFIG, Storage, AdSDK, Audio, Game, Render, Cosmetics, RNG, DAILY, LEADER, META, GHOST, PERF, SHARE,
+  window.DriftLasso={ CONFIG, Storage, AdSDK, Audio, Game, Render, Cosmetics, RNG, LEADER, META, PERF, SHARE, UI,
     selfTest:()=>Game.selfTest() };
 })();
 </script>
