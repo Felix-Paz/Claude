@@ -87,6 +87,16 @@ ok('LEADER weekly rank + reachable nudge', !!r && r.rank>=1 && (r.rank===1||!!r.
   ok('every trail STYLE renders ('+tried+' presets + custom)', styleOK);
 })();
 
+// CUSTOM can't clone a paid skin: no purchasable trail uses a CUSTOM_STYLES style
+(function(){
+  const paid=DL.Cosmetics.TRAILS.filter(t=>t.cost>0 && t.style);
+  const exclusive=paid.every(t=>DL.Cosmetics.CUSTOM_STYLES.indexOf(t.style)<0);
+  const customOnly=DL.Cosmetics.CUSTOM_STYLES.every(s=>!DL.Cosmetics.TRAILS.some(t=>t.style===s));
+  ok('CUSTOM styles are exclusive (no paid skin clone)', exclusive && customOnly, JSON.stringify(DL.Cosmetics.CUSTOM_STYLES));
+})();
+ok('cars all have distinct shapes', DL.Cosmetics.CARS.every(c=>!!c.shape));
+ok('late-game tuning (toxic lvl 20, long trail, easy lvl1)',
+  DL.CONFIG.TOXIC_LEVEL===20 && DL.CONFIG.MAX_TRAIL_POINTS>=400 && DL.CONFIG.TAIL_LEVEL_PER>0 && DL.CONFIG.LEVEL1_DRONE_SCALE<1);
 let sok=true; try{ DL.SHARE.drawCard({score:1234,rankText:'#2 of 15'}); }catch(e){ sok=false; } ok('SHARE card renders', sok);
 DL.PERF.force('low'); const lo=DL.PERF.particleScale(); DL.PERF.force('high'); ok('PERF tiers scale particles (visual only)', lo<1 && DL.PERF.particleScale()===1);
 let rok=true; try{ DL.Game.fullReset({}); for(let i=0;i<120;i++)DL.Game.update(1/60); DL.Render.frame();

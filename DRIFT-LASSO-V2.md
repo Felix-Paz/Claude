@@ -37,6 +37,21 @@ sparkles) uses plain `Math.random` (`crand`). So display FPS and the `PERF` tier
 can never desync the sim — **same seed + same effective-steer timeline ⇒ an
 identical run** (score, positions, drone count, RNG state).
 
+## Gameplay notes
+
+- **Death rules:** (1) empty self-cross, and (2) from **level 20**, enclosing the
+  **toxic-waste** critter — a deliberate late-game lethal hazard (telegraphed with
+  a red danger ring + the greed-preview turning red). Bombs still only *spoil* a
+  loop, they don't kill.
+- **Level 1** is a gentle on-ramp (fewer, slower drones); the snake gets **really
+  long at high levels** via a level-scaled trail lifespan (buffer raised to fit).
+- **Missions** live in a slide-out drawer on the play screen (tap the left tab),
+  not in the garage. The set is broader and more varied.
+- **Cars** are distinct **shapes** (orb / jet / gem / bolt / star / UFO / halo),
+  rendered in-game, not just recolours.
+- **Custom trail** uses **exclusive** styles (`duo` / `pulse` / `bubble`) so it can
+  never reproduce a purchasable skin.
+
 ## Game-over screen
 
 A deliberate three-tier hierarchy on a desktop-wide panel:
