@@ -106,6 +106,18 @@ export function star(i = 0) {
   if (!ensure()) return; const t = ctx.currentTime;
   tone([784, 988, 1175][i % 3], t, 0.18, 'sine', 0.3);
 }
+export function gold() {
+  if (!ensure()) return; const t = ctx.currentTime;
+  // triumphant rising arpeggio for GOLD RUSH
+  const notes = [523, 659, 784, 1047, 1319, 1568];
+  notes.forEach((n, i) => tone(n, t + i * 0.06, 0.3, 'triangle', 0.34));
+  noiseBurst(t, 0.5, 5000, 0.5, 0.18, 'highpass');
+}
+export function portal() {
+  if (!ensure()) return; const t = ctx.currentTime;
+  tone(880, t, 0.18, 'sine', 0.28, 220);
+  noiseBurst(t, 0.2, 1800, 1.4, 0.18, 'bandpass');
+}
 export function uiClick() {
   if (!ensure()) return; const t = ctx.currentTime;
   tone(660, t, 0.05, 'square', 0.16);

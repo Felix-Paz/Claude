@@ -25,6 +25,7 @@ const DEFAULT = () => ({
   daily: { lastClaimDay: null, streak: 0 },
   stats: { runs: 0, deaths: 0, wins: 0, secretsFound: 0 },
   seenMechanics: [],           // mechanic keys whose intro banner was shown
+  director: null,              // adaptive director state (skill ELO, history, profile)
 });
 
 let state = DEFAULT();
@@ -102,6 +103,10 @@ export function totalStars() {
 
 // ---- Settings ----
 export function setSetting(key, val) { state.settings[key] = val; save(); }
+
+// ---- Adaptive director ----
+export function getDirector() { return state.director; }
+export function setDirector(d) { state.director = d; save(); }
 
 // ---- Mechanic intro tracking ----
 export function hasSeenMechanic(key) { return state.seenMechanics.includes(key); }

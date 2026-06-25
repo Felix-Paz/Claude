@@ -1,24 +1,20 @@
 // =====================================================================
-//  levels.js — procedural, seeded maze + content generation.
-//  Same level number => same maze (mastery, time-attack, replay).
+//  levels.js — seeded maze + content generation, driven by a director
+//  PLAN ({ stage, difficulty, mods }) instead of a raw level number.
 //
-//  Pipeline:
-//   1. Recursive-backtracker perfect maze on a cell grid.
-//   2. Braiding: knock out extra walls => loops & alternate routes
-//      (the basis of risk/reward shortcuts).
-//   3. BFS: find the farthest cell for the finish + a guaranteed
-//      SAFE PATH that is kept clear of lethal static hazards.
-//   4. Place coins (main route + risky branches), decoys, hazards,
-//      boost pads, bouncers, power-ups — gated by mechanicsForLevel().
+//   • stage 1  = one straight corridor (marble → green hole). Nothing else.
+//   • stage 2  = corridor with ONE obvious RED wrong hole.
+//   • stage 3-7 = gentle procedural ramp, at most one new idea at a time.
+//   • stage 8+ = full procedural, sized/populated from the ELO difficulty.
 //
-//  All positions are TILE coordinates; the game converts to world space.
+//  mods (interventions) quietly tune the maze for retention: fewer hazards,
+//  extra coins, a guaranteed boost pad, a bigger/closer goal, or — after
+//  repeated failures — a carved shortcut the player won't notice.
 // =====================================================================
 import {
-  mazeSizeForLevel, mechanicsForLevel, worldForLevel,
-  POWERUP_POOL, timeTargetForLevel,
+  mechanicsForLevel, worldForLevel, POWERUP_POOL, DIRECTOR,
 } from './config.js';
 
-// --- seeded RNG (mulberry32) ---
 function rng(seed) {
   let a = seed >>> 0;
   return function () {
@@ -28,262 +24,282 @@ function rng(seed) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-
 const key = (x, y) => x + ',' + y;
-const DIRS = [ [0,-1], [1,0], [0,1], [-1,0] ]; // N E S W
+const DIRS = [[0,-1],[1,0],[0,1],[-1,0]];
 
-export function generateLevel(level) {
-  const rand = rng(level * 2654435761 + 12345);
-  const ri = (n) => Math.floor(rand() * n);
-  const world = worldForLevel(level);
-  const mech = mechanicsForLevel(level);
-  const { cols, rows } = mazeSizeForLevel(level);
+const EMPTY_MODS = { sizeScale:1, hazardScale:1, decoyScale:1, extraCoins:0, forgive:0,
+  addBoost:false, biggerGoal:false, closerFinish:false, guaranteePowerup:null, rescueOpen:false, slowHazards:1 };
 
-  // tile grid: walls everywhere, carve open cells/passages
-  const gw = cols * 2 + 1, gh = rows * 2 + 1;
+function normalizePlan(arg) {
+  if (typeof arg === 'number') {
+    // legacy/simple call: derive a sensible difficulty from the stage
+    const t = Math.min(1, (arg - 1) / 24);
+    return { stage: arg, difficulty: Math.round(760 + t * 900), mods: { ...EMPTY_MODS }, seedSalt: 0 };
+  }
+  return { stage: arg.stage, difficulty: arg.difficulty ?? 1000, mods: { ...EMPTY_MODS, ...(arg.mods || {}) }, seedSalt: arg.seedSalt || 0 };
+}
+
+export function generateLevel(arg) {
+  const plan = normalizePlan(arg);
+  const lvl = plan.stage;
+  if (lvl === 1) return template1(plan);
+  if (lvl === 2) return template2(plan);
+  return procedural(plan);
+}
+
+// ---------------------------------------------------------------
+//  Scripted openers
+// ---------------------------------------------------------------
+function blankWorldLevel(plan, gw, gh) {
   const grid = Array.from({ length: gh }, () => new Array(gw).fill(1));
-  const cellOpen = Array.from({ length: rows }, () => new Array(cols).fill(false));
+  return { plan, grid, gw, gh };
+}
 
-  // --- recursive backtracker ---
-  const stack = [[0, 0]];
-  cellOpen[0][0] = true;
-  grid[1][1] = 0;
-  while (stack.length) {
-    const [cx, cy] = stack[stack.length - 1];
-    const nbrs = [];
-    for (const [dx, dy] of DIRS) {
-      const nx = cx + dx, ny = cy + dy;
-      if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !cellOpen[ny][nx]) nbrs.push([nx, ny, dx, dy]);
-    }
-    if (!nbrs.length) { stack.pop(); continue; }
-    const [nx, ny, dx, dy] = nbrs[ri(nbrs.length)];
-    cellOpen[ny][nx] = true;
-    grid[ny * 2 + 1][nx * 2 + 1] = 0;
-    grid[cy * 2 + 1 + dy][cx * 2 + 1 + dx] = 0; // passage tile
-    stack.push([nx, ny]);
-  }
+function template1(plan) {
+  // one straight horizontal corridor, marble left, green hole right
+  const cols = 7, gw = cols * 2 + 1, gh = 3;
+  const { grid } = blankWorldLevel(plan, gw, gh);
+  for (let x = 1; x < gw - 1; x++) grid[1][x] = 0;
+  const start = { tx: 1, ty: 1 }, finish = { tx: gw - 2, ty: 1 };
+  const coins = [{ tx: 5, ty: 1 }, { tx: 7, ty: 1 }, { tx: 9, ty: 1 }];
+  return finalize(plan, grid, gw, gh, start, finish, new Set(pathKeys(grid, gw, gh, start, finish)),
+    { coins, decoys: [], powerups: [], boostPads: [], bouncers: [], crawlers: [], spikes: [],
+      turrets: [], sizeZones: [], rotators: [], movingWalls: [], portals: [] });
+}
 
-  // --- braiding: remove extra interior walls for loops / shortcuts ---
-  const braid = Math.min(0.34, 0.06 + level * 0.012);
-  for (let y = 1; y < gh - 1; y++) {
-    for (let x = 1; x < gw - 1; x++) {
-      if (grid[y][x] !== 1) continue;
-      // only consider "passage" wall tiles (between two cells)
-      const horiz = (x % 2 === 0 && y % 2 === 1);
-      const vert  = (x % 2 === 1 && y % 2 === 0);
-      if (!horiz && !vert) continue;
-      const a = horiz ? grid[y][x-1] === 0 && grid[y][x+1] === 0
-                      : grid[y-1][x] === 0 && grid[y+1][x] === 0;
-      if (a && rand() < braid) grid[y][x] = 0;
-    }
-  }
+function template2(plan) {
+  // corridor to the goal, with one OBVIOUS red wrong hole in a side pocket
+  const cols = 8, gw = cols * 2 + 1, gh = 5;
+  const { grid } = blankWorldLevel(plan, gw, gh);
+  for (let x = 1; x < gw - 1; x++) grid[1][x] = 0;          // main corridor
+  grid[2][7] = 0; grid[3][7] = 0;                           // side pocket downward
+  const start = { tx: 1, ty: 1 }, finish = { tx: gw - 2, ty: 1 };
+  const decoys = [{ tx: 7, ty: 3 }];                        // the lone red hole
+  const coins = [{ tx: 5, ty: 1 }, { tx: 7, ty: 1 }, { tx: 11, ty: 1 }, { tx: 13, ty: 1 }];
+  return finalize(plan, grid, gw, gh, start, finish, new Set(pathKeys(grid, gw, gh, start, finish)),
+    { coins, decoys, powerups: [], boostPads: [], bouncers: [], crawlers: [], spikes: [],
+      turrets: [], sizeZones: [], rotators: [], movingWalls: [], portals: [] });
+}
+
+// ---------------------------------------------------------------
+//  Procedural levels (stage 3+)
+// ---------------------------------------------------------------
+function procedural(plan) {
+  const lvl = plan.stage, mods = plan.mods;
+  const rand = rng(lvl * 2654435761 + 12345 + plan.seedSalt * 7);
+  const ri = (n) => Math.floor(rand() * n);
+  const mech = mechanicsForLevel(lvl);
+
+  // difficulty -> size & density
+  const t = Math.max(0, Math.min(1, (plan.difficulty - 700) / 1200));
+  const early = lvl <= 7;
+  let cols = Math.round((4 + t * 9) * mods.sizeScale);
+  let rows = Math.round((4 + t * 7) * mods.sizeScale);
+  cols = Math.max(3, Math.min(14, cols)); rows = Math.max(3, Math.min(12, rows));
+  if (early) { cols = Math.min(cols, 5 + lvl); rows = Math.min(rows, 4 + lvl); }
+
+  const braid = Math.max(0, Math.min(0.5, 0.05 + t * 0.24 + (mods.rescueOpen ? 0.18 : 0)));
+  const { grid, gw, gh } = buildMaze(cols, rows, braid, rand);
 
   const start = { tx: 1, ty: 1 };
-
-  // --- BFS distances from start over open tiles ---
-  const dist = new Map(); const parent = new Map();
+  const dist = new Map(), parent = new Map();
   bfs(grid, gw, gh, start, dist, parent);
 
-  // finish = farthest open CELL tile from start
-  let finish = { tx: gw - 2, ty: gh - 2 }, best = -1;
+  // finish = farthest cell (or a mid-distance one when we want it closer)
+  const cells = [];
   for (let cy = 0; cy < rows; cy++) for (let cx = 0; cx < cols; cx++) {
-    const tx = cx * 2 + 1, ty = cy * 2 + 1;
-    const d = dist.get(key(tx, ty));
-    if (d != null && d > best) { best = d; finish = { tx, ty }; }
+    const tx = cx * 2 + 1, ty = cy * 2 + 1, d = dist.get(key(tx, ty));
+    if (d != null) cells.push({ tx, ty, d });
   }
+  cells.sort((a, b) => b.d - a.d);
+  let finish;
+  if (mods.closerFinish && cells.length > 3) finish = cells[Math.floor(cells.length * 0.45)];
+  else finish = cells[0] || { tx: gw - 2, ty: gh - 2 };
 
-  // safe path start -> finish (kept clear of lethal static stuff)
-  const safe = new Set();
-  let cur = key(finish.tx, finish.ty);
+  // safe path
+  const safe = new Set(); let cur = key(finish.tx, finish.ty);
   while (cur != null) { safe.add(cur); cur = parent.get(cur); }
 
-  // collect open tiles + classify
   const openTiles = [];
   for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) if (grid[y][x] === 0) openTiles.push({ tx: x, ty: y });
-  const isCell = (t) => t.tx % 2 === 1 && t.ty % 2 === 1;
-  const openNeighbors = (t) => DIRS.reduce((n, [dx, dy]) => n + (grid[t.ty+dy]?.[t.tx+dx] === 0 ? 1 : 0), 0);
-  const deadEnds = openTiles.filter(t => isCell(t) && openNeighbors(t) === 1 &&
-    !(t.tx === start.tx && t.ty === start.ty) && !(t.tx === finish.tx && t.ty === finish.ty));
-  const branch = openTiles.filter(t => !safe.has(key(t.tx, t.ty)));
+  const isCell = (tt) => tt.tx % 2 === 1 && tt.ty % 2 === 1;
+  const deg = (tt) => DIRS.reduce((n, [dx, dy]) => n + (grid[tt.ty + dy]?.[tt.tx + dx] === 0 ? 1 : 0), 0);
+  const deadEnds = openTiles.filter(tt => isCell(tt) && deg(tt) === 1 && !same(tt, start) && !same(tt, finish));
+  const branch = openTiles.filter(tt => !safe.has(key(tt.tx, tt.ty)));
 
-  // occupancy bookkeeping
   const occupied = new Set([key(start.tx, start.ty), key(finish.tx, finish.ty)]);
-  // keep tiles right next to spawn clear/safe
   for (const [dx, dy] of DIRS) occupied.add(key(start.tx + dx, start.ty + dy));
-  const take = (pool) => {
-    for (let i = 0; i < 40; i++) {
-      const t = pool[ri(pool.length)];
-      if (!t) return null;
-      const k = key(t.tx, t.ty);
-      if (!occupied.has(k)) { occupied.add(k); return t; }
-    }
-    return null;
-  };
-  const takeSafe = () => {
-    const safeList = openTiles.filter(t => safe.has(key(t.tx, t.ty)) &&
-      !occupied.has(key(t.tx, t.ty)) &&
-      !(t.tx === start.tx && t.ty === start.ty) && !(t.tx === finish.tx && t.ty === finish.ty));
-    if (!safeList.length) return null;
-    const t = safeList[ri(safeList.length)]; occupied.add(key(t.tx, t.ty)); return t;
-  };
+  const take = (pool) => { for (let i = 0; i < 40; i++) { const tt = pool[ri(pool.length)]; if (!tt) return null; const k = key(tt.tx, tt.ty); if (!occupied.has(k)) { occupied.add(k); return tt; } } return null; };
+  const takeSafe = () => { const L = openTiles.filter(tt => safe.has(key(tt.tx, tt.ty)) && !occupied.has(key(tt.tx, tt.ty)) && !same(tt, start) && !same(tt, finish)); if (!L.length) return null; const tt = L[ri(L.length)]; occupied.add(key(tt.tx, tt.ty)); return tt; };
 
-  // ---- COINS: main-route trail + risky branch clusters ----
+  // ---- coins: main-route trail + risky branch coins ----
   const coins = [];
-  // along the safe path (skip endpoints), every other path tile
-  const pathArr = [...safe].map(k => { const [x, y] = k.split(',').map(Number); return { tx: x, ty: y, d: dist.get(k) || 0 }; })
-                          .sort((a, b) => a.d - b.d);
-  for (let i = 2; i < pathArr.length - 2; i += 2) {
-    const t = pathArr[i];
-    if (!occupied.has(key(t.tx, t.ty)) && rand() < 0.8) { coins.push({ tx: t.tx, ty: t.ty }); occupied.add(key(t.tx, t.ty)); }
-  }
-  // risky branch coins (often near dead-ends / hazards)
-  const riskCoinTarget = Math.min(14, 3 + Math.floor(level * 0.8));
-  const riskSpots = [];
-  for (let i = 0; i < riskCoinTarget; i++) {
-    const t = take(deadEnds.length && rand() < 0.6 ? deadEnds : branch);
-    if (t) { coins.push({ tx: t.tx, ty: t.ty, risk: true }); riskSpots.push(t); }
-  }
+  const pathArr = [...safe].map(k => { const [x, y] = k.split(',').map(Number); return { tx: x, ty: y, d: dist.get(k) || 0 }; }).sort((a, b) => a.d - b.d);
+  for (let i = 2; i < pathArr.length - 2; i += 2) { const tt = pathArr[i]; if (!occupied.has(key(tt.tx, tt.ty)) && rand() < 0.8) { coins.push({ tx: tt.tx, ty: tt.ty }); occupied.add(key(tt.tx, tt.ty)); } }
+  const riskCoins = Math.min(12, Math.round(2 + t * 9));
+  for (let i = 0; i < riskCoins; i++) { const tt = take(deadEnds.length && rand() < 0.6 ? deadEnds : branch); if (tt) coins.push({ tx: tt.tx, ty: tt.ty, risk: true }); }
+  for (let i = 0; i < (mods.extraCoins || 0); i++) { const tt = takeSafe() || take(openTiles); if (tt) coins.push({ tx: tt.tx, ty: tt.ty }); }
 
-  // ---- DECOY (wrong) holes — only off the safe path ----
+  // ---- decoys (RED holes), off the safe path ----
   const decoys = [];
   if (mech.has('decoys')) {
-    const n = Math.min(7, 1 + Math.floor((level - 2) * 0.6));
-    for (let i = 0; i < n; i++) { const t = take(deadEnds.length && rand() < 0.5 ? deadEnds : branch); if (t) decoys.push(t); }
+    const n = Math.round(Math.min(6, 1 + t * 6) * mods.decoyScale);
+    for (let i = 0; i < n; i++) { const tt = take(deadEnds.length && rand() < 0.5 ? deadEnds : branch); if (tt) decoys.push(tt); }
   }
 
-  // ---- BOOST PADS (on path or branch) ----
+  // ---- hazards: budgeted, with a cap on DISTINCT types so early/eased
+  //      levels never stack (fixes the old "blob + spike = impossible") ----
+  const hazardTypes = ['crawlers', 'spikes', 'turrets', 'rotators'].filter(k => mech.has(k));
+  let typeCap = t < 0.28 ? 1 : t < 0.52 ? 2 : t < 0.76 ? 3 : 4;
+  if (mods.hazardScale < 0.5) typeCap = Math.min(typeCap, 1);
+  shuffle(hazardTypes, rand);
+  const useTypes = hazardTypes.slice(0, typeCap);
+  let budget = Math.round(Math.min(9, t * 9) * mods.hazardScale);
+
+  const crawlers = [], spikes = [], turrets = [], rotators = [];
+  const spend = () => budget > 0 && (budget--, true);
+  for (const type of useTypes) {
+    const want = Math.max(1, Math.ceil(budget / Math.max(1, useTypes.length)));
+    for (let i = 0; i < want && budget > 0; i++) {
+      if (type === 'crawlers') { const path = makePatrol(grid, gw, gh, openTiles, ri, start, finish); if (path.length >= 2 && spend()) crawlers.push({ path, speed: (2.0 + rand() * 1.4) * (mods.slowHazards || 1) }); }
+      else if (type === 'spikes') { const tt = take(branch.length ? branch : openTiles); if (tt && spend()) spikes.push({ ...tt, phase: rand(), period: (1.7 + rand() * 1.1) / (mods.slowHazards || 1) }); }
+      else if (type === 'turrets') { const tt = take(branch.length ? branch : openTiles); if (tt && spend()) turrets.push({ ...tt, dir: openDir(grid, tt), period: (1.7 + rand() * 1.0) / (mods.slowHazards || 1), phase: rand() }); }
+      else if (type === 'rotators') { const tt = take(openTiles); if (tt && spend()) rotators.push({ ...tt, len: 2 + ri(2), speed: (rand() < 0.5 ? 1 : -1) * (0.7 + rand() * 1.0) * (mods.slowHazards || 1) }); }
+    }
+  }
+
+  // ---- boost / launch pads ----
   const boostPads = [];
   if (mech.has('boostPads')) {
-    const n = Math.min(5, 1 + Math.floor(level / 4));
-    for (let i = 0; i < n; i++) {
-      const t = (rand() < 0.6 ? takeSafe() : take(branch));
-      if (t) boostPads.push({ ...t, dir: dominantOpenDir(grid, t) });
-    }
+    const n = Math.min(4, 1 + Math.floor(t * 4));
+    for (let i = 0; i < n; i++) { const seg = corridorSlot(grid, openTiles, ri, occupied); if (seg) { boostPads.push({ tx: seg.tx, ty: seg.ty, dir: seg.dir }); occupied.add(key(seg.tx, seg.ty)); } }
   }
+  if (mods.addBoost && boostPads.length === 0) { const seg = corridorSlot(grid, openTiles, ri, occupied); if (seg) boostPads.push({ tx: seg.tx, ty: seg.ty, dir: seg.dir }); }
 
-  // ---- BOUNCERS ----
+  // ---- bouncers ----
   const bouncers = [];
-  if (mech.has('bouncers')) {
-    const n = Math.min(4, 1 + Math.floor(level / 6));
-    for (let i = 0; i < n; i++) { const t = take(branch.length ? branch : openTiles); if (t) bouncers.push(t); }
-  }
+  if (mech.has('bouncers')) { const n = Math.min(3, 1 + Math.floor(t * 3)); for (let i = 0; i < n; i++) { const tt = take(branch.length ? branch : openTiles); if (tt) bouncers.push(tt); } }
 
-  // ---- CRAWLERS (patrolling toxic blobs) ----
-  const crawlers = [];
-  if (mech.has('crawlers')) {
-    const n = Math.min(5, 1 + Math.floor(level / 5));
+  // ---- moving (sliding) walls ----
+  const movingWalls = [];
+  if (mech.has('movingWalls')) {
+    const n = Math.min(4, 1 + Math.floor(t * 4));
     for (let i = 0; i < n; i++) {
-      const path = makePatrol(grid, gw, gh, openTiles, ri, start, finish);
-      if (path.length >= 2) crawlers.push({ path, speed: 2.2 + rand() * 1.6 + level * 0.02 });
+      const seg = corridorSlot(grid, openTiles, ri, occupied);
+      if (seg) { movingWalls.push({ tx: seg.tx, ty: seg.ty, dir: seg.dir, period: 2.0 + rand() * 1.2, phase: rand() }); occupied.add(key(seg.tx, seg.ty)); }
     }
   }
 
-  // ---- SPIKES (timed) on branches near coins ----
-  const spikes = [];
-  if (mech.has('spikes')) {
-    const n = Math.min(8, 2 + Math.floor(level / 4));
-    for (let i = 0; i < n; i++) {
-      const t = take(branch.length ? branch : openTiles);
-      if (t) spikes.push({ ...t, phase: rand(), period: 1.6 + rand() * 1.2 });
-    }
+  // ---- portals (teleport pairs) ----
+  const portals = [];
+  if (mech.has('portals')) {
+    const pairs = Math.min(2, 1 + Math.floor(t * 1.5));
+    for (let i = 0; i < pairs; i++) { const a = take(branch.length ? branch : openTiles), b = take(openTiles); if (a && b) portals.push({ a, b }); }
   }
 
-  // ---- TURRETS (shoot across corridors) ----
-  const turrets = [];
-  if (mech.has('turrets')) {
-    const n = Math.min(5, 1 + Math.floor((level - 10) / 4));
-    for (let i = 0; i < n; i++) {
-      const t = take(branch.length ? branch : openTiles);
-      if (t) turrets.push({ ...t, dir: dominantOpenDir(grid, t), period: 1.6 + rand() * 1.0, phase: rand() });
-    }
-  }
-
-  // ---- SIZE ZONES ----
+  // ---- size zones ----
   const sizeZones = [];
-  if (mech.has('sizeZones')) {
-    const n = Math.min(3, 1 + Math.floor(level / 12));
-    for (let i = 0; i < n; i++) { const t = take(branch.length ? branch : openTiles); if (t) sizeZones.push({ ...t, kind: rand() < 0.5 ? 'shrink' : 'grow' }); }
-  }
+  if (mech.has('sizeZones')) { const n = Math.min(2, 1 + Math.floor(t * 2)); for (let i = 0; i < n; i++) { const tt = take(branch.length ? branch : openTiles); if (tt) sizeZones.push({ ...tt, kind: rand() < 0.5 ? 'shrink' : 'grow' }); } }
 
-  // ---- ROTATING ARMS ----
-  const rotators = [];
-  if (mech.has('rotators')) {
-    const n = Math.min(4, 1 + Math.floor((level - 15) / 5));
-    for (let i = 0; i < n; i++) {
-      const t = take(openTiles);
-      if (t) rotators.push({ ...t, len: 2 + ri(2), speed: (rand() < 0.5 ? 1 : -1) * (0.8 + rand() * 1.2) });
-    }
-  }
-
-  // ---- POWER-UPS ----
+  // ---- power-ups ----
   const powerups = [];
   if (mech.has('powerups')) {
-    const n = Math.min(3, 1 + Math.floor(level / 8));
-    for (let i = 0; i < n; i++) {
-      const t = (rand() < 0.5 ? takeSafe() : take(branch));
-      if (t) powerups.push({ ...t, type: POWERUP_POOL[ri(POWERUP_POOL.length)] });
-    }
+    const n = Math.min(3, 1 + Math.floor(t * 2.5));
+    for (let i = 0; i < n; i++) { const tt = (rand() < 0.5 ? takeSafe() : take(branch)); if (tt) powerups.push({ ...tt, type: POWERUP_POOL[ri(POWERUP_POOL.length)] }); }
   }
+  if (mods.guaranteePowerup) { const tt = takeSafe() || take(openTiles); if (tt) powerups.push({ ...tt, type: mods.guaranteePowerup }); }
 
-  // ---- WORLD-WIDE FORCE CURRENT (ocean/space signatures) ----
+  // ---- world-wide current (ocean / signature) ----
   let current = null;
-  if (mech.has('currents') || world.signature === 'currents') {
-    const ang = ri(4) * Math.PI / 2;
-    current = { x: Math.cos(ang), y: Math.sin(ang), strength: 6 + level * 0.1 };
-  }
+  const world = worldForLevel(lvl);
+  if (world.sig === 'current') { const ang = ri(4) * Math.PI / 2; current = { x: Math.cos(ang), y: Math.sin(ang), strength: 5 + t * 4 }; }
 
-  const coinTotal = coins.length;
+  return finalize(plan, grid, gw, gh, start, finish, safe,
+    { coins, decoys, powerups, boostPads, bouncers, crawlers, spikes, turrets, sizeZones, rotators, movingWalls, portals, current });
+}
+
+// ---------------------------------------------------------------
+//  finalize: attach world, mechanics, difficulty, par time, totals
+// ---------------------------------------------------------------
+function finalize(plan, grid, gw, gh, start, finish, safe, ent) {
+  const lvl = plan.stage;
+  const world = worldForLevel(lvl);
+  const mech = mechanicsForLevel(lvl);
+  const coinTotal = ent.coins.length;
+  // par time scales with maze span + difficulty
+  const span = (gw + gh);
+  const par = (8 + span * 0.7 + (plan.difficulty - 800) * 0.01) * 1000;
   return {
-    level, world, mechanics: mech,
-    grid, gw, gh,
-    start, finish, safe,
-    coins, coinTotal,
-    decoys, boostPads, bouncers, crawlers, spikes, turrets, sizeZones, rotators, powerups,
-    current,
-    parTimeMs: timeTargetForLevel(level) * 1000,
+    level: lvl, stage: lvl, world, mechanics: mech,
+    difficulty: plan.difficulty, mods: plan.mods,
+    grid, gw, gh, start, finish, safe,
+    coins: ent.coins, coinTotal,
+    decoys: ent.decoys || [], powerups: ent.powerups || [],
+    boostPads: ent.boostPads || [], bouncers: ent.bouncers || [],
+    crawlers: ent.crawlers || [], spikes: ent.spikes || [],
+    turrets: ent.turrets || [], sizeZones: ent.sizeZones || [],
+    rotators: ent.rotators || [], movingWalls: ent.movingWalls || [],
+    portals: ent.portals || [], current: ent.current || null,
+    biggerGoal: !!plan.mods.biggerGoal, forgive: plan.mods.forgive || 0,
+    parTimeMs: par,
   };
 }
 
-// ---- helpers ----
+// ---------------------------------------------------------------
+//  helpers
+// ---------------------------------------------------------------
+function buildMaze(cols, rows, braid, rand) {
+  const ri = (n) => Math.floor(rand() * n);
+  const gw = cols * 2 + 1, gh = rows * 2 + 1;
+  const grid = Array.from({ length: gh }, () => new Array(gw).fill(1));
+  const open = Array.from({ length: rows }, () => new Array(cols).fill(false));
+  const stack = [[0, 0]]; open[0][0] = true; grid[1][1] = 0;
+  while (stack.length) {
+    const [cx, cy] = stack[stack.length - 1]; const nb = [];
+    for (const [dx, dy] of DIRS) { const nx = cx + dx, ny = cy + dy; if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !open[ny][nx]) nb.push([nx, ny, dx, dy]); }
+    if (!nb.length) { stack.pop(); continue; }
+    const [nx, ny, dx, dy] = nb[ri(nb.length)];
+    open[ny][nx] = true; grid[ny * 2 + 1][nx * 2 + 1] = 0; grid[cy * 2 + 1 + dy][cx * 2 + 1 + dx] = 0; stack.push([nx, ny]);
+  }
+  for (let y = 1; y < gh - 1; y++) for (let x = 1; x < gw - 1; x++) {
+    if (grid[y][x] !== 1) continue;
+    const horiz = (x % 2 === 0 && y % 2 === 1), vert = (x % 2 === 1 && y % 2 === 0);
+    if (!horiz && !vert) continue;
+    const a = horiz ? grid[y][x - 1] === 0 && grid[y][x + 1] === 0 : grid[y - 1][x] === 0 && grid[y + 1][x] === 0;
+    if (a && rand() < braid) grid[y][x] = 0;
+  }
+  return { grid, gw, gh };
+}
+
 function bfs(grid, gw, gh, start, dist, parent) {
   const q = [start]; dist.set(key(start.tx, start.ty), 0); parent.set(key(start.tx, start.ty), null);
-  while (q.length) {
-    const c = q.shift(); const cd = dist.get(key(c.tx, c.ty));
-    for (const [dx, dy] of DIRS) {
-      const nx = c.tx + dx, ny = c.ty + dy;
-      if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) continue;
-      if (grid[ny][nx] !== 0) continue;
-      const k = key(nx, ny);
-      if (dist.has(k)) continue;
-      dist.set(k, cd + 1); parent.set(k, key(c.tx, c.ty)); q.push({ tx: nx, ty: ny });
-    }
+  while (q.length) { const c = q.shift(); const cd = dist.get(key(c.tx, c.ty));
+    for (const [dx, dy] of DIRS) { const nx = c.tx + dx, ny = c.ty + dy; if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) continue; if (grid[ny][nx] !== 0) continue; const k = key(nx, ny); if (dist.has(k)) continue; dist.set(k, cd + 1); parent.set(k, key(c.tx, c.ty)); q.push({ tx: nx, ty: ny }); } }
+}
+function pathKeys(grid, gw, gh, start, finish) {
+  const dist = new Map(), parent = new Map(); bfs(grid, gw, gh, start, dist, parent);
+  const out = []; let cur = key(finish.tx, finish.ty); while (cur != null) { out.push(cur); cur = parent.get(cur); } return out;
+}
+function openDir(grid, tt) { for (const [dx, dy] of DIRS) if (grid[tt.ty + dy]?.[tt.tx + dx] === 0) return { x: dx, y: dy }; return { x: 1, y: 0 }; }
+function corridorSlot(grid, openTiles, ri, occupied) {
+  // a mid-corridor open tile with open neighbours on an axis (room to slide / launch)
+  for (let i = 0; i < 50; i++) {
+    const tt = openTiles[ri(openTiles.length)]; if (occupied.has(key(tt.tx, tt.ty))) continue;
+    const h = grid[tt.ty]?.[tt.tx - 1] === 0 && grid[tt.ty]?.[tt.tx + 1] === 0;
+    const v = grid[tt.ty - 1]?.[tt.tx] === 0 && grid[tt.ty + 1]?.[tt.tx] === 0;
+    if (h && !v) return { tx: tt.tx, ty: tt.ty, dir: { x: 1, y: 0 } };
+    if (v && !h) return { tx: tt.tx, ty: tt.ty, dir: { x: 0, y: 1 } };
   }
+  return null;
 }
-
-function dominantOpenDir(grid, t) {
-  // pick a direction that has an open run (for boost/turret aiming)
-  const opts = [];
-  for (const [dx, dy] of DIRS) if (grid[t.ty+dy]?.[t.tx+dx] === 0) opts.push([dx, dy]);
-  const d = opts[0] || [1, 0];
-  return { x: d[0], y: d[1] };
-}
-
 function makePatrol(grid, gw, gh, openTiles, ri, start, finish) {
-  // random walk along open tiles to form a short patrol path.
-  // Seed away from the spawn (and finish) so the player is never killed
-  // the instant a level begins.
-  const far = (t) => (!start || Math.abs(t.tx - start.tx) + Math.abs(t.ty - start.ty) > 3) &&
-                     (!finish || Math.abs(t.tx - finish.tx) + Math.abs(t.ty - finish.ty) > 1);
+  const far = (tt) => (Math.abs(tt.tx - start.tx) + Math.abs(tt.ty - start.ty) > 3) && (Math.abs(tt.tx - finish.tx) + Math.abs(tt.ty - finish.ty) > 1);
   let cur = null;
   for (let i = 0; i < 24; i++) { const c = openTiles[ri(openTiles.length)]; if (far(c)) { cur = c; break; } }
   if (!cur) cur = openTiles[ri(openTiles.length)];
-  const path = [cur]; const seen = new Set([key(cur.tx, cur.ty)]);
-  const steps = 3 + ri(4);
-  for (let i = 0; i < steps; i++) {
-    const opts = DIRS.map(([dx, dy]) => ({ tx: cur.tx + dx, ty: cur.ty + dy }))
-      .filter(n => grid[n.ty]?.[n.tx] === 0 && !seen.has(key(n.tx, n.ty)));
-    if (!opts.length) break;
-    cur = opts[ri(opts.length)]; seen.add(key(cur.tx, cur.ty)); path.push(cur);
-  }
+  const path = [cur]; const seen = new Set([key(cur.tx, cur.ty)]); const steps = 3 + ri(4);
+  for (let i = 0; i < steps; i++) { const opts = DIRS.map(([dx, dy]) => ({ tx: cur.tx + dx, ty: cur.ty + dy })).filter(n => grid[n.ty]?.[n.tx] === 0 && !seen.has(key(n.tx, n.ty))); if (!opts.length) break; cur = opts[ri(opts.length)]; seen.add(key(cur.tx, cur.ty)); path.push(cur); }
   return path;
 }
+function shuffle(a, rand) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } }
+function same(a, b) { return a.tx === b.tx && a.ty === b.ty; }

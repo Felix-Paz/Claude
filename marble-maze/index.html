@@ -22,14 +22,16 @@
 
   <!-- ============ HUD ============ -->
   <div id="hud" class="hidden">
+    <div class="game-logo">MARBLE<b>MAZE</b></div>
     <div class="hud-top">
       <button id="pauseBtn" class="icon-btn" aria-label="Pause">❚❚</button>
       <div class="hud-pill" id="hudLevelPill"><span id="hudLevel">Level 1</span></div>
-      <div class="hud-pill coin"><span class="dot gold"></span><span id="hudCoins">0/0</span></div>
-      <div class="hud-pill"><span id="hudTime">0.0</span><span class="unit">s</span></div>
+      <div class="hud-pill coin" title="bonus"><span class="dot gold"></span><span id="hudCoins">0</span></div>
+      <div class="hud-pill time" id="hudTimePill"><span id="hudTime">0.0</span><span class="unit">s</span></div>
     </div>
     <div class="speed-wrap"><div id="speedBar"></div><div id="boostFlare"></div></div>
     <div id="powerupChips"></div>
+    <div id="goalArrow"><span>▲</span><small>GOAL</small></div>
     <div id="controlHint" class="control-hint"></div>
     <div id="boostBtn" class="boost-btn hidden">BOOST ⚡</div>
   </div>
@@ -93,6 +95,7 @@
       <button class="btn reward-ad" id="reviveBtn">▶ Revive <small>(Ad)</small></button>
       <div class="menu-row">
         <button class="btn ghost" id="loseMenuBtn">Menu</button>
+        <button class="btn ghost" id="skipBtn">Skip <small>(Ad)</small></button>
         <button class="btn primary big" id="retryBtn">Retry ↻</button>
       </div>
     </div>
@@ -176,7 +179,7 @@
 </div>
 
 <script type="importmap">
-{ "imports": { "three": "./vendor/three.module.js" } }
+{ "imports": { "three": "./vendor/three.module.min.js" } }
 </script>
 <script type="module" src="./src/main.js"></script>
 </body>

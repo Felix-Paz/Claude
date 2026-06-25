@@ -36,20 +36,28 @@ Then open <http://localhost:8080>.
 
 Every system here exists to create *"I was so close — one more try."*
 
-- **Instant understanding** — level 1 teaches the whole game in seconds, no text walls.
-- **Brutally fast restart** — death → retry in one tap; levels are regenerated from a
-  seed so a retry is the *same* maze (mastery + time-attack).
-- **Constant novelty** — a mechanic-unlock schedule introduces something new on a steady
-  cadence (decoys → boost pads → power-ups → moving hazards → turrets → size zones →
-  rotating arms → currents), and the **world changes every 6 levels** with its own
-  palette, music key, and signature twist.
-- **Risk / reward** — braided mazes create optional loops & shortcuts; the juiciest coin
-  routes run right past the danger. The guaranteed safe path is always solvable without
-  touching a wrong hole.
-- **Meta-progression** — coins, 16 marble **skins** across Common→Legendary rarity,
-  **trails**, a shop, **star** ratings, time medals, **daily rewards + login streaks**.
+- **Instant understanding** — level 1 is a single corridor (marble → green hole); level 2
+  teaches the one RED wrong hole. Complexity is introduced one idea at a time.
+- **Readability rules** — **RED always means death** (wrong holes, spikes, toxic blobs,
+  bullets, blades); the **finish is always a green beam** with particles + an off-screen
+  arrow; sliding walls are a distinct amber; walls have bright top caps so edges read.
+- **Adaptive difficulty director** — hidden **ELO** skill rating + per-maze difficulty,
+  a live **churn-risk** model, and win/win/close-loss pacing. It serves mazes near a
+  ~70% win rate ("I can do this"), eases off when you're frustrated, and — after repeated
+  failures — quietly opens a shortcut so you win without feeling handed it.
+- **Brutally fast restart** — death → retry in one tap; a retry is the *same* maze
+  (mastery + time-attack), plus a "Skip (Ad)" escape valve after repeated fails.
+- **Constant novelty** — mechanics unlock on a teaching cadence (decoys → power-ups →
+  launch pads → sliding walls → bouncers → toxic blobs → spikes → **portals** → turrets →
+  size gates → blades), and the **world changes every 3 levels** across 10 biomes.
+- **GOLD RUSH** — collect coins fast and the whole maze floods with gold (god mode).
+- **Risk / reward** — braided mazes create optional shortcuts; the best coin routes hug
+  the danger. A guaranteed safe path never forces you through a wrong hole.
+- **Meta-progression** — coins, 16 witty **skins** (beach ball, 8-ball, soccer, disco,
+  planet…) across Common→Legendary, **trails**, a redesigned shop, **star** ratings,
+  time medals, **daily rewards + login streaks**.
 - **Respectful ads** — only at natural breaks or as *optional rewards* (revive,
-  double coins, …). Never mid-roll.
+  double coins, skip). Never mid-roll, and suppressed when churn-risk is high.
 
 ---
 
@@ -61,8 +69,9 @@ No bundler — each file is a native ES module loaded via an import map.
 |------|----------------|
 | `index.html` | Markup, import map, all UI screens |
 | `styles.css` | Premium hypercasual UI (glassy HUD, candy buttons, responsive) |
-| `src/config.js` | **All tunables**: worlds, skins, trails, power-ups, economy, and the mechanic-pacing schedule |
-| `src/levels.js` | Seeded procedural maze generation + smart content placement |
+| `src/config.js` | **All tunables**: biome worlds, skins, trails, power-ups, economy, pacing, director constants |
+| `src/levels.js` | Seeded procedural maze gen driven by a director *plan* (difficulty + interventions) |
+| `src/director.js` | **Adaptive engine**: ELO skill, churn-risk model, interventions, win/loss shaping |
 | `src/game.js` | The 3D engine: scene, marble physics, every hazard/entity, power-ups, particles, trail, camera |
 | `src/input.js` | Unified controls — keyboard, device tilt (+ calibration), touch-drag fallback |
 | `src/ui.js` | HUD, menus, shop, daily, win/lose overlays |
@@ -97,9 +106,15 @@ Then zip the `marble-maze/` folder and upload. The build is fully self-contained
 
 ---
 
-## ✅ Validated
+## ✅ Validated (headless — no browser in CI)
 
-The procedural generator is checked across 160 levels (every maze solvable, wrong holes
-never block the only safe route, entities only on open tiles, deterministic per seed),
-and the engine's physics / collision / pickup / win-lose-revive / power-up systems are
-covered by a headless integration test.
+- **Generator**: stage 1 = clean corridor, stage 2 = exactly one red hole, every maze
+  solvable, wrong holes never block the safe route, hazard-type stacking capped on easy
+  levels, deterministic per seed, rescue/forgive mods never break solvability.
+- **Engine**: physics, collision, pickups, all entities (sliding walls, portals,
+  launch pads, redesigned spikes/blobs), every power-up (incl. phase-walls & hole-patch),
+  GOLD RUSH, win/lose/revive, idle signal, and perf auto-scaling — no crashes/NaN/escape.
+- **Director**: ELO converges to a ~60–80% win band, churn escalates green→panic with
+  forgiving interventions, retry-rescue stays subtle before opening a shortcut.
+
+⚠️ Live visuals still need an eyeball in a real browser (WebGL can't render headlessly here).
