@@ -128,15 +128,14 @@ export const MECHANIC_UNLOCKS = [
   { key:'coins',       level:1,  label:'Collect coins (bonus!)' },
   { key:'decoys',      level:2,  label:'Avoid the RED holes' },
   { key:'powerups',    level:4,  label:'Grab power-ups' },
-  { key:'boostPads',   level:5,  label:'Launch pads' },
+  { key:'boostPads',   level:5,  label:'Speed pads — zoom!' },
   { key:'movingWalls', level:6,  label:'Sliding walls' },
   { key:'bouncers',    level:7,  label:'Bouncers' },
   { key:'crawlers',    level:8,  label:'Toxic blobs are RED' },
   { key:'spikes',      level:10, label:'Spike traps' },
-  { key:'portals',     level:12, label:'Portals!' },
-  { key:'turrets',     level:14, label:'Watch the shooters' },
-  { key:'sizeZones',   level:16, label:'Size gates' },
-  { key:'rotators',    level:18, label:'Spinning blades' },
+  { key:'turrets',     level:12, label:'Watch the shooters' },
+  { key:'sizeZones',   level:14, label:'Size gates' },
+  { key:'rotators',    level:17, label:'Spinning blades' },
 ];
 export function mechanicsForLevel(level) {
   const s = new Set();
@@ -158,12 +157,22 @@ export const POWERUPS = {
   bigfinish: { id:'bigfinish', name:'Big Finish',   color:0x7affd0, dur:10, icon:'🎯', timed:true,  blurb:'Bigger goal' },
   shrink:    { id:'shrink',    name:'Mini Marble',  color:0x9affff, dur:8,  icon:'🔽', timed:true,  blurb:'Squeeze through' },
   patchHoles:{ id:'patchHoles',name:'Hole Patch',   color:0x6be3ff, dur:7,  icon:'🩹', timed:true,  blurb:'Seals RED holes' },
-  phaseWalls:{ id:'phaseWalls',name:'Phase Walls',  color:0xc9a3ff, dur:5,  icon:'🌀', timed:true,  blurb:'Walls drop!' },
+  ghost:     { id:'ghost',     name:'Ghost',        color:0xd6e4ff, dur:5,  icon:'👻', timed:true,  blurb:'Pass through walls' },
+  freeze:    { id:'freeze',    name:'Time Freeze',  color:0x8fefff, dur:4,  icon:'❄️', timed:true,  blurb:'Hazards freeze' },
 };
 export const POWERUP_POOL = Object.keys(POWERUPS);
 
-// GOLD RUSH (god mode): collect this many coins within the window to trigger.
-export const GOLD_RUSH = { coins: 6, windowSec: 4.5, durationSec: 6, fillCount: 70 };
+// GOLD RUSH (god mode) — must feel rare & earned. Triggers when the player
+// grabs nearly all the level's coins, OR a big burst very fast. Once per level.
+export const GOLD_RUSH = { fraction: 0.85, minFast: 12, windowSec: 3.0, durationSec: 6, fillCount: 60 };
+
+// Skin perks (a reason to want a skin beyond looks).
+export const PERKS = {
+  shield:   { icon:'🛡️', label:'Extra Life', blurb:'Start each level shielded' },
+  magnet:   { icon:'🧲', label:'Coin Pull',  blurb:'Gentle passive coin magnet' },
+  headstart:{ icon:'⚡', label:'Headstart',  blurb:'+8% top speed' },
+  lucky:    { icon:'🍀', label:'Lucky',      blurb:'+15% coins earned' },
+};
 
 // =====================================================================
 //  MARBLE SKINS — witty, iconic, hypercasual. `tex` = procedural
@@ -181,40 +190,42 @@ export const SKINS = [
   { id:'pearl',   name:'Classic Pearl', rarity:'common', price:0,    unlocked:true,
     mat:{ color:0xf3f5f8, metalness:0.0, roughness:0.16, clearcoat:1 } },
   { id:'beach',   name:'Beach Ball',    rarity:'common', price:150,  tex:'beach',
-    mat:{ color:0xffffff, metalness:0.0, roughness:0.25, clearcoat:0.8 } },
-  { id:'smiley',  name:'Smiley',        rarity:'common', price:200,  tex:'smiley',
-    mat:{ color:0xffd23a, metalness:0.0, roughness:0.3 } },
-  { id:'eight',   name:'8-Ball',        rarity:'common', price:250,  tex:'eight',
-    mat:{ color:0x111111, metalness:0.0, roughness:0.08, clearcoat:1 } },
+    mat:{ color:0xffffff, metalness:0.0, roughness:0.22, clearcoat:0.8 } },
+  { id:'smiley',  name:'Happy Face',    rarity:'common', price:200,  tex:'smiley',
+    mat:{ color:0xffd23a, metalness:0.0, roughness:0.28 } },
+  { id:'donut',   name:'Sprinkle Donut',rarity:'common', price:280,  tex:'donut',
+    mat:{ color:0xffffff, metalness:0.0, roughness:0.4 } },
 
   // rares
   { id:'soccer',  name:'Soccer',        rarity:'rare', price:450, tex:'soccer',
-    mat:{ color:0xffffff, metalness:0.0, roughness:0.35 } },
-  { id:'basket',  name:'Basketball',    rarity:'rare', price:480, tex:'basket',
-    mat:{ color:0xe06a2a, metalness:0.0, roughness:0.45 } },
-  { id:'melon',   name:'Watermelon',    rarity:'rare', price:520, tex:'melon',
-    mat:{ color:0x49b04a, metalness:0.0, roughness:0.4 } },
-  { id:'chrome',  name:'Chrome',        rarity:'rare', price:600,
-    mat:{ color:0xeef3f8, metalness:1.0, roughness:0.04 } },
+    mat:{ color:0xffffff, metalness:0.0, roughness:0.3 } },
+  { id:'basket',  name:'Basketball',    rarity:'rare', price:500, tex:'basket',
+    mat:{ color:0xe06a2a, metalness:0.0, roughness:0.42 } },
+  { id:'eight',   name:'8-Ball',        rarity:'rare', price:560, tex:'eight',
+    mat:{ color:0x111111, metalness:0.0, roughness:0.06, clearcoat:1 } },
+  { id:'melon',   name:'Watermelon',    rarity:'rare', price:600, tex:'melon',
+    mat:{ color:0x49b04a, metalness:0.0, roughness:0.38 } },
 
-  // epics
-  { id:'disco',   name:'Disco Ball',    rarity:'epic', price:1100, tex:'disco',
-    mat:{ color:0xcfd6e6, metalness:1.0, roughness:0.15 } },
-  { id:'gold',    name:'Solid Gold',    rarity:'epic', price:1300,
-    mat:{ color:0xffc23a, metalness:1.0, roughness:0.16 } },
-  { id:'magma',   name:'Magma Core',    rarity:'epic', price:1250,
-    mat:{ color:0x2a0f0c, metalness:0.4, roughness:0.4, emissive:0xff4a16, emissiveInt:1.4 } },
-  { id:'slime',   name:'Toxic Slime',   rarity:'epic', price:1200, tex:'slime',
-    mat:{ color:0x9bff2a, metalness:0.1, roughness:0.18, clearcoat:1, emissive:0x4aff10, emissiveInt:0.5 } },
+  // epics (perks start here)
+  { id:'disco',   name:'Disco Ball',    rarity:'epic', price:1100, tex:'disco', perk:'lucky',
+    mat:{ color:0xcfd6e6, metalness:1.0, roughness:0.14 } },
+  { id:'panda',   name:'Panda',         rarity:'epic', price:1200, tex:'panda', perk:'lucky',
+    mat:{ color:0xffffff, metalness:0.0, roughness:0.45 } },
+  { id:'globe',   name:'Lil Earth',     rarity:'epic', price:1300, tex:'globe', perk:'magnet',
+    mat:{ color:0xffffff, metalness:0.0, roughness:0.5 } },
+  { id:'magma',   name:'Magma Core',    rarity:'epic', price:1400, perk:'headstart',
+    mat:{ color:0x2a0f0c, metalness:0.4, roughness:0.4, emissive:0xff4a16, emissiveInt:1.5 } },
 
-  // legendaries
-  { id:'saturn',  name:'Lil Planet',    rarity:'legendary', price:2800, tex:'planet', ring:true,
+  // legendaries (best perks + flair)
+  { id:'gold',    name:'Solid Gold',    rarity:'legendary', price:2400, perk:'lucky',
+    mat:{ color:0xffc23a, metalness:1.0, roughness:0.15 } },
+  { id:'saturn',  name:'Lil Planet',    rarity:'legendary', price:3000, tex:'planet', ring:true, perk:'magnet',
     mat:{ color:0xd9a05a, metalness:0.2, roughness:0.5 } },
-  { id:'galaxy',  name:'Galaxy',        rarity:'legendary', price:3200, tex:'galaxy',
+  { id:'galaxy',  name:'Galaxy',        rarity:'legendary', price:3400, tex:'galaxy', perk:'headstart',
     mat:{ color:0x2a1b4d, metalness:0.5, roughness:0.25, clearcoat:1, emissive:0x5a2aff, emissiveInt:0.5 } },
-  { id:'rainbow', name:'Aurora',        rarity:'legendary', price:3600, rainbow:true,
+  { id:'rainbow', name:'Aurora',        rarity:'legendary', price:4000, rainbow:true, perk:'shield',
     mat:{ color:0x102a3a, metalness:0.4, roughness:0.08, clearcoat:1, emissive:0x2ff0d0, emissiveInt:0.9 } },
-  { id:'diamond', name:'Diamond',       rarity:'legendary', price:4200,
+  { id:'diamond', name:'Diamond',       rarity:'legendary', price:4800, perk:'shield',
     mat:{ color:0xeaf6ff, metalness:0.1, roughness:0.02, clearcoat:1, emissive:0x9fdfff, emissiveInt:0.25 } },
 ];
 

@@ -84,16 +84,19 @@ class App {
   play() { this.startStage(S.get().maxLevel, {}); }
 
   _planFor(stage, retry) {
-    if (retry) return { stage, difficulty: this.lastDifficulty, mods: { ...this.lastMods, ...this.director.retryMods() }, seedSalt: 0 };
+    if (retry) return { stage, difficulty: this.lastDifficulty, mods: { ...this.lastMods, ...this.director.retryMods() }, seedSalt: 0, mission: this.mission, churn: this.director.churn(), novelty: false };
     const scripted = stage <= 7 ? { difficulty: SCRIPTED[stage] } : null;
-    const plan = this.director.planNext(stage, scripted);
+    const ctx = { scripted, newMechanic: !!newMechanicAt(stage), worldChanged: (stage - 1) % LEVELS_PER_WORLD === 0 && stage > 1 };
+    const plan = this.director.planNext(stage, ctx);
     this.lastDifficulty = plan.difficulty; this.lastMods = plan.mods;
     return plan;
   }
 
   startStage(stage, { retry = false } = {}) {
+    if (retry) this.director.noteRetryNow();        // retry-speed churn signal
     this.stage = stage;
     const plan = this._planFor(stage, retry);
+    this.curPlan = plan; this.mission = plan.mission;
     this.levelData = generateLevel(plan);
     this.run = { coinValue: 0 };
     this.revivedThisRun = false;
@@ -112,10 +115,10 @@ class App {
     // would otherwise hide the prompt).
     const wantTilt = (this.input.mode === 'auto' || this.input.mode === 'tilt');
     if (this.input.isTouchDevice() && wantTilt && this.input.tiltAvailable && !this.input.tiltPermitted) {
-      this.pendingStart = stage; this.pendingPlan = plan; this.ui.showScreen('tiltPrompt'); return;
+      this.pendingStart = stage; this.pendingPlan = plan; this.ui.showOverlay('tiltPrompt'); return;
     }
     this.ui.enterGame();                 // cool exit of whatever screen is open
-    this.ui.powerups([]); this.ui.finishArrow({ visible: false }); this.ui.goldRush(false);
+    this.ui.powerups([]); this.ui.finishArrow({ hide: true }); this.ui.goldRush(false);
     this._updateControlUI();
     this._beginPlay(plan);
   }
@@ -127,19 +130,24 @@ class App {
     const n = this.stage;
     const worldChanged = (n - 1) % LEVELS_PER_WORLD === 0 && n > 1;
     const nm = newMechanicAt(n);
-    if (worldChanged) { this.ui.banner('NEW WORLD', this.levelData.world.name); this.ui.toast(this.levelData.world.blurb, 2200); }
-    else if (nm && !S.hasSeenMechanic(nm.key)) { this.ui.banner('NEW!', nm.label); S.markMechanicSeen(nm.key); }
-    else this.ui.banner('LEVEL ' + n, this.levelData.world.name);
+    if (worldChanged) { this.ui.banner('NEW WORLD', this.levelData.world.name); this.ui.toast(this.levelData.world.blurb, 2200); this.director.noteNovelty(); }
+    else if (nm && !S.hasSeenMechanic(nm.key)) { this.ui.banner('NEW!', nm.label); S.markMechanicSeen(nm.key); this.director.noteNovelty(); }
+    else { this.ui.banner('LEVEL ' + n, this.levelData.world.name); if (plan && plan.novelty) this.director.noteNovelty(); }
     this.ui.setMenuWorld(this.levelData.world.name);
+
+    // optional objective (goal-chaining)
+    if (this.mission) { clearTimeout(this._mT); this._mT = setTimeout(() => this.ui.toast('🎯 ' + this.mission.label, 2200), 1500); }
 
     // panic-mode surprise gift (feels like luck, not pity)
     if (plan && plan.mods && plan.mods.surpriseReward) {
       const amt = plan.mods.surpriseReward; S.addCoins(amt); this.ui.setCoinBalance(S.get().coins);
       setTimeout(() => this.ui.surprise('🎉 LUCKY DROP', '+' + amt + ' coins'), 700);
     }
+    // rare "before you leave, try this" rescue: flood the maze with gold
+    if (plan && plan.churn && plan.churn.zone === 'panic') { clearTimeout(this._gT); this._gT = setTimeout(() => this.game.forceGoldRush(), 1700); }
   }
 
-  pause() { if (this.game.state !== 'playing') return; this.director.notePause(); this.game.pause(); SDK.gameplayStop(); this.ui.showScreen('pause'); }
+  pause() { if (this.game.state !== 'playing') return; this.director.notePause(); this.game.pause(); SDK.gameplayStop(); this.ui.showOverlay('pause'); }
   resume() { this.ui.hideOverlays(); this.ui.showHUD(true); this.game.resume(); SDK.gameplayStart(); }
   restart() { this.startStage(this.stage, { retry: true }); }
   toMenu() { SDK.gameplayStop(); Audio.stopMusic(); this.game.state = 'idle'; this.ui.showHUD(false); this.ui.goldRush(false); this.ui.showScreen('menu'); this.ui.refreshMenu(); }
@@ -153,8 +161,10 @@ class App {
     const finish = ECON.finishBonus(stage);
     const perfect = (data.coins >= data.coinTotal && data.coinTotal > 0) ? ECON.perfectBonus : 0;
     const beatPar = data.timeMs <= this.levelData.parTimeMs; const medal = beatPar ? 25 : 0;
-    let chest = 0; if (stage % ECON.chestEvery === 0) chest = ECON.chestCoins(stage);
-    let awarded = base + finish + perfect + medal + chest;
+    const missionDone = this.director.checkMission(this.mission, { ...data, parMs: this.levelData.parTimeMs, deaths: this.deathsThisStage });
+    const missionReward = missionDone ? (this.mission.reward || 0) : 0;
+    let awarded = Math.round(base + finish + perfect + medal + missionReward);
+    const chestDue = stage % ECON.chestEvery === 0;
 
     S.recordLevelResult(stage, { stars: data.stars, coins: data.coins, timeMs: data.timeMs });
     S.unlockNextLevel(stage); S.addCoins(awarded); S.bump('wins'); this.winsSinceAd++;
@@ -162,15 +172,24 @@ class App {
 
     this.ui.setCoinBalance(S.get().coins);
     this.ui.showWin({ ...data, coinsAwarded: awarded, beatPar }, {
-      canDouble: true,
+      canDouble: true, canChest: chestDue,
+      missionDone, missionLabel: missionDone ? this.mission.label : '',
       onDouble: () => this._doubleCoins(),
+      onChest: () => this._openChest(stage),
       onNext: () => this._next(),
       onReplay: () => this.startStage(stage, {}),
       onMenu: () => this.toMenu(),
     });
-    if (chest) this.ui.toast(`🎁 Chest! +${chest} coins`, 2200);
+    if (missionDone) this.ui.toast(`🎯 Mission! +${missionReward} coins`, 2000);
     else if (perfect) this.ui.toast('Perfect! All coins ✨', 2000);
     else if (beatPar) this.ui.toast('⏱ Time medal!', 1700);
+  }
+  _openChest(stage) {
+    this.ui.showChest(ECON.chestCoins(stage), (total) => {
+      S.addCoins(total); this.lastWin.awarded += total;
+      this.ui.setCoinBalance(S.get().coins); this.ui.setWinCoins(this.lastWin.awarded * (this.lastWin.doubled ? 2 : 1));
+      Audio.win();
+    });
   }
   async _doubleCoins() {
     if (this.lastWin.doubled) return;
@@ -188,6 +207,7 @@ class App {
   // ---- lose ----
   _onDie(reason, info) {
     SDK.gameplayStop(); Audio.stopMusic(); S.bump('deaths'); this.deathsThisStage++;
+    this.director.noteDeathNow();        // start retry-speed clock
     this.director.recordLoss({ difficulty: this.lastDifficulty, timeMs: this.game.clockMs, deathSpot: info, nearFinish: info?.nearFinish });
     this.ui.showLose(reason, {
       nearFinish: info?.nearFinish,

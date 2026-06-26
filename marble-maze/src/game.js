@@ -7,8 +7,9 @@
 import * as THREE from 'three';
 import {
   T, WALL_H, WALL_CAP, MARBLE_R, PHYS, RADII, STARS, POWERUPS,
-  DANGER, DANGER_DARK, FINISH_COLOR, MOVER_COLOR, PORTAL_A, PORTAL_B, GOLD_RUSH,
+  DANGER, DANGER_DARK, FINISH_COLOR, MOVER_COLOR, GOLD_RUSH,
 } from './config.js';
+import { drawMarbleTexture } from './marbletex.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const tmpV = new THREE.Vector3();
@@ -90,6 +91,29 @@ export class Game {
   geo(key, make) { return this._geo[key] || (this._geo[key] = make()); }
   _own(m) { m.userData = m.userData || {}; m.userData._own = true; return m; }
 
+  // wall box whose TOP face is the bright cap colour (single mesh => no z-fight)
+  _wallGeo(w) {
+    const g = new THREE.BoxGeometry(T, WALL_H, T); g.userData = { _own: true };
+    const pos = g.attributes && g.attributes.position;
+    if (pos) {
+      const wall = new THREE.Color(w.wall), top = new THREE.Color(w.wallTop);
+      const n = pos.count, col = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) { const c = (i >= 8 && i <= 11) ? top : wall; col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    }
+    return g;
+  }
+
+  // skin perks: a reason to want a skin beyond looks
+  _applyPerks(skinDef) {
+    this.perkMagnet = false; this.speedPerk = 1; this.coinPerk = 1;
+    const p = skinDef && skinDef.perk;
+    if (p === 'shield') this.shield = true;                 // one free hit at level start
+    else if (p === 'magnet') this.perkMagnet = true;
+    else if (p === 'headstart') this.speedPerk = 1.08;
+    else if (p === 'lucky') this.coinPerk = 1.15;
+  }
+
   _makeEnvCube(world) {
     const faces = []; const top = new THREE.Color(world.sky), bot = new THREE.Color(world.floorEdge), hor = new THREE.Color(world.horizon);
     for (let i = 0; i < 6; i++) {
@@ -152,16 +176,15 @@ export class Game {
       for (const [dx, dy] of [[0,-1],[1,0],[0,1],[-1,0]]) { const nx = x+dx, ny = y+dy; if (nx<0||ny<0||nx>=data.gw||ny>=data.gh||data.grid[ny][nx]===0) { exposed = true; break; } }
       if (exposed) wallTiles.push([x, y]);
     }
-    const bodyGeo = this._own(new THREE.BoxGeometry(T, WALL_H, T));
-    const bodyMat = this._own(new THREE.MeshStandardMaterial({ color: w.wall, roughness: 0.78, metalness: w.emissiveWorld ? 0.25 : 0.04, emissive: new THREE.Color(w.emissiveWorld ? w.wall : 0x000000), emissiveIntensity: w.emissiveWorld ? 0.25 : 0 }));
-    const body = new THREE.InstancedMesh(bodyGeo, bodyMat, wallTiles.length); body.castShadow = true; body.receiveShadow = true;
-    const capGeo = this._own(new THREE.BoxGeometry(T, WALL_CAP, T));
-    const capMat = this._own(new THREE.MeshStandardMaterial({ color: w.wallTop, roughness: 0.5, metalness: 0.1, emissive: new THREE.Color(w.emissiveWorld ? w.wallTop : 0x000000), emissiveIntensity: w.emissiveWorld ? 0.7 : 0 }));
-    const cap = new THREE.InstancedMesh(capGeo, capMat, wallTiles.length); cap.castShadow = true;
+    // ONE vertex-coloured mesh (top face = bright cap colour). A single mesh
+    // removes the coplanar body/cap faces that caused the walls to shimmer.
+    const wallGeo = this._wallGeo(w);
+    const wallMat = this._own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: w.emissiveWorld ? 0.2 : 0.04, emissive: new THREE.Color(w.emissiveWorld ? w.wall : 0x000000), emissiveIntensity: w.emissiveWorld ? 0.22 : 0 }));
+    const body = new THREE.InstancedMesh(wallGeo, wallMat, wallTiles.length); body.castShadow = true; body.receiveShadow = true;
     const m = new THREE.Matrix4();
-    wallTiles.forEach(([x, y], i) => { const p = this.tileWorld(x, y); m.makeTranslation(p.x, WALL_H / 2, p.z); body.setMatrixAt(i, m); m.makeTranslation(p.x, WALL_H - WALL_CAP / 2 + 0.01, p.z); cap.setMatrixAt(i, m); });
-    body.instanceMatrix.needsUpdate = true; cap.instanceMatrix.needsUpdate = true;
-    this.wallGroup.add(body); this.wallGroup.add(cap);
+    wallTiles.forEach(([x, y], i) => { const p = this.tileWorld(x, y); m.makeTranslation(p.x, WALL_H / 2, p.z); body.setMatrixAt(i, m); });
+    body.instanceMatrix.needsUpdate = true;
+    this.wallGroup.add(body);
 
     // holes
     this.finishMesh = this._makeHole(data.finish, true, w);
@@ -178,7 +201,6 @@ export class Game {
     this.sizeZones = (data.sizeZones || []).map(z => this._makeSizeZone(z));
     this.rotators = (data.rotators || []).map(r => this._makeRotator(r));
     this.movers = (data.movingWalls || []).map(mw => this._makeMover(mw));
-    this.portals = (data.portals || []).map(p => this._makePortal(p));
     this.powerups = (data.powerups || []).map(p => this._makePowerup(p));
 
     // marble
@@ -190,9 +212,10 @@ export class Game {
     this.activePowerups.clear(); this.shield = false; this.timeScale = 1;
     this.clockMs = 0; this.combo = 0; this.comboTimer = 0;
     this.wallsPhased = false; this.phaseAmt = 0; this.wallGroup.position.y = 0;
-    this.holesPatched = false;
-    this.gold = { active: false, timer: 0, times: [], coins: [] };
+    this.holesPatched = false; this.ghost = false; this.freeze = false;
+    this.gold = { active: false, timer: 0, times: [], coins: [], used: false };
     this.idleTimer = 0; this._idleFired = false;
+    this._applyPerks(skinDef);
 
     this._updateCameraImmediate();
     this._fall = null; this._resolved = false; this._boosting = false;
@@ -246,30 +269,40 @@ export class Game {
 
   _makePowerup(p) {
     const def = POWERUPS[p.type] || POWERUPS.shield;
-    const g = new THREE.Group(); const wp = this.tileWorld(p.tx, p.ty); g.position.set(wp.x, 1.5, wp.z);
-    // distinct from coins: a glowing rounded GEM that floats high inside a bright ring + pillar of light
-    const core = new THREE.Mesh(this.geo('puGem', () => new THREE.OctahedronGeometry(0.62, 0)), this._own(new THREE.MeshStandardMaterial({ color: def.color, emissive: def.color, emissiveIntensity: 1.0, roughness: 0.15, metalness: 0.2 })));
-    core.castShadow = true; g.add(core);
-    const ring = new THREE.Mesh(this.geo('puRing', () => new THREE.TorusGeometry(1.0, 0.07, 10, 26)), this._own(new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 })));
-    ring.rotation.x = Math.PI / 2; g.add(ring);
-    const pillar = new THREE.Mesh(this.geo('puPillar', () => new THREE.CylinderGeometry(0.16, 0.16, 3.0, 8, 1, true)), this._own(new THREE.MeshBasicMaterial({ color: def.color, transparent: true, opacity: 0.3, depthWrite: false })));
-    pillar.position.y = -1.0; g.add(pillar);
-    g.userData = { tx: p.tx, ty: p.ty, type: p.type, def, collected: false, core, ring };
+    const g = new THREE.Group(); const wp = this.tileWorld(p.tx, p.ty); g.position.set(wp.x, 1.55, wp.z);
+    // unmistakable vs coins: glowing orb + white halo + light pillar + a
+    // billboarded ICON so the player instantly reads what it does.
+    const orb = new THREE.Mesh(this.geo('puOrb', () => new THREE.SphereGeometry(0.66, 20, 16)), this._own(new THREE.MeshStandardMaterial({ color: def.color, emissive: def.color, emissiveIntensity: 1.1, roughness: 0.12, metalness: 0.25 })));
+    orb.castShadow = true; g.add(orb);
+    const halo = new THREE.Mesh(this.geo('puHalo', () => new THREE.TorusGeometry(1.05, 0.08, 12, 28)), this._own(new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })));
+    halo.rotation.x = Math.PI / 2; g.add(halo);
+    const pillar = new THREE.Mesh(this.geo('puPillar', () => new THREE.CylinderGeometry(0.22, 0.22, 3.4, 10, 1, true)), this._own(new THREE.MeshBasicMaterial({ color: def.color, transparent: true, opacity: 0.28, depthWrite: false })));
+    pillar.position.y = -1.1; g.add(pillar);
+    const icon = new THREE.Mesh(this.geo('puIcon', () => new THREE.PlaneGeometry(1.15, 1.15)), this._own(new THREE.MeshBasicMaterial({ map: this._iconTex(def), transparent: true, depthWrite: false })));
+    icon.position.y = 1.3; g.add(icon);
+    g.userData = { tx: p.tx, ty: p.ty, type: p.type, def, collected: false, orb, halo, icon };
     this.levelGroup.add(g); return g;
+  }
+  _iconTex(def) {
+    const k = 'ic_' + def.id; if (this._texCache[k]) return this._texCache[k];
+    const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+    const col = new THREE.Color(def.color);
+    x.fillStyle = '#' + col.getHexString(); x.beginPath(); x.arc(64, 64, 54, 0, 7); x.fill();
+    x.fillStyle = 'rgba(255,255,255,0.95)'; x.font = '70px serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(def.icon || '★', 64, 74);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; this._texCache[k] = t; return t;
   }
 
   _makeBoostPad(p, w) {
-    // a glowing LAUNCH ramp of chevrons pointing the way — NO collision body
-    const g = new THREE.Group(); const wp = this.tileWorld(p.tx, p.ty); g.position.set(wp.x, 0.06, wp.z);
-    const ang = Math.atan2(p.dir.y, p.dir.x); g.rotation.y = -ang;
-    const base = new THREE.Mesh(this.geo('lpBase', () => new THREE.BoxGeometry(T * 0.62, 0.08, T * 0.92)), this._own(new THREE.MeshStandardMaterial({ color: 0x0c1430, emissive: 0x21f3ff, emissiveIntensity: 0.25, roughness: 0.5 })));
-    g.add(base);
-    const chevs = [];
-    for (let i = 0; i < 3; i++) {
-      const ch = new THREE.Mesh(this.geo('lpChev', () => chevronGeo()), this._own(new THREE.MeshBasicMaterial({ color: 0x21f3ff, transparent: true, opacity: 0.9 })));
-      ch.position.set((i - 1) * T * 0.26, 0.07, 0); ch.rotation.x = -Math.PI / 2; ch.scale.setScalar(0.5); g.add(ch); chevs.push(ch);
-    }
-    g.userData = { tile: p, dir: p.dir, cd: 0, chevs }; this.levelGroup.add(g); return g;
+    // a non-directional glowing SPEED pad (two-way) with a light shaft — NO
+    // collision body, so it never blocks the marble.
+    const g = new THREE.Group(); const wp = this.tileWorld(p.tx, p.ty); g.position.set(wp.x, 0.05, wp.z);
+    const pad = new THREE.Mesh(this.geo('spPad', () => new THREE.CylinderGeometry(T * 0.36, T * 0.42, 0.12, 24)), this._own(new THREE.MeshStandardMaterial({ color: 0x081830, emissive: 0x18e0ff, emissiveIntensity: 0.95, roughness: 0.3 })));
+    g.add(pad);
+    const ring = new THREE.Mesh(this.geo('spRing', () => new THREE.TorusGeometry(T * 0.3, 0.06, 10, 28)), this._own(new THREE.MeshBasicMaterial({ color: 0xbff7ff, transparent: true, opacity: 0.9 })));
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.12; g.add(ring);
+    const shaft = new THREE.Mesh(this.geo('spShaft', () => new THREE.CylinderGeometry(T * 0.22, T * 0.34, 2.6, 16, 1, true)), this._own(new THREE.MeshBasicMaterial({ color: 0x18e0ff, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false })));
+    shaft.position.y = 1.3; g.add(shaft);
+    g.userData = { tile: p, dir: p.dir, cd: 0, ring, pad }; this.levelGroup.add(g); return g;
   }
 
   _makeBouncer(b) {
@@ -323,11 +356,14 @@ export class Game {
   }
 
   _makeRotator(r) {
-    const g = new THREE.Group(); const wp = this.tileWorld(r.tx, r.ty); g.position.set(wp.x, 0.9, wp.z);
-    const pivot = new THREE.Mesh(this.geo('rPivot', () => new THREE.CylinderGeometry(0.4, 0.4, 1.8, 12)), this._own(new THREE.MeshStandardMaterial({ color: 0x33405a, metalness: 0.6, roughness: 0.4 }))); g.add(pivot);
+    const g = new THREE.Group(); const wp = this.tileWorld(r.tx, r.ty); g.position.set(wp.x, 0.85, wp.z);
+    const hub = new THREE.Mesh(this.geo('rHub', () => new THREE.CylinderGeometry(0.5, 0.62, 1.8, 16)), this._own(new THREE.MeshStandardMaterial({ color: 0x2b3346, metalness: 0.7, roughness: 0.35 }))); g.add(hub);
     const len = r.len * T;
-    const arm = new THREE.Mesh(this._own(new THREE.BoxGeometry(len, 0.6, 0.6)), this._own(new THREE.MeshStandardMaterial({ color: DANGER, emissive: DANGER, emissiveIntensity: 0.6, roughness: 0.5 })));
-    arm.position.x = len / 2 - T * 0.5; arm.castShadow = true; g.add(arm);
+    // the deadly RED bar starts AT the pivot and reaches `len` — exactly the
+    // lethal segment, so you only die if you actually touch the bar.
+    const arm = new THREE.Mesh(this._own(new THREE.BoxGeometry(len, 0.5, 0.5)), this._own(new THREE.MeshStandardMaterial({ color: DANGER, emissive: DANGER, emissiveIntensity: 0.85, roughness: 0.4 })));
+    arm.position.x = len / 2; arm.castShadow = true; g.add(arm);
+    const tip = new THREE.Mesh(this.geo('rTip', () => new THREE.SphereGeometry(0.4, 12, 10)), this._own(new THREE.MeshStandardMaterial({ color: DANGER, emissive: DANGER, emissiveIntensity: 1.3 }))); tip.position.x = len; g.add(tip);
     g.userData = { tile: r, len, speed: r.speed, angle: Math.random() * 6 }; this.levelGroup.add(g); return g;
   }
 
@@ -341,15 +377,6 @@ export class Game {
     mesh.castShadow = true; mesh.receiveShadow = true; mesh.position.set(wp.x, WALL_H * 0.46, wp.z);
     mesh.userData = { tile: mw, base: wp, retract: { x: retract[0], y: retract[1] }, period: mw.period, phase: mw.phase, offset: 0 };
     this.levelGroup.add(mesh); return mesh;
-  }
-
-  _makePortal(p) {
-    const make = (tile, col) => { const g = new THREE.Group(); const wp = this.tileWorld(tile.tx, tile.ty); g.position.set(wp.x, 0.1, wp.z);
-      const ring = new THREE.Mesh(this.geo('poRing', () => new THREE.TorusGeometry(T * 0.36, 0.13, 14, 30)), this._own(new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 1.1, roughness: 0.3 }))); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.2; g.add(ring);
-      const swirl = new THREE.Mesh(this.geo('poSwirl', () => new THREE.CircleGeometry(T * 0.34, 24)), this._own(new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.3, side: THREE.DoubleSide, depthWrite: false }))); swirl.rotation.x = -Math.PI / 2; swirl.position.y = 0.18; g.add(swirl);
-      g.userData = { ring, swirl }; this.levelGroup.add(g); return g; };
-    const a = make(p.a, PORTAL_A), b = make(p.b, PORTAL_B);
-    return { a, b, ax: a.position.x, az: a.position.z, bx: b.position.x, bz: b.position.z, cd: 0 };
   }
 
   _makeMarble(skinDef, trailDef) {
@@ -371,7 +398,7 @@ export class Game {
     mat.clearcoat = mm.clearcoat ?? 0; mat.clearcoatRoughness = 0.08;
     mat.emissive = new THREE.Color(mm.emissive ?? 0x000000); mat.emissiveIntensity = mm.emissiveInt ?? 0;
     mat.envMapIntensity = 1.1;
-    if (def.tex) { const tex = new THREE.CanvasTexture(this._marbleCanvas(def.tex)); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; mat.map = tex; mat.color = new THREE.Color(0xffffff); }
+    if (def.tex) { const cv = document.createElement('canvas'); cv.width = cv.height = 256; drawMarbleTexture(cv.getContext('2d'), def.tex, 256); const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; mat.map = tex; mat.color = new THREE.Color(0xffffff); }
     this._setRing(!!def.ring, mm.color);
     this._rainbow = !!mm.rainbow; mat.needsUpdate = true;
   }
@@ -381,24 +408,6 @@ export class Game {
   }
   applyTrail(def) { this.trailDef = def; const on = def && def.id !== 'none'; if (this.trail) this.trail.visible = on; if (on) this.trailColor = new THREE.Color(def.color); this._trailRainbow = !!(def && def.rainbow); }
 
-  // ---- procedural marble textures (witty hypercasual) ----
-  _marbleCanvas(type) {
-    const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
-    const W = 256, H = 256, fill = (s) => { x.fillStyle = s; };
-    const circle = (cx, cy, r, s) => { fill(s); x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill(); };
-    if (type === 'beach') { fill('#fff'); x.fillRect(0, 0, W, H); const cols = ['#ff4d6d', '#ffd23a', '#4dd4ff', '#5be37a', '#b06bff']; for (let i = 0; i < 6; i++) { fill(cols[i % cols.length]); x.beginPath(); x.moveTo(W / 2, H / 2); x.arc(W / 2, H / 2, H, i / 6 * 7, (i + 1) / 6 * 7); x.closePath(); x.globalAlpha = 0.9; x.fill(); } x.globalAlpha = 1; }
-    else if (type === 'smiley') { fill('#ffd23a'); x.fillRect(0, 0, W, H); circle(96, 100, 18, '#23201a'); circle(160, 100, 18, '#23201a'); x.strokeStyle = '#23201a'; x.lineWidth = 16; x.lineCap = 'round'; x.beginPath(); x.arc(128, 140, 56, 0.2, Math.PI - 0.2); x.stroke(); }
-    else if (type === 'eight') { fill('#111'); x.fillRect(0, 0, W, H); circle(128, 110, 52, '#fff'); fill('#111'); x.font = 'bold 70px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('8', 128, 116); }
-    else if (type === 'soccer') { fill('#fff'); x.fillRect(0, 0, W, H); fill('#111'); for (let i = 0; i < 7; i++) { const a = i / 7 * 7, r = 80; pent(x, 128 + Math.cos(a) * r, 128 + Math.sin(a) * r, 24, a); } pent(x, 128, 128, 26, 0); }
-    else if (type === 'basket') { fill('#e0692a'); x.fillRect(0, 0, W, H); x.strokeStyle = '#1a1008'; x.lineWidth = 7; line(x, 0, 128, W, 128); line(x, 128, 0, 128, H); x.beginPath(); x.arc(40, 128, 120, -1, 1); x.stroke(); x.beginPath(); x.arc(216, 128, 120, Math.PI - 1, Math.PI + 1); x.stroke(); }
-    else if (type === 'melon') { fill('#3aa052'); x.fillRect(0, 0, W, H); fill('#1f6e36'); for (let i = 0; i < 8; i++) { x.fillRect(i * 32 + 6, 0, 10, H); } }
-    else if (type === 'disco') { fill('#3a4252'); x.fillRect(0, 0, W, H); for (let yy = 0; yy < 16; yy++) for (let xx = 0; xx < 16; xx++) { fill((xx + yy) % 2 ? '#cdd6e6' : '#8e9bb3'); x.fillRect(xx * 16, yy * 16, 15, 15); } }
-    else if (type === 'planet') { const cols = ['#d9a05a', '#caa24a', '#e0b070', '#b88840', '#d8a860']; for (let i = 0; i < 10; i++) { fill(cols[i % cols.length]); x.fillRect(0, i * 26, W, 26); } }
-    else if (type === 'galaxy') { fill('#140a2a'); x.fillRect(0, 0, W, H); for (let i = 0; i < 240; i++) { const a = i * 0.4, r = i * 0.5; fill(i % 5 ? '#ffffff' : '#9a6bff'); x.globalAlpha = Math.random() * 0.9; x.fillRect(128 + Math.cos(a) * r * 0.4, 128 + Math.sin(a) * r * 0.4, 2, 2); } x.globalAlpha = 1; }
-    else if (type === 'slime') { fill('#9bff2a'); x.fillRect(0, 0, W, H); fill('#5fb81a'); for (let i = 0; i < 14; i++) circle(Math.random() * W, Math.random() * H, 8 + Math.random() * 18, '#5fb81a'); }
-    else { fill('#ccc'); x.fillRect(0, 0, W, H); }
-    return c;
-  }
   _tex(name) {
     if (this._texCache[name]) return this._texCache[name];
     const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
@@ -500,6 +509,7 @@ export class Game {
     let accel = PHYS.accel * (boosting ? PHYS.boostMult : 1);
     let maxv = PHYS.maxSpeed * (boosting ? PHYS.boostMult : 1);
     if (this.activePowerups.has('speed')) { accel *= 1.4; maxv *= 1.4; }
+    accel *= this.speedPerk; maxv *= this.speedPerk;          // skin headstart perk
     const sizeF = this.baseRadius / this.radius; maxv *= sizeF; accel *= sizeF;
     let fric = PHYS.friction;
     if (w.sig === 'slippery') fric *= 0.45;
@@ -526,6 +536,7 @@ export class Game {
     return { nx, nz, push: r - d };
   }
   _resolveWalls() {
+    if (this.ghost) return;                              // ghost passes through
     if (this.wallsPhased && this.phaseAmt > 0.5) return; // phased through
     const r = this.radius, px0 = this.marble.position.x, pz0 = this.marble.position.z;
     const { tx, ty } = this.worldTile(px0, pz0);
@@ -550,6 +561,13 @@ export class Game {
 
   // ---- entity motion ----
   _entities(dt) {
+    if (!this.freeze) this._moveHazards(dt);
+    // cooldowns / non-hazard motion still tick under Freeze
+    for (const b of this.bouncers) { if (b.userData.cd > 0) b.userData.cd -= dt; b.userData.squash = Math.max(0, b.userData.squash - dt * 4); const sq = b.userData.squash; b.scale.set(1 + sq * 0.3, 1 - sq * 0.5, 1 + sq * 0.3); }
+    for (const p of this.boostPads) if (p.userData.cd > 0) p.userData.cd -= dt;
+    for (const z of this.sizeZones) if (z.userData.cd > 0) z.userData.cd -= dt;
+  }
+  _moveHazards(dt) {
     for (const c of this.crawlers) {
       const pts = c.userData.pts; if (pts.length < 2) continue;
       c.userData.u += c.userData.dir * c.userData.speed * dt / T;
@@ -572,11 +590,7 @@ export class Game {
     for (const p of this.projectiles) { if (!p.alive) continue; p.mesh.position.x += p.vx * dt; p.mesh.position.z += p.vz * dt; const { tx, ty } = this.worldTile(p.mesh.position.x, p.mesh.position.z); if (this.isWall(tx, ty)) { p.alive = false; this.levelGroup.remove(p.mesh); this.burst(p.mesh.position.x, 0.6, p.mesh.position.z, DANGER, 6, 4, 0.3); } }
     this.projectiles = this.projectiles.filter(p => p.alive);
     for (const r of this.rotators) { r.userData.angle += r.userData.speed * dt; r.rotation.y = r.userData.angle; }
-    for (const b of this.bouncers) { if (b.userData.cd > 0) b.userData.cd -= dt; b.userData.squash = Math.max(0, b.userData.squash - dt * 4); const sq = b.userData.squash; b.scale.set(1 + sq * 0.3, 1 - sq * 0.5, 1 + sq * 0.3); }
-    for (const p of this.boostPads) if (p.userData.cd > 0) p.userData.cd -= dt;
-    for (const z of this.sizeZones) if (z.userData.cd > 0) z.userData.cd -= dt;
-    for (const p of this.portals) if (p.cd > 0) p.cd -= dt;
-    // movers slide
+    // sliding walls
     for (const mv of this.movers || []) {
       const u = (this._t / mv.userData.period + mv.userData.phase) % 1;
       const off = 0.5 - 0.5 * Math.cos(u * Math.PI * 2); // 0..1..0
@@ -596,21 +610,25 @@ export class Game {
   // ---- pickups ----
   _checkPickups() {
     const mx = this.marble.position.x, mz = this.marble.position.z;
-    const magnet = this.activePowerups.has('magnet');
+    const magnetActive = this.activePowerups.has('magnet');
+    const magnet = magnetActive || this.perkMagnet;
+    const mRange = magnetActive ? T * 3.4 : T * 1.8, mPull = magnetActive ? 20 : 9;
     for (const coin of this.coins) {
       if (coin.userData.collected) continue;
       let dx = coin.position.x - mx, dz = coin.position.z - mz, dd = Math.hypot(dx, dz);
-      if (magnet && dd < T * 3.4) { const pull = 20 * (1 - dd / (T * 3.4)); coin.position.x -= (dx / (dd || 1)) * pull * 0.016; coin.position.z -= (dz / (dd || 1)) * pull * 0.016; dx = coin.position.x - mx; dz = coin.position.z - mz; dd = Math.hypot(dx, dz); }
+      if (magnet && dd < mRange) { const pull = mPull * (1 - dd / mRange); coin.position.x -= (dx / (dd || 1)) * pull * 0.016; coin.position.z -= (dz / (dd || 1)) * pull * 0.016; dx = coin.position.x - mx; dz = coin.position.z - mz; dd = Math.hypot(dx, dz); }
       if (dd < RADII.coin + this.radius * 0.4) this._collectCoin(coin);
     }
-    for (const pu of this.powerups) { if (pu.userData.collected) continue; if (Math.hypot(pu.position.x - mx, pu.position.z - mz) < RADII.powerup + this.radius * 0.4) this._collectPowerup(pu); }
+    for (const pu of this.powerups) { if (pu.userData.collected) continue; if (Math.hypot(pu.position.x - mx, pu.position.z - mz) < RADII.powerup + this.radius * 0.5) this._collectPowerup(pu); }
     for (const p of this.boostPads) {
       if (p.userData.cd > 0) continue;
-      if (Math.hypot(p.position.x - mx, p.position.z - mz) < T * 0.55) {
-        const dir = p.userData.dir; const launch = 26;
-        // LAUNCH: set speed along the corridor (never into a wall — dir is the open run)
-        this.vel.x = dir.x * launch; this.vel.z = dir.y * launch; p.userData.cd = 0.7;
-        this.burst(p.position.x, 0.4, p.position.z, 0x21f3ff, 16, 8, 0.4, 3); this.cb.onSfx?.('boost');
+      if (Math.hypot(p.position.x - mx, p.position.z - mz) < T * 0.5) {
+        // TWO-WAY: launch along the marble's current heading (or the corridor
+        // axis if nearly stopped). Strong but controllable.
+        const sp = Math.hypot(this.vel.x, this.vel.z); let dx, dz;
+        if (sp > 1.2) { dx = this.vel.x / sp; dz = this.vel.z / sp; } else { dx = p.userData.dir.x; dz = p.userData.dir.y; }
+        this.vel.x = dx * 23; this.vel.z = dz * 23; p.userData.cd = 0.6;
+        this.burst(p.position.x, 0.5, p.position.z, 0x6cf0ff, 16, 8, 0.4, 3); this.cb.onSfx?.('boost');
       }
     }
     for (const b of this.bouncers) {
@@ -619,32 +637,34 @@ export class Game {
       if (dd < T * 0.42 + this.radius) { const n = dd < 1e-3 ? { x: Math.random() - 0.5, z: Math.random() - 0.5 } : { x: dx / dd, z: dz / dd }; this.vel.x = n.x * 26; this.vel.z = n.z * 26; b.userData.cd = 0.4; b.userData.squash = 1; this.burst(b.position.x, 0.6, b.position.z, 0xff5bb0, 14, 8, 0.4, 4); this.cb.onSfx?.('bounce'); }
     }
     for (const z of this.sizeZones) { if (z.userData.cd > 0) continue; if (Math.hypot(z.position.x - mx, z.position.z - mz) < T * 0.34) { z.userData.cd = 2; if (z.userData.kind === 'shrink') this._startPowerup('shrink'); else { this.radius = this.baseRadius * 1.5; this.activePowerups.set('grow', 7); this._applySize(); } this.cb.onSfx?.('powerup'); } }
-    for (const p of this.portals) {
-      if (p.cd > 0) continue;
-      if (Math.hypot(p.ax - mx, p.az - mz) < RADII.portal) { this._teleport(p, p.bx, p.bz); break; }
-      if (Math.hypot(p.bx - mx, p.bz - mz) < RADII.portal) { this._teleport(p, p.ax, p.az); break; }
-    }
   }
-  _teleport(p, tx, tz) {
-    this.burst(this.marble.position.x, 0.8, this.marble.position.z, PORTAL_A, 18, 7, 0.5, 3);
-    this.marble.position.x = tx; this.marble.position.z = tz; p.cd = 0.9;
-    this.burst(tx, 0.8, tz, PORTAL_B, 18, 7, 0.5, 3); this.cb.onSfx?.('powerup');
-  }
-
   _collectCoin(coin) {
     coin.userData.collected = true; coin.visible = false;
     const gold = coin.userData.gold; if (!gold) this.coinsCollected++;
     this.combo++; this.comboTimer = 1.4;
-    const val = (this.activePowerups.has('x2') ? 2 : 1) * (this.gold.active ? 2 : 1);
+    const val = (this.activePowerups.has('x2') ? 2 : 1) * (this.gold.active ? 2 : 1) * this.coinPerk;
     this.burst(coin.position.x, coin.position.y, coin.position.z, gold ? 0xffe14d : 0xffd23a, 12, 5, 0.5, 2);
     this.cb.onCoin?.(this.coinsCollected, val, this.combo);
     this.cb.onSfx?.('coin', this.combo);
-    // GOLD RUSH trigger
-    this.gold.times.push(this._t);
-    this.gold.times = this.gold.times.filter(tt => this._t - tt < GOLD_RUSH.windowSec);
-    if (!this.gold.active && this.gold.times.length >= GOLD_RUSH.coins) this._startGoldRush();
+    // GOLD RUSH — rare & earned: once per level, only when nearly ALL coins are
+    // grabbed, or a big burst very fast.
+    if (!this.gold.active && !this.gold.used && !gold) {
+      this.gold.times.push(this._t);
+      this.gold.times = this.gold.times.filter(tt => this._t - tt < GOLD_RUSH.windowSec);
+      const total = this.level.coinTotal || 1;
+      const grabbedMost = total >= 6 && this.coinsCollected >= Math.ceil(total * GOLD_RUSH.fraction);
+      const fastBurst = this.gold.times.length >= GOLD_RUSH.minFast;
+      if (grabbedMost || fastBurst) this._startGoldRush();
+    }
   }
-  _collectPowerup(pu) { pu.userData.collected = true; pu.visible = false; this.burst(pu.position.x, 1.4, pu.position.z, pu.userData.def.color, 22, 7, 0.6, 3); this._startPowerup(pu.userData.type); this.cb.onSfx?.('powerup'); }
+  _collectPowerup(pu) {
+    pu.userData.collected = true; pu.visible = false;
+    this.burst(pu.position.x, 1.4, pu.position.z, pu.userData.def.color, 28, 8, 0.7, 4);
+    this.burst(pu.position.x, 1.4, pu.position.z, 0xffffff, 12, 5, 0.5, 3);
+    this._startPowerup(pu.userData.type); this.cb.onSfx?.('powerup');
+  }
+  // allow the director (panic/reward) to trigger a rush
+  forceGoldRush() { if (!this.gold.active && !this.gold.used) this._startGoldRush(); }
 
   _startPowerup(id) {
     const def = POWERUPS[id] || { id, dur: 7 };
@@ -654,8 +674,11 @@ export class Game {
     if (id === 'shrink') { this.radius = this.baseRadius * 0.55; this._applySize(); }
     if (id === 'patchHoles') this._setHolesPatched(true);
     if (id === 'phaseWalls') this.wallsPhased = true;
+    if (id === 'ghost') { this.ghost = true; this._setMarbleGhost(true); }
+    if (id === 'freeze') this.freeze = true;
     this.cb.onPowerupStart?.(def); this.cb.onPowerups?.(this._activeList());
   }
+  _setMarbleGhost(on) { const m = this.marble.material; m.transparent = on; m.opacity = on ? 0.4 : 1; m.needsUpdate = true; }
   _applySize() { this.marble.scale.setScalar(this.radius / this.baseRadius); }
   _setHolesPatched(on) { this.holesPatched = on; for (const d of this.decoyMeshes) { d.userData.rim.material.emissiveIntensity = on ? 0.1 : 1.0; if (d.userData.warn) d.userData.warn.material.opacity = on ? 0.0 : 0.4; d.scale.y = on ? 0.1 : 1; } }
 
@@ -670,6 +693,8 @@ export class Game {
         if (id === 'shield') this.shield = false;
         if (id === 'patchHoles') this._setHolesPatched(false);
         if (id === 'phaseWalls') this.wallsPhased = false;
+        if (id === 'ghost') { this.ghost = false; this._setMarbleGhost(false); }
+        if (id === 'freeze') this.freeze = false;
         this.cb.onPowerupEnd?.(id);
       } else this.activePowerups.set(id, nt);
     }
@@ -686,7 +711,7 @@ export class Game {
 
   // ---- GOLD RUSH (god mode) ----
   _startGoldRush() {
-    this.gold.active = true; this.gold.timer = GOLD_RUSH.durationSec;
+    this.gold.active = true; this.gold.used = true; this.gold.timer = GOLD_RUSH.durationSec; this.gold.times = [];
     const open = this.openTiles.filter(t => !(t.tx === this.level.finish.tx && t.ty === this.level.finish.ty));
     for (let i = 0; i < GOLD_RUSH.fillCount && open.length; i++) {
       const t = open[Math.floor(Math.random() * open.length)];
@@ -700,12 +725,14 @@ export class Game {
   _goldTick(dt) {
     if (!this.gold.active) return;
     this.gold.timer -= dt;
-    if (this.gold.timer <= 0) {
-      this.gold.active = false;
-      for (const c of this.gold.coins) if (!c.userData.collected) { c.visible = false; c.userData.collected = true; }
-      this.gold.coins = [];
-      this.cb.onGoldRush?.(false);
-    }
+    if (this.gold.timer <= 0) this._endGold();
+  }
+  _endGold() {
+    if (!this.gold.active) return;
+    this.gold.active = false;
+    for (const c of this.gold.coins) if (!c.userData.collected) { c.visible = false; c.userData.collected = true; }
+    this.gold.coins = [];
+    this.cb.onGoldRush?.(false);
   }
 
   // ---- holes ----
@@ -734,14 +761,14 @@ export class Game {
     for (const c of this.crawlers) if (hit(c.position.x, c.position.z, 0.68)) return this._lethal(c.position.x, c.position.z);
     for (const s of this.spikes) if (s.userData.up > 0.5 && hit(s.position.x, s.position.z, 0.55)) return this._lethal(s.position.x, s.position.z);
     for (const p of this.projectiles) if (p.alive && hit(p.mesh.position.x, p.mesh.position.z, 0.3)) { p.alive = false; this.levelGroup.remove(p.mesh); return this._lethal(p.mesh.position.x, p.mesh.position.z); }
-    for (const rt of this.rotators) { const ang = rt.userData.angle; const ex = rt.position.x + Math.cos(ang) * (rt.userData.len - T * 0.5); const ez = rt.position.z + Math.sin(ang) * (rt.userData.len - T * 0.5); if (distToSeg(mx, mz, rt.position.x, rt.position.z, ex, ez) < r + 0.42) return this._lethal(mx, mz); }
+    for (const rt of this.rotators) { const ang = rt.userData.angle; const ex = rt.position.x + Math.cos(ang) * rt.userData.len; const ez = rt.position.z + Math.sin(ang) * rt.userData.len; if (distToSeg(mx, mz, rt.position.x, rt.position.z, ex, ez) < r + 0.34) return this._lethal(mx, mz); }
   }
   _lethal(x, z) { if (this.shield) { this._consumeShield(x, z); return; } this._die('hazard', x, z); }
   _consumeShield(x, z) { this.shield = false; this.activePowerups.delete('shield'); this.burst(x, 0.8, z, 0x4dffa3, 26, 9, 0.6, 4); this.cb.onSfx?.('shieldHit'); this.cb.onPowerupEnd?.('shield'); this.cb.onPowerups?.(this._activeList()); this.vel.x *= -0.4; this.vel.z *= -0.4; }
 
   // ---- win/die ----
   _win() {
-    if (this.state !== 'playing') return; this.state = 'win';
+    if (this.state !== 'playing') return; this.state = 'win'; this._endGold();
     this._fall = { x: this.finishMesh.position.x, z: this.finishMesh.position.z, t: 0 };
     const coins = this.coinsCollected, total = this.level.coinTotal || 1; let stars = 1;
     if (coins >= total * STARS.coinFractionFor2) stars = 2; if (coins >= total * STARS.coinFractionFor3) stars = 3;
@@ -749,7 +776,7 @@ export class Game {
     this._winData = { timeMs: this.clockMs, coins, coinTotal: total, stars };
   }
   _die(reason, x, z) {
-    if (this.state !== 'playing') return; this.state = 'die';
+    if (this.state !== 'playing') return; this.state = 'die'; this._endGold();
     const nearFinish = Math.hypot(this.marble.position.x - this.finishMesh.position.x, this.marble.position.z - this.finishMesh.position.z) < T * 2.5;
     this._fall = { x: x ?? this.marble.position.x, z: z ?? this.marble.position.z, t: 0, reason, nearFinish };
     this.burst(this.marble.position.x, 0.8, this.marble.position.z, this.skinDef?.mat.color ?? 0xffffff, 30, 9, 0.7, 5); this.cb.onSfx?.('die');
@@ -786,9 +813,8 @@ export class Game {
 
   _animateDecor(dt) {
     for (const coin of this.coins) { if (coin.userData.collected) continue; coin.rotation.z += dt * 3; coin.position.y = coin.userData.baseY + Math.sin(this._t * 2 + coin.userData.spin) * 0.12; }
-    for (const pu of this.powerups) { if (pu.userData.collected) continue; pu.userData.core.rotation.y += dt * 1.6; pu.userData.ring.rotation.z += dt * 1.3; pu.position.y = 1.5 + Math.sin(this._t * 2) * 0.18; }
-    for (const p of this.portals) { p.a.userData.swirl.rotation.z += dt * 2; p.b.userData.swirl.rotation.z -= dt * 2; }
-    for (const bp of this.boostPads) { for (let i = 0; i < bp.userData.chevs.length; i++) { const ch = bp.userData.chevs[i]; ch.material.opacity = 0.5 + 0.5 * Math.sin(this._t * 6 - i * 1.1); } }
+    for (const pu of this.powerups) { if (pu.userData.collected) continue; pu.userData.orb.rotation.y += dt * 1.6; pu.userData.halo.rotation.z += dt * 1.3; pu.position.y = 1.55 + Math.sin(this._t * 2) * 0.18; if (pu.userData.icon) pu.userData.icon.lookAt(this.camera.position); }
+    for (const bp of this.boostPads) { const s = 1 + 0.25 * Math.sin(this._t * 5); bp.userData.ring.scale.set(s, s, s); bp.userData.pad.material.emissiveIntensity = 0.7 + 0.4 * Math.sin(this._t * 5); }
     if (this.finishMesh?.userData.beam) {
       this.finishMesh.userData.rim.rotation.z += dt * 0.8;
       this.finishMesh.userData.beam.material.opacity = 0.18 + Math.sin(this._t * 3) * 0.07;
@@ -839,13 +865,14 @@ export class Game {
   _perf(dt) {
     if (!this.autoQuality) return;
     this._fpsAcc += dt; this._fpsN++;
-    if (this._fpsAcc >= 1.2) {
+    if (this._fpsAcc >= 1.5) {
       const fps = this._fpsN / this._fpsAcc; this._fpsAcc = 0; this._fpsN = 0;
-      if (fps < 42 && this._degraded < 2) this._applyTier(this._degraded + 1);
-      else if (fps > 58 && this._degraded > 0 && this._upChances++ > 6) { this._upChances = 0; this._applyTier(this._degraded - 1); }
+      if (fps < 40) { this._lowStreak = (this._lowStreak || 0) + 1; if (this._lowStreak >= 2 && this._degraded < 2) { this._applyTier(this._degraded + 1); this._lowStreak = 0; } }
+      else this._lowStreak = 0;
+      // NEVER auto-upgrade: re-toggling pixelRatio/shadows mid-session is what
+      // caused the periodic whole-screen flicker. Quality only steps down.
     }
   }
-  _upChances = 0;
 
   dispose() { window.removeEventListener('resize', this._onResize); this._clearLevel(); this.renderer.dispose(); }
 }

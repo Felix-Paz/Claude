@@ -161,20 +161,22 @@ function procedural(plan) {
   for (const type of useTypes) {
     const want = Math.max(1, Math.ceil(budget / Math.max(1, useTypes.length)));
     for (let i = 0; i < want && budget > 0; i++) {
-      if (type === 'crawlers') { const path = makePatrol(grid, gw, gh, openTiles, ri, start, finish); if (path.length >= 2 && spend()) crawlers.push({ path, speed: (2.0 + rand() * 1.4) * (mods.slowHazards || 1) }); }
+      // crawlers & rotators must NOT sit on the mandatory route (they'd block it)
+      if (type === 'crawlers') { const path = makePatrol(grid, gw, gh, openTiles, ri, start, finish, safe); if (path.length >= 2 && spend()) crawlers.push({ path, speed: (2.0 + rand() * 1.4) * (mods.slowHazards || 1) }); }
       else if (type === 'spikes') { const tt = take(branch.length ? branch : openTiles); if (tt && spend()) spikes.push({ ...tt, phase: rand(), period: (1.7 + rand() * 1.1) / (mods.slowHazards || 1) }); }
       else if (type === 'turrets') { const tt = take(branch.length ? branch : openTiles); if (tt && spend()) turrets.push({ ...tt, dir: openDir(grid, tt), period: (1.7 + rand() * 1.0) / (mods.slowHazards || 1), phase: rand() }); }
-      else if (type === 'rotators') { const tt = take(openTiles); if (tt && spend()) rotators.push({ ...tt, len: 2 + ri(2), speed: (rand() < 0.5 ? 1 : -1) * (0.7 + rand() * 1.0) * (mods.slowHazards || 1) }); }
+      else if (type === 'rotators') { const tt = take(branch.length ? branch : openTiles); if (tt && spend()) rotators.push({ ...tt, len: 1 + ri(2), speed: (rand() < 0.5 ? 1 : -1) * (0.7 + rand() * 1.0) * (mods.slowHazards || 1) }); }
     }
   }
 
-  // ---- boost / launch pads ----
+  // ---- speed pads — placed on LONG straight corridors so the boring
+  //      straights become a fun "zoom" (two-way; behaviour handled in game) ----
   const boostPads = [];
   if (mech.has('boostPads')) {
     const n = Math.min(4, 1 + Math.floor(t * 4));
-    for (let i = 0; i < n; i++) { const seg = corridorSlot(grid, openTiles, ri, occupied); if (seg) { boostPads.push({ tx: seg.tx, ty: seg.ty, dir: seg.dir }); occupied.add(key(seg.tx, seg.ty)); } }
+    for (let i = 0; i < n; i++) { const seg = longCorridorSlot(grid, openTiles, ri, occupied, safe) || corridorSlot(grid, openTiles, ri, occupied); if (seg) { boostPads.push({ tx: seg.tx, ty: seg.ty, dir: seg.dir }); occupied.add(key(seg.tx, seg.ty)); } }
   }
-  if (mods.addBoost && boostPads.length === 0) { const seg = corridorSlot(grid, openTiles, ri, occupied); if (seg) boostPads.push({ tx: seg.tx, ty: seg.ty, dir: seg.dir }); }
+  if (mods.addBoost && boostPads.length === 0) { const seg = longCorridorSlot(grid, openTiles, ri, occupied, safe) || corridorSlot(grid, openTiles, ri, occupied); if (seg) { boostPads.push({ tx: seg.tx, ty: seg.ty, dir: seg.dir }); occupied.add(key(seg.tx, seg.ty)); } }
 
   // ---- bouncers ----
   const bouncers = [];
@@ -188,13 +190,6 @@ function procedural(plan) {
       const seg = corridorSlot(grid, openTiles, ri, occupied);
       if (seg) { movingWalls.push({ tx: seg.tx, ty: seg.ty, dir: seg.dir, period: 2.0 + rand() * 1.2, phase: rand() }); occupied.add(key(seg.tx, seg.ty)); }
     }
-  }
-
-  // ---- portals (teleport pairs) ----
-  const portals = [];
-  if (mech.has('portals')) {
-    const pairs = Math.min(2, 1 + Math.floor(t * 1.5));
-    for (let i = 0; i < pairs; i++) { const a = take(branch.length ? branch : openTiles), b = take(openTiles); if (a && b) portals.push({ a, b }); }
   }
 
   // ---- size zones ----
@@ -215,7 +210,7 @@ function procedural(plan) {
   if (world.sig === 'current') { const ang = ri(4) * Math.PI / 2; current = { x: Math.cos(ang), y: Math.sin(ang), strength: 5 + t * 4 }; }
 
   return finalize(plan, grid, gw, gh, start, finish, safe,
-    { coins, decoys, powerups, boostPads, bouncers, crawlers, spikes, turrets, sizeZones, rotators, movingWalls, portals, current });
+    { coins, decoys, powerups, boostPads, bouncers, crawlers, spikes, turrets, sizeZones, rotators, movingWalls, current });
 }
 
 // ---------------------------------------------------------------
@@ -292,14 +287,32 @@ function corridorSlot(grid, openTiles, ri, occupied) {
   }
   return null;
 }
-function makePatrol(grid, gw, gh, openTiles, ri, start, finish) {
-  const far = (tt) => (Math.abs(tt.tx - start.tx) + Math.abs(tt.ty - start.ty) > 3) && (Math.abs(tt.tx - finish.tx) + Math.abs(tt.ty - finish.ty) > 1);
+function makePatrol(grid, gw, gh, openTiles, ri, start, finish, safe) {
+  // seed & walk only on tiles OFF the safe path, away from spawn — so a
+  // toxic blob never blocks the one route the player must take.
+  const offSafe = (tt) => !safe || !safe.has(key(tt.tx, tt.ty));
+  const far = (tt) => offSafe(tt) && (Math.abs(tt.tx - start.tx) + Math.abs(tt.ty - start.ty) > 3) && (Math.abs(tt.tx - finish.tx) + Math.abs(tt.ty - finish.ty) > 1);
   let cur = null;
-  for (let i = 0; i < 24; i++) { const c = openTiles[ri(openTiles.length)]; if (far(c)) { cur = c; break; } }
-  if (!cur) cur = openTiles[ri(openTiles.length)];
+  for (let i = 0; i < 30; i++) { const c = openTiles[ri(openTiles.length)]; if (far(c)) { cur = c; break; } }
+  if (!cur) return [];                          // no safe spot -> spawn no crawler
   const path = [cur]; const seen = new Set([key(cur.tx, cur.ty)]); const steps = 3 + ri(4);
-  for (let i = 0; i < steps; i++) { const opts = DIRS.map(([dx, dy]) => ({ tx: cur.tx + dx, ty: cur.ty + dy })).filter(n => grid[n.ty]?.[n.tx] === 0 && !seen.has(key(n.tx, n.ty))); if (!opts.length) break; cur = opts[ri(opts.length)]; seen.add(key(cur.tx, cur.ty)); path.push(cur); }
+  for (let i = 0; i < steps; i++) { const opts = DIRS.map(([dx, dy]) => ({ tx: cur.tx + dx, ty: cur.ty + dy })).filter(n => grid[n.ty]?.[n.tx] === 0 && !seen.has(key(n.tx, n.ty)) && offSafe(n)); if (!opts.length) break; cur = opts[ri(opts.length)]; seen.add(key(cur.tx, cur.ty)); path.push(cur); }
   return path;
+}
+
+// a tile in the MIDDLE of a long straight run (>=4 open tiles) — ideal for a speed pad
+function longCorridorSlot(grid, openTiles, ri, occupied, safe) {
+  const runLen = (tt, dx, dy) => { let n = 0, x = tt.tx + dx, y = tt.ty + dy; while (grid[y]?.[x] === 0) { n++; x += dx; y += dy; } return n; };
+  let best = null;
+  for (let i = 0; i < 70; i++) {
+    const tt = openTiles[ri(openTiles.length)]; if (occupied.has(key(tt.tx, tt.ty))) continue;
+    const h = 1 + runLen(tt, 1, 0) + runLen(tt, -1, 0), v = 1 + runLen(tt, 0, 1) + runLen(tt, 0, -1);
+    const onSafe = safe && safe.has(key(tt.tx, tt.ty));
+    if (h >= 4 && h >= v) { const cand = { tx: tt.tx, ty: tt.ty, dir: { x: 1, y: 0 }, score: h + (onSafe ? 3 : 0) }; if (!best || cand.score > best.score) best = cand; }
+    else if (v >= 4) { const cand = { tx: tt.tx, ty: tt.ty, dir: { x: 0, y: 1 }, score: v + (onSafe ? 3 : 0) }; if (!best || cand.score > best.score) best = cand; }
+    if (best && best.score >= 7) break;
+  }
+  return best;
 }
 function shuffle(a, rand) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } }
 function same(a, b) { return a.tx === b.tx && a.ty === b.ty; }

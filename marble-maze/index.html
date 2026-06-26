@@ -31,7 +31,7 @@
     </div>
     <div class="speed-wrap"><div id="speedBar"></div><div id="boostFlare"></div></div>
     <div id="powerupChips"></div>
-    <div id="goalArrow"><span>▲</span><small>GOAL</small></div>
+    <div id="goalArrow"><div class="ga-arrow">➤</div><small>GOAL</small></div>
     <div id="controlHint" class="control-hint"></div>
     <div id="boostBtn" class="boost-btn hidden">BOOST ⚡</div>
   </div>
@@ -46,16 +46,18 @@
   <!-- ============ MAIN MENU ============ -->
   <div id="menu" class="screen center hidden">
     <div class="menu-coins"><span class="dot gold"></span><span id="menuCoins">0</span></div>
-    <div class="logo">MARBLE<span>MAZE</span></div>
-    <div class="tagline">Roll. Dodge. Collect. <b>One more try.</b></div>
-    <button class="btn primary huge" id="playBtn"><span id="playLabel">PLAY</span></button>
-    <div class="menu-row">
-      <button class="btn ghost" id="shopBtn">🛍 Shop</button>
-      <button class="btn ghost" id="dailyBtn">🎁 Daily<span id="dailyDot" class="badge hidden"></span></button>
-      <button class="btn ghost" id="settingsBtn">⚙ Settings</button>
-    </div>
-    <div class="menu-foot">
-      <span id="menuWorld">Sunny Meadow</span> · <span>★ <b id="menuStars">0</b></span> · <span id="menuProvider"></span>
+    <div class="menu-panel">
+      <div class="logo">MARBLE<span>MAZE</span></div>
+      <div class="tagline">Roll. Dodge. Collect. <b>One more try.</b></div>
+      <button class="btn primary huge" id="playBtn"><span id="playLabel">PLAY</span></button>
+      <div class="menu-row">
+        <button class="btn ghost" id="shopBtn">🛍 Shop</button>
+        <button class="btn ghost" id="dailyBtn">🎁 Daily<span id="dailyDot" class="badge hidden"></span></button>
+        <button class="btn ghost" id="settingsBtn">⚙ Settings</button>
+      </div>
+      <div class="menu-foot">
+        <span id="menuWorld">Sunny Meadow</span> · <span>★ <b id="menuStars">0</b></span> · <span id="menuProvider"></span>
+      </div>
     </div>
   </div>
 
@@ -78,6 +80,8 @@
         <div class="reward"><span class="dot gold"></span><b id="winCoins">+0</b><small>coins</small></div>
         <div class="reward"><b id="winTime">0.0s</b><small id="winTimeNote">time</small></div>
       </div>
+      <div class="reward-row hidden" id="winMissionRow"><div class="reward mission">✓ <b id="winMission"></b></div></div>
+      <button class="btn chest-cta hidden" id="chestBtn">🎁 Open Bonus Chest!</button>
       <button class="btn reward-ad" id="doubleBtn">▶ Double Coins <small>(Ad)</small></button>
       <div class="menu-row">
         <button class="btn ghost" id="winMenuBtn">Menu</button>
@@ -112,6 +116,16 @@
       <div class="hud-pill coin"><span class="dot gold"></span><span id="shopCoins">0</span></div>
     </div>
     <div class="shop-grid" id="shopGrid"></div>
+  </div>
+
+  <!-- ============ CHEST ============ -->
+  <div id="chest" class="screen overlay hidden">
+    <div class="panel chest-panel">
+      <h2>Bonus Chests!</h2>
+      <div class="chest-info" id="chestInfo">Pick 2 chests!</div>
+      <div class="chest-grid" id="chestGrid"></div>
+      <button class="btn primary hidden" id="chestCollect">Collect</button>
+    </div>
   </div>
 
   <!-- ============ DAILY ============ -->
