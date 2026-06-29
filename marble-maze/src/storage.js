@@ -21,6 +21,7 @@ const DEFAULT = () => ({
     control: 'auto',           // auto | keys | tilt | touch
     tiltSensitivity: 1.0,
     quality: 'auto',           // auto | high | low
+    difficulty: 'normal',      // chill | normal | hard | expert (dictates ELO band)
   },
   daily: { lastClaimDay: null, streak: 0 },
   stats: { runs: 0, deaths: 0, wins: 0, secretsFound: 0 },

@@ -51,9 +51,12 @@ class App {
     SDK.setAdStateHandler((on) => this.ui.adCurtain(on));
     SDK.loadingStart(); const provider = await SDK.init(); this.ui.setProvider(provider); SDK.loadingFinished();
 
-    this._loadShowcase();
-    this.ui.refreshMenu(); this.ui.setMenuWorld(worldForLevel(st.maxLevel).name); this.ui.showScreen('menu');
+    this.director.setDifficulty(st.settings.difficulty || 'normal');
+    this.ui.refreshMenu(); this.ui.setMenuWorld(worldForLevel(st.maxLevel).name);
     requestAnimationFrame(this._loop);
+    // The first 30-60s matter most: drop the player straight into play. The
+    // menu (shop/daily/settings) is reachable via Pause.
+    this.play();
   }
 
   _loop = (now) => {
@@ -84,11 +87,11 @@ class App {
   play() { this.startStage(S.get().maxLevel, {}); }
 
   _planFor(stage, retry) {
-    if (retry) return { stage, difficulty: this.lastDifficulty, mods: { ...this.lastMods, ...this.director.retryMods() }, seedSalt: 0, mission: this.mission, churn: this.director.churn(), novelty: false };
+    if (retry) return { stage, difficulty: this.lastDifficulty, sizeBucket: this.lastSizeBucket, mods: { ...this.lastMods, ...this.director.retryMods() }, seedSalt: 0, mission: this.mission, churn: this.director.churn(), novelty: false };
     const scripted = stage <= 7 ? { difficulty: SCRIPTED[stage] } : null;
     const ctx = { scripted, newMechanic: !!newMechanicAt(stage), worldChanged: (stage - 1) % LEVELS_PER_WORLD === 0 && stage > 1 };
     const plan = this.director.planNext(stage, ctx);
-    this.lastDifficulty = plan.difficulty; this.lastMods = plan.mods;
+    this.lastDifficulty = plan.difficulty; this.lastMods = plan.mods; this.lastSizeBucket = plan.sizeBucket;
     return plan;
   }
 
@@ -126,6 +129,12 @@ class App {
   _beginPlay(plan) {
     if (this.input.activeMode === 'tilt') this.input.calibrate();
     this.input.reset(); this.game.start(); SDK.gameplayStart();
+
+    // first-time "how to move" hint that fades the moment you roll
+    if (this.stage === 1) {
+      this._showTut = true; const mode = this.input.activeMode;
+      this.ui.tutorialHint(true, mode === 'keys' ? 'Hold  D  or  →  to roll!' : mode === 'tilt' ? 'Tilt to roll!' : 'Drag to roll!');
+    } else { this._showTut = false; this.ui.tutorialHint(false); }
 
     const n = this.stage;
     const worldChanged = (n - 1) % LEVELS_PER_WORLD === 0 && n > 1;
@@ -208,6 +217,7 @@ class App {
   _onDie(reason, info) {
     SDK.gameplayStop(); Audio.stopMusic(); S.bump('deaths'); this.deathsThisStage++;
     this.director.noteDeathNow();        // start retry-speed clock
+    if (info?.nearFinish) this.director.noteNearMiss();
     this.director.recordLoss({ difficulty: this.lastDifficulty, timeMs: this.game.clockMs, deathSpot: info, nearFinish: info?.nearFinish });
     this.ui.showLose(reason, {
       nearFinish: info?.nearFinish,
@@ -233,7 +243,7 @@ class App {
   // ---- engine callbacks ----
   _gameCallbacks() {
     return {
-      onHud: (h) => this.ui.updateHUD({ level: this.stage, ...h }),
+      onHud: (h) => { if (this._showTut && h.speed > 1.6) { this._showTut = false; this.ui.tutorialHint(false); } this.ui.updateHUD({ level: this.stage, ...h }); },
       onCoin: (collected, val, combo) => { this.run.coinValue += val; this.director.noteMove(); if (combo >= 3) this.ui.combo(combo); },
       onPowerupStart: (def) => this.ui.toast(`${def.icon || '★'} ${def.name}`, 1400),
       onPowerups: (list) => this.ui.powerups(list),
@@ -296,6 +306,7 @@ class App {
     if (key === 'control') { this.input.setMode(val); this._updateControlUI(); }
     if (key === 'tiltSensitivity') this.input.setSensitivity(val);
     if (key === 'quality') this.applyQuality(val);
+    if (key === 'difficulty') this.director.setDifficulty(val);
   }
 }
 

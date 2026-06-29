@@ -22,7 +22,9 @@ python3 -m http.server 8080
 #   …or:  npx serve .
 ```
 
-Then open <http://localhost:8080>.
+Then open <http://localhost:8080>. You drop **straight into level 1** (a one-tap
+corridor with a "hold to roll" hint) — the menu/shop/settings live behind the Pause
+button so the crucial first 30–60 seconds are pure play.
 
 **Controls**
 | | |
@@ -41,10 +43,14 @@ Every system here exists to create *"I was so close — one more try."*
 - **Readability rules** — **RED always means death** (wrong holes, spikes, toxic blobs,
   bullets, blades); the **finish is always a green beam** with particles + an off-screen
   arrow; sliding walls are a distinct amber; walls have bright top caps so edges read.
-- **Adaptive difficulty director** — hidden **ELO** skill rating + per-maze difficulty,
-  a live **churn-risk** model, and win/win/close-loss pacing. It serves mazes near a
-  ~70% win rate ("I can do this"), eases off when you're frustrated, and — after repeated
-  failures — quietly opens a shortcut so you win without feeling handed it.
+- **Adaptive director (v4)** — a 4-meter player model (skill / frustration / **boredom** /
+  **excitement**) feeding a psychological **state machine** and a Bayesian-style churn
+  belief (leave-probability **with confidence**, retry-speed, momentum, frustration
+  velocity, projection). Frustration and boredom get **opposite** treatments (ease vs.
+  challenge). **Maze size is a separate learned preference** from difficulty (huge-easy or
+  small-hard), the **ceiling is high** enough to stretch aces, and a **difficulty dial**
+  (Chill→Expert) lets players steer their own ELO. After repeated fails it quietly opens a
+  shortcut so you win without feeling handed it.
 - **Brutally fast restart** — death → retry in one tap; a retry is the *same* maze
   (mastery + time-attack), plus a "Skip (Ad)" escape valve after repeated fails.
 - **Constant novelty** — mechanics unlock on a teaching cadence (decoys → power-ups →

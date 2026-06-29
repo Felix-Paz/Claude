@@ -12,7 +12,7 @@
 //  repeated failures — a carved shortcut the player won't notice.
 // =====================================================================
 import {
-  mechanicsForLevel, worldForLevel, POWERUP_POOL, DIRECTOR,
+  mechanicsForLevel, worldForLevel, POWERUP_POOL, DIRECTOR, SIZE_BUCKETS, newMechanicAt,
 } from './config.js';
 
 function rng(seed) {
@@ -27,16 +27,17 @@ function rng(seed) {
 const key = (x, y) => x + ',' + y;
 const DIRS = [[0,-1],[1,0],[0,1],[-1,0]];
 
-const EMPTY_MODS = { sizeScale:1, hazardScale:1, decoyScale:1, extraCoins:0, forgive:0,
+const EMPTY_MODS = { sizeScale:1, hazardScale:1, decoyScale:1, extraCoins:0, forgive:0, tightness:0,
   addBoost:false, biggerGoal:false, closerFinish:false, guaranteePowerup:null, rescueOpen:false, slowHazards:1 };
+
+function defaultSize(stage) { return stage <= 7 ? 'small' : stage <= 14 ? 'medium' : 'large'; }
 
 function normalizePlan(arg) {
   if (typeof arg === 'number') {
-    // legacy/simple call: derive a sensible difficulty from the stage
     const t = Math.min(1, (arg - 1) / 24);
-    return { stage: arg, difficulty: Math.round(760 + t * 900), mods: { ...EMPTY_MODS }, seedSalt: 0 };
+    return { stage: arg, difficulty: Math.round(760 + t * 900), mods: { ...EMPTY_MODS }, seedSalt: 0, sizeBucket: defaultSize(arg) };
   }
-  return { stage: arg.stage, difficulty: arg.difficulty ?? 1000, mods: { ...EMPTY_MODS, ...(arg.mods || {}) }, seedSalt: arg.seedSalt || 0 };
+  return { stage: arg.stage, difficulty: arg.difficulty ?? 1000, mods: { ...EMPTY_MODS, ...(arg.mods || {}) }, seedSalt: arg.seedSalt || 0, sizeBucket: arg.sizeBucket || defaultSize(arg.stage) };
 }
 
 export function generateLevel(arg) {
@@ -90,16 +91,17 @@ function procedural(plan) {
   const ri = (n) => Math.floor(rand() * n);
   const mech = mechanicsForLevel(lvl);
 
-  // difficulty -> size & density
-  const t = Math.max(0, Math.min(1, (plan.difficulty - 700) / 1200));
-  const early = lvl <= 7;
-  let cols = Math.round((4 + t * 9) * mods.sizeScale);
-  let rows = Math.round((4 + t * 7) * mods.sizeScale);
-  cols = Math.max(3, Math.min(14, cols)); rows = Math.max(3, Math.min(12, rows));
-  if (early) { cols = Math.min(cols, 5 + lvl); rows = Math.min(rows, 4 + lvl); }
-
-  const braid = Math.max(0, Math.min(0.5, 0.05 + t * 0.24 + (mods.rescueOpen ? 0.18 : 0)));
+  // SIZE comes from the bucket (independent of difficulty); DIFFICULTY drives
+  // density + tightness. So a maze can be huge+easy or small+hard.
+  const t = Math.max(0, Math.min(1, (plan.difficulty - DIRECTOR.diffMin) / (DIRECTOR.diffMax - DIRECTOR.diffMin)));
+  const sb = SIZE_BUCKETS[plan.sizeBucket] || SIZE_BUCKETS.medium;
+  const rr = (a) => a[0] + ri(a[1] - a[0] + 1);
+  let cols = Math.round(rr(sb.cols) * mods.sizeScale), rows = Math.round(rr(sb.rows) * mods.sizeScale);
+  cols = Math.max(3, Math.min(17, cols)); rows = Math.max(3, Math.min(13, rows));
+  // harder = fewer loops (more dead-ends/decisions); rescue/easy = more loops
+  const braid = Math.max(0.03, Math.min(0.42, 0.1 + (1 - t) * 0.18 - (mods.tightness || 0) * 0.08 + (mods.rescueOpen ? 0.18 : 0)));
   const { grid, gw, gh } = buildMaze(cols, rows, braid, rand);
+  const early = lvl <= 7;
 
   const start = { tx: 1, ty: 1 };
   const dist = new Map(), parent = new Map();
@@ -208,6 +210,18 @@ function procedural(plan) {
   let current = null;
   const world = worldForLevel(lvl);
   if (world.sig === 'current') { const ang = ri(4) * Math.PI / 2; current = { x: Math.cos(ang), y: Math.sin(ang), strength: 5 + t * 4 }; }
+
+  // EARLY-GAME FUN: levels 3-7 should be lively, not empty corridors — lots
+  // of coins to chase + guarantee the mechanic this stage introduces appears.
+  if (early) {
+    const extra = 4 + lvl;
+    for (let i = 0; i < extra; i++) { const tt = takeSafe() || take(branch.length ? branch : openTiles); if (tt) coins.push({ tx: tt.tx, ty: tt.ty }); }
+    const nm = newMechanicAt(lvl)?.key;
+    if (nm === 'boostPads' && !boostPads.length) { const seg = longCorridorSlot(grid, openTiles, ri, occupied, safe) || corridorSlot(grid, openTiles, ri, occupied); if (seg) boostPads.push({ tx: seg.tx, ty: seg.ty, dir: seg.dir }); }
+    if (nm === 'bouncers' && !bouncers.length) { const tt = take(branch.length ? branch : openTiles); if (tt) bouncers.push(tt); }
+    if (nm === 'powerups' && !powerups.length) { const tt = takeSafe() || take(openTiles); if (tt) powerups.push({ ...tt, type: 'shield' }); }
+    if (nm === 'movingWalls' && !movingWalls.length) { const seg = corridorSlot(grid, openTiles, ri, occupied); if (seg) movingWalls.push({ tx: seg.tx, ty: seg.ty, dir: seg.dir, period: 2.4, phase: rand() }); }
+  }
 
   return finalize(plan, grid, gw, gh, start, finish, safe,
     { coins, decoys, powerups, boostPads, bouncers, crawlers, spikes, turrets, sizeZones, rotators, movingWalls, current });

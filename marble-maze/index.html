@@ -33,6 +33,7 @@
     <div id="powerupChips"></div>
     <div id="goalArrow"><div class="ga-arrow">➤</div><small>GOAL</small></div>
     <div id="controlHint" class="control-hint"></div>
+    <div id="tutHint" class="tut-hint hidden"></div>
     <div id="boostBtn" class="boost-btn hidden">BOOST ⚡</div>
   </div>
 
@@ -145,6 +146,15 @@
       <h2>Settings</h2>
       <label class="row"><span>Sound FX</span><input type="checkbox" id="setSound"></label>
       <label class="row"><span>Music</span><input type="checkbox" id="setMusic"></label>
+      <div class="row col">
+        <span>Difficulty</span>
+        <div class="seg" id="setDifficulty">
+          <button data-v="chill">Chill</button>
+          <button data-v="normal" class="active">Normal</button>
+          <button data-v="hard">Hard</button>
+          <button data-v="expert">Expert</button>
+        </div>
+      </div>
       <div class="row col">
         <span>Controls</span>
         <div class="seg" id="setControl">

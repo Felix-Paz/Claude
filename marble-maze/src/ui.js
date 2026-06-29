@@ -66,6 +66,7 @@ export class UI {
     $('setSens').addEventListener('input', e => { $('sensVal').textContent = (+e.target.value).toFixed(1); this.h.setSetting?.('tiltSensitivity', +e.target.value); });
     this._seg('setControl', v => this.h.setSetting?.('control', v));
     this._seg('setQuality', v => this.h.setSetting?.('quality', v));
+    this._seg('setDifficulty', v => this.h.setSetting?.('difficulty', v));
 
     // boost button (touch)
     const bb = $('boostBtn');
@@ -330,6 +331,14 @@ export class UI {
     $('setSens').value = st.settings.tiltSensitivity; $('sensVal').textContent = (+st.settings.tiltSensitivity).toFixed(1);
     this.setSeg('setControl', st.settings.control);
     this.setSeg('setQuality', st.settings.quality);
+    this.setSeg('setDifficulty', st.settings.difficulty || 'normal');
+  }
+
+  // first-time control hint that fades the moment you roll
+  tutorialHint(show, text) {
+    const el = $('tutHint'); if (!el) return;
+    if (show) { el.textContent = text || ''; el.classList.remove('hidden'); requestAnimationFrame(() => el.classList.add('show')); }
+    else { el.classList.remove('show'); setTimeout(() => el.classList.add('hidden'), 300); }
   }
 
   // ---- transient ----

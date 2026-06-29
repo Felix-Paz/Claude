@@ -59,7 +59,7 @@ export class Game {
     r.shadowMap.enabled = true;
     r.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer = r;
-    this.shadowSize = 2048;
+    this.shadowSize = 1024;   // lighter startup + smoother on weak devices
   }
 
   _initScene() {
@@ -214,7 +214,7 @@ export class Game {
     this.wallsPhased = false; this.phaseAmt = 0; this.wallGroup.position.y = 0;
     this.holesPatched = false; this.ghost = false; this.freeze = false;
     this.gold = { active: false, timer: 0, times: [], coins: [], used: false };
-    this.idleTimer = 0; this._idleFired = false;
+    this.idleTimer = 0; this._idleFired = false; this.launchTimer = 0;
     this._applyPerks(skinDef);
 
     this._updateCameraImmediate();
@@ -511,6 +511,7 @@ export class Game {
     if (this.activePowerups.has('speed')) { accel *= 1.4; maxv *= 1.4; }
     accel *= this.speedPerk; maxv *= this.speedPerk;          // skin headstart perk
     const sizeF = this.baseRadius / this.radius; maxv *= sizeF; accel *= sizeF;
+    if (this.launchTimer > 0) { this.launchTimer -= dt; maxv = Math.max(maxv, 38); }   // boost-pad launch carries through
     let fric = PHYS.friction;
     if (w.sig === 'slippery') fric *= 0.45;
     if (w.sig === 'lowgrav') { fric *= 0.62; maxv *= 1.1; }
@@ -524,6 +525,14 @@ export class Game {
     for (let s = 0; s < nSub; s++) { this.marble.position.x += hx; this.marble.position.z += hz; this._resolveWalls(); }
     const v = Math.hypot(this.vel.x, this.vel.z);
     if (v > 0.01) { const axis = tmpV.set(-this.vel.z, 0, this.vel.x).normalize(); this.marble.rotateOnWorldAxis(axis, (v * dt) / this.radius); }
+    // Ghost ignores interior walls but must NOT leave the platform.
+    if (this.ghost) {
+      const hx = (this.level.gw * T) / 2 - this.radius, hz = (this.level.gh * T) / 2 - this.radius;
+      if (this.marble.position.x < -hx) { this.marble.position.x = -hx; this.vel.x = Math.max(0, this.vel.x); }
+      if (this.marble.position.x > hx) { this.marble.position.x = hx; this.vel.x = Math.min(0, this.vel.x); }
+      if (this.marble.position.z < -hz) { this.marble.position.z = -hz; this.vel.z = Math.max(0, this.vel.z); }
+      if (this.marble.position.z > hz) { this.marble.position.z = hz; this.vel.z = Math.min(0, this.vel.z); }
+    }
   }
 
   _circleVsBox(px, pz, cx, cz, halfX, halfZ, r) {
@@ -627,8 +636,9 @@ export class Game {
         // axis if nearly stopped). Strong but controllable.
         const sp = Math.hypot(this.vel.x, this.vel.z); let dx, dz;
         if (sp > 1.2) { dx = this.vel.x / sp; dz = this.vel.z / sp; } else { dx = p.userData.dir.x; dz = p.userData.dir.y; }
-        this.vel.x = dx * 23; this.vel.z = dz * 23; p.userData.cd = 0.6;
-        this.burst(p.position.x, 0.5, p.position.z, 0x6cf0ff, 16, 8, 0.4, 3); this.cb.onSfx?.('boost');
+        this.vel.x = dx * 40; this.vel.z = dz * 40; p.userData.cd = 0.6;
+        this.launchTimer = 0.65;                          // bypass the speed cap so it carries down the corridor
+        this.burst(p.position.x, 0.5, p.position.z, 0x6cf0ff, 18, 9, 0.45, 3); this.cb.onSfx?.('boost');
       }
     }
     for (const b of this.bouncers) {

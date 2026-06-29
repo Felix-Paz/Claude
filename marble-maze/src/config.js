@@ -258,13 +258,32 @@ export const ECON = {
 // =====================================================================
 //  ADAPTIVE DIRECTOR tuning (see director.js)
 // =====================================================================
+// Maze SIZE is independent of difficulty (a maze can be huge+easy or
+// small+hard). The director learns which size the player enjoys.
+export const SIZE_BUCKETS = {
+  small:  { cols: [4, 6],  rows: [4, 5] },
+  medium: { cols: [7, 9],  rows: [6, 8] },
+  large:  { cols: [10, 12], rows: [8, 10] },
+  huge:   { cols: [13, 16], rows: [10, 12] },
+};
+export const SIZE_ORDER = ['small', 'medium', 'large', 'huge'];
+
+// Player-facing difficulty dial (dictates the ELO band).
+export const DIFFICULTY_PRESETS = {
+  chill:  { label: 'Chill',  bias: -260, k: 28 },
+  normal: { label: 'Normal', bias: 0,    k: 64 },
+  hard:   { label: 'Hard',   bias: +220, k: 64 },
+  expert: { label: 'Expert', bias: +460, k: 80 },
+};
+export const DIFFICULTY_ORDER = ['chill', 'normal', 'hard', 'expert'];
+
 export const DIRECTOR = {
   startSkill: 1000,
   K: 64,                  // ELO step
   targetWinProb: 0.72,    // serve mazes the player should clear ~72%
   offsetEasy: -120,       // when churn-risk high, aim below skill
-  offsetHard: +90,        // when bored, aim above skill
-  diffMin: 700, diffMax: 1900,
+  offsetHard: +140,       // when bored/skilled, aim above skill
+  diffMin: 640, diffMax: 2600,   // raised ceiling so aces can be challenged
   // churn-risk signal weights (points added to a 0-100 risk score)
   churn: {
     deathStreak2: 22, deathStreak3: 40, quickDeath: 18, idle5s: 16,

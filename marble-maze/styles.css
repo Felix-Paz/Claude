@@ -303,3 +303,26 @@ body.goldrush #ui::after{content:'';position:fixed;inset:0;pointer-events:none;z
 .chest-cell.opened{background:linear-gradient(180deg,#e7c45f,#a9842f);box-shadow:0 6px 0 rgba(0,0,0,.3),0 0 22px rgba(255,210,58,.5);}
 .chest-cell.revealed{opacity:.45;}
 .chest-cell.revealed small{color:var(--muted);font-size:11px;}
+
+/* =====================================================================
+   v4 SHOP FIX — wider container + comfortable cards, nothing clipped
+   ===================================================================== */
+#shop{justify-content:flex-start;}
+.shop-grid{grid-template-columns:repeat(auto-fill,minmax(166px,1fr));width:min(920px,96vw);gap:14px;
+  margin-top:74px;padding:0 4px 30px;overflow-y:auto;max-height:calc(100dvh - 86px);align-content:start;}
+.card{overflow:visible;padding:12px 12px 14px;gap:9px;min-width:0;}
+.card-disc{width:84px;height:84px;}
+.swatch-canvas{width:80px;height:80px;}
+.card .cname{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.card-perk{font-size:10.5px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card .cbtn{margin-top:auto;}
+.cbtn.locked::before{content:'🔒 ';}
+@media (max-width:520px){ .shop-grid{grid-template-columns:repeat(auto-fill,minmax(46vw,1fr));width:96vw;} .card-disc{width:78px;height:78px;} .swatch-canvas{width:74px;height:74px;} }
+
+/* first-time tutorial hint */
+.tut-hint{position:fixed;left:50%;bottom:26%;transform:translateX(-50%);background:var(--glass-strong);
+  border:1px solid var(--stroke);padding:14px 26px;border-radius:16px;font-family:'Baloo 2';font-weight:700;
+  font-size:clamp(17px,4.6vw,26px);backdrop-filter:blur(10px);box-shadow:var(--shadow);opacity:0;
+  transition:opacity .3s;z-index:12;pointer-events:none;text-align:center;}
+.tut-hint.show{opacity:1;animation:tutpulse 1.3s ease-in-out infinite;}
+@keyframes tutpulse{0%,100%{box-shadow:0 10px 34px rgba(0,0,0,.45)}50%{box-shadow:0 0 26px rgba(33,243,255,.55)}}
