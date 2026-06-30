@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<meta name="description" content="Marble Maze — roll, dodge, collect. A fast, addictive 3D marble runner.">
+<title>Marble Maze</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+
+<!-- To ship on a portal, uncomment ONE SDK (see src/sdk.js): -->
+<!-- <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script> -->
+<!-- <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script> -->
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- Cinematic speed FX: radial motion streaks + vignette that swell with speed.
+     Purely presentational, driven from the HUD speed signal (ui.js). -->
+<div id="speedFx" aria-hidden="true">
+  <div class="sfx-streaks"></div>
+  <div class="sfx-vignette"></div>
+</div>
+
+<div id="ui">
+
+  <!-- ============ HUD ============ -->
+  <div id="hud" class="hidden">
+    <div class="game-logo">MARBLE<b>MAZE</b></div>
+    <div class="hud-top">
+      <button id="pauseBtn" class="icon-btn" aria-label="Pause">❚❚</button>
+      <div class="hud-pill" id="hudLevelPill"><span id="hudLevel">Level 1</span></div>
+      <div class="hud-pill coin" title="bonus"><span class="dot gold"></span><span id="hudCoins">0</span></div>
+      <div class="hud-pill time" id="hudTimePill"><span id="hudTime">0.0</span><span class="unit">s</span></div>
+    </div>
+    <div class="speed-wrap"><div id="speedBar"></div><div id="boostFlare"></div></div>
+    <div id="powerupChips"></div>
+    <div id="goalArrow"><div class="ga-arrow">➤</div><small>GOAL</small></div>
+    <div id="controlHint" class="control-hint"></div>
+    <div id="tutHint" class="tut-hint hidden"></div>
+    <div id="boostBtn" class="boost-btn hidden">BOOST ⚡</div>
+  </div>
+
+  <!-- ============ LOADING ============ -->
+  <div id="loading" class="screen center">
+    <div class="loader-marble"></div>
+    <div class="loader-title">MARBLE<span>MAZE</span></div>
+    <div class="loader-sub">Loading…</div>
+  </div>
+
+  <!-- ============ MAIN MENU ============ -->
+  <div id="menu" class="screen center hidden">
+    <div class="menu-coins"><span class="dot gold"></span><span id="menuCoins">0</span></div>
+    <div class="menu-panel">
+      <div class="logo">MARBLE<span>MAZE</span></div>
+      <div class="tagline">Roll. Dodge. Collect. <b>One more try.</b></div>
+      <button class="btn primary huge" id="playBtn"><span id="playLabel">PLAY</span></button>
+      <div class="menu-row">
+        <button class="btn ghost" id="shopBtn">🛍 Shop</button>
+        <button class="btn ghost" id="dailyBtn">🎁 Daily<span id="dailyDot" class="badge hidden"></span></button>
+        <button class="btn ghost" id="settingsBtn">⚙ Settings</button>
+      </div>
+      <div class="menu-foot">
+        <span id="menuWorld">Sunny Meadow</span> · <span>★ <b id="menuStars">0</b></span> · <span id="menuProvider"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PAUSE ============ -->
+  <div id="pause" class="screen overlay hidden">
+    <div class="panel">
+      <h2>Paused</h2>
+      <button class="btn primary" id="resumeBtn">Resume</button>
+      <button class="btn" id="restartBtn">Restart</button>
+      <button class="btn ghost" id="pauseMenuBtn">Main Menu</button>
+    </div>
+  </div>
+
+  <!-- ============ WIN ============ -->
+  <div id="win" class="screen overlay hidden">
+    <div class="panel win-panel">
+      <div class="stars" id="winStars"><span>★</span><span>★</span><span>★</span></div>
+      <h2 id="winTitle">Level Complete!</h2>
+      <div class="reward-row">
+        <div class="reward"><span class="dot gold"></span><b id="winCoins">+0</b><small>coins</small></div>
+        <div class="reward"><b id="winTime">0.0s</b><small id="winTimeNote">time</small></div>
+      </div>
+      <div class="reward-row hidden" id="winMissionRow"><div class="reward mission">✓ <b id="winMission"></b></div></div>
+      <button class="btn chest-cta hidden" id="chestBtn">🎁 Open Bonus Chest!</button>
+      <button class="btn reward-ad" id="doubleBtn">▶ Double Coins <small>(Ad)</small></button>
+      <div class="menu-row">
+        <button class="btn ghost" id="winMenuBtn">Menu</button>
+        <button class="btn" id="replayBtn">Replay</button>
+        <button class="btn primary" id="nextBtn">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LOSE ============ -->
+  <div id="lose" class="screen overlay hidden">
+    <div class="panel lose-panel">
+      <h2 id="loseTitle">So close!</h2>
+      <div class="lose-sub" id="loseSub">You almost had it.</div>
+      <button class="btn reward-ad" id="reviveBtn">▶ Revive <small>(Ad)</small></button>
+      <div class="menu-row">
+        <button class="btn ghost" id="loseMenuBtn">Menu</button>
+        <button class="btn ghost" id="skipBtn">Skip <small>(Ad)</small></button>
+        <button class="btn primary big" id="retryBtn">Retry ↻</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SHOP ============ -->
+  <div id="shop" class="screen hidden">
+    <div class="shop-head">
+      <button class="icon-btn" id="shopBackBtn">←</button>
+      <div class="shop-tabs">
+        <button class="tab active" data-tab="skins">Marbles</button>
+        <button class="tab" data-tab="trails">Trails</button>
+      </div>
+      <div class="hud-pill coin"><span class="dot gold"></span><span id="shopCoins">0</span></div>
+    </div>
+    <div class="shop-grid" id="shopGrid"></div>
+  </div>
+
+  <!-- ============ CHEST ============ -->
+  <div id="chest" class="screen overlay hidden">
+    <div class="panel chest-panel">
+      <h2>Bonus Chests!</h2>
+      <div class="chest-info" id="chestInfo">Pick 2 chests!</div>
+      <div class="chest-grid" id="chestGrid"></div>
+      <button class="btn primary hidden" id="chestCollect">Collect</button>
+    </div>
+  </div>
+
+  <!-- ============ DAILY ============ -->
+  <div id="daily" class="screen overlay hidden">
+    <div class="panel">
+      <h2>Daily Reward</h2>
+      <div class="daily-streak" id="dailyStreak"></div>
+      <div class="daily-grid" id="dailyGrid"></div>
+      <button class="btn primary" id="claimBtn">Claim</button>
+      <button class="btn ghost" id="dailyCloseBtn">Close</button>
+    </div>
+  </div>
+
+  <!-- ============ SETTINGS ============ -->
+  <div id="settings" class="screen overlay hidden">
+    <div class="panel settings-panel">
+      <h2>Settings</h2>
+      <label class="row"><span>Sound FX</span><input type="checkbox" id="setSound"></label>
+      <label class="row"><span>Music</span><input type="checkbox" id="setMusic"></label>
+      <div class="row col">
+        <span>Difficulty</span>
+        <div class="seg" id="setDifficulty">
+          <button data-v="chill">Chill</button>
+          <button data-v="normal" class="active">Normal</button>
+          <button data-v="hard">Hard</button>
+          <button data-v="expert">Expert</button>
+        </div>
+      </div>
+      <div class="row col">
+        <span>Controls</span>
+        <div class="seg" id="setControl">
+          <button data-v="auto" class="active">Auto</button>
+          <button data-v="keys">Keys</button>
+          <button data-v="tilt">Tilt</button>
+          <button data-v="touch">Touch</button>
+        </div>
+      </div>
+      <label class="row col"><span>Tilt sensitivity (<b id="sensVal">1.0</b>)</span>
+        <input type="range" id="setSens" min="0.4" max="2" step="0.1" value="1"></label>
+      <button class="btn" id="calibrateBtn">Calibrate Tilt</button>
+      <div class="row col">
+        <span>Quality</span>
+        <div class="seg" id="setQuality">
+          <button data-v="auto" class="active">Auto</button>
+          <button data-v="high">High</button>
+          <button data-v="low">Low</button>
+        </div>
+      </div>
+      <button class="btn ghost danger" id="resetBtn">Reset Progress</button>
+      <button class="btn primary" id="settingsCloseBtn">Done</button>
+    </div>
+  </div>
+
+  <!-- ============ TILT PERMISSION ============ -->
+  <div id="tiltPrompt" class="screen overlay hidden">
+    <div class="panel">
+      <h2>Tilt to Roll</h2>
+      <p class="muted">Tip your device to steer the marble. Or play with touch.</p>
+      <button class="btn primary" id="tiltEnableBtn">Enable Tilt</button>
+      <button class="btn" id="tiltTouchBtn">Use Touch Instead</button>
+    </div>
+  </div>
+
+  <!-- ============ AD CURTAIN ============ -->
+  <div id="adCurtain" class="screen overlay hidden">
+    <div class="ad-box"><div class="loader-marble small"></div><div>Loading reward…</div></div>
+  </div>
+
+  <!-- ============ TOAST + BANNER ============ -->
+  <div id="banner" class="banner hidden"></div>
+  <div id="toast" class="toast hidden"></div>
+  <div id="comboPop" class="combo-pop hidden"></div>
+
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three.module.min.js",
+  "three/addons/": "./vendor/jsm/"
+} }
+</script>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
