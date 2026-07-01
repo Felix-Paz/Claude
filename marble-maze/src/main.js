@@ -43,6 +43,7 @@ class App {
 
     const unlock = () => { Audio.resume(); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); };
     window.addEventListener('pointerdown', unlock); window.addEventListener('keydown', unlock);
+    window.addEventListener('keydown', this._onKey);
     document.addEventListener('visibilitychange', () => { if (document.hidden) this.director.noteTabBlur(); else this.director.noteTabFocus(); });
 
     this._wireHandlers();
@@ -63,6 +64,35 @@ class App {
     const dt = Math.min(0.05, (now - this._last) / 1000); this._last = now;
     this.input.update(dt); this.game.update(dt, this.input);
     requestAnimationFrame(this._loop);
+  };
+
+  // Standard keyboard shortcuts: R = restart/replay, Enter/Space = primary
+  // action (Next / Retry / Resume / Play), Esc or P = pause/back.
+  _onKey = (e) => {
+    const low = e.key.toLowerCase();
+    if (!['r', 'escape', 'p', 'enter', ' '].includes(low)) return;
+    const ov = this.ui.visibleOverlay(); const base = this.ui.visibleBase();
+    const enter = (e.key === 'Enter' || e.key === ' ');
+    if (low === 'r') {
+      if (ov === 'win') this.startStage(this.stage, {});
+      else if (ov === 'lose') this.startStage(this.stage, { retry: true });
+      else if (!ov && !base && this.game.state === 'playing') this.restart();
+      return;
+    }
+    if (low === 'escape' || low === 'p') {
+      if (ov === 'pause') this.resume();
+      else if (ov === 'settings' || ov === 'daily' || ov === 'chest') this.ui.hideOverlays();
+      else if (base === 'shop') this.ui.showScreen('menu');
+      else if (!ov && this.game.state === 'playing') this.pause();
+      return;
+    }
+    if (enter) {
+      if (e.key === ' ') e.preventDefault();       // no page scroll
+      if (ov === 'win') this._next();
+      else if (ov === 'lose') this.startStage(this.stage, { retry: true });
+      else if (ov === 'pause') this.resume();
+      else if (base === 'menu') this.play();
+    }
   };
 
   applyQuality(q) {
@@ -137,6 +167,14 @@ class App {
     } else { this._showTut = false; this.ui.tutorialHint(false); }
 
     this.ui.setPerk(this._skinDef().perk);        // show the equipped skin's perk
+
+    // teach the boost around level 3 (once)
+    if (this.stage === 3 && !S.hasSeenMechanic('shiftHint')) {
+      S.markMechanicSeen('shiftHint'); this._showBoostTut = true;
+      const mode = this.input.activeMode;
+      this.ui.tutorialHint(true, mode === 'keys' ? 'Hold  Shift  to go FAST!' : 'Hold  BOOST  to go fast!');
+      clearTimeout(this._boostTutT); this._boostTutT = setTimeout(() => { if (this._showBoostTut) { this._showBoostTut = false; this.ui.tutorialHint(false); } }, 4200);
+    } else { this._showBoostTut = false; }
 
     const n = this.stage;
     const worldChanged = (n - 1) % LEVELS_PER_WORLD === 0 && n > 1;
@@ -245,7 +283,11 @@ class App {
   // ---- engine callbacks ----
   _gameCallbacks() {
     return {
-      onHud: (h) => { if (this._showTut && h.speed > 1.6) { this._showTut = false; this.ui.tutorialHint(false); } this.ui.updateHUD({ level: this.stage, ...h }); },
+      onHud: (h) => {
+        if (this._showTut && h.speed > 1.6) { this._showTut = false; this.ui.tutorialHint(false); }
+        if (this._showBoostTut && h.boosting) { this._showBoostTut = false; this.ui.tutorialHint(false); }
+        this.ui.updateHUD({ level: this.stage, ...h });
+      },
       onCoin: (collected, val, combo) => { this.run.coinValue += val; this.director.noteMove(); if (combo >= 3) this.ui.combo(combo); },
       onPowerupStart: (def) => this.ui.toast(`${def.icon || '★'} ${def.name}`, 1400),
       onPowerups: (list) => this.ui.powerups(list),

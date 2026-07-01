@@ -32,6 +32,8 @@ export class UI {
   showOverlay(name) { $(name)?.classList.remove('hidden'); }   // layer on top
   hideOverlay(name) { $(name)?.classList.add('hidden'); }
   hideOverlays() { for (const s of this.overlays) $(s)?.classList.add('hidden'); }
+  visibleOverlay() { for (const s of this.overlays) if (!$(s)?.classList.contains('hidden')) return s; return null; }
+  visibleBase() { for (const s of this.base) if (!$(s)?.classList.contains('hidden')) return s; return null; }
   showHUD(on) { $('hud').classList.toggle('hidden', !on); }
 
   // ---- static bindings ----
@@ -116,13 +118,13 @@ export class UI {
     $('boostFlare').classList.toggle('on', !!s.boosting);
   }
 
-  // ---- GOAL compass (pinned top-right corner, just rotates toward the hole) ----
+  // ---- GOAL compass (pinned in the corner; rotates to point at the hole) ----
   finishArrow(info) {
     const el = $('goalArrow');
-    if (!info || info.hide) { el.classList.remove('show'); return; }
+    if (!info || info.hide || info.angle == null) { el.classList.remove('show'); return; }
     el.classList.add('show');
-    const ang = Math.atan2(-info.y, info.x);                  // NDC dir (y up) -> screen
-    el.querySelector('.ga-arrow').style.transform = `rotate(${ang + Math.PI / 2}rad)`;
+    // '➤' points right at angle 0; info.angle is already screen-space radians.
+    el.querySelector('.ga-arrow').style.transform = `rotate(${info.angle}rad)`;
   }
   hideGoalArrow() { $('goalArrow').classList.remove('show'); }
 

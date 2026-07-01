@@ -359,11 +359,11 @@ export class Game {
     const g = new THREE.Group(); const wp = this.tileWorld(r.tx, r.ty); g.position.set(wp.x, 0.85, wp.z);
     const hub = new THREE.Mesh(this.geo('rHub', () => new THREE.CylinderGeometry(0.5, 0.62, 1.8, 16)), this._own(new THREE.MeshStandardMaterial({ color: 0x2b3346, metalness: 0.7, roughness: 0.35 }))); g.add(hub);
     const len = r.len * T;
-    // the deadly RED bar starts AT the pivot and reaches `len` — exactly the
-    // lethal segment, so you only die if you actually touch the bar.
-    const arm = new THREE.Mesh(this._own(new THREE.BoxGeometry(len, 0.5, 0.5)), this._own(new THREE.MeshStandardMaterial({ color: DANGER, emissive: DANGER, emissiveIntensity: 0.85, roughness: 0.4 })));
+    // the deadly RED bar starts AT the pivot and reaches `len`; a thicker bar
+    // so the lethal zone matches what you SEE (you die only on real contact).
+    const arm = new THREE.Mesh(this._own(new THREE.BoxGeometry(len, 0.62, 0.72)), this._own(new THREE.MeshStandardMaterial({ color: DANGER, emissive: DANGER, emissiveIntensity: 0.85, roughness: 0.4 })));
     arm.position.x = len / 2; arm.castShadow = true; g.add(arm);
-    const tip = new THREE.Mesh(this.geo('rTip', () => new THREE.SphereGeometry(0.4, 12, 10)), this._own(new THREE.MeshStandardMaterial({ color: DANGER, emissive: DANGER, emissiveIntensity: 1.3 }))); tip.position.x = len; g.add(tip);
+    const tip = new THREE.Mesh(this.geo('rTip', () => new THREE.SphereGeometry(0.45, 12, 10)), this._own(new THREE.MeshStandardMaterial({ color: DANGER, emissive: DANGER, emissiveIntensity: 1.3 }))); tip.position.x = len; g.add(tip);
     g.userData = { tile: r, len, speed: r.speed, angle: Math.random() * 6 }; this.levelGroup.add(g); return g;
   }
 
@@ -373,7 +373,7 @@ export class Game {
     // retract direction = a perpendicular side that is a wall (hide there)
     const perp = mw.dir.x ? [[0, -1], [0, 1]] : [[-1, 0], [1, 0]];
     let retract = perp.find(([dx, dy]) => this.isWall(mw.tx + dx, mw.ty + dy)) || perp[0];
-    const mesh = new THREE.Mesh(this._own(new THREE.BoxGeometry(T * 0.96, WALL_H * 0.92, T * 0.96)), this._own(new THREE.MeshStandardMaterial({ color: MOVER_COLOR, emissive: MOVER_COLOR, emissiveIntensity: 0.35, metalness: 0.4, roughness: 0.5 })));
+    const mesh = new THREE.Mesh(this._own(new THREE.BoxGeometry(T * 0.96, WALL_H * 0.92, T * 0.96)), this._own(new THREE.MeshStandardMaterial({ color: DANGER, emissive: DANGER, emissiveIntensity: 0.55, metalness: 0.3, roughness: 0.5 })));
     mesh.castShadow = true; mesh.receiveShadow = true; mesh.position.set(wp.x, WALL_H * 0.46, wp.z);
     mesh.userData = { tile: mw, base: wp, retract: { x: retract[0], y: retract[1] }, period: mw.period, phase: mw.phase, offset: 0 };
     this.levelGroup.add(mesh); return mesh;
@@ -560,12 +560,7 @@ export class Game {
       const hit = this._circleVsBox(this.marble.position.x, this.marble.position.z, c.x, c.z, T / 2, T / 2, r);
       if (hit) this._applyHit(hit);
     }
-    // moving walls (dynamic) — only when extended enough to block
-    for (const mv of this.movers || []) {
-      if (mv.userData.offset > 0.55) continue; // retracted -> open
-      const hit = this._circleVsBox(this.marble.position.x, this.marble.position.z, mv.position.x, mv.position.z, T * 0.48, T * 0.48, r);
-      if (hit) this._applyHit(hit);
-    }
+    // (moving walls are now lethal, handled in _checkHazards — they don't block)
   }
   _applyHit(hit) {
     this.marble.position.x += hit.nx * hit.push; this.marble.position.z += hit.nz * hit.push;
@@ -626,8 +621,8 @@ export class Game {
     const mx = this.marble.position.x, mz = this.marble.position.z;
     const magnetActive = this.activePowerups.has('magnet');
     const magnet = magnetActive || this.perkMagnet;
-    // passive (perk) magnet is now genuinely strong — pulls coins from ~3 tiles
-    const mRange = magnetActive ? T * 3.8 : T * 3.0, mPull = magnetActive ? 24 : 17;
+    // strong passive (perk) magnet — nearly as good as the power-up
+    const mRange = magnetActive ? T * 4.2 : T * 3.6, mPull = magnetActive ? 28 : 24;
     for (const coin of this.coins) {
       if (coin.userData.collected) continue;
       let dx = coin.position.x - mx, dz = coin.position.z - mz, dd = Math.hypot(dx, dz);
@@ -777,7 +772,10 @@ export class Game {
     for (const c of this.crawlers) if (hit(c.position.x, c.position.z, 0.68)) return this._lethal(c.position.x, c.position.z);
     for (const s of this.spikes) if (s.userData.up > 0.5 && hit(s.position.x, s.position.z, 0.55)) return this._lethal(s.position.x, s.position.z);
     for (const p of this.projectiles) if (p.alive && hit(p.mesh.position.x, p.mesh.position.z, 0.3)) { p.alive = false; this.levelGroup.remove(p.mesh); return this._lethal(p.mesh.position.x, p.mesh.position.z); }
-    for (const rt of this.rotators) { const ang = rt.userData.angle; const ex = rt.position.x + Math.cos(ang) * rt.userData.len; const ez = rt.position.z + Math.sin(ang) * rt.userData.len; if (distToSeg(mx, mz, rt.position.x, rt.position.z, ex, ez) < r + 0.34) return this._lethal(mx, mz); }
+    // clock-hand: only lethal on real contact with the red bar (tight threshold)
+    for (const rt of this.rotators) { const ang = rt.userData.angle; const ex = rt.position.x + Math.cos(ang) * rt.userData.len; const ez = rt.position.z + Math.sin(ang) * rt.userData.len; if (distToSeg(mx, mz, rt.position.x, rt.position.z, ex, ez) < r + 0.14) return this._lethal(mx, mz); }
+    // moving walls are now RED & lethal — touching an extended one kills
+    for (const mv of this.movers || []) { if (mv.userData.offset > 0.55) continue; if (hit(mv.position.x, mv.position.z, T * 0.46)) return this._lethal(mv.position.x, mv.position.z); }
   }
   _lethal(x, z) { if (this.shield) { this._consumeShield(x, z); return; } this._die('hazard', x, z); }
   _consumeShield(x, z) { this.shield = false; this.activePowerups.delete('shield'); this.burst(x, 0.8, z, 0x4dffa3, 30, 10, 0.7, 4); this.cb.onSfx?.('shieldHit'); this.cb.onShieldSave?.(); this.cb.onPowerupEnd?.('shield'); this.cb.onPowerups?.(this._activeList()); this.vel.x *= -0.6; this.vel.z *= -0.6; }
@@ -822,9 +820,11 @@ export class Game {
   // ---- finish arrow ----
   _finishArrow() {
     if (!this.cb.onFinishArrow) return;
-    const v = this.finishMesh.position.clone(); v.y = 1.4; v.project(this.camera);
-    const onScreen = v.z < 1 && Math.abs(v.x) < 0.9 && Math.abs(v.y) < 0.9;
-    this.cb.onFinishArrow({ visible: !onScreen, x: v.x, y: v.y });
+    // Camera orientation is fixed (north-up), so world XZ maps straight to
+    // screen: +X = right, +Z = down. Point the compass along marble->hole.
+    const dx = this.finishMesh.position.x - this.marble.position.x;
+    const dz = this.finishMesh.position.z - this.marble.position.z;
+    this.cb.onFinishArrow({ angle: Math.atan2(dz, dx), dist: Math.hypot(dx, dz) });
   }
 
   _animateDecor(dt) {

@@ -27,8 +27,15 @@ export function drawMarbleTexture(x, type, S) {
       for (let i = 0; i < 22; i++) { x.save(); x.translate(Math.random() * S, Math.random() * c(.7)); x.rotate(Math.random() * 7); fill(sp[i % sp.length]); x.fillRect(0, 0, c(.045), c(.02)); x.restore(); }
       break;
     }
-    case 'soccer':
-      bg('#ffffff'); fill('#15171c'); for (let i = 0; i < 6; i++) { const a = i / 6 * 7; pent(x, c(.5) + Math.cos(a) * c(.33), c(.5) + Math.sin(a) * c(.33), c(.1), a); } pent(x, c(.5), c(.5), c(.11), 0.3); break;
+    case 'soccer': {
+      bg('#f4f5f7'); const cx = c(.5), cy = c(.5);
+      x.strokeStyle = '#20242c'; x.lineWidth = c(.02); x.lineJoin = 'round';
+      // seams from the centre pentagon out to the ring
+      for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i / 5 * Math.PI * 2; x.beginPath(); x.moveTo(cx + Math.cos(a) * c(.14), cy + Math.sin(a) * c(.14)); x.lineTo(cx + Math.cos(a) * c(.36), cy + Math.sin(a) * c(.36)); x.stroke(); }
+      x.fillStyle = '#15171c'; pent(x, cx, cy, c(.135), -Math.PI / 2);                  // centre pentagon
+      for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i / 5 * Math.PI * 2; pent(x, cx + Math.cos(a) * c(.4), cy + Math.sin(a) * c(.4), c(.11), a + Math.PI / 2); }  // outer ring (partly clipped = looks wrapped)
+      break;
+    }
     case 'basket':
       bg('#e0692a'); x.strokeStyle = '#1a1008'; x.lineWidth = c(.03);
       x.beginPath(); x.moveTo(0, c(.5)); x.lineTo(S, c(.5)); x.moveTo(c(.5), 0); x.lineTo(c(.5), S); x.stroke();
