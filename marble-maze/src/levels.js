@@ -234,6 +234,14 @@ function finalize(plan, grid, gw, gh, start, finish, safe, ent) {
   const lvl = plan.stage;
   const world = worldForLevel(lvl);
   const mech = mechanicsForLevel(lvl);
+  // FAIRNESS: never place a coin (or power-up) the marble can't reach without
+  // rolling over a RED decoy hole — otherwise "collect all coins" / 3 stars
+  // becomes impossible. Reachability = BFS from start over open tiles, treating
+  // decoy tiles as impassable (they'd kill you).
+  const blocked = new Set((ent.decoys || []).map(d => key(d.tx, d.ty)));
+  const reach = reachableSet(grid, gw, gh, start, blocked);
+  ent.coins = (ent.coins || []).filter(c => reach.has(key(c.tx, c.ty)));
+  ent.powerups = (ent.powerups || []).filter(p => reach.has(key(p.tx, p.ty)));
   const coinTotal = ent.coins.length;
   // par time scales with maze span + difficulty
   const span = (gw + gh);
@@ -284,6 +292,22 @@ function bfs(grid, gw, gh, start, dist, parent) {
   const q = [start]; dist.set(key(start.tx, start.ty), 0); parent.set(key(start.tx, start.ty), null);
   while (q.length) { const c = q.shift(); const cd = dist.get(key(c.tx, c.ty));
     for (const [dx, dy] of DIRS) { const nx = c.tx + dx, ny = c.ty + dy; if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) continue; if (grid[ny][nx] !== 0) continue; const k = key(nx, ny); if (dist.has(k)) continue; dist.set(k, cd + 1); parent.set(k, key(c.tx, c.ty)); q.push({ tx: nx, ty: ny }); } }
+}
+// tiles reachable from start over open cells, treating `blocked` as walls
+function reachableSet(grid, gw, gh, start, blocked) {
+  const seen = new Set([key(start.tx, start.ty)]); const q = [start];
+  while (q.length) {
+    const c = q.shift();
+    for (const [dx, dy] of DIRS) {
+      const nx = c.tx + dx, ny = c.ty + dy;
+      if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) continue;
+      if (grid[ny][nx] !== 0) continue;
+      const k = key(nx, ny);
+      if (seen.has(k) || blocked.has(k)) continue;
+      seen.add(k); q.push({ tx: nx, ty: ny });
+    }
+  }
+  return seen;
 }
 function pathKeys(grid, gw, gh, start, finish) {
   const dist = new Map(), parent = new Map(); bfs(grid, gw, gh, start, dist, parent);

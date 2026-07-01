@@ -212,7 +212,7 @@ export class Game {
     this.activePowerups.clear(); this.shield = false; this.timeScale = 1;
     this.clockMs = 0; this.combo = 0; this.comboTimer = 0;
     this.wallsPhased = false; this.phaseAmt = 0; this.wallGroup.position.y = 0;
-    this.holesPatched = false; this.ghost = false; this.freeze = false;
+    this.holesPatched = false; this.ghost = false; this.freeze = false; this._setMarbleGhost(false);
     this.gold = { active: false, timer: 0, times: [], coins: [], used: false };
     this.idleTimer = 0; this._idleFired = false; this.launchTimer = 0;
     this._applyPerks(skinDef);
@@ -393,6 +393,7 @@ export class Game {
   applySkin(def) {
     this.skinDef = def; const mat = this.marble.material; const mm = def.mat;
     if (mat.map) { mat.map.dispose?.(); mat.map = null; }
+    mat.transparent = false; mat.opacity = 1;              // never inherit a stale Ghost look
     mat.color = new THREE.Color(mm.color);
     mat.metalness = mm.metalness ?? 0; mat.roughness = mm.roughness ?? 0.2;
     mat.clearcoat = mm.clearcoat ?? 0; mat.clearcoatRoughness = 0.08;
