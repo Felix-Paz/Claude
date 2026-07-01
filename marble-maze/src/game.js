@@ -977,13 +977,17 @@ export class Game {
   }
   _aimYawFrom(dx, dz) { return Math.atan2(dx, -dz); }   // direction -> yaw
   _setInitialHeading() {
-    // Point the rig from the start toward the finish so "forward" drops the
-    // player straight into the maze on the very first roll.
+    // Aim the rig from start toward finish, SNAPPED to the nearest grid
+    // direction. Snapping keeps the maze axis-aligned on screen (corridors run
+    // straight up/down/left/right) and — crucially — the heading is then LOCKED
+    // for the whole level. The camera never re-aims to the marble's motion, so
+    // steering stays rock-steady: W is always "up the screen", forever.
     const f = this.level.finish, s = this.level.start;
     const a = this.tileWorld(s.tx, s.ty), b = this.tileWorld(f.tx, f.ty);
     let dx = b.x - a.x, dz = b.z - a.z;
     if (Math.hypot(dx, dz) < 1e-3) { dx = 0; dz = -1; }
-    this.camYaw = this.camYawTarget = this._aimYawFrom(dx, dz);
+    const q = Math.PI / 2;
+    this.camYaw = this.camYawTarget = Math.round(this._aimYawFrom(dx, dz) / q) * q;
   }
   _updateCameraImmediate() {
     this._setHeadingVecs();
@@ -997,11 +1001,9 @@ export class Game {
   }
   _camera(dt) {
     const m = this.marble.position, sp = Math.hypot(this.vel.x, this.vel.z);
-    // Re-aim the yaw toward the heading only while moving with intent, so the
-    // rig holds steady at rest instead of spinning on jitter.
-    if (this.state === 'playing' && sp > CAMERA.minTurnSpeed) this.camYawTarget = this._aimYawFrom(this.vel.x, this.vel.z);
-    let d = this.camYawTarget - this.camYaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
-    this.camYaw += d * (1 - Math.exp(-CAMERA.turnLerp * dt));
+    // Heading is LOCKED for the level (set in _setInitialHeading). The camera
+    // only ever tracks the marble's POSITION, never its direction of travel —
+    // that coupling was what made steering feel like it fought back.
     this._setHeadingVecs();
 
     const k = 1 - Math.exp(-CAMERA.posLerp * dt);

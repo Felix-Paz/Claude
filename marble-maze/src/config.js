@@ -45,21 +45,20 @@ export const RADII = {
 export const STARS = { coinFractionFor2: 0.5, coinFractionFor3: 0.999 };
 
 // =====================================================================
-//  CAMERA — close third-person "chase" rig (behind & just above the
-//  marble, looking the way it rolls). Controls are made camera-relative
-//  so steering always reads as left/right/forward on screen.
-//  Tuned for an action-cam feel without losing sight of the next turn.
+//  CAMERA — close third-person rig (behind & above the marble, looking
+//  down the corridor). Its heading is LOCKED per level to a grid direction,
+//  so it never rotates while you play; controls are relative to that fixed
+//  frame, meaning W is always "up the screen". Tracks position only —
+//  a rig that chased the marble's velocity felt like it fought your input.
 // =====================================================================
 export const CAMERA = {
-  distance:   8.4,   // how far behind the marble the camera sits
-  height:     4.6,   // how high above the floor (kept above WALL_H so it clears walls)
-  lookAhead:  6.2,   // aim this far ahead of the marble (see the upcoming corridor)
-  lookHeight: 1.1,   // height of the aim point
-  fov:        70,    // wide-ish for speed sensation + peripheral vision
+  distance:   8.6,   // how far behind the marble the camera sits
+  height:     5.6,   // how high above the floor (clears walls; sees over the next row)
+  lookAhead:  4.6,   // aim this far ahead of the marble (see the upcoming corridor)
+  lookHeight: 0.9,   // height of the aim point
+  fov:        68,    // wide-ish for speed sensation + peripheral vision
   fovBoost:   8,     // extra FOV punched in at full speed/boost
   posLerp:    9.0,   // camera position follow (higher = snappier)
-  turnLerp:   3.4,   // how fast the rig yaws to face the heading
-  minTurnSpeed: 2.2, // only re-aim the yaw while moving faster than this
 };
 
 // =====================================================================
