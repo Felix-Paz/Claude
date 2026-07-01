@@ -267,14 +267,20 @@ body.goldrush #ui::after{content:'';position:fixed;inset:0;pointer-events:none;z
 .menu-panel .tagline{margin-top:-4px;}
 
 /* in-game logo: readable on any biome */
-.game-logo{opacity:.9;background:rgba(8,11,24,.4);padding:5px 11px;border-radius:11px;backdrop-filter:blur(5px);
-  text-shadow:0 2px 8px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.08);}
+.game-logo{font-size:23px;letter-spacing:.6px;opacity:1;background:rgba(8,11,24,.6);padding:8px 15px;border-radius:14px;
+  backdrop-filter:blur(7px);text-shadow:0 2px 10px rgba(0,0,0,.85);border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 6px 22px rgba(0,0,0,.42);}
 
-/* GOAL compass — pinned top-right corner, just rotates */
-#goalArrow{position:fixed;top:calc(max(12px,env(safe-area-inset-top)) + 60px);right:max(12px,env(safe-area-inset-right));
+/* small wordmark reused on overlay panels (pause / win / lose) for branding */
+.brand-tag{font-family:'Baloo 2';font-weight:800;font-size:17px;letter-spacing:.6px;opacity:.9;margin-bottom:4px;text-align:center;}
+.brand-tag span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+/* GOAL compass — sits in the top HUD row (aligned with pause/time), always
+   rotates to point at the finish hole */
+#goalArrow{position:fixed;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));
   left:auto;width:auto;transform:none;flex-direction:row;align-items:center;gap:7px;background:var(--glass);
-  border:1px solid var(--stroke);padding:7px 13px 7px 10px;border-radius:999px;backdrop-filter:blur(8px);
-  box-shadow:0 4px 14px rgba(0,0,0,.3);filter:none;}
+  border:1px solid var(--stroke);padding:9px 15px 9px 12px;border-radius:999px;backdrop-filter:blur(8px);
+  box-shadow:0 6px 18px rgba(0,0,0,.3);filter:none;}
 .ga-arrow{font-size:20px;line-height:1;color:#2bff9e;transition:transform .12s linear;filter:drop-shadow(0 0 5px rgba(43,255,158,.9));}
 #goalArrow small{font-size:11px;font-weight:800;letter-spacing:1px;color:#bafadd;}
 

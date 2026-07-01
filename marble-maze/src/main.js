@@ -43,6 +43,7 @@ class App {
 
     const unlock = () => { Audio.resume(); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); };
     window.addEventListener('pointerdown', unlock); window.addEventListener('keydown', unlock);
+    window.addEventListener('keydown', this._onShortcut);
     document.addEventListener('visibilitychange', () => { if (document.hidden) this.director.noteTabBlur(); else this.director.noteTabFocus(); });
 
     this._wireHandlers();
@@ -63,6 +64,34 @@ class App {
     const dt = Math.min(0.05, (now - this._last) / 1000); this._last = now;
     this.input.update(dt); this.game.update(dt, this.input);
     requestAnimationFrame(this._loop);
+  };
+
+  // Keyboard shortcuts. Context is read from what's actually on screen, so the
+  // right key does the obvious thing: Space/Enter = the primary button,
+  // R = restart/replay/retry, Esc or P = pause/resume.
+  _onShortcut = (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+    const k = e.key.toLowerCase();
+    const vis = (id) => { const el = document.getElementById(id); return el && !el.classList.contains('hidden'); };
+    if (vis('pause')) {
+      if (['enter', ' ', 'escape', 'p'].includes(k)) { e.preventDefault(); this.resume(); }
+      else if (k === 'r') { e.preventDefault(); this.restart(); }
+      return;
+    }
+    if (vis('chest') || vis('shop') || vis('settings') || vis('daily') || vis('tiltPrompt') || vis('adCurtain')) return;
+    if (vis('win')) {
+      if (['enter', ' '].includes(k)) { e.preventDefault(); this._next(); }
+      else if (k === 'r') { e.preventDefault(); this.startStage(this.stage, {}); }   // replay
+      return;
+    }
+    if (vis('lose')) {
+      if (['enter', ' ', 'r'].includes(k)) { e.preventDefault(); this.startStage(this.stage, { retry: true }); }
+      return;
+    }
+    if (this.game.state === 'playing') {
+      if (k === 'r') { e.preventDefault(); this.restart(); }
+      else if (k === 'escape' || k === 'p') { e.preventDefault(); this.pause(); }
+    }
   };
 
   applyQuality(q) {
@@ -132,9 +161,16 @@ class App {
 
     // first-time "how to move" hint that fades the moment you roll
     if (this.stage === 1) {
-      this._showTut = true; const mode = this.input.activeMode;
+      this._showTut = true; this._showBoostTut = false; const mode = this.input.activeMode;
       this.ui.tutorialHint(true, mode === 'keys' ? 'Hold  W  or  ↑  to roll forward!' : mode === 'tilt' ? 'Tilt forward to roll!' : 'Drag up to roll!');
-    } else { this._showTut = false; this.ui.tutorialHint(false); }
+    } else if (this.stage === 3 && !S.hasSeenMechanic('boostHint')) {
+      // once you can move, teach the boost a couple levels in
+      S.markMechanicSeen('boostHint'); this._showTut = false; this._showBoostTut = true;
+      const mode = this.input.activeMode;
+      this.ui.tutorialHint(true, mode === 'keys' ? 'Hold  SHIFT  to go faster!' : 'Hold  BOOST  to go faster!');
+      clearTimeout(this._boostHintT);
+      this._boostHintT = setTimeout(() => { if (this._showBoostTut) { this._showBoostTut = false; this.ui.tutorialHint(false); } }, 5200);
+    } else { this._showTut = false; this._showBoostTut = false; this.ui.tutorialHint(false); }
 
     const n = this.stage;
     const worldChanged = (n - 1) % LEVELS_PER_WORLD === 0 && n > 1;
@@ -243,7 +279,11 @@ class App {
   // ---- engine callbacks ----
   _gameCallbacks() {
     return {
-      onHud: (h) => { if (this._showTut && h.speed > 1.6) { this._showTut = false; this.ui.tutorialHint(false); } this.ui.updateHUD({ level: this.stage, ...h }); },
+      onHud: (h) => {
+        if (this._showTut && h.speed > 1.6) { this._showTut = false; this.ui.tutorialHint(false); }
+        if (this._showBoostTut && h.boosting) { this._showBoostTut = false; this.ui.tutorialHint(false); }
+        this.ui.updateHUD({ level: this.stage, ...h });
+      },
       onCoin: (collected, val, combo) => { this.run.coinValue += val; this.director.noteMove(); if (combo >= 3) this.ui.combo(combo); },
       onPowerupStart: (def) => this.ui.toast(`${def.icon || '★'} ${def.name}`, 1400),
       onPowerups: (list) => this.ui.powerups(list),

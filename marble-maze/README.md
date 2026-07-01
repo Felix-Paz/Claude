@@ -45,8 +45,9 @@ Every system here exists to create *"I was so close — one more try."*
 - **Instant understanding** — level 1 is a single corridor (marble → green hole); level 2
   teaches the one RED wrong hole. Complexity is introduced one idea at a time.
 - **Readability rules** — **RED always means death** (wrong holes, spikes, toxic blobs,
-  bullets, blades); the **finish is always a green beam** with particles + an off-screen
-  arrow; sliding walls are a distinct amber; walls have bright top caps so edges read.
+  bullets, blades, **and the sliding walls** — touch one while it's out and you die);
+  the **finish is always a green beam** with particles + an always-on **GOAL compass**
+  in the HUD; walls have bright top caps so edges read.
 - **Adaptive director (v4)** — a 4-meter player model (skill / frustration / **boredom** /
   **excitement**) feeding a psychological **state machine** and a Bayesian-style churn
   belief (leave-probability **with confidence**, retry-speed, momentum, frustration

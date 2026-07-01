@@ -21,7 +21,7 @@ export const MARBLE_R = 0.95;  // default marble radius
 export const DANGER = 0xff2b2b;       // RED == death (spikes, wrong holes, enemies, bullets)
 export const DANGER_DARK = 0x8c1414;
 export const FINISH_COLOR = 0x2bff9e; // friendly green-cyan == "go here"
-export const MOVER_COLOR = 0xffb02e;  // moving walls (mechanical amber — NOT lethal)
+export const MOVER_COLOR = 0xff3b3b;  // moving walls — RED == death (lethal on touch)
 export const PORTAL_A = 0x46b6ff, PORTAL_B = 0xff7adf;
 
 // ---- Physics feel (smooth, forgiving, responsive) ----

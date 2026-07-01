@@ -129,13 +129,12 @@ export class UI {
     this.setSpeedFx(((s.speed / (s.maxSpeed || 1)) - 0.5) / 0.7);
   }
 
-  // ---- GOAL compass (pinned top-right corner, just rotates toward the hole) ----
+  // ---- GOAL compass (top HUD row; always rotates to point at the finish) ----
   finishArrow(info) {
     const el = $('goalArrow');
-    if (!info || info.hide) { el.classList.remove('show'); return; }
+    if (!info || info.hide || info.angle == null) { el.classList.remove('show'); return; }
     el.classList.add('show');
-    const ang = Math.atan2(-info.y, info.x);                  // NDC dir (y up) -> screen
-    el.querySelector('.ga-arrow').style.transform = `rotate(${ang + Math.PI / 2}rad)`;
+    el.querySelector('.ga-arrow').style.transform = `rotate(${info.angle}rad)`;
   }
   hideGoalArrow() { $('goalArrow').classList.remove('show'); }
 

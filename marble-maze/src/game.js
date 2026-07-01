@@ -427,12 +427,13 @@ export class Game {
   }
 
   _makeMover(mw) {
-    // a sliding AMBER wall that retracts into a side wall, opening the corridor
+    // a sliding RED wall that retracts into a side wall, opening the corridor.
+    // RED == death: touching it while it's extended kills you (time your run).
     const wp = this.tileWorld(mw.tx, mw.ty);
     // retract direction = a perpendicular side that is a wall (hide there)
     const perp = mw.dir.x ? [[0, -1], [0, 1]] : [[-1, 0], [1, 0]];
     let retract = perp.find(([dx, dy]) => this.isWall(mw.tx + dx, mw.ty + dy)) || perp[0];
-    const mesh = new THREE.Mesh(this._own(new THREE.BoxGeometry(T * 0.96, WALL_H * 0.92, T * 0.96)), this._own(new THREE.MeshStandardMaterial({ color: MOVER_COLOR, emissive: MOVER_COLOR, emissiveIntensity: 0.35, metalness: 0.4, roughness: 0.5 })));
+    const mesh = new THREE.Mesh(this._own(new THREE.BoxGeometry(T * 0.96, WALL_H * 0.92, T * 0.96)), this._own(new THREE.MeshStandardMaterial({ color: MOVER_COLOR, emissive: MOVER_COLOR, emissiveIntensity: 0.6, metalness: 0.3, roughness: 0.45 })));
     mesh.castShadow = true; mesh.receiveShadow = true; mesh.position.set(wp.x, WALL_H * 0.46, wp.z);
     mesh.userData = { tile: mw, base: wp, retract: { x: retract[0], y: retract[1] }, period: mw.period, phase: mw.phase, offset: 0 };
     this.levelGroup.add(mesh); return mesh;
@@ -678,12 +679,8 @@ export class Game {
       const hit = this._circleVsBox(this.marble.position.x, this.marble.position.z, c.x, c.z, T / 2, T / 2, r);
       if (hit) this._applyHit(hit);
     }
-    // moving walls (dynamic) — only when extended enough to block
-    for (const mv of this.movers || []) {
-      if (mv.userData.offset > 0.55) continue; // retracted -> open
-      const hit = this._circleVsBox(this.marble.position.x, this.marble.position.z, mv.position.x, mv.position.z, T * 0.48, T * 0.48, r);
-      if (hit) this._applyHit(hit);
-    }
+    // NOTE: moving walls are no longer solid — they're lethal instead, handled
+    // in _checkHazards (touch the RED wall while it's out and you die).
   }
   _applyHit(hit) {
     this.marble.position.x += hit.nx * hit.push; this.marble.position.z += hit.nz * hit.push;
@@ -744,7 +741,10 @@ export class Game {
     const mx = this.marble.position.x, mz = this.marble.position.z;
     const magnetActive = this.activePowerups.has('magnet');
     const magnet = magnetActive || this.perkMagnet;
-    const mRange = magnetActive ? T * 3.4 : T * 1.8, mPull = magnetActive ? 20 : 9;
+    // Skin's passive magnet perk is now a real draw (was a barely-noticeable
+    // T*1.8 / 9). The magnet POWER-UP still out-pulls it.
+    let mRange = T * 3.0, mPull = 15;                       // passive skin perk
+    if (magnetActive) { mRange = T * 4.0; mPull = 24; }     // active power-up (strongest)
     for (const coin of this.coins) {
       if (coin.userData.collected) continue;
       let dx = coin.position.x - mx, dz = coin.position.z - mz, dd = Math.hypot(dx, dz);
@@ -894,7 +894,12 @@ export class Game {
     for (const c of this.crawlers) if (hit(c.position.x, c.position.z, 0.68)) return this._lethal(c.position.x, c.position.z);
     for (const s of this.spikes) if (s.userData.up > 0.5 && hit(s.position.x, s.position.z, 0.55)) return this._lethal(s.position.x, s.position.z);
     for (const p of this.projectiles) if (p.alive && hit(p.mesh.position.x, p.mesh.position.z, 0.3)) { p.alive = false; this.levelGroup.remove(p.mesh); return this._lethal(p.mesh.position.x, p.mesh.position.z); }
-    for (const rt of this.rotators) { const ang = rt.userData.angle; const ex = rt.position.x + Math.cos(ang) * rt.userData.len; const ez = rt.position.z + Math.sin(ang) * rt.userData.len; if (distToSeg(mx, mz, rt.position.x, rt.position.z, ex, ez) < r + 0.34) return this._lethal(mx, mz); }
+    // Only die on a REAL touch of the red bar: the arm is 0.5 wide (0.25 half),
+    // so the kill distance is marble radius + arm half-width (with a hair of
+    // grace subtracted, so grazing air next to it is safe).
+    for (const rt of this.rotators) { const ang = rt.userData.angle; const ex = rt.position.x + Math.cos(ang) * rt.userData.len; const ez = rt.position.z + Math.sin(ang) * rt.userData.len; if (distToSeg(mx, mz, rt.position.x, rt.position.z, ex, ez) < r + 0.18) return this._lethal(mx, mz); }
+    // RED sliding walls: lethal while extended (retracted = open & safe)
+    for (const mv of this.movers || []) { if (mv.userData.offset > 0.55) continue; if (this._circleVsBox(mx, mz, mv.position.x, mv.position.z, T * 0.48, T * 0.48, r)) return this._lethal(mv.position.x, mv.position.z); }
   }
   _lethal(x, z) { if (this.shield) { this._consumeShield(x, z); return; } this._die('hazard', x, z); }
   _consumeShield(x, z) { this.shield = false; this.activePowerups.delete('shield'); this.burst(x, 0.8, z, 0x4dffa3, 26, 9, 0.6, 4); this.cb.onSfx?.('shieldHit'); this.cb.onPowerupEnd?.('shield'); this.cb.onPowerups?.(this._activeList()); this.vel.x *= -0.4; this.vel.z *= -0.4; }
@@ -939,9 +944,16 @@ export class Game {
   // ---- finish arrow ----
   _finishArrow() {
     if (!this.cb.onFinishArrow) return;
-    const v = this.finishMesh.position.clone(); v.y = 1.4; v.project(this.camera);
-    const onScreen = v.z < 1 && Math.abs(v.x) < 0.9 && Math.abs(v.y) < 0.9;
-    this.cb.onFinishArrow({ visible: !onScreen, x: v.x, y: v.y });
+    // A real compass: ALWAYS point at the finish. Decompose the marble->finish
+    // vector onto the camera's fixed forward/right axes (== screen up/right),
+    // which is robust even when the goal is off-screen or behind the camera.
+    const dx = this.finishMesh.position.x - this.marble.position.x;
+    const dz = this.finishMesh.position.z - this.marble.position.z;
+    const fwd = dx * this._fwd.x + dz * this._fwd.z;        // toward top of screen
+    const right = dx * this._right.x + dz * this._right.z;  // toward right of screen
+    // CSS rotation for a right-pointing (➤) glyph; screen Y points down.
+    const angle = Math.atan2(-fwd, right);
+    this.cb.onFinishArrow({ angle });
   }
 
   _animateDecor(dt) {

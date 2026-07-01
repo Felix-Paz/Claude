@@ -27,8 +27,21 @@ export function drawMarbleTexture(x, type, S) {
       for (let i = 0; i < 22; i++) { x.save(); x.translate(Math.random() * S, Math.random() * c(.7)); x.rotate(Math.random() * 7); fill(sp[i % sp.length]); x.fillRect(0, 0, c(.045), c(.02)); x.restore(); }
       break;
     }
-    case 'soccer':
-      bg('#ffffff'); fill('#15171c'); for (let i = 0; i < 6; i++) { const a = i / 6 * 7; pent(x, c(.5) + Math.cos(a) * c(.33), c(.5) + Math.sin(a) * c(.33), c(.1), a); } pent(x, c(.5), c(.5), c(.11), 0.3); break;
+    case 'soccer': {
+      // shaded white base so it doesn't read as a flat disc
+      const rg = x.createRadialGradient(c(.4), c(.36), c(.04), c(.5), c(.5), c(.66));
+      rg.addColorStop(0, '#ffffff'); rg.addColorStop(1, '#c3cad6'); fill(rg); x.fillRect(0, 0, S, S);
+      const black = '#1a1d24', seam = '#9aa3b2';
+      x.lineJoin = 'round'; x.lineCap = 'round';
+      const pentPath = (cx, cy, r, rot) => { x.beginPath(); for (let i = 0; i < 5; i++) { const a = rot + i / 5 * Math.PI * 2; const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r; i ? x.lineTo(px, py) : x.moveTo(px, py); } x.closePath(); };
+      // seams radiating out to the ring pentagons
+      x.strokeStyle = seam; x.lineWidth = c(.028);
+      for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i / 5 * Math.PI * 2; x.beginPath(); x.moveTo(c(.5), c(.5)); x.lineTo(c(.5) + Math.cos(a) * c(.52), c(.5) + Math.sin(a) * c(.52)); x.stroke(); }
+      // classic black center pentagon + a ring of five
+      fill(black); pentPath(c(.5), c(.5), c(.16), -Math.PI / 2); x.fill();
+      for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i / 5 * Math.PI * 2; fill(black); pentPath(c(.5) + Math.cos(a) * c(.37), c(.5) + Math.sin(a) * c(.37), c(.12), a + Math.PI); x.fill(); }
+      break;
+    }
     case 'basket':
       bg('#e0692a'); x.strokeStyle = '#1a1008'; x.lineWidth = c(.03);
       x.beginPath(); x.moveTo(0, c(.5)); x.lineTo(S, c(.5)); x.moveTo(c(.5), 0); x.lineTo(c(.5), S); x.stroke();
