@@ -110,8 +110,8 @@ export class Game {
     const p = skinDef && skinDef.perk;
     if (p === 'shield') this.shield = true;                 // one free hit at level start
     else if (p === 'magnet') this.perkMagnet = true;
-    else if (p === 'headstart') this.speedPerk = 1.08;
-    else if (p === 'lucky') this.coinPerk = 1.15;
+    else if (p === 'headstart') this.speedPerk = 1.16;      // clearly faster
+    else if (p === 'lucky') this.coinPerk = 1.2;            // +20% coins
   }
 
   _makeEnvCube(world) {
@@ -385,6 +385,10 @@ export class Game {
       this.marble.castShadow = true; this.scene.add(this.marble);
       this.blob = new THREE.Mesh(new THREE.CircleGeometry(MARBLE_R * 1.25, 20), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3, depthWrite: false }));
       this.blob.rotation.x = -Math.PI / 2; this.scene.add(this.blob);
+      // shield bubble — visible whenever a shield / Extra-Life perk is active
+      this.shieldAura = new THREE.Mesh(new THREE.SphereGeometry(MARBLE_R * 1.5, 20, 16),
+        new THREE.MeshBasicMaterial({ color: 0x4dffa3, transparent: true, opacity: 0.26, depthWrite: false, side: THREE.DoubleSide }));
+      this.shieldAura.visible = false; this.marble.add(this.shieldAura);
       this._initTrail();
     }
     this.applySkin(skinDef); this.applyTrail(trailDef);
@@ -622,7 +626,8 @@ export class Game {
     const mx = this.marble.position.x, mz = this.marble.position.z;
     const magnetActive = this.activePowerups.has('magnet');
     const magnet = magnetActive || this.perkMagnet;
-    const mRange = magnetActive ? T * 3.4 : T * 1.8, mPull = magnetActive ? 20 : 9;
+    // passive (perk) magnet is now genuinely strong — pulls coins from ~3 tiles
+    const mRange = magnetActive ? T * 3.8 : T * 3.0, mPull = magnetActive ? 24 : 17;
     for (const coin of this.coins) {
       if (coin.userData.collected) continue;
       let dx = coin.position.x - mx, dz = coin.position.z - mz, dd = Math.hypot(dx, dz);
@@ -775,7 +780,7 @@ export class Game {
     for (const rt of this.rotators) { const ang = rt.userData.angle; const ex = rt.position.x + Math.cos(ang) * rt.userData.len; const ez = rt.position.z + Math.sin(ang) * rt.userData.len; if (distToSeg(mx, mz, rt.position.x, rt.position.z, ex, ez) < r + 0.34) return this._lethal(mx, mz); }
   }
   _lethal(x, z) { if (this.shield) { this._consumeShield(x, z); return; } this._die('hazard', x, z); }
-  _consumeShield(x, z) { this.shield = false; this.activePowerups.delete('shield'); this.burst(x, 0.8, z, 0x4dffa3, 26, 9, 0.6, 4); this.cb.onSfx?.('shieldHit'); this.cb.onPowerupEnd?.('shield'); this.cb.onPowerups?.(this._activeList()); this.vel.x *= -0.4; this.vel.z *= -0.4; }
+  _consumeShield(x, z) { this.shield = false; this.activePowerups.delete('shield'); this.burst(x, 0.8, z, 0x4dffa3, 30, 10, 0.7, 4); this.cb.onSfx?.('shieldHit'); this.cb.onShieldSave?.(); this.cb.onPowerupEnd?.('shield'); this.cb.onPowerups?.(this._activeList()); this.vel.x *= -0.6; this.vel.z *= -0.6; }
 
   // ---- win/die ----
   _win() {
@@ -833,6 +838,7 @@ export class Game {
     }
     if (this._rainbow && this.marble) { const h = (this._t * 0.15) % 1; this.marble.material.emissive.setHSL(h, 1, 0.5); if (!this.skinDef?.tex) this.marble.material.color.setHSL(h, 0.7, 0.5); }
     if (this.blob && this.marble) { this.blob.position.set(this.marble.position.x, 0.03, this.marble.position.z); this.blob.scale.setScalar(this.radius / this.baseRadius); this.blob.visible = !(this.wallsPhased && this.phaseAmt > 0.5); }
+    if (this.shieldAura) { const on = this.shield && this.state === 'playing'; this.shieldAura.visible = on; if (on) { const s = 1 + 0.07 * Math.sin(this._t * 6); this.shieldAura.scale.setScalar(s); this.shieldAura.material.opacity = 0.2 + 0.1 * Math.sin(this._t * 6); } }
   }
   _idleAnim(dt) { if (this.marble) this.marble.position.y = MARBLE_R + Math.sin(this._t * 2) * 0.08; }
 

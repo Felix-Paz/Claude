@@ -136,6 +136,8 @@ class App {
       this.ui.tutorialHint(true, mode === 'keys' ? 'Hold  D  or  →  to roll!' : mode === 'tilt' ? 'Tilt to roll!' : 'Drag to roll!');
     } else { this._showTut = false; this.ui.tutorialHint(false); }
 
+    this.ui.setPerk(this._skinDef().perk);        // show the equipped skin's perk
+
     const n = this.stage;
     const worldChanged = (n - 1) % LEVELS_PER_WORLD === 0 && n > 1;
     const nm = newMechanicAt(n);
@@ -252,6 +254,7 @@ class App {
       onDie: (r, info) => this._onDie(r, info),
       onSfx: (name, arg) => this._sfx(name, arg),
       onGoldRush: (on) => this.ui.goldRush(on),
+      onShieldSave: () => this.ui.toast('🛡️ Shield saved you!', 1500),
       onFinishArrow: (info) => this.ui.finishArrow(info),
       onIdle: () => this.director.noteIdle(),
       onActive: () => this.director.noteMove(),

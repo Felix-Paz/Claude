@@ -168,6 +168,13 @@ export class UI {
   }
 
   surprise(text, sub) { this.banner(text, sub); }
+  // persistent indicator of the equipped skin's perk (so players know it's active)
+  setPerk(perk) {
+    const el = $('perkChip'); if (!el) return;
+    if (!perk || !PERKS[perk]) { el.classList.add('hidden'); return; }
+    el.innerHTML = `<span class="pk-ico">${PERKS[perk].icon}</span><span>${PERKS[perk].label}</span>`;
+    el.classList.remove('hidden');
+  }
   setControlHint(text) { const e = $('controlHint'); e.textContent = text; }
   fadeControlHint() { const e = $('controlHint'); e.style.opacity = '0'; }
   showControlHint() { const e = $('controlHint'); e.style.opacity = ''; }
