@@ -49,12 +49,34 @@ Oceanic (greed starts ×1.25), Toxic (+10% coins), Candy (2× golden blocks),
 Prism (+15% coins, greed ×1.3).
 
 **Special blocks** each have their own unmistakable skin (never disguised as a
-normal shape) — a real bomb, a gold star, an icy crystal, etc. They appear every
-20–40 s, weighted by player profile: ✨ GOLDEN (3× coins), 🗿 GIANT (huge, 3×, the
-one deliberate camera zoom-out on drop), 💣 BOMB (dark sphere with a lit fuse +
-countdown ring; explodes for salvage), ⚡ UNSTABLE (jitters, 2×), 🧊 ICE (slippery,
-2×), ⭐ LUCKY STAR (2× + a greed surge), 🌈 RAINBOW (animated rainbow, fuses with
-anything, 2×).
+normal shape) and its own behavior:
+- ✨ GOLDEN (3× coins) · 🗿 GIANT (huge, 3×, deliberate camera zoom-out on drop)
+- 💣 BOMB (dark sphere, lit fuse + countdown ring; explodes for salvage)
+- ⚡ UNSTABLE (glitchy hazard skin, shudders constantly, 2×) · 🧊 ICE (slippery, 2×)
+- ⭐ LUCKY STAR (2× + greed surge) · 🌈 RAINBOW (animated rainbow, fuses with anything)
+- 🧲 MAGNET (horseshoe skin, physically pulls same-tier pieces together to fuse)
+- 🏋️ HEAVY (dense iron block, slams + compresses the tower on landing)
+- 🧩 SPLIT (shatters into 4 mini blocks on impact) · 😠 ANGRY (has eyes, jumps once after landing)
+- 🎲 DICE (pip-count = live tier, re-rolls each bounce, locks at rest)
+- 🎁 LUCKY CHEST (opens on land: coins / giant / rainbow / magnet / bomb / curse)
+- 💎 JACKPOT DIAMOND (rare, ~every 5 min, absurd 8× payout)
+
+**World events** fire live (not blocks): 🕳️ BLACK HOLE (pulls the tower into new
+shapes), ☄️ METEOR (warns, then crashes — scatters or compresses), and 🔒 CURSE
+(temporary debuff: no-banking / coin-leak / slippery / next-3-huge).
+
+### Event Director
+Every 45–75 s the `EventDirector` asks "what crazy thing should happen now?" and
+either injects a special block or fires a world event, weighted by the retention
+engine (risk tolerance, churn state, session depth) — the whole point is a fresh
+surprise before the player can get bored. Nothing it does is instantly lethal.
+
+### Risk FX — greed made irresistible
+`RiskFX` continuously scores your risk (unbanked coins vs. best, greed, tower
+instability) and cranks the drama to match: a pulsing gold vignette that speeds
+up, gold particles raining across the screen, adrenaline micro-shakes, and the
+BANK button escalating through four "character" tiers until it's literally
+shaking and flashing **BANK ME** at you.
 
 ## Docks
 
@@ -108,6 +130,12 @@ title like THE GAMBLER / THE BANKER / THE COLLECTOR) drives:
   fusion, bomb). Nothing shakes or zooms on an ordinary drop.
 - Near-misses are computed from real run state, never randomly inserted.
 - Every run nets some coins (collapse pays a small salvage) — no zero-progress outcomes.
+- Adjacent same-tier pieces fuse even when they come to rest a hair apart (a
+  proximity + active-contact scan, not just first-contact events).
+- Reviving rolls back to the tower state from *before* the fatal drop (snapshot is
+  taken pre-drop), so the killer piece is gone — you don't instantly die again.
+- Any piece resting on a fused/removed/shrunk support is woken so it falls (no
+  frozen floating blocks).
 
 ## Shipping to a real platform (Poki etc.)
 

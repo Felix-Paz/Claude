@@ -199,7 +199,39 @@ body.chase #run-score { color: var(--gold); text-shadow: 0 0 26px rgba(255, 207,
   25% { margin-right: 3px; background: linear-gradient(165deg, #fff0b3, #ffb930); }
   75% { margin-right: -3px; }
 }
-.reduce-motion #btn-bank.u2, .reduce-motion #btn-bank.u3 { animation: bank-u1 1.2s ease-in-out infinite; transform: none; }
+/* u4 — screaming BANK ME: bigger, faster, violently shaking, white-hot flashes */
+#btn-bank.u4 { transform: scale(1.2); animation: bank-u4 0.24s ease-in-out infinite; }
+@keyframes bank-u4 {
+  0%,100% { box-shadow: 0 0 54px rgba(255,220,120,1), 0 0 120px rgba(255,90,60,0.7); transform: scale(1.2) translate(0,0) rotate(0deg); background: linear-gradient(165deg, #fff4c2, #ffb42a); }
+  20% { transform: scale(1.24) translate(-4px,1px) rotate(-2deg); }
+  50% { transform: scale(1.18) translate(4px,-1px) rotate(2deg); background: linear-gradient(165deg, #ffffff, #ffcf5c); }
+  80% { transform: scale(1.24) translate(-3px,-1px) rotate(-1.5deg); }
+}
+.reduce-motion #btn-bank.u2, .reduce-motion #btn-bank.u3, .reduce-motion #btn-bank.u4 { animation: bank-u1 1.2s ease-in-out infinite; transform: none; }
+
+/* risk vignette — gold pressure that pulses harder the more you're risking.
+   Opacity is set live from JS (RiskFX); the pulse speeds up via risk tiers. */
+#risk-vignette {
+  position: fixed; inset: 0; pointer-events: none; z-index: 16; opacity: 0;
+  background: radial-gradient(78% 68% at 50% 52%, transparent 46%, rgba(255, 200, 70, 0.5) 100%);
+}
+body.risk1 #risk-vignette { animation: riskpulse 1.4s ease-in-out infinite; }
+body.risk2 #risk-vignette { animation: riskpulse 0.85s ease-in-out infinite; }
+body.risk3 #risk-vignette { animation: riskpulse 0.42s ease-in-out infinite; }
+@keyframes riskpulse { 0%,100% { filter: brightness(0.8); } 50% { filter: brightness(1.5); } }
+.reduce-motion #risk-vignette { animation: none !important; }
+
+/* curse — red status while a curse is active */
+#curse-banner {
+  position: fixed; top: 62px; left: 50%; transform: translateX(-50%);
+  padding: 8px 18px; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.08em;
+  color: #fff; background: rgba(150, 20, 40, 0.85); border: 1px solid rgba(255,120,140,0.7);
+  border-radius: 999px; z-index: 33; box-shadow: 0 0 24px rgba(255,60,90,0.6);
+  animation: cursepulse 0.8s ease-in-out infinite;
+}
+#curse-banner.hidden { display: none; }
+@keyframes cursepulse { 0%,100% { box-shadow: 0 0 20px rgba(255,60,90,0.5);} 50% { box-shadow: 0 0 34px rgba(255,60,90,0.95);} }
+body.cursed #risk-vignette { background: radial-gradient(78% 68% at 50% 52%, transparent 46%, rgba(255, 40, 70, 0.4) 100%); opacity: 0.5 !important; }
 
 /* record-chase vignette — near your best, the world turns gold */
 #chase-vignette {
@@ -385,7 +417,9 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 <canvas id="game"></canvas>
 <div id="flash"></div>
 <div id="chase-vignette"></div>
+<div id="risk-vignette"></div>
 <div id="reaction"></div>
+<div id="curse-banner" class="hidden"></div>
 
 <!-- HUD -->
 <div id="hud" class="hidden">
@@ -604,17 +638,27 @@ const DOCKS = {
   vortex:  { style: 'vortex',  c1: '#c9a8ff', c2: '#2c1554', glow: 'rgba(201,168,255,0.75)', lengthBonus: 0.22, grip: 0.3, forgiveness: 0.10, greedRate: 0.3 },
 };
 
-/* Special blocks — each with its own unmistakable skin (drawn in §21). A
-   special is never disguised as a normal shape. `targetsFusable` retargets
-   the block's tier to something already on the stack so its bonus can land. */
+/* Special blocks — each with its own unmistakable skin (drawn in §21) and its
+   own behavior (§20). A special is never disguised as a normal shape.
+   `targetsFusable` retargets the block's tier to something already on the
+   stack so its bonus can land. Behavior flags (magnetize/slam/splits/jumps/
+   dice/chest) are read by Stack/Game at spawn, contact and tick. */
 const SPECIALS = {
   golden:   { emoji: '✨', label: 'GOLDEN BLOCK',   coinMult: 3, targetsFusable: true },
   giant:    { emoji: '🗿', label: 'GIANT BLOCK',    coinMult: 3, sizeMult: 1.55, targetsFusable: true, cameraKick: true },
-  rainbow:  { emoji: '🌈', label: 'RAINBOW BLOCK',  coinMult: 2, wild: true },
-  unstable: { emoji: '⚡', label: 'UNSTABLE BLOCK', coinMult: 2, friction: 0.42, jitter: true },
+  rainbow:  { emoji: '🌈', label: 'RAINBOW BLOCK',  coinMult: 2.5, wild: true },
+  unstable: { emoji: '⚡', label: 'UNSTABLE BLOCK', coinMult: 2, friction: 0.34, jitter: true },
   ice:      { emoji: '🧊', label: 'ICE BLOCK',      coinMult: 2, friction: 0.02, restitution: 0.22, slippery: true },
   star:     { emoji: '⭐', label: 'LUCKY STAR',     coinMult: 2, greedBonus: 0.7, targetsFusable: true },
   bomb:     { emoji: '💣', label: 'BOMB',           noFuse: true },
+  // ---- new weird blocks ----
+  magnet:   { emoji: '🧲', label: 'MAGNET BLOCK',   coinMult: 2,   targetsFusable: true, magnetize: true },
+  heavy:    { emoji: '🏋️', label: 'HEAVY BLOCK',    coinMult: 1.5, targetsFusable: true, density: 0.02, sizeMult: 1.12, slam: true },
+  split:    { emoji: '🧩', label: 'SPLIT BLOCK',    noFuse: true,  splits: 4 },
+  angry:    { emoji: '😠', label: 'ANGRY BLOCK',    coinMult: 2,   targetsFusable: true, jumps: true },
+  dice:     { emoji: '🎲', label: 'DICE BLOCK',     coinMult: 2,   dice: true },
+  chest:    { emoji: '🎁', label: 'LUCKY CHEST',    noFuse: true,  chest: true },
+  jackpot:  { emoji: '💎', label: 'JACKPOT DIAMOND', coinMult: 8,  sizeMult: 1.35, targetsFusable: true, jackpotBlock: true },
 };
 
 const WORLD = {
@@ -642,13 +686,26 @@ const CONFIG = {
     consolationPerTier: 3,
   },
   onboarding: { seededQueue: [1, 1, 2], hintFadeMs: 1900 },
-  snapshotMinStability: 0.55,
+  snapshotMinStability: 0.5,
   chainWindowMs: 1400,        // fusions inside this window chain: NICE! → UNREAL!!
   jackpotTier: 7,             // fusing into Titan or AUREX = jackpot moment
-  surprise: { minGapMs: 20_000, maxGapMs: 40_000 }, // something new every 20–40s
+  fuseGapPx: 4,               // resting same-tier pieces this close still merge (adjacency fix)
   bombFuseMs: 1500,
   bombRadius: 118,
   chase: { startRatio: 0.85 }, // within 15% of best bank → gold-chase mode
+  // EventDirector — every 45–75s the game asks "what crazy thing happens now?"
+  events: {
+    minGapMs: 45_000, maxGapMs: 75_000,
+    firstEventDelayMs: 30_000,       // let the player breathe before the first surprise
+    worldEventChance: 0.35,          // vs. injecting a special block
+    jackpotEveryMs: 5 * 60_000,      // the rare huge diamond
+    curseMs: 9_000,
+    blackholeMs: 4_500,
+    blackholeForce: 0.00016,
+    meteorWarnMs: 1200,
+  },
+  magnetForce: 0.00010,       // magnet block pull on same-tier neighbours
+  angryJumpDelayMs: 550,
 };
 
 /* Milestone superpowers — earned by LIFETIME banked coins, never bought.
@@ -1383,64 +1440,25 @@ const Director = {
   next() { return this.queue[1]; },
 };
 
-/* ==================== §13b SURPRISE DIRECTOR ============================== */
-/* Something the player wasn't expecting, every 20–40s. Weighted by who
-   they are: cautious players get temptations, bored players get chaos. */
+/* ==================== §13b BLOCK INJECTOR ================================ */
+/* Turns a freshly-rolled tail piece into a "special" when the EventDirector
+   (or a frustration gift) has queued one. Scheduling/selection lives in the
+   EventDirector (§20b); this just stamps the forced type onto the next piece
+   BEFORE it is ever previewed, so the NEXT box never lies. */
 const Surprise = {
-  nextAt: 0, forced: null, lastTemptAt: 0,
-  schedule() { this.nextAt = now() + rand(CONFIG.surprise.minGapMs, CONFIG.surprise.maxGapMs); },
+  forced: null,
   force(type) { this.forced = type; },
-  weightsFor() {
-    const w = { golden: 3, giant: 2, bomb: 2, unstable: 2, rainbow: 1.2, star: 1.4, ice: 1.4 };
-    const rt = Profile.riskTolerance;
-    if (rt < 0.35) { w.golden += 2.5; w.rainbow += 1.5; w.star += 1; }  // tempt the early banker (1)
-    if (rt > 0.7) { w.bomb += 1; w.unstable += 1; w.ice += 1; }         // feed the daredevil
-    if (Profile.goal === 'chaos') { w.bomb += 2; w.unstable += 1.5; w.ice += 1; }
-    if (save.powers.includes('power_goldrush')) w.golden *= 2;     // GOLD RUSH superpower
-    if (save.powers.includes('power_chromarush')) w.rainbow *= 2;  // CHROMA RUSH superpower
-    w.golden += Economy.goldenBias;                               // Candy shape pack
-    return w;
-  },
-  rollType() {
-    const w = this.weightsFor();
-    const total = Object.values(w).reduce((a, b) => a + b, 0);
-    let r = Math.random() * total;
-    for (const [k, v] of Object.entries(w)) { r -= v; if (r <= 0) return k; }
-    return 'golden';
-  },
-  // periodic, run-level checks (called on settle) — no longer touches pieces
-  tick(runActive) {
-    if (!runActive) return;
-    SessionArc.checkRetentionSave();
-  },
-  // Finalize a freshly-rolled tail piece's special (called from Director.advance,
-  // before the piece is ever previewed). Mutates `def` in place.
   decorate(def) {
-    if (!def || def.special) return;
-    let type = null;
-    if (this.forced) { type = this.forced; this.forced = null; }
-    else if (now() >= this.nextAt) type = this.rollType();
-    else if (this.maybeTempt()) type = 'golden';
-    if (!type) return;
+    if (!def || def.special || !this.forced) return;
+    const type = this.forced; this.forced = null;
     def.special = type;
     const meta = SPECIALS[type];
     if (meta && meta.targetsFusable) {
-      // specials that reward fusing should actually be fusable with the stack
       const onStack = [...new Set(Director.stackTiers().filter((t) => t <= 5))];
       if (onStack.length) def.tier = pick(onStack);
     }
-    this.schedule();
     FeedbackBus.emit('surprise', { type });
     trackEvent('surprise_block', { type, riskTolerance: +Profile.riskTolerance.toFixed(2) });
-  },
-  // (1) early bankers get an occasional mid-run temptation drop
-  maybeTempt() {
-    if (Profile.riskTolerance >= 0.35) return false;
-    if (Greed.value < 1.5 || Greed.value > 3) return false;
-    if (now() - this.lastTemptAt < 25_000) return false;
-    if (Math.random() > 0.25) return false;
-    this.lastTemptAt = now();
-    return true;
   },
 };
 
@@ -1690,7 +1708,7 @@ const AdManager = {
   },
 };
 /* ==================== §19 PHYSICS / STACK MANAGER ========================= */
-const { Engine, Bodies, Body, Composite, Events } = Matter;
+const { Engine, Bodies, Body, Composite, Events, Sleeping } = Matter;
 const engine = Engine.create({ enableSleeping: true });
 engine.gravity.y = 1;
 
@@ -1737,27 +1755,35 @@ const Stack = {
   },
   makeBody(x, y, def) {
     const meta = SPECIALS[def.special] || {};
-    const rScale = (def.rScale || 1) * (meta.sizeMult || 1);
+    // Curse: "next N pieces are huge" inflates the drop temporarily (§20b).
+    const curseHuge = (def.special ? 1 : (EventDirector.consumeHuge() ? 1.5 : 1));
+    const rScale = (def.rScale || 1) * (meta.sizeMult || 1) * curseHuge;
     const r = TIERS.radii[def.tier] * rScale;
     const grip = Economy.dock.grip || 0;
-    const baseFriction = meta.friction != null ? meta.friction : (def.friction ?? 0.85);
+    let baseFriction = meta.friction != null ? meta.friction : (def.friction ?? 0.85);
+    if (EventDirector.curseActive('slippery')) baseFriction = Math.min(baseFriction, 0.05); // slippery curse
     const friction = baseFriction + grip * 0.3;
     const common = {
       friction, frictionStatic: 1 + grip,
       restitution: meta.restitution != null ? meta.restitution : (def.restitution ?? 0.04),
       slop: 0.02,
+      density: meta.density || 0.001,           // Heavy Block is far denser
       frictionAir: Economy.dockSlowFall || 0,   // Liquid Glass dock → slow-fall
     };
     let body;
     if (def.kind === 'plank') body = Bodies.rectangle(x, y, r * 2.7, r * 0.95, { ...common, chamfer: { radius: r * 0.18 } });
     else if (def.special === 'bomb') body = Bodies.polygon(x, y, 12, r * 0.94, { ...common, chamfer: { radius: r * 0.45 } }); // near-round bomb
     else if (def.special === 'star') body = Bodies.polygon(x, y, 5, r, { ...common, chamfer: { radius: r * 0.12 } });
+    else if (def.special === 'chest' || def.special === 'heavy') body = Bodies.rectangle(x, y, r * 1.7, r * 1.6, { ...common, chamfer: { radius: r * 0.14 } });
+    else if (def.special === 'jackpot') body = Bodies.polygon(x, y, 4, r * 1.2, { ...common, chamfer: { radius: r * 0.1 } });
+    else if (def.special === 'dice') body = Bodies.rectangle(x, y, r * 1.7, r * 1.7, { ...common, chamfer: { radius: r * 0.22 } });
     else body = Bodies.polygon(x, y, TIERS.sides[def.tier], r, { ...common, chamfer: { radius: r * 0.2 } });
-    Body.setAngle(body, def.special === 'star' ? 0 : rand(-0.25, 0.25));
+    Body.setAngle(body, (def.special === 'star' || def.special === 'jackpot') ? 0 : rand(-0.25, 0.25));
     body.plugin = {
       piece: true, tier: def.tier, kind: def.kind || 'poly', rScale: def.rScale || 1, r,
       special: def.special || null, giftNote: !!def.giftNote,
       bornAt: now(), fusedAt: 0, contacted: false, armedAt: 0,
+      landedAt: 0, jumped: false, diceLocked: false, eyeDir: 0,
     };
     return body;
   },
@@ -1781,10 +1807,33 @@ const Stack = {
     }
     return Math.min(m, 6);
   },
+  // Wake every piece — call after ANY body removal so blocks resting on a
+  // consumed/shrunk piece fall instead of freezing mid-air (floating-block fix).
+  wakeAll() {
+    for (const b of this.pieces()) Sleeping.set(b, false);
+  },
+  // Adjacency fix: sleeping same-tier pieces that came to rest a hair apart never
+  // generate a fresh collisionStart, so they'd never fuse. Each step we also scan
+  // for touching same-tier (or wild) pairs and queue them.
+  scanProximityFusions() {
+    const ps = this.pieces();
+    for (let i = 0; i < ps.length; i++) {
+      const a = ps[i];
+      if (a.plugin.consumed) continue;
+      for (let j = i + 1; j < ps.length; j++) {
+        const b = ps[j];
+        if (b.plugin.consumed || !this.canFuse(a, b)) continue;
+        const dx = a.position.x - b.position.x, dy = a.position.y - b.position.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < a.plugin.r + b.plugin.r + CONFIG.fuseGapPx) this.fusionQueue.push([a, b]);
+      }
+    }
+  },
   processFusions() {
     if (!this.fusionQueue.length) return;
     const queue = this.fusionQueue.splice(0);
     const consumed = new Set();
+    let removed = false;
     for (const [a, b] of queue) {
       if (consumed.has(a.id) || consumed.has(b.id)) continue;
       if (!a.plugin || !b.plugin || !this.canFuse(a, b)) continue;
@@ -1797,11 +1846,13 @@ const Stack = {
       const my = Math.min(a.position.y, b.position.y) - 2;
       Composite.remove(engine.world, a);
       Composite.remove(engine.world, b);
+      removed = true;
       const merged = this.spawnPiece({ tier: newTier, kind: 'poly', rScale: 1 }, clamp(mx, 40, WORLD.width - 40), my);
       merged.plugin.fusedAt = now();
       Body.setVelocity(merged, { x: 0, y: -0.6 });
       Game.onFusion(merged, mult, specials);
     }
+    if (removed) this.wakeAll(); // anything that was resting on a consumed piece must fall
   },
   explode(bomb) {
     const bx = bomb.position.x, by = bomb.position.y;
@@ -1819,6 +1870,7 @@ const Stack = {
         Body.applyForce(b, b.position, { x: (b.position.x - bx) * k * 0.001, y: -Math.abs(k) * 0.02 });
       }
     }
+    this.wakeAll();
     return { salvage, destroyed, x: bx, y: by };
   },
   stability() {
@@ -1908,6 +1960,16 @@ Events.on(engine, 'collisionStart', (ev) => {
     if (aP && !a.plugin.contacted) { a.plugin.contacted = true; Game.onFirstContact(a); }
     if (bP && !b.plugin.contacted) { b.plugin.contacted = true; Game.onFirstContact(b); }
     if (aP && bP && Stack.canFuse(a, b)) Stack.fusionQueue.push([a, b]);
+    // dice re-rolls its tier on each bounce until it settles (§20b behaviors)
+    if (aP && a.plugin.special === 'dice') Game.onDiceBounce(a);
+    if (bP && b.plugin.special === 'dice') Game.onDiceBounce(b);
+  }
+});
+// Active contacts catch same-tier pieces that keep touching after settling.
+Events.on(engine, 'collisionActive', (ev) => {
+  for (const pair of ev.pairs) {
+    const a = pair.bodyA, b = pair.bodyB;
+    if (a.plugin && a.plugin.piece && b.plugin && b.plugin.piece && Stack.canFuse(a, b)) Stack.fusionQueue.push([a, b]);
   }
 });
 
@@ -1938,7 +2000,7 @@ const Game = {
     Stack.clearPieces();
     Director.refill(save.runsTotal === 0 ? CONFIG.onboarding.seededQueue.slice() : null);
     Greed.reset(Economy.greedStart); // Oceanic/Prism packs start greed higher
-    Surprise.schedule();
+    EventDirector.reset();
     this.runCoins = 0; this.displayCoins = 0;
     this.droppedCount = 0; this.fusionsThisRun = 0; this.maxTierThisRun = 1; this.peakPieces = 0;
     this.comboIdx = -1; this.chainCount = 0;
@@ -1948,6 +2010,7 @@ const Game = {
     this.aimX = WORLD.width / 2;
     this.spawnY = WORLD.platformY - WORLD.spawnClearance;
     Camera.reset();
+    RiskFX.reset();
     PSV.runsThisSession++;
     PSV.samplePace();
     Streak.onRunStart();
@@ -1990,6 +2053,11 @@ const Game = {
     if (this.state !== 'DECISION' && this.state !== 'AIMING') return;
     PSV.sampleDecisionLatency(now() - this.decisionStartT);
     PSV.inputJitter = this.computeJitter();
+    // Revive snapshot is taken BEFORE the drop, so it captures the tower
+    // WITHOUT the piece about to fall. Reviving therefore rolls back to just
+    // before the fatal drop — the killer piece is gone (was: post-settle
+    // snapshot could include a briefly-stable killer that then toppled).
+    if (Stack.pieces().length && Stack.stability() > CONFIG.snapshotMinStability) Stack.takeSnapshot();
     const def = Director.current();
     this.dropBody = Stack.spawnPiece(def, this.aimX, this.spawnY);
     this.dropAimX = this.aimX;
@@ -2001,11 +2069,10 @@ const Game = {
     FeedbackBus.emit('drop', { x: this.aimX, y: this.spawnY });
     trackEvent('drop', { tier: def.tier, special: def.special || 'none', band: Director.flowBand });
     // The only per-drop camera move left: a deliberate, rare zoom-out to
-    // make room for a GIANT piece. Everything else stays calm on drop.
-    if (def.special === 'giant') {
-      Shake.impulse(0.22);
-      Camera.pushIn(0.88, 900);
-    }
+    // make room for a GIANT / heavy / jackpot piece.
+    const m = SPECIALS[def.special];
+    if (def.special === 'giant') { Shake.impulse(0.22); Camera.pushIn(0.88, 900); }
+    else if (m && (m.slam || m.jackpotBlock)) Camera.pushIn(0.92, 700);
   },
   computeJitter() {
     const cutoff = now() - 500;
@@ -2025,9 +2092,67 @@ const Game = {
       this.set('RESOLVING');
       this.settledSince = 0;
     }
-    if (body.plugin.special === 'bomb' && !body.plugin.armedAt) body.plugin.armedAt = now();
+    const sp = body.plugin.special;
+    if (sp === 'bomb' && !body.plugin.armedAt) body.plugin.armedAt = now();
+    if (!body.plugin.landedAt) body.plugin.landedAt = now();
     const impact = Math.min(Math.hypot(body.velocity.x, body.velocity.y) / 8, 1);
     FeedbackBus.emit('land', { impact, x: body.position.x, y: body.position.y });
+    // ---- special on-land behaviors (§20b) ----
+    if (sp === 'heavy') {                       // HEAVY: slam + compress the tower
+      Shake.impulse(0.4); flashScreen();
+      UI.react('SLAM!', '#cfd6e8');
+      for (const p of Stack.pieces()) { if (p !== body && p.position.y > body.position.y) Body.applyForce(p, p.position, { x: 0, y: 0.02 * p.mass }); }
+      Stack.wakeAll();
+    } else if (sp === 'split') {                // SPLIT: shatter into mini blocks
+      this.doSplit(body);
+    } else if (sp === 'chest') {                // CHEST: open with a random outcome
+      this.openChest(body);
+    }
+  },
+
+  onDiceBounce(body) {                          // DICE: re-roll tier each bounce until it rests
+    if (body.plugin.diceLocked) return;
+    const speed = Math.hypot(body.velocity.x, body.velocity.y);
+    if (speed > 1.5) { body.plugin.tier = 1 + ((Math.random() * 4) | 0); UI.renderNextPreview && null; }
+  },
+
+  doSplit(body) {
+    const tier = Math.max(1, body.plugin.tier - 1);
+    const n = SPECIALS.split.splits || 4;
+    const x = body.position.x, y = body.position.y;
+    Composite.remove(engine.world, body);
+    UI.react('SPLIT!', '#a8ffcf');
+    Shake.impulse(0.2);
+    for (let i = 0; i < n; i++) {
+      const p = Stack.spawnPiece({ tier, kind: 'poly', rScale: 0.82 }, clamp(x + rand(-30, 30), 40, WORLD.width - 40), y - rand(0, 20));
+      Body.setVelocity(p, { x: rand(-3, 3), y: -rand(1, 4) });
+    }
+    Stack.wakeAll();
+    trackEvent('split_block', { n, tier });
+  },
+
+  openChest(body) {
+    const x = body.position.x, y = body.position.y;
+    Composite.remove(engine.world, body);
+    Particles.goldRain(x, y);
+    const outcome = pick(['coins', 'coins', 'giant', 'rainbow', 'magnet', 'bomb', 'curse']);
+    trackEvent('chest_open', { outcome });
+    if (outcome === 'coins') {
+      const amt = Math.round(TIERS.values[3] * Greed.value * 2 * Economy.coinMult);
+      this.runCoins += amt;
+      UI.react('TREASURE!', '#ffd700');
+      spawnPopup(x, y - 40, `+◆${fmt(amt)}`, '#ffd700', true);
+    } else if (outcome === 'curse') {
+      UI.react('CURSED!', 'var(--hot)');
+      EventDirector.startCurse();
+    } else { // spawn the rolled special as a live falling piece onto the tower
+      const onStack = [...new Set(Director.stackTiers().filter((tt) => tt <= 5))];
+      const tier = onStack.length ? pick(onStack) : 2;
+      UI.react('SURPRISE!', '#ffd700');
+      const p = Stack.spawnPiece({ tier, kind: 'poly', rScale: 1, special: outcome }, x, y - 60);
+      if (outcome === 'bomb') p.plugin.armedAt = now();
+      Stack.wakeAll();
+    }
   },
 
   onFusion(merged, specialMult, specials) {
@@ -2080,6 +2205,11 @@ const Game = {
       spawnPopup(merged.position.x, merged.position.y - 80, `JACKPOT +◆${fmt(bonus)}`, '#ffd700', true);
       FeedbackBus.emit('jackpot', { tier });
       trackEvent('jackpot', { tier, bonus });
+    } else if (specials && specials.includes('jackpot')) {
+      UI.react('💎 JACKPOT!!!', '#8be0ff');
+      Particles.goldRain(merged.position.x, merged.position.y);
+      SlowMo.trigger(0.4, 800); Shake.impulse(0.7); flashScreen();
+      FeedbackBus.emit('jackpot', { tier });
     } else if (specialMult > 1) {
       UI.react(`×${specialMult} BONUS!`, '#ffd700');
     }
@@ -2133,9 +2263,10 @@ const Game = {
     const dangerZone = clamp((0.55 - stab) / 0.55, 0, 1);
     Shake.micro = this.runActive() && pieces.length > 1 ? dangerZone * 1.6 : 0;
 
-    // bombs
+    // ---- per-piece special behaviors ----
     for (const b of pieces) {
-      if (b.plugin.special === 'bomb' && b.plugin.armedAt && now() - b.plugin.armedAt > CONFIG.bombFuseMs) {
+      const sp = b.plugin.special;
+      if (sp === 'bomb' && b.plugin.armedAt && now() - b.plugin.armedAt > CONFIG.bombFuseMs) {
         const res = Stack.explode(b);
         this.runCoins += res.salvage;
         Particles.goldRain(res.x, res.y);
@@ -2147,17 +2278,36 @@ const Game = {
         FeedbackBus.emit('explosion', res);
         Profile.onChaos();
         trackEvent('bomb_exploded', { destroyed: res.destroyed, salvage: res.salvage });
-      }
-      if (b.plugin.special === 'unstable' && Math.random() < 0.04) {
-        Body.applyForce(b, b.position, { x: rand(-1, 1) * 0.0009 * b.mass, y: 0 });
+      } else if (sp === 'unstable') {           // UNSTABLE: shudders constantly
+        if (Math.random() < 0.12) Body.applyForce(b, b.position, { x: rand(-1, 1) * 0.0016 * b.mass, y: -Math.random() * 0.0006 * b.mass });
+        Sleeping.set(b, false);
+      } else if (sp === 'magnet') {             // MAGNET: pulls same-tier pieces in to fuse
+        for (const o of pieces) {
+          if (o === b || o.plugin.tier !== b.plugin.tier) continue;
+          const dx = b.position.x - o.position.x, dy = b.position.y - o.position.y;
+          const d = Math.hypot(dx, dy);
+          if (d > 1 && d < 220) { const f = CONFIG.magnetForce * o.mass / d; Body.applyForce(o, o.position, { x: dx * f, y: dy * f }); Sleeping.set(o, false); }
+        }
+      } else if (sp === 'angry' && b.plugin.landedAt && !b.plugin.jumped && now() - b.plugin.landedAt > CONFIG.angryJumpDelayMs) {
+        b.plugin.jumped = true;                 // ANGRY: one chaotic jump after landing
+        Body.setVelocity(b, { x: rand(-3, 3), y: -rand(6, 9) });
+        Body.setAngularVelocity(b, rand(-0.3, 0.3));
+        UI.react('GRR!', '#ff8a3c');
+        Stack.wakeAll();
+      } else if (sp === 'dice' && !b.plugin.diceLocked && b.isSleeping) {
+        b.plugin.diceLocked = true;             // DICE: locks its tier once at rest
+        UI.renderNextPreview();
       }
     }
 
-    // collapse check (bombs excluded — they vanish quietly below)
+    // world events (curse leak / black hole / meteor) advance here
+    EventDirector.tick(dt, this.runActive());
+
+    // collapse check (bombs & split fragments below the floor vanish quietly)
     if (this.droppedCount > 0) {
       for (const b of pieces) {
         if (b.position.y > WORLD.platformY + WORLD.killMargin || Math.abs(b.position.x - WORLD.width / 2) > WORLD.width) {
-          if (b.plugin.special === 'bomb') { Composite.remove(engine.world, b); continue; }
+          if (b.plugin.special === 'bomb') { Composite.remove(engine.world, b); Stack.wakeAll(); continue; }
           this.collapse(b);
           return;
         }
@@ -2187,10 +2337,10 @@ const Game = {
     } else {
       PSV.sampleDropPrecision(8);
     }
-    if (stab > CONFIG.snapshotMinStability) Stack.takeSnapshot();
+    // (snapshot for revive is taken pre-drop, not here — see drop())
     const daring = Greed.onSurvivedDrop(stab); // greed climbs because YOU survived
     UI.popGreed(daring);
-    Surprise.tick(this.runActive()); // periodic checks only; specials are decorated at roll time
+    SessionArc.checkRetentionSave();
     UI.renderNextPreview();
     this.set('DECISION');
     this.decisionStartT = now();
@@ -2204,6 +2354,7 @@ const Game = {
   bank(opts = {}) {
     const bankableState = opts.force ? this.inPlay() : (this.state === 'DECISION' || this.state === 'AIMING');
     if (!bankableState || this.runCoins <= 0) return;
+    if (!opts.force && EventDirector.curseActive('nobank')) { UI.toast('🔒 CURSED — banking sealed'); return; }
     if (Stack.isDoomed()) { // defense in depth — never bank an already-falling tower
       if (!opts.force) UI.toast('TOO LATE — it’s already falling');
       return;
@@ -2322,6 +2473,7 @@ const Game = {
     if (!ok) return;
     if (!Stack.restoreSnapshot()) { this.startRun(); return; }
     this.revivesUsedThisRun++;
+    EventDirector.clearCurse();
     Greed.reset(CONFIG.greed.reviveBaseline);
     this.set('DECISION');
     this.decisionStartT = now();
@@ -2351,6 +2503,193 @@ const Game = {
     await AdManager.maybeInterstitial('menu');
     this.set('MENU');
     UI.showMenu();
+  },
+};
+
+/* ==================== §20b EVENT DIRECTOR ================================= */
+/* Every 45–75s the game asks "what crazy thing should happen now?" and either
+   injects a special block or fires a live WORLD event (curse / black hole /
+   meteor). Selection is weighted by the retention engine (Profile risk
+   tolerance, Churn, session depth). Nothing here is instantly lethal — the
+   whole point is a fresh surprise before the player can get bored. */
+const EventDirector = {
+  nextAt: 0, hugeCharges: 0,
+  curse: null,              // { type, until }
+  blackhole: null,          // { x, y, until }
+  meteor: null,             // { x, y, vx, vy, warnUntil, fired }
+  lastJackpotAt: 0,
+
+  reset() {
+    this.nextAt = now() + CONFIG.events.firstEventDelayMs;
+    this.hugeCharges = 0; this.curse = null; this.blackhole = null; this.meteor = null;
+    this.lastJackpotAt = now();
+    document.body.classList.remove('cursed');
+  },
+  consumeHuge() { if (this.hugeCharges > 0) { this.hugeCharges--; return true; } return false; },
+  curseActive(type) { return this.curse && (!type || this.curse.type === type) && now() < this.curse.until; },
+  clearCurse() { this.curse = null; document.body.classList.remove('cursed'); $('curse-banner') && $('curse-banner').classList.add('hidden'); },
+
+  // ---- block-event weighting (delegated to the block injector) ----
+  blockWeights() {
+    const w = { golden: 3, giant: 2, bomb: 1.6, unstable: 1.6, rainbow: 1.2, star: 1.4, ice: 1.4,
+      magnet: 1.6, heavy: 1.6, split: 1.4, angry: 1.6, dice: 1.4, chest: 1.6 };
+    const rt = Profile.riskTolerance;
+    if (rt < 0.35) { w.golden += 2.5; w.rainbow += 1.5; w.star += 1; w.chest += 1; }  // tempt the early banker
+    if (rt > 0.7) { w.bomb += 1; w.unstable += 1; w.heavy += 1; w.split += 1; }        // feed the daredevil
+    if (Profile.goal === 'chaos') { w.bomb += 1.5; w.split += 1.5; w.angry += 1.5; w.dice += 1; }
+    if (save.powers.includes('power_goldrush')) w.golden *= 2;
+    if (save.powers.includes('power_chromarush')) w.rainbow *= 2;
+    w.golden += Economy.goldenBias;
+    return w;
+  },
+  rollBlock() {
+    const w = this.blockWeights();
+    const total = Object.values(w).reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    for (const [k, v] of Object.entries(w)) { r -= v; if (r <= 0) return k; }
+    return 'golden';
+  },
+  schedule() { this.nextAt = now() + rand(CONFIG.events.minGapMs, CONFIG.events.maxGapMs); },
+
+  tick(dt, runActive) {
+    // advance any live world effects first
+    this.updateCurse();
+    this.updateBlackhole();
+    this.updateMeteor(dt);
+    if (!runActive) return;
+
+    // the rare jackpot diamond, on its own long timer
+    if (now() - this.lastJackpotAt > CONFIG.events.jackpotEveryMs && !Surprise.forced) {
+      this.lastJackpotAt = now();
+      Surprise.force('jackpot');
+      FeedbackBus.emit('surprise', { type: 'jackpot' });
+      this.schedule();
+      return;
+    }
+    if (now() < this.nextAt) return;
+    this.schedule();
+    this.fire();
+  },
+
+  fire() {
+    // Don't stack world events; if one's live, inject a block instead.
+    const worldBusy = this.blackhole || this.meteor || this.curseActive();
+    if (!worldBusy && Math.random() < CONFIG.events.worldEventChance) {
+      const kind = pick(['meteor', 'blackhole', 'curse']);
+      trackEvent('world_event', { kind, riskTolerance: +Profile.riskTolerance.toFixed(2) });
+      if (kind === 'meteor') this.startMeteor();
+      else if (kind === 'blackhole') this.startBlackhole();
+      else this.startCurse();
+    } else {
+      Surprise.force(this.rollBlock());
+    }
+  },
+
+  // ---- CURSE ----
+  startCurse() {
+    const type = pick(['nobank', 'leak', 'slippery', 'huge']);
+    this.curse = { type, until: now() + CONFIG.events.curseMs };
+    if (type === 'huge') this.hugeCharges = 3;
+    if (type === 'slippery') for (const b of Stack.pieces()) { b.friction = 0.03; Sleeping.set(b, false); }
+    document.body.classList.add('cursed');
+    const label = { nobank: '🔒 CURSE — no banking', leak: '💧 CURSE — coins leaking', slippery: '🧊 CURSE — slippery!', huge: '🗿 CURSE — next 3 are HUGE' }[type];
+    const banner = $('curse-banner');
+    if (banner) { banner.textContent = label; banner.classList.remove('hidden'); }
+    UI.react('CURSED!', 'var(--hot)');
+    Shake.impulse(0.3); flashScreen();
+    trackEvent('curse_start', { type });
+  },
+  updateCurse() {
+    if (!this.curse) return;
+    if (now() >= this.curse.until) { this.clearCurse(); return; }
+    if (this.curse.type === 'leak' && Game.runCoins > 0) Game.runCoins = Math.max(0, Game.runCoins - Game.runCoins * 0.0004);
+  },
+
+  // ---- BLACK HOLE ----
+  startBlackhole() {
+    this.blackhole = { x: rand(WORLD.width * 0.3, WORLD.width * 0.7), y: WORLD.platformY - rand(120, 260), until: now() + CONFIG.events.blackholeMs };
+    UI.react('BLACK HOLE!', '#b98bff');
+    UI.toast('🕳️ a black hole warps the tower');
+    trackEvent('blackhole_start', {});
+  },
+  updateBlackhole() {
+    const bh = this.blackhole;
+    if (!bh) return;
+    if (now() >= bh.until) { this.blackhole = null; Stack.wakeAll(); return; }
+    for (const b of Stack.pieces()) {
+      const dx = bh.x - b.position.x, dy = bh.y - b.position.y;
+      const d = Math.hypot(dx, dy);
+      if (d > 4 && d < 260) { const f = CONFIG.events.blackholeForce * b.mass / Math.max(d, 30); Body.applyForce(b, b.position, { x: dx * f, y: dy * f }); Sleeping.set(b, false); }
+    }
+    if (Math.random() < 0.5) Particles.spawn({ x: bh.x + rand(-40, 40), y: bh.y + rand(-40, 40), vx: 0, vy: 0, life: 0.4, maxLife: 0.4, size: rand(1, 3), color: '#b98bff', glow: true });
+  },
+
+  // ---- METEOR ----
+  startMeteor() {
+    const tx = clamp(WORLD.width / 2 + rand(-90, 90), 60, WORLD.width - 60);
+    this.meteor = { x: tx - 260, y: -240, vx: 6.0, vy: 6.4, warnUntil: now() + CONFIG.events.meteorWarnMs, fired: false, tx };
+    UI.react('☄️ METEOR!', '#ff8a3c');
+    UI.toast('☄️ INCOMING METEOR');
+    Shake.impulse(0.2);
+    trackEvent('meteor_start', {});
+  },
+  updateMeteor(dt) {
+    const m = this.meteor;
+    if (!m) return;
+    if (now() < m.warnUntil) return;            // brief telegraph before it falls
+    m.x += m.vx; m.y += m.vy; m.vy += 0.25;
+    if (perf.tier !== 'low') Particles.spawn({ x: m.x, y: m.y, vx: -m.vx * 0.4, vy: -m.vy * 0.4, life: 0.4, maxLife: 0.4, size: rand(2, 5), color: pick(['#ff8a3c', '#ffd166', '#ff5a3c']), glow: true });
+    // impact
+    if (!m.fired && m.y > WORLD.platformY - 120) {
+      m.fired = true;
+      Shake.impulse(0.8); flashScreen();
+      Particles.burst(m.x, m.y, '#ff7a2c', 50, 420, 1.3);
+      let salvage = 0;
+      for (const b of Stack.pieces()) {
+        const d = Math.hypot(b.position.x - m.x, b.position.y - m.y);
+        if (d < 150) { const k = (1 - d / 150) * 0.06; Body.applyForce(b, b.position, { x: (b.position.x - m.x) * 0.0006, y: -k }); Sleeping.set(b, false); salvage += 2; }
+      }
+      Game.runCoins += Math.round(salvage * Greed.value);
+      UI.react('IMPACT!', 'var(--hot)');
+    }
+    if (m.y > WORLD.platformY + 120) this.meteor = null;
+  },
+};
+
+/* ==================== §20c RISK FX ======================================= */
+/* Make greed irresistible: the more unbanked coins + higher greed + shakier
+   tower, the more the whole screen screams. Drives a pulsing gold vignette,
+   escalating gold-particle drizzle, the occasional adrenaline shake, and the
+   BANK button's "character" tiers. */
+const RiskFX = {
+  level: 0, lastShakeT: 0,
+  reset() { this.level = 0; document.body.classList.remove('risk1', 'risk2', 'risk3'); },
+  compute() {
+    const coinRisk = clamp(Game.runCoins / Math.max(save.best, 600), 0, 1.3);
+    const greedRisk = clamp((Greed.value - 1) / 4, 0, 1);
+    const instability = 1 - Stack.stability();
+    return clamp(coinRisk * 0.5 + greedRisk * 0.35 + instability * 0.15, 0, 1);
+  },
+  update(dt) {
+    if (!Game.runActive() || Game.runCoins <= 0) { if (this.level) this.reset(); return; }
+    const target = this.compute();
+    this.level = lerp(this.level, target, Math.min(dt * 3, 1));
+    const L = this.level;
+    // gold vignette intensity + tier classes
+    const v = $('risk-vignette');
+    if (v) v.style.opacity = (L * 0.55).toFixed(3);
+    document.body.classList.toggle('risk1', L > 0.3 && L <= 0.6);
+    document.body.classList.toggle('risk2', L > 0.6 && L <= 0.82);
+    document.body.classList.toggle('risk3', L > 0.82);
+    // gold particle drizzle from the top edge, rate ∝ risk
+    if (!Settings.reduceMotion && Math.random() < L * L * 0.9) {
+      Particles.spawn({ x: rand(0, WORLD.width), y: Game.spawnY - 120, vx: rand(-10, 10), vy: rand(10, 40), life: rand(0.7, 1.4), maxLife: 1.4, size: rand(1.5, 3.5), color: pick(['#ffd700', '#ffcf5c', '#fff3b0']), glow: true, gravity: 60, drag: 0.99 });
+    }
+    // adrenaline micro-shakes at very high risk
+    if (L > 0.82 && now() - this.lastShakeT > lerp(900, 320, (L - 0.82) / 0.18)) {
+      this.lastShakeT = now();
+      Shake.impulse(0.06 + (L - 0.82) * 0.5);
+    }
   },
 };
 
@@ -2489,14 +2828,161 @@ function drawBomb(b, t) {
   }
 }
 
+function polyPath(c, x, y, sides, r, rot) {
+  c.beginPath();
+  for (let i = 0; i <= sides; i++) { const a = (i / sides) * Math.PI * 2 + rot; const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; i === 0 ? c.moveTo(px, py) : c.lineTo(px, py); }
+  c.closePath();
+}
+function bodyPath(b) {
+  const v = b.vertices; ctx.beginPath(); ctx.moveTo(v[0].x, v[0].y);
+  for (let i = 1; i < v.length; i++) ctx.lineTo(v[i].x, v[i].y);
+  ctx.closePath();
+}
+// 🧲 MAGNET — a red/white horseshoe magnet, unmistakable
+function drawMagnet(b, t) {
+  const x = b.position.x, y = b.position.y, r = b.plugin.r;
+  ctx.save(); ctx.translate(x, y); ctx.rotate(b.angle);
+  if (perf.tier !== 'low') { ctx.shadowColor = '#ff3b6b'; ctx.shadowBlur = 10 + 8 * (0.5 + 0.5 * Math.sin(t * 0.01)); }
+  ctx.lineCap = 'butt';
+  // red U
+  ctx.strokeStyle = '#ff3b5c'; ctx.lineWidth = r * 0.62;
+  ctx.beginPath(); ctx.arc(0, r * 0.1, r * 0.66, Math.PI * 0.08, Math.PI * 0.92, false); ctx.stroke();
+  ctx.shadowBlur = 0;
+  // white pole tips
+  ctx.strokeStyle = '#eef3ff'; ctx.lineWidth = r * 0.62;
+  const tipY = r * 0.1 + Math.sin(Math.PI * 0.08) * r * 0.66;
+  ctx.beginPath(); ctx.moveTo(-r * 0.62, tipY); ctx.lineTo(-r * 0.62, tipY + r * 0.34); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r * 0.62, tipY); ctx.lineTo(r * 0.62, tipY + r * 0.34); ctx.stroke();
+  ctx.restore();
+  // pull sparks
+  if (perf.tier !== 'low' && Math.random() < 0.3) Particles.spawn({ x: x + rand(-r, r) * 1.6, y: y + rand(-r, r) * 1.6, vx: (x - (x + rand(-40, 40))) * 0.5, vy: 0, life: 0.3, maxLife: 0.3, size: 1.5, color: '#ff8aa0', glow: true });
+}
+// 🏋️ HEAVY — dark iron block with bolts + weight bars
+function drawHeavy(b, glow) {
+  const x = b.position.x, y = b.position.y, r = b.plugin.r;
+  if (perf.tier !== 'low') { ctx.shadowColor = '#8894b0'; ctx.shadowBlur = glow; }
+  bodyPath(b);
+  const g = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
+  g.addColorStop(0, '#6b7590'); g.addColorStop(0.5, '#3a4257'); g.addColorStop(1, '#232a3a');
+  ctx.fillStyle = g; ctx.fill(); ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#aab4cc'; ctx.lineWidth = 3; ctx.stroke();
+  // bolts at corners
+  ctx.fillStyle = '#cfd6e8';
+  for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { ctx.beginPath(); ctx.arc(x + sx * r * 0.62, y + sy * r * 0.62, r * 0.12, 0, Math.PI * 2); ctx.fill(); }
+  // weight label bars
+  ctx.strokeStyle = '#cfd6e8'; ctx.lineWidth = r * 0.14;
+  ctx.beginPath(); ctx.moveTo(x - r * 0.34, y); ctx.lineTo(x + r * 0.34, y); ctx.stroke();
+}
+// 🧩 SPLIT — a block scored with dashed break-lines
+function drawSplit(b, glow) {
+  const x = b.position.x, y = b.position.y, r = b.plugin.r;
+  if (perf.tier !== 'low') { ctx.shadowColor = '#7affc0'; ctx.shadowBlur = glow; }
+  bodyPath(b);
+  const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r * 1.4);
+  g.addColorStop(0, '#a8ffcf'); g.addColorStop(1, '#2fae7a');
+  ctx.fillStyle = g; ctx.fill(); ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#eafff5'; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(4,32,20,0.7)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x - r, y); ctx.lineTo(x + r, y); ctx.moveTo(x, y - r); ctx.lineTo(x, y + r); ctx.stroke();
+  ctx.setLineDash([]);
+}
+// 😠 ANGRY — a block with eyes + eyebrows, full personality
+function drawAngry(b, glow, t) {
+  const x = b.position.x, y = b.position.y, r = b.plugin.r;
+  const col = themeColor(b.plugin.tier);
+  if (perf.tier !== 'low') { ctx.shadowColor = col; ctx.shadowBlur = glow; }
+  bodyPath(b);
+  const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.4, r * 0.1, x, y, r * 1.5);
+  g.addColorStop(0, lighten(col, 0.3)); g.addColorStop(1, col);
+  ctx.fillStyle = g; ctx.fill(); ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 2; ctx.stroke();
+  const look = Math.sin(t * 0.006) * r * 0.08;
+  // eyes
+  for (const sx of [-1, 1]) {
+    ctx.beginPath(); ctx.arc(x + sx * r * 0.34, y - r * 0.06, r * 0.2, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.beginPath(); ctx.arc(x + sx * r * 0.34 + look, y - r * 0.04, r * 0.09, 0, Math.PI * 2); ctx.fillStyle = '#111'; ctx.fill();
+  }
+  // angry eyebrows
+  ctx.strokeStyle = '#111'; ctx.lineWidth = r * 0.1; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x - r * 0.5, y - r * 0.34); ctx.lineTo(x - r * 0.16, y - r * 0.18); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + r * 0.5, y - r * 0.34); ctx.lineTo(x + r * 0.16, y - r * 0.18); ctx.stroke();
+  // frown
+  ctx.beginPath(); ctx.arc(x, y + r * 0.6, r * 0.3, Math.PI * 1.2, Math.PI * 1.8); ctx.lineWidth = r * 0.08; ctx.stroke();
+}
+// 🎲 DICE — a white die whose pip-count = current tier
+function drawDice(b, glow) {
+  const x = b.position.x, y = b.position.y, r = b.plugin.r;
+  ctx.save(); ctx.translate(x, y); ctx.rotate(b.angle);
+  if (perf.tier !== 'low') { ctx.shadowColor = b.plugin.diceLocked ? '#ffd166' : '#ffffff'; ctx.shadowBlur = glow; }
+  const g = ctx.createLinearGradient(-r, -r, r, r); g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#cdd3e0');
+  ctx.fillStyle = g; roundRect2(-r * 0.85, -r * 0.85, r * 1.7, r * 1.7, r * 0.28); ctx.fill(); ctx.shadowBlur = 0;
+  ctx.strokeStyle = b.plugin.diceLocked ? '#ffd166' : '#8892a8'; ctx.lineWidth = 2.5; ctx.stroke();
+  const n = clamp(b.plugin.tier, 1, 6);
+  const pip = (px, py) => { ctx.beginPath(); ctx.arc(px * r * 0.44, py * r * 0.44, r * 0.13, 0, Math.PI * 2); ctx.fillStyle = '#1a1f2e'; ctx.fill(); };
+  const P = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]] }[n];
+  P.forEach(([px, py]) => pip(px, py));
+  ctx.restore();
+}
+// 🎁 LUCKY CHEST — a treasure chest with a glowing keyhole
+function drawChest(b, t) {
+  const x = b.position.x, y = b.position.y, r = b.plugin.r;
+  ctx.save(); ctx.translate(x, y); ctx.rotate(b.angle);
+  if (perf.tier !== 'low') { ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 12 + 8 * (0.5 + 0.5 * Math.sin(t * 0.008)); }
+  // body
+  ctx.fillStyle = '#7a4a1e'; roundRect2(-r * 0.9, -r * 0.4, r * 1.8, r * 1.2, r * 0.14); ctx.fill();
+  // lid
+  ctx.fillStyle = '#8f5a26'; roundRect2(-r * 0.9, -r * 0.85, r * 1.8, r * 0.6, r * 0.14); ctx.fill();
+  ctx.shadowBlur = 0;
+  // gold bands
+  ctx.fillStyle = '#ffcf5c';
+  ctx.fillRect(-r * 0.9, -r * 0.14, r * 1.8, r * 0.12);
+  ctx.fillRect(-r * 0.14, -r * 0.85, r * 0.28, r * 1.55);
+  // keyhole
+  ctx.fillStyle = '#3a2408'; ctx.beginPath(); ctx.arc(0, 0, r * 0.14, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  if (perf.tier !== 'low' && Math.random() < 0.25) Particles.spawn({ x: x + rand(-r, r), y: y - r, vx: 0, vy: rand(-30, -10), life: 0.5, maxLife: 0.5, size: rand(1, 2.5), color: '#fff3b0', glow: true });
+}
+// 💎 JACKPOT — a huge faceted gold diamond
+function drawJackpot(b, t) {
+  const x = b.position.x, y = b.position.y, r = b.plugin.r;
+  ctx.save(); ctx.translate(x, y); ctx.rotate(b.angle);
+  if (perf.tier !== 'low') { ctx.shadowColor = '#8be0ff'; ctx.shadowBlur = 20 + 14 * (0.5 + 0.5 * Math.sin(t * 0.01)); }
+  const g = ctx.createLinearGradient(-r, -r, r, r);
+  g.addColorStop(0, '#eaffff'); g.addColorStop(0.5, '#8be0ff'); g.addColorStop(1, '#ffd93a');
+  polyPath(ctx, 0, 0, 4, r * 1.2, Math.PI / 4); ctx.fillStyle = g; ctx.fill(); ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; ctx.stroke();
+  // facets
+  ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(-r * 1.2, 0); ctx.lineTo(r * 1.2, 0); ctx.moveTo(0, -r * 1.2); ctx.lineTo(0, r * 1.2); ctx.stroke();
+  ctx.restore();
+  if (perf.tier !== 'low' && Math.random() < 0.4) Particles.spawn({ x: x + rand(-r, r), y: y + rand(-r, r), vx: rand(-20, 20), vy: rand(-40, -10), life: 0.5, maxLife: 0.5, size: rand(1.5, 3.5), color: pick(['#8be0ff', '#fff3b0', '#ffd93a']), glow: true });
+}
+function roundRect2(x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
 function drawBody(b, glowStrength, t) {
   const sp = b.plugin.special;
   const r = b.plugin.r;
   if (sp === 'bomb') { drawBomb(b, t); return; }
+  if (sp === 'magnet') { drawMagnet(b, t); return; }
+  if (sp === 'heavy') { drawHeavy(b, glowStrength); return; }
+  if (sp === 'split') { drawSplit(b, glowStrength); return; }
+  if (sp === 'angry') { drawAngry(b, glowStrength, t); return; }
+  if (sp === 'dice') { drawDice(b, glowStrength); return; }
+  if (sp === 'chest') { drawChest(b, t); return; }
+  if (sp === 'jackpot') { drawJackpot(b, t); return; }
 
   let color = themeColor(b.plugin.tier);
   if (sp === 'golden' || sp === 'star') color = '#ffd93a';
   if (sp === 'ice') color = '#bfeaff';
+
+  // UNSTABLE renders with a per-frame glitch offset so it looks genuinely
+  // volatile (not a normal shape). Save/translate by a jitter, draw, restore.
+  let glitched = false;
+  if (sp === 'unstable') { glitched = true; ctx.save(); ctx.translate(rand(-2.5, 2.5), rand(-2.5, 2.5)); }
 
   // ---- shape path: star gets a real star, everything else uses its polygon body ----
   const isStar = sp === 'star';
@@ -2556,9 +3042,17 @@ function drawBody(b, glowStrength, t) {
     ctx.beginPath(); ctx.arc(b.position.x - r * 0.25, b.position.y - r * 0.28, r * 0.14, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill();
   }
-  if (sp === 'unstable' && perf.tier !== 'low' && Math.random() < 0.3) { // electric crackle
-    Particles.spawn({ x: b.position.x + rand(-r, r), y: b.position.y + rand(-r, r), vx: rand(-30, 30), vy: rand(-30, 30), life: 0.22, maxLife: 0.22, size: rand(1, 2), color: '#fff28a', glow: true });
+  if (sp === 'unstable') { // hazard chevrons + electric arcs + crackle → looks volatile
+    ctx.save(); bodyPath(b); ctx.clip();
+    ctx.strokeStyle = `rgba(20,20,26,${0.35 + 0.25 * Math.sin(t * 0.03)})`; ctx.lineWidth = r * 0.28;
+    for (let i = -3; i <= 3; i++) { const off = i * r * 0.6 + ((t * 0.05) % (r * 0.6)); ctx.beginPath(); ctx.moveTo(b.position.x - r + off, b.position.y - r); ctx.lineTo(b.position.x - r + off + r, b.position.y + r); ctx.stroke(); }
+    ctx.restore();
+    // electric arcs radiating from center
+    ctx.strokeStyle = `rgba(255,240,120,${0.5 + 0.5 * Math.random()})`; ctx.lineWidth = 1.5;
+    for (let i = 0; i < 2; i++) { const a = rand(0, 6.28); ctx.beginPath(); ctx.moveTo(b.position.x, b.position.y); ctx.lineTo(b.position.x + Math.cos(a) * r * 1.2, b.position.y + Math.sin(a) * r * 1.2); ctx.stroke(); }
+    if (perf.tier !== 'low' && Math.random() < 0.4) Particles.spawn({ x: b.position.x + rand(-r, r), y: b.position.y + rand(-r, r), vx: rand(-40, 40), vy: rand(-40, 40), life: 0.2, maxLife: 0.2, size: rand(1, 2.2), color: '#fff28a', glow: true });
   }
+  if (glitched) ctx.restore(); // end unstable glitch-offset transform
 
   // fusion birth ring
   const age = now() - (b.plugin.fusedAt || 0);
@@ -2713,9 +3207,36 @@ function render(t) {
   // dock (per-style render)
   if (Stack.platform) drawDock(Stack.platform.plugin.halfW);
 
+  // black hole (behind pieces)
+  const bh = EventDirector.blackhole;
+  if (bh) {
+    const rr = 34 + 6 * Math.sin(t * 0.02);
+    const g = ctx.createRadialGradient(bh.x, bh.y, 2, bh.x, bh.y, rr * 2.4);
+    g.addColorStop(0, '#000'); g.addColorStop(0.55, 'rgba(60,20,90,0.85)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bh.x, bh.y, rr * 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = `hsl(${(t * 0.3) % 360} 80% 65%)`; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(bh.x, bh.y, rr, t * 0.01, t * 0.01 + Math.PI * 1.6); ctx.stroke();
+  }
+
   // pieces — rim glow rises with greed
   const glow = clamp((Greed.value - 1) * 4, 3, 22);
   for (const b of Stack.pieces()) drawBody(b, glow, t);
+
+  // meteor (in front of pieces)
+  const met = EventDirector.meteor;
+  if (met) {
+    if (now() < met.warnUntil) { // warning marker at target
+      ctx.strokeStyle = `rgba(255,90,50,${0.4 + 0.4 * Math.sin(t * 0.02)})`; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(met.tx, WORLD.platformY - 40, 26, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(met.tx, WORLD.platformY - 74); ctx.lineTo(met.tx, WORLD.platformY - 6); ctx.stroke();
+    } else {
+      if (perf.tier !== 'low') { ctx.shadowColor = '#ff7a2c'; ctx.shadowBlur = 26; }
+      const g = ctx.createRadialGradient(met.x - 6, met.y - 6, 4, met.x, met.y, 26);
+      g.addColorStop(0, '#ffe7a0'); g.addColorStop(0.5, '#ff7a2c'); g.addColorStop(1, '#7a2a10');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(met.x, met.y, 22, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
 
   // ghost + aim line
   if ((Game.state === 'DECISION' || Game.state === 'AIMING') && Director.current()) {
@@ -2905,6 +3426,11 @@ const UI = {
       nctx.closePath();
       nctx.fillStyle = '#ffd93a'; nctx.shadowColor = '#ffd700'; nctx.shadowBlur = 16; nctx.fill(); nctx.shadowBlur = 0;
       nctx.strokeStyle = '#fff3b0'; nctx.lineWidth = 2; nctx.stroke();
+    } else if (['magnet', 'heavy', 'split', 'angry', 'dice', 'chest', 'jackpot'].includes(sp)) {
+      // the intricate weird blocks read best as their emoji in the tiny preview
+      nctx.font = '32px serif'; nctx.textAlign = 'center'; nctx.textBaseline = 'middle';
+      nctx.fillText(SPECIALS[sp].emoji, 0, 2);
+      nctx.textBaseline = 'alphabetic';
     } else {
       const sides = def.kind === 'plank' ? 4 : TIERS.sides[def.tier];
       if (def.kind === 'plank') { nctx.beginPath(); nctx.rect(-r * 1.3, -r * 0.45, r * 2.6, r * 0.9); }
@@ -3096,26 +3622,26 @@ const UI = {
     pill.classList.toggle('g3', gv >= 3.5);
 
     const bank = $('btn-bank');
-    // Bankable only while the next piece is "in preview" (DECISION/AIMING)
-    // — never mid-drop/resolve, so there's no window to bank a split
-    // second before a visible death (see Game.bank()).
+    // Bankable only while the next piece is "in preview" (DECISION/AIMING).
     const previewState = Game.state === 'DECISION' || Game.state === 'AIMING';
     if (Game.runCoins > 0) {
       const doomed = previewState && Stack.isDoomed();
-      const bankable = previewState && !doomed;
+      const cursed = previewState && EventDirector.curseActive('nobank');
+      const bankable = previewState && !doomed && !cursed;
       bank.disabled = !bankable;
-      bank.classList.toggle('doomed', doomed);
-      $('bank-amt').textContent = doomed ? 'TOO LATE' : `+◆ ${fmt(Game.runCoins)}`;
-      // the button escalates the longer you refuse it
-      const urgency = !bankable ? 0 :
-        clamp(Game.runCoins / Math.max(save.best, 400), 0, 1) * 0.65 +
-        clamp((gv - 1) / 3, 0, 1) * 0.35;
+      bank.classList.toggle('doomed', doomed || cursed);
+      $('bank-amt').textContent = cursed ? 'CURSED' : doomed ? 'TOO LATE' : `+◆ ${fmt(Game.runCoins)}`;
+      // The BANK button is a CHARACTER: its urgency tracks live RiskFX, so the
+      // longer you refuse to bank a fat greedy tower, the harder it screams.
+      const urgency = !bankable ? 0 : Math.max(RiskFX.level,
+        clamp(Game.runCoins / Math.max(save.best, 400), 0, 1) * 0.55 + clamp((gv - 1) / 3, 0, 1) * 0.3);
       bank.classList.toggle('u1', urgency > 0.22 && urgency <= 0.5);
-      bank.classList.toggle('u2', urgency > 0.5 && urgency <= 0.8);
-      bank.classList.toggle('u3', urgency > 0.8);
+      bank.classList.toggle('u2', urgency > 0.5 && urgency <= 0.75);
+      bank.classList.toggle('u3', urgency > 0.75 && urgency <= 0.9);
+      bank.classList.toggle('u4', urgency > 0.9);
     } else {
       bank.disabled = true;
-      bank.classList.remove('u1', 'u2', 'u3', 'doomed');
+      bank.classList.remove('u1', 'u2', 'u3', 'u4', 'doomed');
       $('bank-amt').textContent = '—';
     }
   },
@@ -3211,9 +3737,10 @@ function frame(t) {
   if (Game.inPlay() || Game.state === 'COLLAPSING') {
     engine.timing.timeScale = ts;
     Engine.update(engine, Math.min(rawDt, 33.33));
+    Stack.scanProximityFusions(); // adjacency fix: touching same-tier pieces fuse
     Stack.processFusions();
     Stack.sampleStability();
-    if (Game.inPlay()) Game.tick(dt);
+    if (Game.inPlay()) { Game.tick(dt); RiskFX.update(rawDt / 1000); }
   }
   Particles.update(dt);
   Shake.update(rawDt / 1000);
@@ -3276,7 +3803,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, Profile, Economy, Camera, save };
+window.__overstack = { Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, save, engine, Composite, Body };
 window.__overstackCam = Camera;
 
 })();
