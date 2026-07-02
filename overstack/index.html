@@ -252,8 +252,12 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 #panel-right li b { color: var(--text); }
 @media (min-width: 1000px) and (min-aspect-ratio: 5/4) {
   .side-panel { display: block; }
-  #btn-bank { right: calc(50% - 360px); }
-  #hud-home { left: calc(50% - 360px - 50px); }
+}
+/* Bank and the menu button always pin to the real screen corners — never
+   positioned relative to the (centered, narrower) game canvas. */
+@media (min-width: 760px) {
+  #btn-bank { right: 30px; bottom: 30px; }
+  #hud-home { left: 30px; bottom: 30px; }
 }
 
 /* ---------- results ---------- */
@@ -272,8 +276,13 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 #openloop { font-size: 1rem; font-weight: 700; line-height: 1.3; margin-bottom: 18px; color: var(--text); }
 #btn-again { width: 100%; font-size: 1.35rem; padding: 18px; margin-bottom: 12px; }
 .ad-offer-row { display: flex; gap: 10px; width: 100%; margin-bottom: 10px; }
-.ad-offer-row .btn { flex: 1; font-size: 0.88rem; font-weight: 800; letter-spacing: 0.06em; padding: 12px 8px; }
-.ad-offer-row .btn small { display: block; font-weight: 400; opacity: 0.75; font-size: 0.64rem; margin-top: 3px; letter-spacing: 0; }
+.ad-offer-row .btn { flex: 1; font-size: 0.92rem; font-weight: 800; letter-spacing: 0.06em; padding: 15px 8px; display: flex; align-items: center; justify-content: center; }
+.play-ico {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; margin-right: 8px; border-radius: 50%;
+  background: rgba(255,255,255,0.3); font-size: 0.55rem; flex-shrink: 0;
+}
+.play-ico::before { content: '▶'; margin-left: 1px; }
 #unlock-msg { font-size: 0.8rem; color: var(--text-dim); min-height: 1.2em; }
 #unlock-msg b { color: var(--gold); }
 #unlock-msg button { background: none; border: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
@@ -305,6 +314,9 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 .shop-item.locked { opacity: 0.78; }
 .shop-item.owned { border-color: rgba(155,123,255,0.5); }
 .shop-item.equipped { border-color: var(--gold); box-shadow: 0 0 14px rgba(255,207,92,0.35); }
+.shop-item.confirming { opacity: 1; border-color: var(--gold); animation: confirmpulse 0.9s ease-in-out infinite; }
+.shop-item.confirming .price { color: #fff; font-weight: 800; }
+@keyframes confirmpulse { 0%,100% { box-shadow: 0 0 10px rgba(255,207,92,0.4); } 50% { box-shadow: 0 0 26px rgba(255,207,92,0.9); } }
 .shop-item .tag { position: absolute; top: 8px; right: 8px; font-size: 0.58rem; font-weight: 700; letter-spacing: 0.08em; color: var(--gold); }
 /* superpowers — milestone unlocks, not purchases */
 .power-row {
@@ -382,7 +394,6 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
   <div class="stat"><span>Best bank</span><b id="p-best">0</b></div>
   <div class="stat"><span>Streak</span><b id="p-streak">—</b></div>
   <div class="stat"><span>Vault</span><b id="p-coins">0</b></div>
-  <div class="stat"><span>Style</span><b id="p-style">—</b></div>
 </div>
 <div id="panel-right" class="side-panel glass">
   <h3>YOUR TOP BANKS</h3>
@@ -427,8 +438,8 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
     <div id="openloop"></div>
     <button id="btn-again" class="btn btn-primary">DROP AGAIN</button>
     <div class="ad-offer-row" id="offer-row">
-      <button id="btn-revive" class="btn btn-danger" style="display:none;">REVIVE STACK<small>watch ad · rebuild last stable stack</small></button>
-      <button id="btn-double" class="btn btn-danger" style="display:none;">DOUBLE COINS<small>watch ad · 2× what you just earned</small></button>
+      <button id="btn-revive" class="btn btn-danger" style="display:none;"><span class="play-ico"></span>REVIVE</button>
+      <button id="btn-double" class="btn btn-danger" style="display:none;"><span class="play-ico"></span>DOUBLE COINS</button>
     </div>
     <div id="unlock-msg"></div>
   </div>
@@ -527,20 +538,29 @@ const TIERS = {
   radii:  [0, 15, 19, 24, 31, 39, 49, 61, 76],
 };
 
+/* Every tier gets a hue far enough from its neighbors to read at a glance —
+   size, side-count AND color all move together (bigger = more sides = new
+   hue), so "which shape is better" never depends on a subtle color read. */
 const THEMES = {
-  default: ['', '#ff5c5c', '#ff9f43', '#ffd93d', '#51cf66', '#2ee6d6', '#549bff', '#b06bff', '#ffd700'],
-  sunset:  ['', '#ff9a76', '#ff6f61', '#f75590', '#c74fb8', '#8d5fd3', '#5f6fd3', '#4a9fe0', '#ffd700'],
-  neon:    ['', '#39ff88', '#2de2e6', '#35b5ff', '#7d5fff', '#b967ff', '#ff2ec4', '#ff5f5f', '#f9f871'],
-  aurora:  ['', '#7ef9c9', '#5fe8d8', '#54cdea', '#6aa5f2', '#8f8af0', '#b57fe8', '#dd7ad1', '#ffe08a'],
+  default: ['', '#FF4B4B', '#FF9E2C', '#C4E538', '#34D399', '#22D3EE', '#3E8EF7', '#A855F7', '#FFD700'],
+  sunset:  ['', '#FF5C77', '#FF8C3C', '#B9D93A', '#3FCE8A', '#2FD1C9', '#5C8DFF', '#C25CEB', '#FFCE54'],
+  neon:    ['', '#39ff88', '#2de2e6', '#35b5ff', '#7d5fff', '#b967ff', '#ff2ec4', '#ff5f5f', '#ffdc4d'],
+  aurora:  ['', '#FF6FA8', '#FFB347', '#C6FF4D', '#4DFFB0', '#4DD9FF', '#4D8DFF', '#B24DFF', '#FFF0B0'],
+  volcano: ['', '#FF3B3B', '#FF7A1A', '#D4E157', '#8BD450', '#3FD1C4', '#4D7BFF', '#B24DFF', '#FFCC33'],
+  glacier: ['', '#FF6B81', '#FFA94D', '#C8E667', '#5CE6A8', '#4DD9FF', '#4D8DFF', '#9E6BFF', '#FFF3C4'],
 };
 
-/* Docks — the shop's anchor purchase. Pricier docks carry real powers. */
+/* Docks — the shop's anchor purchase. Pricier docks carry real powers:
+   more length, grip (friction), and "forgiveness" (a small stability/edge
+   tolerance buff — never enough to trivialize the core risk decision). */
 const DOCKS = {
-  slab:   { top: '#3a2f63', body: '#251b4a', glow: 'rgba(155,123,255,0.4)',  lengthBonus: 0,    grip: 0 },
-  marble: { top: '#d9dff0', body: '#98a3c4', glow: 'rgba(225,232,255,0.45)', lengthBonus: 0,    grip: 0 },
-  neon:   { top: '#2ee6d6', body: '#0e5f66', glow: 'rgba(46,230,214,0.65)',  lengthBonus: 0.05, grip: 0 },
-  holo:   { top: '#ffd166', body: '#7a5218', glow: 'rgba(255,209,102,0.65)', lengthBonus: 0.10, grip: 0 },
-  magnet: { top: '#ff4d6d', body: '#5c1224', glow: 'rgba(255,77,109,0.6)',   lengthBonus: 0.06, grip: 0.5 },
+  slab:   { top: '#3a2f63', body: '#251b4a', glow: 'rgba(155,123,255,0.4)',  lengthBonus: 0,    grip: 0,   forgiveness: 0 },
+  marble: { top: '#d9dff0', body: '#98a3c4', glow: 'rgba(225,232,255,0.45)', lengthBonus: 0,    grip: 0,   forgiveness: 0 },
+  neon:   { top: '#2ee6d6', body: '#0e5f66', glow: 'rgba(46,230,214,0.65)',  lengthBonus: 0.05, grip: 0,   forgiveness: 0.02 },
+  holo:   { top: '#ffd166', body: '#7a5218', glow: 'rgba(255,209,102,0.65)', lengthBonus: 0.10, grip: 0,   forgiveness: 0.03 },
+  magnet: { top: '#ff4d6d', body: '#5c1224', glow: 'rgba(255,77,109,0.6)',   lengthBonus: 0.06, grip: 0.5, forgiveness: 0.04 },
+  zerog:  { top: '#7ef9c9', body: '#0d4a3c', glow: 'rgba(126,249,201,0.6)',  lengthBonus: 0.13, grip: 0.2, forgiveness: 0.07 },
+  vortex: { top: '#c9a8ff', body: '#2c1554', glow: 'rgba(201,168,255,0.75)', lengthBonus: 0.22, grip: 0.3, forgiveness: 0.10 },
 };
 
 const WORLD = {
@@ -577,12 +597,16 @@ const CONFIG = {
   chase: { startRatio: 0.85 }, // within 15% of best bank → gold-chase mode
 };
 
-/* Milestone superpowers — earned by LIFETIME banked coins, never bought. */
+/* Milestone superpowers — earned by LIFETIME banked coins, never bought.
+   Revive always costs an ad watch (see §20 Game.revive) — ENCORE only
+   grants an extra revive attempt, it never makes one free. */
 const MILESTONES = [
-  { at: 500,   id: 'power_headstart',  icon: '🧱', name: 'HEAD START',  desc: 'Every run begins with a Block already on the dock' },
-  { at: 1500,  id: 'power_goldrush',   icon: '✨', name: 'GOLD RUSH',   desc: 'Golden blocks appear twice as often' },
-  { at: 4000,  id: 'power_secondwind', icon: '💫', name: 'SECOND WIND', desc: 'First revive each session is free — no ad' },
-  { at: 10000, id: 'power_titanline',  icon: '🏗️', name: 'TITAN LINE', desc: 'Dock permanently +10% longer' },
+  { at: 2000,   id: 'power_headstart',  icon: '🧱', name: 'HEAD START',   desc: 'Every run begins with a Block already on the dock' },
+  { at: 6000,   id: 'power_goldrush',   icon: '✨', name: 'GOLD RUSH',    desc: 'Golden blocks appear twice as often' },
+  { at: 15000,  id: 'power_steadyaim',  icon: '🎯', name: 'STEADY AIM',   desc: 'The dock catches slightly wider throws' },
+  { at: 35000,  id: 'power_encore',     icon: '🔁', name: 'ENCORE',       desc: 'Revive up to twice per run (still watch an ad each time)' },
+  { at: 75000,  id: 'power_chromarush', icon: '🌈', name: 'CHROMA RUSH',  desc: 'Rainbow blocks appear twice as often' },
+  { at: 150000, id: 'power_titanline',  icon: '🏗️', name: 'TITAN LINE',  desc: 'Dock permanently +10% longer' },
 ];
 
 // 4.14 Retention config surface.
@@ -650,15 +674,19 @@ const BAND_WEIGHTS = {
 };
 
 const SHOP_CATALOG = [
-  { id: 'dock_slab',   kind: 'dock',  name: 'Slab',        price: 0,    data: 'slab',   power: '' },
-  { id: 'dock_marble', kind: 'dock',  name: 'Marble',      price: 280,  data: 'marble', power: '' },
-  { id: 'dock_neon',   kind: 'dock',  name: 'Neon Rail',   price: 650,  data: 'neon',   power: '+5% dock length' },
-  { id: 'dock_holo',   kind: 'dock',  name: 'Holo Deck',   price: 1400, data: 'holo',   power: '+10% dock length' },
-  { id: 'dock_magnet', kind: 'dock',  name: 'Magnet Core', price: 2800, data: 'magnet', power: '+6% length · grippy surface' },
-  { id: 'theme_default', kind: 'theme', name: 'Signal',       price: 0,    data: 'default' },
-  { id: 'theme_sunset',  kind: 'theme', name: 'Sunset Run',   price: 350,  data: 'sunset' },
-  { id: 'theme_neon',    kind: 'theme', name: 'Neon District',price: 900,  data: 'neon' },
-  { id: 'theme_aurora',  kind: 'theme', name: 'Aurora',       price: 2000, data: 'aurora' },
+  { id: 'dock_slab',   kind: 'dock', name: 'Slab',        price: 0,      data: 'slab',   power: '' },
+  { id: 'dock_marble', kind: 'dock', name: 'Marble',      price: 1800,   data: 'marble', power: '' },
+  { id: 'dock_neon',   kind: 'dock', name: 'Neon Rail',   price: 4500,   data: 'neon',   power: '+5% length · slight forgiveness' },
+  { id: 'dock_holo',   kind: 'dock', name: 'Holo Deck',   price: 11000,  data: 'holo',   power: '+10% length · more forgiveness' },
+  { id: 'dock_magnet', kind: 'dock', name: 'Magnet Core', price: 26000,  data: 'magnet', power: '+6% length · grip · forgiveness' },
+  { id: 'dock_zerog',  kind: 'dock', name: 'Zero-G Pad',  price: 55000,  data: 'zerog',  power: '+13% length · grip · high forgiveness' },
+  { id: 'dock_vortex', kind: 'dock', name: 'Vortex Core', price: 120000, data: 'vortex', power: '+22% length · grip · max forgiveness' },
+  { id: 'theme_default', kind: 'theme', name: 'Signal',     price: 0,     data: 'default' },
+  { id: 'theme_sunset',  kind: 'theme', name: 'Sunset Run', price: 2500,  data: 'sunset' },
+  { id: 'theme_neon',    kind: 'theme', name: 'Neon District', price: 6500, data: 'neon' },
+  { id: 'theme_aurora',  kind: 'theme', name: 'Aurora',     price: 14000, data: 'aurora' },
+  { id: 'theme_volcano', kind: 'theme', name: 'Volcano',    price: 30000, data: 'volcano' },
+  { id: 'theme_glacier', kind: 'theme', name: 'Glacier',    price: 65000, data: 'glacier' },
 ];
 
 /* ============================ §2 PERSISTENCE ============================== */
@@ -1301,7 +1329,8 @@ const Surprise = {
     if (rt < 0.35) { w.golden += 2.5; w.rainbow += 1.5; }  // tempt the early banker (1)
     if (rt > 0.7) { w.bomb += 1; w.unstable += 1; }        // feed the daredevil
     if (Profile.goal === 'chaos') { w.bomb += 2; w.unstable += 1.5; }
-    if (save.powers.includes('power_goldrush')) w.golden *= 2; // GOLD RUSH superpower
+    if (save.powers.includes('power_goldrush')) w.golden *= 2;     // GOLD RUSH superpower
+    if (save.powers.includes('power_chromarush')) w.rainbow *= 2;  // CHROMA RUSH superpower
     return w;
   },
   rollType() {
@@ -1424,6 +1453,12 @@ const Economy = {
     let m = 1 + (this.dock.lengthBonus || 0);
     if (save.powers.includes('power_titanline')) m += 0.10;
     return m;
+  },
+  // STEADY AIM stacks on top of whatever the equipped dock already grants.
+  get edgeForgiveness() {
+    let f = this.dock.forgiveness || 0;
+    if (save.powers.includes('power_steadyaim')) f += 0.15;
+    return f;
   },
   checkMilestones() {
     const newly = [];
@@ -1693,7 +1728,9 @@ const Stack = {
     comX /= mass;
     const comRatio = clamp(Math.abs(comX - WORLD.width / 2) / this.platform.plugin.halfW, 0, 1.3);
     const motionRatio = clamp(motion / ps.length / 3.2, 0, 1);
-    return clamp(1 - (0.7 * Math.pow(comRatio, 1.6) + 0.55 * motionRatio), 0, 1);
+    // premium docks/STEADY AIM add a modest stability floor — never enough
+    // to trivialize the risk decision, just a little breathing room.
+    return clamp(1 - (0.7 * Math.pow(comRatio, 1.6) + 0.55 * motionRatio) + Economy.edgeForgiveness * 0.5, 0, 1);
   },
   sampleStability() {
     const t = now();
@@ -1724,10 +1761,11 @@ const Stack = {
     if (!this.platform) return false;
     const hw = this.platform.plugin.halfW, cx = WORLD.width / 2;
     const stackTop = this.stackTopY();
+    const edgeSlack = 0.4 + Economy.edgeForgiveness;
     for (const b of this.pieces()) {
       if (b.plugin.special === 'bomb') continue;
       if (b.position.y > WORLD.platformY + 10) return true; // already below dock level
-      const off = Math.abs(b.position.x - cx) > hw + b.plugin.r * 0.4;
+      const off = Math.abs(b.position.x - cx) > hw + b.plugin.r * edgeSlack;
       if (!off) continue;
       // a clean drop still in flight above the tower isn't doomed yet
       if (!b.plugin.contacted && b.position.y < stackTop - 20) continue;
@@ -1776,7 +1814,7 @@ const Game = {
   runCoins: 0, displayCoins: 0,
   droppedCount: 0, fusionsThisRun: 0, maxTierThisRun: 1, peakPieces: 0,
   comboIdx: -1, comboLastT: 0, lastFusionT: 0, chainCount: 0,
-  reviveUsed: false, doubledUsed: false, freeReviveUsedThisSession: false,
+  revivesUsedThisRun: 0, doubledUsed: false,
   aimX: WORLD.width / 2,
   spawnY: WORLD.platformY - WORLD.spawnClearance,
   decisionStartT: 0, dropStartT: 0, dropAimX: 0, dropBody: null,
@@ -1788,6 +1826,7 @@ const Game = {
   set(state) { this.state = state; },
   inPlay() { return ['DECISION', 'AIMING', 'DROPPING', 'RESOLVING'].includes(this.state); },
   runActive() { return this.inPlay() && this.droppedCount > 0; },
+  maxRevives() { return save.powers.includes('power_encore') ? 2 : 1; },
 
   startRun(opts = {}) {
     Stack.buildPlatform();
@@ -1798,7 +1837,7 @@ const Game = {
     this.runCoins = 0; this.displayCoins = 0;
     this.droppedCount = 0; this.fusionsThisRun = 0; this.maxTierThisRun = 1; this.peakPieces = 0;
     this.comboIdx = -1; this.chainCount = 0;
-    this.reviveUsed = false; this.doubledUsed = false;
+    this.revivesUsedThisRun = 0; this.doubledUsed = false;
     this.chaseNotified = false; this.bestBeatenThisRun = false;
     document.body.classList.remove('chase');
     this.aimX = WORLD.width / 2;
@@ -1855,6 +1894,12 @@ const Game = {
     this.set('DROPPING');
     FeedbackBus.emit('drop', { x: this.aimX, y: this.spawnY });
     trackEvent('drop', { tier: def.tier, special: def.special || 'none', band: Director.flowBand });
+    // The only per-drop camera move left: a deliberate, rare zoom-out to
+    // make room for a GIANT piece. Everything else stays calm on drop.
+    if (def.special === 'giant') {
+      Shake.impulse(0.22);
+      Camera.pushIn(0.88, 900);
+    }
   },
   computeJitter() {
     const cutoff = now() - 500;
@@ -1929,9 +1974,10 @@ const Game = {
       trackEvent('jackpot', { tier, bonus });
     } else if (specialMult > 1) {
       UI.react(`×${specialMult} BONUS!`, '#ffd700');
-    } else if (tier >= 5) {
-      Shake.impulse(0.16); // big merges earn a real (brief) shake — never a zoom jump
     }
+    // Shake is reserved for only two things now: dying, or a huge merge
+    // (chain>=3 / jackpot above). An ordinary tier-5+ fusion no longer
+    // shakes the camera — that was firing on nearly every drop late-game.
     this.checkChase();
 
     if (!save.hints.fusion) {
@@ -1973,9 +2019,11 @@ const Game = {
     const pieces = Stack.pieces();
     this.peakPieces = Math.max(this.peakPieces, pieces.length);
 
-    // instability micro-shake ramps hard near disaster — the epic shake
+    // Micro-shake now only wakes up once the tower is genuinely in danger
+    // (stability under ~0.55) — a calm, well-balanced stack never shakes.
     const stab = Stack.stability();
-    Shake.micro = this.runActive() && pieces.length > 1 ? (1 - stab) * 1.6 : 0;
+    const dangerZone = clamp((0.55 - stab) / 0.55, 0, 1);
+    Shake.micro = this.runActive() && pieces.length > 1 ? dangerZone * 1.6 : 0;
 
     // bombs
     for (const b of pieces) {
@@ -2040,10 +2088,16 @@ const Game = {
     this.decisionStartT = now();
   },
 
-  bank() {
-    if (!this.inPlay() || this.runCoins <= 0) return;
-    if (Stack.isDoomed()) { // the exploit fix — you can't bank a falling tower
-      UI.toast('TOO LATE — it’s already falling');
+  // Bank is only available while a piece is "in preview" — DECISION (idle,
+  // ghost piece waiting) or AIMING (finger down, not yet released). Once a
+  // piece is actually falling/resolving, banking is refused outright, so
+  // there's no window to cash out a split-second before a visible death.
+  // `force` is used only by the safety-net auto-bank on menu-exit below.
+  bank(opts = {}) {
+    const bankableState = opts.force ? this.inPlay() : (this.state === 'DECISION' || this.state === 'AIMING');
+    if (!bankableState || this.runCoins <= 0) return;
+    if (Stack.isDoomed()) { // defense in depth — never bank an already-falling tower
+      if (!opts.force) UI.toast('TOO LATE — it’s already falling');
       return;
     }
     const coins = Math.round(this.runCoins);
@@ -2153,15 +2207,13 @@ const Game = {
   },
 
   async revive() {
-    // SECOND WIND superpower: first revive each session is free — no ad
-    const free = save.powers.includes('power_secondwind') && !this.freeReviveUsedThisSession;
-    if (free) this.freeReviveUsedThisSession = true;
-    else {
-      const ok = await AdManager.requestRewarded('revive');
-      if (!ok) return;
-    }
+    if (this.revivesUsedThisRun >= this.maxRevives()) return;
+    // Revive always costs a watched ad — no free path, ever. ENCORE only
+    // grants a second attempt per run, each one still ad-gated.
+    const ok = await AdManager.requestRewarded('revive');
+    if (!ok) return;
     if (!Stack.restoreSnapshot()) { this.startRun(); return; }
-    this.reviveUsed = true;
+    this.revivesUsedThisRun++;
     Greed.reset(CONFIG.greed.reviveBaseline);
     this.set('DECISION');
     this.decisionStartT = now();
@@ -2184,7 +2236,7 @@ const Game = {
   },
 
   async toMenu() {
-    if (this.inPlay() && this.runCoins > 0 && !Stack.isDoomed()) this.bank();
+    if (this.inPlay() && this.runCoins > 0 && !Stack.isDoomed()) this.bank({ force: true });
     AdManager.notifyGameplayStop();
     AdManager.consecutiveDropAgains = 0;
     UI.hideScreens();
@@ -2228,10 +2280,11 @@ FeedbackBus.on('drop', (p) => {
   Particles.burst(p.x, p.y, 'rgba(200,190,255,0.7)', 4, 40, 0.4, false);
 });
 FeedbackBus.on('bank', (p) => {
+  // Banking is a reward, not a danger/huge-merge moment — gold rain and
+  // confetti sell it; no camera shake needed here anymore.
   const colors = THEMES[save.equipped.theme] || THEMES.default;
   Particles.confetti(p.x, p.y, colors.slice(1));
   Particles.goldRain(p.x, p.y);
-  Shake.impulse(0.2);
 });
 FeedbackBus.on('collapse', (p) => {
   Particles.burst(p.x, p.y, 'rgba(255,77,109,0.85)', 30, 220, 1.1);
@@ -2556,7 +2609,6 @@ const UI = {
     $('p-best').textContent = fmt(save.best);
     $('p-streak').textContent = Streak.days ? `${Streak.days}d 🔥` : '—';
     $('p-coins').textContent = '◆' + fmt(save.coins);
-    $('p-style').textContent = Profile.styleTitle || '—';
     const board = $('p-board');
     board.innerHTML = Board.top(5).map((r, i) => `<li><span>#${i + 1}</span><b>${fmt(r.s)}</b></li>`).join('') || '<li><span>no banks yet</span></li>';
   },
@@ -2628,48 +2680,55 @@ const UI = {
   showResults(kind, info) {
     const verdict = $('results-verdict');
     const big = $('big-amount');
+    const openloopEl = $('openloop'), vaultLineEl = $('vault-line'), unlockMsgEl = $('unlock-msg');
     if (kind === 'bank') {
       verdict.textContent = 'BANKED';
       verdict.className = 'banked';
       big.textContent = `+◆${fmt(info.coins)}`;
       big.className = 'gain';
       $('big-label').textContent = 'locked into your vault';
-      $('vault-line').innerHTML = `VAULT <b>◆${fmt(save.coins)}</b>`;
+      vaultLineEl.style.display = '';
+      vaultLineEl.innerHTML = `VAULT <b>◆${fmt(save.coins)}</b>`;
+      openloopEl.style.display = '';
+      openloopEl.textContent = this.openLoop('bank', info.coins).headline;
       $('btn-revive').style.display = 'none';
+      // Double Coins lives here now — nothing to revive on a clean bank,
+      // but the coins you just earned can still be doubled.
+      $('btn-double').style.display = info.coins > 0 && !Game.doubledUsed ? '' : 'none';
+      const nu = Economy.nearestUnlock();
+      if (nu && nu.ratio < 0.45) {
+        unlockMsgEl.style.display = '';
+        unlockMsgEl.innerHTML = `<b>◆${fmt(nu.need)}</b> more and <b>${nu.item.name}</b> is yours — <button id="unlock-link">open Collection</button>`;
+        $('unlock-link').onclick = (e) => { e.stopPropagation(); UI.pendingConfirmId = null; UI.renderShop(); UI.show('shop'); Profile.onShopOpen(); trackEvent('shop_open', { from: 'results' }); };
+      } else { unlockMsgEl.style.display = 'none'; unlockMsgEl.innerHTML = ''; }
     } else {
+      // The loss screen, kept deliberately minimal: the huge number lost,
+      // Drop Again, and Revive. Nothing else competes for attention here.
       verdict.textContent = 'COLLAPSED';
       verdict.className = 'collapsed';
       big.textContent = `-◆${fmt(info.lostCoins)}`;
       big.className = 'loss';
       $('big-label').textContent = 'unbanked coins — gone';
-      $('vault-line').innerHTML = `Vault untouched: <b>◆${fmt(save.coins)}</b> <span style="opacity:0.6">(+◆${fmt(info.salvage)} salvage)</span>`;
-      const canRevive = !Game.reviveUsed && Stack.snapshot;
-      const free = save.powers.includes('power_secondwind') && !Game.freeReviveUsedThisSession;
+      vaultLineEl.style.display = 'none';
+      openloopEl.style.display = 'none';
+      unlockMsgEl.style.display = 'none'; unlockMsgEl.innerHTML = '';
+      $('btn-double').style.display = 'none';
+      const canRevive = Game.revivesUsedThisRun < Game.maxRevives() && Stack.snapshot;
       $('btn-revive').style.display = canRevive ? '' : 'none';
-      if (canRevive) $('btn-revive').innerHTML = free
-        ? 'REVIVE STACK<small>💫 SECOND WIND — free, no ad</small>'
-        : 'REVIVE STACK<small>watch ad · rebuild last stable stack</small>';
     }
-    $('openloop').textContent = this.openLoop(kind, kind === 'bank' ? info.coins : info.lostCoins).headline;
-    $('btn-double').style.display = (kind === 'bank' ? info.coins : info.salvage) > 0 && !Game.doubledUsed ? '' : 'none';
-    // near-affordable pull, right where the loss stings (4.5/4.6)
-    const nu = Economy.nearestUnlock();
-    const msg = $('unlock-msg');
-    if (nu && nu.ratio < 0.45) {
-      msg.innerHTML = `<b>◆${fmt(nu.need)}</b> more and <b>${nu.item.name}</b> is yours — <button id="unlock-link">open Collection</button>`;
-      $('unlock-link').onclick = (e) => { e.stopPropagation(); UI.renderShop(); UI.show('shop'); Profile.onShopOpen(); trackEvent('shop_open', { from: 'results' }); };
-    } else msg.innerHTML = '';
     this.show('results');
     this.animateCurrency();
     this.syncStats();
   },
+  pendingConfirmId: null,
   renderShop() {
     $('shop-coins').textContent = fmt(save.coins);
     const renderItem = (item) => {
       const owned = Economy.owned(item.id);
       const equipped = owned && save.equipped[item.kind] === item.data;
+      const confirming = !owned && this.pendingConfirmId === item.id;
       const el = document.createElement('button');
-      el.className = 'shop-item' + (owned ? ' owned' : ' locked') + (equipped ? ' equipped' : '');
+      el.className = 'shop-item' + (owned ? ' owned' : ' locked') + (equipped ? ' equipped' : '') + (confirming ? ' confirming' : '');
       const progress = owned ? 1 : item.price ? clamp(save.coins / item.price, 0, 1) : 1;
       el.innerHTML =
         `<div class="swatch" style="${this.swatchStyle(item)}"></div>` +
@@ -2677,14 +2736,28 @@ const UI = {
         `<div class="kind">${item.kind}${item.power ? ' · <span class="power">' + item.power + '</span>' : ''}</div>` +
         (owned
           ? `<div class="price">${equipped ? 'EQUIPPED' : 'Tap to equip'}</div>`
-          : `<div class="price">◆${fmt(item.price)}</div><div class="bar"><div style="width:${(progress * 100).toFixed(0)}%"></div></div>`) +
+          : confirming
+            ? `<div class="price">Tap again to confirm</div>`
+            : `<div class="price">◆${fmt(item.price)}</div><div class="bar"><div style="width:${(progress * 100).toFixed(0)}%"></div></div>`) +
         (equipped ? '<span class="tag">●</span>' : '');
+      // Purchases need a deliberate second tap — an accidental first tap
+      // just arms a 3.5s confirm window instead of spending coins.
       el.onclick = () => {
         Audio2.ensure(); Audio2.ui();
         if (!owned) {
-          if (Economy.buy(item.id)) { Economy.equip(item.id); UI.toast(`Unlocked ${item.name}!`); }
-          else UI.toast(`◆${fmt(item.price - save.coins)} more needed`);
-        } else Economy.equip(item.id);
+          if (confirming) {
+            clearTimeout(this._confirmTimer);
+            this.pendingConfirmId = null;
+            if (Economy.buy(item.id)) { Economy.equip(item.id); UI.toast(`Unlocked ${item.name}!`); }
+            else UI.toast(`◆${fmt(item.price - save.coins)} more needed`);
+          } else {
+            this.pendingConfirmId = item.id;
+            clearTimeout(this._confirmTimer);
+            this._confirmTimer = setTimeout(() => { this.pendingConfirmId = null; this.renderShop(); }, 3500);
+          }
+        } else {
+          Economy.equip(item.id);
+        }
         this.renderShop();
         this.syncStats();
       };
@@ -2744,13 +2817,18 @@ const UI = {
     pill.classList.toggle('g3', gv >= 3.5);
 
     const bank = $('btn-bank');
-    if (Game.runCoins > 0 && Game.inPlay()) {
-      const doomed = Stack.isDoomed();
-      bank.disabled = doomed;
+    // Bankable only while the next piece is "in preview" (DECISION/AIMING)
+    // — never mid-drop/resolve, so there's no window to bank a split
+    // second before a visible death (see Game.bank()).
+    const previewState = Game.state === 'DECISION' || Game.state === 'AIMING';
+    if (Game.runCoins > 0) {
+      const doomed = previewState && Stack.isDoomed();
+      const bankable = previewState && !doomed;
+      bank.disabled = !bankable;
       bank.classList.toggle('doomed', doomed);
       $('bank-amt').textContent = doomed ? 'TOO LATE' : `+◆ ${fmt(Game.runCoins)}`;
       // the button escalates the longer you refuse it
-      const urgency = doomed ? 0 :
+      const urgency = !bankable ? 0 :
         clamp(Game.runCoins / Math.max(save.best, 400), 0, 1) * 0.65 +
         clamp((gv - 1) / 3, 0, 1) * 0.35;
       bank.classList.toggle('u1', urgency > 0.22 && urgency <= 0.5);
@@ -2822,8 +2900,8 @@ const Input = {
       if (ok) Game.startRun({ headStart: true });
     });
     bind('hud-home', () => Game.toMenu());
-    bind('btn-shop', () => { UI.renderShop(); UI.show('shop'); Profile.onShopOpen(); trackEvent('shop_open', { from: 'menu' }); });
-    bind('btn-shop-close', () => { Game.state === 'RESULTS' ? UI.show('results') : UI.showMenu(); });
+    bind('btn-shop', () => { UI.pendingConfirmId = null; UI.renderShop(); UI.show('shop'); Profile.onShopOpen(); trackEvent('shop_open', { from: 'menu' }); });
+    bind('btn-shop-close', () => { UI.pendingConfirmId = null; Game.state === 'RESULTS' ? UI.show('results') : UI.showMenu(); });
     bind('btn-settings', () => { UI.syncToggles(); UI.show('settings'); });
     bind('btn-settings-close', () => UI.showMenu());
     bind('btn-board', () => { UI.renderBoard(); UI.show('board'); Profile.onBoardOpen(); });

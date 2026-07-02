@@ -30,16 +30,20 @@ no install, no login, no network required.
 - **VAULT** — banked coins. Permanent, spendable in the Collection, shown top-right.
   Collapsing never touches it.
 - **Lifetime banked** — never decreases; unlocks **superpowers** at milestones
-  (Head Start, Gold Rush, Second Wind, Titan Line).
+  (Head Start, Gold Rush, Steady Aim, Encore, Chroma Rush, Titan Line). Superpowers
+  are earned, never bought — see `MILESTONES` in §1.
 
 ## Shapes
 
-One shape per tier — more sides = bigger = worth more:
-triangle → square → pentagon → hexagon → heptagon → octagon → nonagon → 12-sided **AUREX**.
+One shape per tier, each with its own hue *and* its own side-count *and* its own
+size — three independent, redundant cues so value is never a subtle read:
+red triangle → orange square → lime pentagon → emerald hexagon → cyan heptagon →
+blue octagon → violet nonagon → gold 12-sided **AUREX**. Six shape themes in the
+Collection each rotate their own distinct 8-hue set.
 
-**Surprise blocks** appear every 20–40 s: ✨ GOLDEN (3× coins), 🗿 GIANT (huge, 3×),
-💣 BOMB (explodes — salvage coins, chaos), ⚡ UNSTABLE (jitters, 2×), 🌈 RAINBOW
-(fuses with anything, 2×).
+**Surprise blocks** appear every 20–40 s: ✨ GOLDEN (3× coins), 🗿 GIANT (huge, 3×,
+the one deliberate camera zoom-out on drop), 💣 BOMB (explodes — salvage coins,
+chaos), ⚡ UNSTABLE (jitters, 2×), 🌈 RAINBOW (fuses with anything, 2×).
 
 ## The adaptation engine
 
@@ -63,13 +67,24 @@ title like THE GAMBLER / THE BANKER / THE COLLECTOR) drives:
 
 ## Guardrails
 
-- Banking is blocked the instant a piece is past saving (`Stack.isDoomed()`'s
-  "TOO LATE" state) — you cannot bank a tower that is already falling.
-- Ad offers (revive / double) are opt-in, one-tap-dismissible, and never bigger than
-  the free DROP AGAIN path. Interstitials: never in the first 3 runs, only at
-  voluntary boundaries, ≥105 s apart.
+- Banking only works while a piece is "in preview" — `DECISION` (idle, waiting)
+  or `AIMING` (finger down, not yet released). The instant a piece is actually
+  falling or resolving, the BANK button disables outright: there is no window to
+  tap Bank a split second before a visible death. `Stack.isDoomed()` remains as a
+  defense-in-depth check for the DECISION edge case.
+- Revive **always** costs a watched ad, with no free path — the ENCORE superpower
+  only grants a second revive attempt per run, each one still ad-gated.
+- Ad offers (revive / double) are opt-in, one-tap, and never bigger than the free
+  DROP AGAIN path. Double Coins only appears on a successful bank (nothing to
+  double on a loss); Revive only appears on a collapse. Interstitials: never in
+  the first 3 runs, only at voluntary boundaries, ≥105 s apart.
+- Shop purchases require a deliberate second tap ("Tap again to confirm") before
+  coins are spent — a single accidental tap never buys anything.
 - `ChurnRiskModel` and `Profile` output are deliberately **never** wired into
   `AdManager`. Flag any change to this in code review.
+- Camera shake is reserved for two things only: near-death instability (danger
+  micro-shake, gated below ~55% stability) and a huge merge (3+ chain, jackpot
+  fusion, bomb). Nothing shakes or zooms on an ordinary drop.
 - Near-misses are computed from real run state, never randomly inserted.
 - Every run nets some coins (collapse pays a small salvage) — no zero-progress outcomes.
 
