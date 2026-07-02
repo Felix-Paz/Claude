@@ -33,17 +33,38 @@ no install, no login, no network required.
   (Head Start, Gold Rush, Steady Aim, Encore, Chroma Rush, Titan Line). Superpowers
   are earned, never bought — see `MILESTONES` in §1.
 
+Brand identity is **emerald green + gold** (deep green world, green→gold wordmark).
+The in-game logo sits bottom-center of the play screen.
+
 ## Shapes
 
-One shape per tier, each with its own hue *and* its own side-count *and* its own
-size — three independent, redundant cues so value is never a subtle read:
-red triangle → orange square → lime pentagon → emerald hexagon → cyan heptagon →
-blue octagon → violet nonagon → gold 12-sided **AUREX**. Six shape themes in the
-Collection each rotate their own distinct 8-hue set.
+One shape per tier, each with its own hue *and* side-count *and* size — three
+redundant cues so value is never a subtle read: red triangle → orange square →
+yellow pentagon → green hexagon → cyan heptagon → blue octagon → violet nonagon →
+gold 12-sided **AUREX**. Every hue is spaced far from its neighbors.
 
-**Surprise blocks** appear every 20–40 s: ✨ GOLDEN (3× coins), 🗿 GIANT (huge, 3×,
-the one deliberate camera zoom-out on drop), 💣 BOMB (explodes — salvage coins,
-chaos), ⚡ UNSTABLE (jitters, 2×), 🌈 RAINBOW (fuses with anything, 2×).
+**Shape packs** (the Collection's `theme` items) each recolor all shapes with a
+distinct 8-hue palette *and* grant a perk (pricier = better): Ember (+6% coins),
+Oceanic (greed starts ×1.25), Toxic (+10% coins), Candy (2× golden blocks),
+Prism (+15% coins, greed ×1.3).
+
+**Special blocks** each have their own unmistakable skin (never disguised as a
+normal shape) — a real bomb, a gold star, an icy crystal, etc. They appear every
+20–40 s, weighted by player profile: ✨ GOLDEN (3× coins), 🗿 GIANT (huge, 3×, the
+one deliberate camera zoom-out on drop), 💣 BOMB (dark sphere with a lit fuse +
+countdown ring; explodes for salvage), ⚡ UNSTABLE (jitters, 2×), 🧊 ICE (slippery,
+2×), ⭐ LUCKY STAR (2× + a greed surge), 🌈 RAINBOW (animated rainbow, fuses with
+anything, 2×).
+
+## Docks
+
+Each dock in the Collection has a distinct canvas render *and*, for pricier ones,
+real powers: Slab (free), Frostpane (frosted glass), Liquid Glass (+length +
+slow-fall), Lava Forge (+60% salvage, glowing molten cracks), Reactor (+length +
+faster greed, scrolling circuitry), Bumper Deck (raised edge walls that physically
+catch throws), Aurora Deck (+length + wider combo window), Vortex Core (everything).
+Dock power dimensions: `lengthBonus`, `grip`, `forgiveness`, `slowFall`, `greedRate`,
+`salvageMult`, `comboBonusMs`, `walls`.
 
 ## The adaptation engine
 

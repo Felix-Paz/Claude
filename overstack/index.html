@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0e0a1f">
+<meta name="theme-color" content="#06160f">
 <title>OVERSTACK — stack. fuse. get greedy.</title>
 <meta name="description" content="OVERSTACK — drop, fuse, and bank before the tower falls. How greedy are you?">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,17 +15,20 @@
    Calm base state; the game overreacts when it matters.
    ============================================================ */
 :root {
-  --bg-a: #0e0a1f;
-  --bg-b: #1b1138;
-  --glass: rgba(30, 22, 58, 0.55);
-  --glass-border: rgba(178, 150, 255, 0.22);
-  --text: #f2edff;
-  --text-dim: #a99cc9;
+  /* Brand identity: deep emerald green + gold. (Was violet.) */
+  --bg-a: #06160f;
+  --bg-b: #0e3325;
+  --glass: rgba(16, 42, 30, 0.55);
+  --glass-border: rgba(110, 220, 165, 0.22);
+  --text: #eafff5;
+  --text-dim: #9fc7b4;
   --gold: #ffcf5c;
   --gold-deep: #e8a83a;
-  --hot: #ff4d6d;
-  --mint: #55e6c1;
-  --accent: #9b7bff;
+  --hot: #ff5a6a;
+  --mint: #45e0a0;
+  --accent: #2fd98a;
+  --green: #26c97a;
+  --green-deep: #148f57;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   font-size: 16px;
 }
@@ -44,9 +47,9 @@ body {
 .wordmark { font-weight: 800; letter-spacing: 0.14em; }
 .wordmark em {
   font-style: normal;
-  background: linear-gradient(115deg, var(--gold) 20%, var(--hot) 90%);
+  background: linear-gradient(115deg, var(--green) 5%, var(--gold) 95%);
   -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: var(--gold);
+  -webkit-text-fill-color: transparent; color: var(--green);
 }
 
 /* ---------- glass + buttons ---------- */
@@ -61,21 +64,22 @@ body {
 .low-fx .glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(24, 17, 46, 0.94); }
 .btn {
   font-family: inherit; font-weight: 700; color: var(--text);
-  background: rgba(72, 56, 122, 0.5);
+  background: rgba(26, 74, 54, 0.5);
   border: 1px solid var(--glass-border);
   border-radius: 14px; padding: 12px 22px; font-size: 1rem; cursor: pointer;
   transition: transform 0.09s ease, box-shadow 0.2s ease, background 0.2s ease;
   letter-spacing: 0.02em;
 }
-.btn:hover { box-shadow: 0 0 18px rgba(155, 123, 255, 0.4); background: rgba(92, 72, 152, 0.6); }
+.btn:hover { box-shadow: 0 0 18px rgba(47, 217, 138, 0.4); background: rgba(36, 96, 68, 0.6); }
 .btn:active { transform: scale(0.94); }
 .btn-primary {
-  background: linear-gradient(160deg, #8a63ff, #5a3ac8);
-  border-color: rgba(190, 165, 255, 0.55);
-  box-shadow: 0 6px 26px rgba(122, 88, 240, 0.5);
+  background: linear-gradient(160deg, #2fd98a, #148f57);
+  border-color: rgba(120, 235, 180, 0.55);
+  box-shadow: 0 6px 26px rgba(38, 201, 122, 0.5);
+  color: #052013;
   font-size: 1.25rem; padding: 16px 44px;
 }
-.btn-primary:hover { box-shadow: 0 6px 36px rgba(150, 116, 255, 0.75); }
+.btn-primary:hover { box-shadow: 0 6px 36px rgba(60, 224, 150, 0.78); }
 .btn-danger {
   background: linear-gradient(160deg, #ff5a76, #c22646);
   border-color: rgba(255, 140, 160, 0.6);
@@ -99,7 +103,7 @@ body {
 #loading .logo { font-size: 2.7rem; }
 #loading .sub { color: var(--text-dim); font-size: 0.72rem; letter-spacing: 0.34em; margin-top: 8px; }
 #loadbar { width: 190px; height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; margin-top: 24px; overflow: hidden; }
-#loadbar > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--gold), var(--hot)); border-radius: 2px; transition: width 0.3s ease; }
+#loadbar > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--green), var(--gold)); border-radius: 2px; transition: width 0.3s ease; }
 
 /* menu */
 #menu { background: rgba(10, 6, 24, 0.35); }
@@ -107,7 +111,7 @@ body {
 #menu .tagline { color: var(--text-dim); font-size: 0.82rem; letter-spacing: 0.28em; margin-bottom: 10px; text-transform: uppercase; }
 #style-tag { font-size: 0.72rem; color: var(--gold); letter-spacing: 0.18em; margin-bottom: 28px; min-height: 1em; }
 #btn-play { min-width: 230px; font-size: 1.55rem; padding: 20px 52px; animation: breathe 2.6s ease-in-out infinite; }
-@keyframes breathe { 0%,100% { box-shadow: 0 6px 26px rgba(122,88,240,0.5);} 50% { box-shadow: 0 6px 46px rgba(150,116,255,0.85);} }
+@keyframes breathe { 0%,100% { box-shadow: 0 6px 26px rgba(38,201,122,0.5);} 50% { box-shadow: 0 6px 46px rgba(60,224,150,0.85);} }
 #menu-stats { display: flex; gap: 20px; margin-top: 26px; color: var(--text-dim); font-size: 0.85rem; align-items: center; }
 #menu-stats b { color: var(--text); font-weight: 700; }
 #menu-stats .vault-stat b { color: var(--gold); }
@@ -125,11 +129,12 @@ body {
 /* ---------- HUD ---------- */
 #hud { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
 #hud.hidden { display: none; }
+/* Logo lives at the BOTTOM-CENTER of the play screen now (was top-center). */
 #hud-brand {
-  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-  font-size: 0.72rem; letter-spacing: 0.4em; opacity: 0.75;
+  position: absolute; bottom: calc(20px + var(--safe-bottom)); left: 50%; transform: translateX(-50%);
+  font-size: 0.82rem; letter-spacing: 0.4em; opacity: 0.7; pointer-events: none;
 }
-#hud-score-wrap { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); text-align: center; }
+#hud-score-wrap { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); text-align: center; }
 #run-score {
   font-size: clamp(2rem, 7.5vw, 2.9rem); font-weight: 800; line-height: 1.1;
   text-shadow: 0 2px 22px rgba(0,0,0,0.65);
@@ -140,8 +145,8 @@ body.chase #run-score { color: var(--gold); text-shadow: 0 0 26px rgba(255, 207,
   display: inline-block; margin-top: 4px;
   font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em;
   padding: 4px 12px; border-radius: 999px;
-  border: 1px solid rgba(178,150,255,0.25);
-  background: rgba(24, 17, 46, 0.55); color: var(--mint);
+  border: 1px solid rgba(110,220,165,0.3);
+  background: rgba(14, 40, 28, 0.6); color: var(--mint);
 }
 #greed-pill.g2 { color: var(--gold); border-color: rgba(255,207,92,0.45); }
 #greed-pill.g3 { color: var(--hot); border-color: rgba(255,77,109,0.55); animation: greedpulse 0.7s ease-in-out infinite; }
@@ -288,10 +293,9 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 #unlock-msg button { background: none; border: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
 
 /* ---------- shop / settings / board cards ---------- */
-#shop-card, #settings-card, #board-card { padding: 26px; max-width: 540px; width: 94vw; max-height: 86vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(178,150,255,0.35) transparent; }
-#shop-card::-webkit-scrollbar, #board-card::-webkit-scrollbar, #settings-card::-webkit-scrollbar { width: 5px; }
-#shop-card::-webkit-scrollbar-thumb, #board-card::-webkit-scrollbar-thumb, #settings-card::-webkit-scrollbar-thumb { background: rgba(178,150,255,0.35); border-radius: 3px; }
-#shop-card::-webkit-scrollbar-track, #board-card::-webkit-scrollbar-track, #settings-card::-webkit-scrollbar-track { background: transparent; }
+#shop-card, #settings-card, #board-card { padding: 26px; max-width: 540px; width: 94vw; max-height: 86vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+/* Hide the default scrollbar entirely — scroll still works by drag/wheel. */
+#shop-card::-webkit-scrollbar, #board-card::-webkit-scrollbar, #settings-card::-webkit-scrollbar { width: 0; height: 0; display: none; }
 #shop-card h2, #settings-card h2, #board-card h2 { font-size: 1.15rem; letter-spacing: 0.14em; margin-bottom: 4px; }
 .card-sub { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 16px; }
 .shop-section { font-size: 0.66rem; letter-spacing: 0.3em; color: var(--text-dim); margin: 18px 0 10px; }
@@ -299,7 +303,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 #shop-grid-docks, #shop-grid-themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(146px, 1fr)); gap: 12px; }
 .shop-item {
   padding: 12px; border-radius: 14px; border: 1px solid var(--glass-border);
-  background: rgba(38, 28, 72, 0.5); cursor: pointer; text-align: left;
+  background: rgba(20, 52, 38, 0.5); cursor: pointer; text-align: left;
   font-family: inherit; color: var(--text); position: relative;
   transition: transform 0.1s ease, box-shadow 0.2s ease;
 }
@@ -314,15 +318,23 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 .shop-item.locked { opacity: 0.78; }
 .shop-item.owned { border-color: rgba(155,123,255,0.5); }
 .shop-item.equipped { border-color: var(--gold); box-shadow: 0 0 14px rgba(255,207,92,0.35); }
-.shop-item.confirming { opacity: 1; border-color: var(--gold); animation: confirmpulse 0.9s ease-in-out infinite; }
-.shop-item.confirming .price { color: #fff; font-weight: 800; }
-@keyframes confirmpulse { 0%,100% { box-shadow: 0 0 10px rgba(255,207,92,0.4); } 50% { box-shadow: 0 0 26px rgba(255,207,92,0.9); } }
+/* Buy-confirm modal — a real pop-up, not an in-box swap */
+#confirm-dialog { z-index: 95; background: rgba(4, 12, 8, 0.72); }
+#confirm-card { padding: 26px 30px; text-align: center; max-width: 320px; width: 84vw; }
+#confirm-card .ttl { font-size: 0.66rem; letter-spacing: 0.26em; color: var(--text-dim); margin-bottom: 10px; }
+#confirm-name { font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
+#confirm-detail { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 14px; }
+#confirm-price { font-size: 1rem; margin-bottom: 20px; }
+#confirm-price b { color: var(--gold); font-weight: 800; }
+.confirm-row { display: flex; gap: 10px; }
+.confirm-row .btn { flex: 1; }
+#btn-confirm-ok:disabled { opacity: 0.4; cursor: default; }
 .shop-item .tag { position: absolute; top: 8px; right: 8px; font-size: 0.58rem; font-weight: 700; letter-spacing: 0.08em; color: var(--gold); }
 /* superpowers — milestone unlocks, not purchases */
 .power-row {
   display: flex; align-items: center; gap: 14px;
   padding: 12px 14px; border-radius: 14px; border: 1px solid var(--glass-border);
-  background: rgba(38, 28, 72, 0.5); margin-bottom: 10px;
+  background: rgba(20, 52, 38, 0.5); margin-bottom: 10px;
 }
 .power-row .icon { font-size: 1.5rem; width: 40px; text-align: center; filter: grayscale(1) opacity(0.5); }
 .power-row.unlocked .icon { filter: none; }
@@ -441,6 +453,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
       <button id="btn-revive" class="btn btn-danger" style="display:none;"><span class="play-ico"></span>REVIVE</button>
       <button id="btn-double" class="btn btn-danger" style="display:none;"><span class="play-ico"></span>DOUBLE COINS</button>
     </div>
+    <button id="btn-results-collection" class="btn btn-ghost" style="display:none; width:100%; margin-bottom:8px;">◆ COLLECTION</button>
     <div id="unlock-msg"></div>
   </div>
 </div>
@@ -476,6 +489,19 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
     <div class="card-sub" id="board-sub">Local leaderboard — your own history.</div>
     <ol id="board-list"></ol>
     <div class="close-row"><button id="btn-board-close" class="btn">Close</button></div>
+  </div>
+</div>
+
+<div id="confirm-dialog" class="screen hidden">
+  <div id="confirm-card" class="glass">
+    <div class="ttl">CONFIRM PURCHASE</div>
+    <div id="confirm-name">—</div>
+    <div id="confirm-detail"></div>
+    <div id="confirm-price"></div>
+    <div class="confirm-row">
+      <button id="btn-confirm-cancel" class="btn">Cancel</button>
+      <button id="btn-confirm-ok" class="btn btn-primary" style="font-size:1rem; padding:12px 22px;">CONFIRM</button>
+    </div>
   </div>
 </div>
 
@@ -538,29 +564,57 @@ const TIERS = {
   radii:  [0, 15, 19, 24, 31, 39, 49, 61, 76],
 };
 
-/* Every tier gets a hue far enough from its neighbors to read at a glance —
-   size, side-count AND color all move together (bigger = more sides = new
-   hue), so "which shape is better" never depends on a subtle color read. */
+/* Shape packs — each a full, high-contrast 8-hue rainbow (so adjacent tiers
+   are unmistakable) with its own overall identity, PLUS a real gameplay perk.
+   Pricier packs carry better perks. `colors[tier]` drives every shape. */
 const THEMES = {
-  default: ['', '#FF4B4B', '#FF9E2C', '#C4E538', '#34D399', '#22D3EE', '#3E8EF7', '#A855F7', '#FFD700'],
-  sunset:  ['', '#FF5C77', '#FF8C3C', '#B9D93A', '#3FCE8A', '#2FD1C9', '#5C8DFF', '#C25CEB', '#FFCE54'],
-  neon:    ['', '#39ff88', '#2de2e6', '#35b5ff', '#7d5fff', '#b967ff', '#ff2ec4', '#ff5f5f', '#ffdc4d'],
-  aurora:  ['', '#FF6FA8', '#FFB347', '#C6FF4D', '#4DFFB0', '#4DD9FF', '#4D8DFF', '#B24DFF', '#FFF0B0'],
-  volcano: ['', '#FF3B3B', '#FF7A1A', '#D4E157', '#8BD450', '#3FD1C4', '#4D7BFF', '#B24DFF', '#FFCC33'],
-  glacier: ['', '#FF6B81', '#FFA94D', '#C8E667', '#5CE6A8', '#4DD9FF', '#4D8DFF', '#9E6BFF', '#FFF3C4'],
+  default: { name: 'Signal',  bonus: {},
+    colors: ['', '#FF2E2E', '#FF7A00', '#FFE500', '#22DD4B', '#00D4D4', '#2E6BFF', '#B23BFF', '#FFC21E'] },
+  ember:   { name: 'Ember',   bonus: { coinMult: 1.06 },
+    colors: ['', '#FF1F3B', '#FF5C00', '#FF9E00', '#FFD400', '#9BE000', '#00C98A', '#FF4FA0', '#FFE9A0'] },
+  oceanic: { name: 'Oceanic', bonus: { greedStart: 1.25 },
+    colors: ['', '#00E0C0', '#00B0E6', '#2E7BFF', '#6A5BFF', '#A05BFF', '#38C86A', '#FF7AB0', '#FFE08A'] },
+  toxic:   { name: 'Toxic',   bonus: { coinMult: 1.10 },
+    colors: ['', '#C6FF1A', '#6BE000', '#00E05A', '#00E0C0', '#00C0FF', '#6B5BFF', '#FF3DDC', '#EEFF5B'] },
+  candy:   { name: 'Candy',   bonus: { goldenBias: 2.0 },
+    colors: ['', '#FF5C8A', '#FF9E6B', '#FFE07A', '#7BE0A0', '#6BC8FF', '#9B8DFF', '#D07AFF', '#FFF0A8'] },
+  prism:   { name: 'Prism',   bonus: { coinMult: 1.15, greedStart: 1.3 },
+    colors: ['', '#FF0044', '#FF7A00', '#FFE800', '#00FF66', '#00E5FF', '#3366FF', '#C400FF', '#FFFFFF'] },
 };
 
-/* Docks — the shop's anchor purchase. Pricier docks carry real powers:
-   more length, grip (friction), and "forgiveness" (a small stability/edge
-   tolerance buff — never enough to trivialize the core risk decision). */
+/* Docks — the shop's anchor purchase. Each has a distinct canvas render
+   `style` (slab / frosted / liquid-glass / lava / reactor / bumper / aurora /
+   vortex) AND, for the pricier ones, real powers:
+     lengthBonus  — longer dock
+     grip         — higher friction (pieces slide less)
+     forgiveness  — small stability + edge-tolerance buff
+     slowFall     — pieces descend slower (frictionAir) → more aim time
+     greedRate    — GREED climbs faster
+     salvageMult  — bigger collapse payout
+     comboBonusMs — wider chain window
+     walls        — raised edge walls that physically catch throws          */
 const DOCKS = {
-  slab:   { top: '#3a2f63', body: '#251b4a', glow: 'rgba(155,123,255,0.4)',  lengthBonus: 0,    grip: 0,   forgiveness: 0 },
-  marble: { top: '#d9dff0', body: '#98a3c4', glow: 'rgba(225,232,255,0.45)', lengthBonus: 0,    grip: 0,   forgiveness: 0 },
-  neon:   { top: '#2ee6d6', body: '#0e5f66', glow: 'rgba(46,230,214,0.65)',  lengthBonus: 0.05, grip: 0,   forgiveness: 0.02 },
-  holo:   { top: '#ffd166', body: '#7a5218', glow: 'rgba(255,209,102,0.65)', lengthBonus: 0.10, grip: 0,   forgiveness: 0.03 },
-  magnet: { top: '#ff4d6d', body: '#5c1224', glow: 'rgba(255,77,109,0.6)',   lengthBonus: 0.06, grip: 0.5, forgiveness: 0.04 },
-  zerog:  { top: '#7ef9c9', body: '#0d4a3c', glow: 'rgba(126,249,201,0.6)',  lengthBonus: 0.13, grip: 0.2, forgiveness: 0.07 },
-  vortex: { top: '#c9a8ff', body: '#2c1554', glow: 'rgba(201,168,255,0.75)', lengthBonus: 0.22, grip: 0.3, forgiveness: 0.10 },
+  slab:    { style: 'slab',    c1: '#2e6f52', c2: '#123a2a', glow: 'rgba(70,220,150,0.35)' },
+  frost:   { style: 'frost',   c1: '#dfeaff', c2: '#9fb6d8', glow: 'rgba(200,220,255,0.5)' },
+  glass:   { style: 'glass',   c1: '#bff3ff', c2: '#3f92b8', glow: 'rgba(150,230,255,0.6)',  lengthBonus: 0.05, slowFall: 0.014 },
+  lava:    { style: 'lava',    c1: '#3a1410', c2: '#160604', glow: 'rgba(255,90,20,0.6)',    forgiveness: 0.02, salvageMult: 1.6 },
+  circuit: { style: 'circuit', c1: '#0d3a2e', c2: '#04140f', glow: 'rgba(46,230,150,0.6)',   lengthBonus: 0.06, greedRate: 0.5 },
+  bumper:  { style: 'bumper',  c1: '#ffb43a', c2: '#8a5a10', glow: 'rgba(255,180,58,0.6)',   grip: 0.3, forgiveness: 0.05, walls: true },
+  aurora:  { style: 'aurora',  c1: '#7ef9c9', c2: '#3a6fd8', glow: 'rgba(126,249,201,0.6)',  lengthBonus: 0.10, forgiveness: 0.04, comboBonusMs: 900 },
+  vortex:  { style: 'vortex',  c1: '#c9a8ff', c2: '#2c1554', glow: 'rgba(201,168,255,0.75)', lengthBonus: 0.22, grip: 0.3, forgiveness: 0.10, greedRate: 0.3 },
+};
+
+/* Special blocks — each with its own unmistakable skin (drawn in §21). A
+   special is never disguised as a normal shape. `targetsFusable` retargets
+   the block's tier to something already on the stack so its bonus can land. */
+const SPECIALS = {
+  golden:   { emoji: '✨', label: 'GOLDEN BLOCK',   coinMult: 3, targetsFusable: true },
+  giant:    { emoji: '🗿', label: 'GIANT BLOCK',    coinMult: 3, sizeMult: 1.55, targetsFusable: true, cameraKick: true },
+  rainbow:  { emoji: '🌈', label: 'RAINBOW BLOCK',  coinMult: 2, wild: true },
+  unstable: { emoji: '⚡', label: 'UNSTABLE BLOCK', coinMult: 2, friction: 0.42, jitter: true },
+  ice:      { emoji: '🧊', label: 'ICE BLOCK',      coinMult: 2, friction: 0.02, restitution: 0.22, slippery: true },
+  star:     { emoji: '⭐', label: 'LUCKY STAR',     coinMult: 2, greedBonus: 0.7, targetsFusable: true },
+  bomb:     { emoji: '💣', label: 'BOMB',           noFuse: true },
 };
 
 const WORLD = {
@@ -674,24 +728,27 @@ const BAND_WEIGHTS = {
 };
 
 const SHOP_CATALOG = [
-  { id: 'dock_slab',   kind: 'dock', name: 'Slab',        price: 0,      data: 'slab',   power: '' },
-  { id: 'dock_marble', kind: 'dock', name: 'Marble',      price: 1800,   data: 'marble', power: '' },
-  { id: 'dock_neon',   kind: 'dock', name: 'Neon Rail',   price: 4500,   data: 'neon',   power: '+5% length · slight forgiveness' },
-  { id: 'dock_holo',   kind: 'dock', name: 'Holo Deck',   price: 11000,  data: 'holo',   power: '+10% length · more forgiveness' },
-  { id: 'dock_magnet', kind: 'dock', name: 'Magnet Core', price: 26000,  data: 'magnet', power: '+6% length · grip · forgiveness' },
-  { id: 'dock_zerog',  kind: 'dock', name: 'Zero-G Pad',  price: 55000,  data: 'zerog',  power: '+13% length · grip · high forgiveness' },
-  { id: 'dock_vortex', kind: 'dock', name: 'Vortex Core', price: 120000, data: 'vortex', power: '+22% length · grip · max forgiveness' },
-  { id: 'theme_default', kind: 'theme', name: 'Signal',     price: 0,     data: 'default' },
-  { id: 'theme_sunset',  kind: 'theme', name: 'Sunset Run', price: 2500,  data: 'sunset' },
-  { id: 'theme_neon',    kind: 'theme', name: 'Neon District', price: 6500, data: 'neon' },
-  { id: 'theme_aurora',  kind: 'theme', name: 'Aurora',     price: 14000, data: 'aurora' },
-  { id: 'theme_volcano', kind: 'theme', name: 'Volcano',    price: 30000, data: 'volcano' },
-  { id: 'theme_glacier', kind: 'theme', name: 'Glacier',    price: 65000, data: 'glacier' },
+  // DOCKS — where the tower lives. Each looks wildly different; pricier ones carry powers.
+  { id: 'dock_slab',    kind: 'dock', name: 'Slab',         price: 0,      data: 'slab',    power: '' },
+  { id: 'dock_frost',   kind: 'dock', name: 'Frostpane',    price: 1500,   data: 'frost',   power: 'frosted glass · cosmetic' },
+  { id: 'dock_glass',   kind: 'dock', name: 'Liquid Glass', price: 5000,   data: 'glass',   power: '+5% length · SLOW-FALL (more aim time)' },
+  { id: 'dock_lava',    kind: 'dock', name: 'Lava Forge',   price: 9000,   data: 'lava',    power: '+60% collapse salvage' },
+  { id: 'dock_circuit', kind: 'dock', name: 'Reactor',      price: 16000,  data: 'circuit', power: '+6% length · GREED climbs faster' },
+  { id: 'dock_bumper',  kind: 'dock', name: 'Bumper Deck',  price: 30000,  data: 'bumper',  power: 'edge WALLS catch throws · grip' },
+  { id: 'dock_aurora',  kind: 'dock', name: 'Aurora Deck',  price: 60000,  data: 'aurora',  power: '+10% length · wider combo window' },
+  { id: 'dock_vortex',  kind: 'dock', name: 'Vortex Core',  price: 120000, data: 'vortex',  power: '+22% length · grip · greed · max forgiveness' },
+  // SHAPE PACKS — recolor every shape AND grant a perk. Pricier = better perk.
+  { id: 'theme_default', kind: 'theme', name: 'Signal',  price: 0,      data: 'default', power: '' },
+  { id: 'theme_ember',   kind: 'theme', name: 'Ember',   price: 3000,   data: 'ember',   power: '+6% fusion coins' },
+  { id: 'theme_oceanic', kind: 'theme', name: 'Oceanic', price: 8000,   data: 'oceanic', power: 'GREED starts at ×1.25' },
+  { id: 'theme_toxic',   kind: 'theme', name: 'Toxic',   price: 18000,  data: 'toxic',   power: '+10% fusion coins' },
+  { id: 'theme_candy',   kind: 'theme', name: 'Candy',   price: 40000,  data: 'candy',   power: 'golden blocks 2× as often' },
+  { id: 'theme_prism',   kind: 'theme', name: 'Prism',   price: 90000,  data: 'prism',   power: '+15% coins · GREED starts ×1.3' },
 ];
 
 /* ============================ §2 PERSISTENCE ============================== */
 const SaveStore = {
-  KEY: 'overstack.save.v2',
+  KEY: 'overstack.save.v3',
   data: null,
   defaults() {
     return {
@@ -1028,12 +1085,14 @@ const Greed = {
   reset(v = 1) { this.value = v; },
   onSurvivedDrop(stability) {
     const risky = (1 - clamp(stability, 0, 1)) * CONFIG.greed.riskLandingBonus;
-    this.value = Math.min(CONFIG.greed.cap, this.value + CONFIG.greed.perSurvivedDrop + risky);
+    // Reactor/Vortex docks make greed climb faster (greedRate).
+    this.value = Math.min(CONFIG.greed.cap, this.value + (CONFIG.greed.perSurvivedDrop + risky) * Economy.greedRate);
     return risky > 0.12; // caller pops the pill on daring landings
   },
   onFusion(tier) {
-    this.value = Math.min(CONFIG.greed.cap, this.value + CONFIG.greed.perFusionTier * tier);
+    this.value = Math.min(CONFIG.greed.cap, this.value + CONFIG.greed.perFusionTier * tier * Economy.greedRate);
   },
+  bonus(amount) { this.value = Math.min(CONFIG.greed.cap, this.value + amount); },
 };
 
 /* ==================== §10 PLAYER STATE VECTOR + FLOW ====================== */
@@ -1309,7 +1368,15 @@ const Director = {
   },
   advance() {
     this.queue.shift();
-    while (this.queue.length < 2) this.queue.push(this.rollPiece());
+    while (this.queue.length < 2) {
+      const p = this.rollPiece();
+      // Decide the piece's "special" the moment it enters the queue tail —
+      // BEFORE it is ever shown in the NEXT preview. Previously specials were
+      // injected on settle, which mutated the already-previewed piece and made
+      // the preview lie ("shows a random shape, then the real one differs").
+      Surprise.decorate(p);
+      this.queue.push(p);
+    }
     return this.queue[0];
   },
   current() { return this.queue[0]; },
@@ -1324,13 +1391,14 @@ const Surprise = {
   schedule() { this.nextAt = now() + rand(CONFIG.surprise.minGapMs, CONFIG.surprise.maxGapMs); },
   force(type) { this.forced = type; },
   weightsFor() {
-    const w = { golden: 3, giant: 2, bomb: 2, unstable: 2, rainbow: 1.2 };
+    const w = { golden: 3, giant: 2, bomb: 2, unstable: 2, rainbow: 1.2, star: 1.4, ice: 1.4 };
     const rt = Profile.riskTolerance;
-    if (rt < 0.35) { w.golden += 2.5; w.rainbow += 1.5; }  // tempt the early banker (1)
-    if (rt > 0.7) { w.bomb += 1; w.unstable += 1; }        // feed the daredevil
-    if (Profile.goal === 'chaos') { w.bomb += 2; w.unstable += 1.5; }
+    if (rt < 0.35) { w.golden += 2.5; w.rainbow += 1.5; w.star += 1; }  // tempt the early banker (1)
+    if (rt > 0.7) { w.bomb += 1; w.unstable += 1; w.ice += 1; }         // feed the daredevil
+    if (Profile.goal === 'chaos') { w.bomb += 2; w.unstable += 1.5; w.ice += 1; }
     if (save.powers.includes('power_goldrush')) w.golden *= 2;     // GOLD RUSH superpower
     if (save.powers.includes('power_chromarush')) w.rainbow *= 2;  // CHROMA RUSH superpower
+    w.golden += Economy.goldenBias;                               // Candy shape pack
     return w;
   },
   rollType() {
@@ -1340,22 +1408,26 @@ const Surprise = {
     for (const [k, v] of Object.entries(w)) { r -= v; if (r <= 0) return k; }
     return 'golden';
   },
-  // called each settle while a run is live
-  update(runActive) {
+  // periodic, run-level checks (called on settle) — no longer touches pieces
+  tick(runActive) {
     if (!runActive) return;
     SessionArc.checkRetentionSave();
-    const next = Director.next();
-    if (!next || next.special) return;
+  },
+  // Finalize a freshly-rolled tail piece's special (called from Director.advance,
+  // before the piece is ever previewed). Mutates `def` in place.
+  decorate(def) {
+    if (!def || def.special) return;
     let type = null;
     if (this.forced) { type = this.forced; this.forced = null; }
     else if (now() >= this.nextAt) type = this.rollType();
     else if (this.maybeTempt()) type = 'golden';
     if (!type) return;
-    next.special = type;
-    if (type === 'golden' || type === 'giant') {
+    def.special = type;
+    const meta = SPECIALS[type];
+    if (meta && meta.targetsFusable) {
       // specials that reward fusing should actually be fusable with the stack
       const onStack = [...new Set(Director.stackTiers().filter((t) => t <= 5))];
-      if (onStack.length) next.tier = pick(onStack);
+      if (onStack.length) def.tier = pick(onStack);
     }
     this.schedule();
     FeedbackBus.emit('surprise', { type });
@@ -1460,6 +1532,17 @@ const Economy = {
     if (save.powers.includes('power_steadyaim')) f += 0.15;
     return f;
   },
+  // --- dock powers ---
+  get dockSlowFall() { return this.dock.slowFall || 0; },
+  get greedRate() { return 1 + (this.dock.greedRate || 0); },
+  get salvageMult() { return this.dock.salvageMult || 1; },
+  get dockWalls() { return !!this.dock.walls; },
+  get comboWindowMs() { return CONFIG.chainWindowMs + (this.dock.comboBonusMs || 0); },
+  // --- shape-pack perks ---
+  get pack() { return THEMES[save.equipped.theme] || THEMES.default; },
+  get coinMult() { return (this.pack.bonus && this.pack.bonus.coinMult) || 1; },
+  get greedStart() { return (this.pack.bonus && this.pack.bonus.greedStart) || 1; },
+  get goldenBias() { return (this.pack.bonus && this.pack.bonus.goldenBias) || 0; },
   checkMilestones() {
     const newly = [];
     for (const m of MILESTONES) {
@@ -1613,6 +1696,7 @@ engine.gravity.y = 1;
 
 const Stack = {
   platform: null,
+  walls: null,
   fusionQueue: [],
   stabilitySamples: [],
   lastStabilitySample: 0,
@@ -1620,6 +1704,7 @@ const Stack = {
 
   buildPlatform() {
     if (this.platform) Composite.remove(engine.world, this.platform);
+    if (this.walls) { this.walls.forEach((wl) => Composite.remove(engine.world, wl)); this.walls = null; }
     const dock = Economy.dock;
     const w = WORLD.platformW * Economy.dockLengthMult;
     this.platform = Bodies.rectangle(WORLD.width / 2, WORLD.platformY + WORLD.platformH / 2, w, WORLD.platformH, {
@@ -1627,6 +1712,19 @@ const Stack = {
     });
     this.platform.plugin = { platform: true, halfW: w / 2 };
     Composite.add(engine.world, this.platform);
+    // Bumper Deck power: raised static walls at the dock edges that physically
+    // catch throws that would otherwise slide off.
+    if (Economy.dockWalls) {
+      const wallH = 96, wallT = 12, cx = WORLD.width / 2;
+      this.wallH = wallH;
+      const mk = (px) => {
+        const wl = Bodies.rectangle(px, WORLD.platformY - wallH / 2 + 6, wallT, wallH, { isStatic: true, friction: 0.4, restitution: 0.1 });
+        wl.plugin = { wall: true };
+        return wl;
+      };
+      this.walls = [mk(cx - w / 2 - wallT / 2 + 2), mk(cx + w / 2 + wallT / 2 - 2)];
+      this.walls.forEach((wl) => Composite.add(engine.world, wl));
+    }
   },
   pieces() {
     return Composite.allBodies(engine.world).filter((b) => b.plugin && b.plugin.piece);
@@ -1638,16 +1736,24 @@ const Stack = {
     this.snapshot = null;
   },
   makeBody(x, y, def) {
-    const rScale = (def.rScale || 1) * (def.special === 'giant' ? 1.55 : 1);
+    const meta = SPECIALS[def.special] || {};
+    const rScale = (def.rScale || 1) * (meta.sizeMult || 1);
     const r = TIERS.radii[def.tier] * rScale;
     const grip = Economy.dock.grip || 0;
-    const friction = (def.special === 'unstable' ? 0.45 : (def.friction ?? 0.85)) + grip * 0.3;
-    const common = { friction, frictionStatic: 1 + grip, restitution: def.restitution ?? 0.04, slop: 0.02 };
+    const baseFriction = meta.friction != null ? meta.friction : (def.friction ?? 0.85);
+    const friction = baseFriction + grip * 0.3;
+    const common = {
+      friction, frictionStatic: 1 + grip,
+      restitution: meta.restitution != null ? meta.restitution : (def.restitution ?? 0.04),
+      slop: 0.02,
+      frictionAir: Economy.dockSlowFall || 0,   // Liquid Glass dock → slow-fall
+    };
     let body;
     if (def.kind === 'plank') body = Bodies.rectangle(x, y, r * 2.7, r * 0.95, { ...common, chamfer: { radius: r * 0.18 } });
-    else if (def.special === 'bomb') body = Bodies.polygon(x, y, 8, r, { ...common, chamfer: { radius: r * 0.3 } });
+    else if (def.special === 'bomb') body = Bodies.polygon(x, y, 12, r * 0.94, { ...common, chamfer: { radius: r * 0.45 } }); // near-round bomb
+    else if (def.special === 'star') body = Bodies.polygon(x, y, 5, r, { ...common, chamfer: { radius: r * 0.12 } });
     else body = Bodies.polygon(x, y, TIERS.sides[def.tier], r, { ...common, chamfer: { radius: r * 0.2 } });
-    Body.setAngle(body, rand(-0.25, 0.25));
+    Body.setAngle(body, def.special === 'star' ? 0 : rand(-0.25, 0.25));
     body.plugin = {
       piece: true, tier: def.tier, kind: def.kind || 'poly', rScale: def.rScale || 1, r,
       special: def.special || null, giftNote: !!def.giftNote,
@@ -1661,18 +1767,17 @@ const Stack = {
     return body;
   },
   canFuse(a, b) {
-    if (a.plugin.special === 'bomb' || b.plugin.special === 'bomb') return false;
     if (a.plugin.consumed || b.plugin.consumed) return false;
-    if (a.plugin.special === 'rainbow' || b.plugin.special === 'rainbow') return true; // wildcard
+    const sa = SPECIALS[a.plugin.special], sb = SPECIALS[b.plugin.special];
+    if ((sa && sa.noFuse) || (sb && sb.noFuse)) return false;   // bomb never fuses
+    if ((sa && sa.wild) || (sb && sb.wild)) return true;        // rainbow = wildcard
     return a.plugin.tier === b.plugin.tier && a.plugin.tier < TIERS.count;
   },
   specialMult(a, b) {
     let m = 1;
     for (const p of [a.plugin, b.plugin]) {
-      if (p.special === 'golden') m *= 3;
-      else if (p.special === 'giant') m *= 3;
-      else if (p.special === 'rainbow') m *= 2;
-      else if (p.special === 'unstable') m *= 2;
+      const s = SPECIALS[p.special];
+      if (s && s.coinMult) m *= s.coinMult;
     }
     return Math.min(m, 6);
   },
@@ -1685,7 +1790,7 @@ const Stack = {
       if (!a.plugin || !b.plugin || !this.canFuse(a, b)) continue;
       const newTier = Math.min(Math.max(a.plugin.tier, b.plugin.tier) + 1, TIERS.count);
       const mult = this.specialMult(a, b);
-      const hadSpecial = a.plugin.special || b.plugin.special;
+      const specials = [a.plugin.special, b.plugin.special].filter(Boolean);
       consumed.add(a.id); consumed.add(b.id);
       a.plugin.consumed = b.plugin.consumed = true;
       const mx = (a.position.x + b.position.x) / 2;
@@ -1695,7 +1800,7 @@ const Stack = {
       const merged = this.spawnPiece({ tier: newTier, kind: 'poly', rScale: 1 }, clamp(mx, 40, WORLD.width - 40), my);
       merged.plugin.fusedAt = now();
       Body.setVelocity(merged, { x: 0, y: -0.6 });
-      Game.onFusion(merged, mult, hadSpecial);
+      Game.onFusion(merged, mult, specials);
     }
   },
   explode(bomb) {
@@ -1832,7 +1937,7 @@ const Game = {
     Stack.buildPlatform();
     Stack.clearPieces();
     Director.refill(save.runsTotal === 0 ? CONFIG.onboarding.seededQueue.slice() : null);
-    Greed.reset();
+    Greed.reset(Economy.greedStart); // Oceanic/Prism packs start greed higher
     Surprise.schedule();
     this.runCoins = 0; this.displayCoins = 0;
     this.droppedCount = 0; this.fusionsThisRun = 0; this.maxTierThisRun = 1; this.peakPieces = 0;
@@ -1842,6 +1947,7 @@ const Game = {
     document.body.classList.remove('chase');
     this.aimX = WORLD.width / 2;
     this.spawnY = WORLD.platformY - WORLD.spawnClearance;
+    Camera.reset();
     PSV.runsThisSession++;
     PSV.samplePace();
     Streak.onRunStart();
@@ -1924,24 +2030,26 @@ const Game = {
     FeedbackBus.emit('land', { impact, x: body.position.x, y: body.position.y });
   },
 
-  onFusion(merged, specialMult, hadSpecial) {
+  onFusion(merged, specialMult, specials) {
     const tier = merged.plugin.tier;
     const t = now();
     if (t - this.comboLastT > 4000) this.comboIdx = -1;
     this.comboIdx++;
     this.comboLastT = t;
-    // chain detection — fusions cascading inside the window
-    if (t - this.lastFusionT < CONFIG.chainWindowMs && this.lastFusionT) this.chainCount++;
+    // chain detection — fusions cascading inside the window (Aurora dock widens it)
+    if (t - this.lastFusionT < Economy.comboWindowMs && this.lastFusionT) this.chainCount++;
     else this.chainCount = 1;
 
-    const coins = Math.round(TIERS.values[tier] * Greed.value * specialMult);
+    const coins = Math.round(TIERS.values[tier] * Greed.value * specialMult * Economy.coinMult);
     this.runCoins += coins;
     this.fusionsThisRun++;
     this.maxTierThisRun = Math.max(this.maxTierThisRun, tier);
     Greed.onFusion(tier);
+    // LUCKY STAR fuse → a burst of greed on top of the coin bonus.
+    if (specials && specials.includes('star')) { Greed.bonus(SPECIALS.star.greedBonus); UI.react('LUCKY!', '#ffd700'); }
     if (this.lastFusionT) PSV.sampleFusionRate(clamp(60000 / Math.max(t - this.lastFusionT, 1500), 0, 40));
     this.lastFusionT = t;
-    if (hadSpecial) Profile.onChaos();
+    if (specials && specials.length) Profile.onChaos();
     if (this.chainCount >= 2) Profile.onChain(1); else Profile.onSoloFusion();
 
     FeedbackBus.emit('fusion', { tier, x: merged.position.x, y: merged.position.y, combo: this.comboIdx, points: coins, specialMult });
@@ -2082,7 +2190,7 @@ const Game = {
     if (stab > CONFIG.snapshotMinStability) Stack.takeSnapshot();
     const daring = Greed.onSurvivedDrop(stab); // greed climbs because YOU survived
     UI.popGreed(daring);
-    Surprise.update(this.runActive());
+    Surprise.tick(this.runActive()); // periodic checks only; specials are decorated at roll time
     UI.renderNextPreview();
     this.set('DECISION');
     this.decisionStartT = now();
@@ -2146,7 +2254,7 @@ const Game = {
   finishCollapse(lostCoins) {
     if (this.state !== 'COLLAPSING') return;
     this.set('RESULTS');
-    const salvage = Math.max(1, Math.round(this.peakPieces * CONFIG.economy.consolationPerPiece + this.maxTierThisRun * CONFIG.economy.consolationPerTier));
+    const salvage = Math.max(1, Math.round((this.peakPieces * CONFIG.economy.consolationPerPiece + this.maxTierThisRun * CONFIG.economy.consolationPerTier) * Economy.salvageMult));
     this.lostCoins = lostCoins;
     this.endRun('collapse', salvage);
     Economy.addToVault(salvage);
@@ -2251,46 +2359,57 @@ const canvas = $('game');
 const ctx = canvas.getContext('2d');
 let cw = 0, ch = 0, dpr = 1;
 
-/* No per-drop zoom punch — the camera breathes slowly; near-miss push-in
-   is the only deliberate zoom move. */
+/* The camera holds a STABLE frame during normal play. The old version tracked
+   Game.spawnY, which jumps up by a fixed clearance on every drop — that was the
+   per-drop "camera jump". Now we frame a fixed generous region above the dock
+   and only pan up (slowly, with a big deadzone) once the tower genuinely climbs
+   into the top margin. The one deliberate zoom move is pushIn() — used for the
+   GIANT-block drop and the near-miss push. */
 const Camera = {
   x: WORLD.width / 2, y: 560, zoom: 1,
-  pushScale: 1, pushUntil: 0,
+  pushScale: 1, pushUntil: 0, frameTop: null,
   pushIn(scale, ms) { this.pushScale = scale; this.pushUntil = now() + ms; },
+  reset() { this.frameTop = null; },
   update(dt) {
-    const viewTop = Game.spawnY - 100;
     const viewBottom = WORLD.platformY + 70;
-    const neededH = viewBottom - viewTop;
+    const baseTop = WORLD.platformY - 480;                 // fixed default frame
+    const climbTop = Math.min(Game.spawnY - 60, baseTop);  // only rises when the tower is tall
+    if (this.frameTop == null) this.frameTop = climbTop;
+    // Deadzone + slow ease: ordinary drops never nudge the frame; a genuinely
+    // taller tower eases the view up; a shrunk stack eases back down gently.
+    if (climbTop < this.frameTop - 4) this.frameTop = lerp(this.frameTop, climbTop, Math.min(dt * 1.4, 1));
+    else if (climbTop > this.frameTop + 150) this.frameTop = lerp(this.frameTop, climbTop, Math.min(dt * 0.6, 1));
+    const neededH = viewBottom - this.frameTop;
     let targetZoom = Math.min(cw / (WORLD.width + 20), ch / neededH);
     targetZoom = clamp(targetZoom, 0.35, 1.8);
     if (now() < this.pushUntil) targetZoom *= this.pushScale;
-    const targetY = (viewTop + viewBottom) / 2;
-    this.zoom = lerp(this.zoom, targetZoom, Math.min(dt * 2.2, 1));
-    this.y = lerp(this.y, targetY, Math.min(dt * 2.8, 1));
+    const targetY = (this.frameTop + viewBottom) / 2;
+    this.zoom = lerp(this.zoom, targetZoom, Math.min(dt * 1.6, 1));
+    this.y = lerp(this.y, targetY, Math.min(dt * 1.6, 1));
   },
   screenToWorldX(sx) { return (sx - cw / 2) / this.zoom + this.x; },
 };
 FeedbackBus.on('fusion', (p) => {
-  const colors = THEMES[save.equipped.theme] || THEMES.default;
+  const colors = themePalette();
   Particles.burst(p.x, p.y, colors[p.tier], 12 + p.tier * 6, 130 + p.tier * 34);
   spawnPopup(p.x, p.y - 30, `+◆${fmt(p.points)}`, colors[p.tier], p.tier >= 4);
   if (p.tier >= 6) flashScreen();
 });
 FeedbackBus.on('drop', (p) => {
-  Particles.burst(p.x, p.y, 'rgba(200,190,255,0.7)', 4, 40, 0.4, false);
+  Particles.burst(p.x, p.y, 'rgba(190,255,220,0.7)', 4, 40, 0.4, false);
 });
 FeedbackBus.on('bank', (p) => {
   // Banking is a reward, not a danger/huge-merge moment — gold rain and
   // confetti sell it; no camera shake needed here anymore.
-  const colors = THEMES[save.equipped.theme] || THEMES.default;
-  Particles.confetti(p.x, p.y, colors.slice(1));
+  Particles.confetti(p.x, p.y, themePalette().slice(1));
   Particles.goldRain(p.x, p.y);
 });
 FeedbackBus.on('collapse', (p) => {
   Particles.burst(p.x, p.y, 'rgba(255,77,109,0.85)', 30, 220, 1.1);
 });
 FeedbackBus.on('surprise', (p) => {
-  UI.toast({ golden: '✨ GOLDEN BLOCK INCOMING', giant: '🗿 GIANT INCOMING', bomb: '💣 BOMB INCOMING', unstable: '⚡ UNSTABLE BLOCK INCOMING', rainbow: '🌈 RAINBOW BLOCK INCOMING' }[p.type] || 'SOMETHING INCOMING');
+  const meta = SPECIALS[p.type];
+  UI.toast(meta ? `${meta.emoji} ${meta.label} INCOMING` : 'SOMETHING INCOMING');
 });
 
 function resize() {
@@ -2304,9 +2423,8 @@ function resize() {
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', resize);
 
-function themeColor(tier) {
-  return (THEMES[save.equipped.theme] || THEMES.default)[tier] || '#fff';
-}
+function themePalette() { return (THEMES[save.equipped.theme] || THEMES.default).colors; }
+function themeColor(tier) { return themePalette()[tier] || '#fff'; }
 function lighten(hex, amt) {
   const n = parseInt(hex.slice(1), 16);
   const r = Math.min(255, (n >> 16) + 255 * amt), g = Math.min(255, ((n >> 8) & 255) + 255 * amt), b2 = Math.min(255, (n & 255) + 255 * amt);
@@ -2322,66 +2440,220 @@ function seedBgShapes() {
   }
 }
 
-function drawBody(b, glowStrength, t) {
-  const verts = b.vertices;
-  const sp = b.plugin.special;
-  let color = themeColor(b.plugin.tier);
-  if (sp === 'golden') color = '#ffd700';
-  if (sp === 'bomb') color = '#3a3247';
+function starPath(cx, cy, rOuter, rInner, pts, rot) {
   ctx.beginPath();
-  ctx.moveTo(verts[0].x, verts[0].y);
-  for (let i = 1; i < verts.length; i++) ctx.lineTo(verts[i].x, verts[i].y);
-  ctx.closePath();
-  const g = ctx.createRadialGradient(
-    b.position.x - b.plugin.r * 0.3, b.position.y - b.plugin.r * 0.4, b.plugin.r * 0.1,
-    b.position.x, b.position.y, b.plugin.r * 1.5);
-  g.addColorStop(0, sp === 'bomb' ? '#554a6e' : lighten(color, 0.35));
-  g.addColorStop(1, color);
-  ctx.fillStyle = g;
-  if (perf.tier !== 'low') {
-    ctx.shadowColor = sp === 'golden' ? '#ffd700' : color;
-    ctx.shadowBlur = sp === 'golden' ? glowStrength + 14 : glowStrength;
+  for (let i = 0; i < pts * 2; i++) {
+    const rr = i % 2 === 0 ? rOuter : rInner;
+    const a = rot - Math.PI / 2 + (i * Math.PI) / pts;
+    const px = cx + Math.cos(a) * rr, py = cy + Math.sin(a) * rr;
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
   }
-  if (sp === 'unstable') ctx.globalAlpha = 0.75 + 0.25 * Math.sin(t * 0.02);
+  ctx.closePath();
+}
+
+function drawBomb(b, t) {
+  const x = b.position.x, y = b.position.y, r = b.plugin.r;
+  const pulse = 0.5 + 0.5 * Math.sin(t * 0.012);
+  // red danger halo
+  if (perf.tier !== 'low') { ctx.shadowColor = '#ff2a44'; ctx.shadowBlur = 14 + pulse * 16; }
+  // dark metal sphere
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+  const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r * 1.15);
+  g.addColorStop(0, '#4a4a55'); g.addColorStop(0.5, '#23232c'); g.addColorStop(1, '#0c0c11');
+  ctx.fillStyle = g; ctx.fill();
+  ctx.shadowBlur = 0;
+  // rim
+  ctx.lineWidth = 2.5; ctx.strokeStyle = `rgba(255,60,80,${0.5 + pulse * 0.5})`; ctx.stroke();
+  // glossy highlight
+  ctx.beginPath(); ctx.arc(x - r * 0.32, y - r * 0.34, r * 0.22, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fill();
+  // fuse cap + fuse + spark
+  const capX = x + r * 0.34, capY = y - r * 0.86;
+  ctx.fillStyle = '#6b6b12'; ctx.fillRect(capX - r * 0.16, capY, r * 0.32, r * 0.34);
+  ctx.strokeStyle = '#d8c37a'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(capX, capY); ctx.quadraticCurveTo(capX + r * 0.5, capY - r * 0.5, capX + r * 0.25, capY - r * 0.8); ctx.stroke();
+  const sparkR = (2 + pulse * 3);
+  if (perf.tier !== 'low') { ctx.shadowColor = '#ffcf5c'; ctx.shadowBlur = 12; }
+  ctx.beginPath(); ctx.arc(capX + r * 0.25, capY - r * 0.8, sparkR, 0, Math.PI * 2);
+  ctx.fillStyle = pulse > 0.5 ? '#fff3b0' : '#ff8a3c'; ctx.fill();
+  ctx.shadowBlur = 0;
+  if (Math.random() < 0.4 && perf.tier !== 'low') {
+    Particles.spawn({ x: capX + r * 0.25, y: capY - r * 0.8, vx: rand(-20, 20), vy: rand(-50, -20), life: 0.4, maxLife: 0.4, size: rand(1, 2.5), color: pick(['#ffd166', '#ff8a3c', '#fff3b0']), glow: true });
+  }
+  // countdown ring
+  if (b.plugin.armedAt) {
+    const k = clamp((now() - b.plugin.armedAt) / CONFIG.bombFuseMs, 0, 1);
+    ctx.beginPath();
+    ctx.arc(x, y, r + 9, -Math.PI / 2, -Math.PI / 2 + k * Math.PI * 2);
+    ctx.strokeStyle = '#ff4d6d'; ctx.lineWidth = 4; ctx.stroke();
+  }
+}
+
+function drawBody(b, glowStrength, t) {
+  const sp = b.plugin.special;
+  const r = b.plugin.r;
+  if (sp === 'bomb') { drawBomb(b, t); return; }
+
+  let color = themeColor(b.plugin.tier);
+  if (sp === 'golden' || sp === 'star') color = '#ffd93a';
+  if (sp === 'ice') color = '#bfeaff';
+
+  // ---- shape path: star gets a real star, everything else uses its polygon body ----
+  const isStar = sp === 'star';
+  if (isStar) {
+    starPath(b.position.x, b.position.y, r * 1.12, r * 0.5, 5, b.angle);
+  } else {
+    const verts = b.vertices;
+    ctx.beginPath();
+    ctx.moveTo(verts[0].x, verts[0].y);
+    for (let i = 1; i < verts.length; i++) ctx.lineTo(verts[i].x, verts[i].y);
+    ctx.closePath();
+  }
+
+  if (sp === 'rainbow') {
+    // full animated rainbow fill — unmistakable
+    const rg = ctx.createLinearGradient(b.position.x - r, b.position.y - r, b.position.x + r, b.position.y + r);
+    const off = (t * 0.03) % 360;
+    for (let i = 0; i <= 6; i++) rg.addColorStop(i / 6, `hsl(${(off + i * 60) % 360} 95% 62%)`);
+    ctx.fillStyle = rg;
+  } else {
+    const g = ctx.createRadialGradient(
+      b.position.x - r * 0.3, b.position.y - r * 0.4, r * 0.1,
+      b.position.x, b.position.y, r * 1.5);
+    g.addColorStop(0, lighten(color, sp === 'ice' ? 0.5 : 0.35));
+    g.addColorStop(1, color);
+    ctx.fillStyle = g;
+  }
+  if (perf.tier !== 'low') {
+    ctx.shadowColor = (sp === 'golden' || sp === 'star') ? '#ffd700' : sp === 'rainbow' ? '#ff5ad0' : color;
+    ctx.shadowBlur = (sp === 'golden' || sp === 'star') ? glowStrength + 16 : glowStrength;
+  }
+  if (sp === 'unstable') ctx.globalAlpha = 0.7 + 0.3 * Math.sin(t * 0.02);
   ctx.fill();
   ctx.globalAlpha = 1;
   ctx.shadowBlur = 0;
   ctx.lineJoin = 'round';
   ctx.lineWidth = 2;
-  if (sp === 'rainbow') {
-    ctx.strokeStyle = `hsl(${(t * 0.25) % 360} 90% 65%)`;
-    ctx.lineWidth = 3.5;
-  } else if (sp === 'bomb') {
-    ctx.strokeStyle = '#ff4d6d';
-    ctx.lineWidth = 2.5;
-  } else {
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-  }
+  if (sp === 'rainbow') { ctx.strokeStyle = `hsl(${(t * 0.28) % 360} 95% 62%)`; ctx.lineWidth = 4; }
+  else if (sp === 'unstable') { ctx.strokeStyle = `rgba(255,235,120,${0.6 + 0.4 * Math.sin(t * 0.03)})`; ctx.lineWidth = 3; }
+  else if (sp === 'ice') { ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 2.5; }
+  else if (sp === 'star') { ctx.strokeStyle = '#fff3b0'; ctx.lineWidth = 2.5; }
+  else ctx.strokeStyle = 'rgba(255,255,255,0.35)';
   ctx.stroke();
-  // bomb fuse countdown ring
-  if (sp === 'bomb' && b.plugin.armedAt) {
-    const k = clamp((now() - b.plugin.armedAt) / CONFIG.bombFuseMs, 0, 1);
-    ctx.beginPath();
-    ctx.arc(b.position.x, b.position.y, b.plugin.r + 8, -Math.PI / 2, -Math.PI / 2 + k * Math.PI * 2);
-    ctx.strokeStyle = '#ff4d6d';
-    ctx.lineWidth = 3;
-    ctx.stroke();
+
+  // ---- per-special overlays ----
+  if (sp === 'ice') { // crystalline facets + frost
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1;
+    for (let i = 0; i < 3; i++) {
+      const a = b.angle + i * 2.1;
+      ctx.beginPath();
+      ctx.moveTo(b.position.x, b.position.y);
+      ctx.lineTo(b.position.x + Math.cos(a) * r * 0.9, b.position.y + Math.sin(a) * r * 0.9);
+      ctx.stroke();
+    }
   }
+  if (sp === 'star') { // twinkle
+    ctx.beginPath(); ctx.arc(b.position.x - r * 0.25, b.position.y - r * 0.28, r * 0.14, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill();
+  }
+  if (sp === 'unstable' && perf.tier !== 'low' && Math.random() < 0.3) { // electric crackle
+    Particles.spawn({ x: b.position.x + rand(-r, r), y: b.position.y + rand(-r, r), vx: rand(-30, 30), vy: rand(-30, 30), life: 0.22, maxLife: 0.22, size: rand(1, 2), color: '#fff28a', glow: true });
+  }
+
   // fusion birth ring
   const age = now() - (b.plugin.fusedAt || 0);
   if (b.plugin.fusedAt && age < 420) {
     const k = age / 420;
     ctx.beginPath();
-    ctx.arc(b.position.x, b.position.y, b.plugin.r * (1 + k * 1.6), 0, Math.PI * 2);
+    ctx.arc(b.position.x, b.position.y, r * (1 + k * 1.6), 0, Math.PI * 2);
     ctx.strokeStyle = color;
     ctx.globalAlpha = (1 - k) * 0.8;
     ctx.lineWidth = 3 * (1 - k) + 1;
     ctx.stroke();
     ctx.globalAlpha = 1;
   }
-  // golden sparkle
-  if (sp === 'golden' && Math.random() < 0.12 && perf.tier !== 'low') {
-    Particles.spawn({ x: b.position.x + rand(-b.plugin.r, b.plugin.r), y: b.position.y + rand(-b.plugin.r, b.plugin.r), vx: rand(-16, 16), vy: rand(-40, -12), life: 0.5, maxLife: 0.5, size: rand(1.5, 3), color: '#fff3b0', glow: true });
+  // golden / star sparkle
+  if ((sp === 'golden' || sp === 'star') && Math.random() < 0.14 && perf.tier !== 'low') {
+    Particles.spawn({ x: b.position.x + rand(-r, r), y: b.position.y + rand(-r, r), vx: rand(-16, 16), vy: rand(-40, -12), life: 0.5, maxLife: 0.5, size: rand(1.5, 3), color: '#fff3b0', glow: true });
+  }
+}
+
+/* Per-dock canvas render — each style looks wildly different. */
+function drawDock(hw) {
+  const skin = Economy.dock, t = now();
+  const x0 = WORLD.width / 2 - hw, w = hw * 2, y0 = WORLD.platformY, h = WORLD.platformH + 26;
+  ctx.save();
+  if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 26; }
+  // body
+  const bg = ctx.createLinearGradient(0, y0, 0, y0 + h);
+  bg.addColorStop(0, skin.c1); bg.addColorStop(1, skin.c2);
+  ctx.fillStyle = bg;
+  roundRect(x0, y0, w, h, 8); ctx.fill();
+  ctx.shadowBlur = 0;
+  // style-specific surface treatment
+  ctx.save(); roundRect(x0, y0, w, h, 8); ctx.clip();
+  switch (skin.style) {
+    case 'frost': {
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      for (let i = 0; i < 30; i++) ctx.fillRect(x0 + rand(0, w), y0 + rand(0, h), rand(1, 3), rand(1, 3));
+      break;
+    }
+    case 'glass': { // liquid glass — a bright sheen sweeping across
+      const sweep = (Math.sin(t * 0.0012) * 0.5 + 0.5) * w;
+      const gl = ctx.createLinearGradient(x0 + sweep - 60, 0, x0 + sweep + 60, 0);
+      gl.addColorStop(0, 'rgba(255,255,255,0)'); gl.addColorStop(0.5, 'rgba(255,255,255,0.55)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = gl; ctx.fillRect(x0, y0, w, h);
+      break;
+    }
+    case 'lava': { // molten cracks glowing
+      ctx.strokeStyle = `rgba(255,${90 + 60 * Math.sin(t * 0.005)},20,0.9)`; ctx.lineWidth = 2;
+      if (perf.tier !== 'low') { ctx.shadowColor = '#ff5a14'; ctx.shadowBlur = 10; }
+      for (let i = 0; i < 4; i++) {
+        const cx = x0 + (i + 0.5) * w / 4;
+        ctx.beginPath(); ctx.moveTo(cx, y0); ctx.lineTo(cx + rand(-8, 8), y0 + h); ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+      if (Math.random() < 0.3 && perf.tier !== 'low') Particles.spawn({ x: x0 + rand(0, w), y: y0, vx: rand(-8, 8), vy: rand(-30, -10), life: 0.6, maxLife: 0.6, size: rand(1, 2.5), color: pick(['#ff5a14', '#ffb020']), glow: true });
+      break;
+    }
+    case 'circuit': { // scrolling light line
+      const scroll = (t * 0.06) % w;
+      ctx.strokeStyle = 'rgba(46,230,150,0.7)'; ctx.lineWidth = 1;
+      for (let gx = -w; gx < w; gx += 22) { ctx.beginPath(); ctx.moveTo(x0 + ((gx + scroll) % w + w) % w, y0); ctx.lineTo(x0 + ((gx + scroll) % w + w) % w, y0 + h); ctx.stroke(); }
+      break;
+    }
+    case 'aurora': { // shifting hue band
+      const ag = ctx.createLinearGradient(x0, 0, x0 + w, 0);
+      ag.addColorStop(0, `hsla(${(t * 0.05) % 360},80%,60%,0.5)`);
+      ag.addColorStop(0.5, `hsla(${(t * 0.05 + 90) % 360},80%,60%,0.5)`);
+      ag.addColorStop(1, `hsla(${(t * 0.05 + 180) % 360},80%,60%,0.5)`);
+      ctx.fillStyle = ag; ctx.fillRect(x0, y0, w, h);
+      break;
+    }
+    case 'vortex': { // swirling glow
+      const vg = ctx.createRadialGradient(WORLD.width / 2, y0 + h / 2, 4, WORLD.width / 2, y0 + h / 2, hw);
+      vg.addColorStop(0, `hsla(${(t * 0.1) % 360},90%,70%,0.6)`); vg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = vg; ctx.fillRect(x0, y0, w, h);
+      break;
+    }
+  }
+  ctx.restore();
+  // top surface
+  ctx.fillStyle = skin.style === 'glass' || skin.style === 'frost' ? 'rgba(255,255,255,0.9)' : lighten(skin.c1, 0.25);
+  roundRect(x0, y0, w, 6, 3); ctx.fill();
+  ctx.restore();
+  // bumper walls
+  if (Stack.walls) {
+    const wallH = Stack.wallH || 96;
+    for (const wl of Stack.walls) {
+      const wx = wl.position.x;
+      ctx.fillStyle = lighten(skin.c1, 0.1);
+      if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 14; }
+      roundRect(wx - 6, WORLD.platformY - wallH + 6, 12, wallH, 4); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      roundRect(wx - 6, WORLD.platformY - wallH + 6, 12, 5, 3); ctx.fill();
+    }
   }
 }
 
@@ -2395,17 +2667,17 @@ function render(t) {
     (cw * dpr) / 2 - Camera.x * Camera.zoom * dpr + sh.x * dpr,
     (ch * dpr) / 2 - Camera.y * Camera.zoom * dpr + sh.y * dpr);
 
-  // world backdrop: violet depth + a warm horizon where the dock lives
+  // world backdrop: deep emerald depth + a green horizon glow at the dock
   const viewH = ch / Camera.zoom;
   const topY = Camera.y - viewH, botY = WORLD.platformY + 200;
   const bgGrad = ctx.createLinearGradient(0, topY, 0, botY);
-  bgGrad.addColorStop(0, '#0d0920');
-  bgGrad.addColorStop(0.7, '#171034');
-  bgGrad.addColorStop(1, '#241543');
+  bgGrad.addColorStop(0, '#05130d');
+  bgGrad.addColorStop(0.7, '#0b2c1f');
+  bgGrad.addColorStop(1, '#12402d');
   ctx.fillStyle = bgGrad;
   ctx.fillRect(-500, topY, WORLD.width + 1000, botY - topY + 100);
   const horizon = ctx.createRadialGradient(WORLD.width / 2, WORLD.platformY + 60, 40, WORLD.width / 2, WORLD.platformY + 60, 560);
-  horizon.addColorStop(0, document.body.classList.contains('chase') ? 'rgba(255,190,60,0.22)' : 'rgba(155,123,255,0.16)');
+  horizon.addColorStop(0, document.body.classList.contains('chase') ? 'rgba(255,200,70,0.24)' : 'rgba(60,220,150,0.16)');
   horizon.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = horizon;
   ctx.fillRect(-500, WORLD.platformY - 500, WORLD.width + 1000, 1100);
@@ -2415,7 +2687,7 @@ function render(t) {
   for (const s of bgShapes) {
     const y = s.y + par * s.depth;
     ctx.globalAlpha = s.alpha;
-    ctx.strokeStyle = '#b296ff';
+    ctx.strokeStyle = '#5fe0a8';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     for (let i = 0; i <= s.sides; i++) {
@@ -2431,26 +2703,15 @@ function render(t) {
   for (const d of ambientDots) {
     const y = ((d.y - t * 0.001 * d.spd + par) % (WORLD.platformY + 200) + WORLD.platformY + 200) % (WORLD.platformY + 200) - 100;
     ctx.globalAlpha = 0.16 + 0.12 * Math.sin(t * 0.001 + d.phase);
-    ctx.fillStyle = document.body.classList.contains('chase') ? '#ffd166' : '#9b7bff';
+    ctx.fillStyle = document.body.classList.contains('chase') ? '#ffd166' : '#45e0a0';
     ctx.beginPath();
     ctx.arc(d.x, y, d.r, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.globalAlpha = 1;
 
-  // dock
-  if (Stack.platform) {
-    const skin = Economy.dock;
-    const hw = Stack.platform.plugin.halfW;
-    if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 24; }
-    ctx.fillStyle = skin.body;
-    roundRect(WORLD.width / 2 - hw, WORLD.platformY, hw * 2, WORLD.platformH + 26, 7);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = skin.top;
-    roundRect(WORLD.width / 2 - hw, WORLD.platformY, hw * 2, 6, 3);
-    ctx.fill();
-  }
+  // dock (per-style render)
+  if (Stack.platform) drawDock(Stack.platform.plugin.halfW);
 
   // pieces — rim glow rises with greed
   const glow = clamp((Greed.value - 1) * 4, 3, 22);
@@ -2459,10 +2720,10 @@ function render(t) {
   // ghost + aim line
   if ((Game.state === 'DECISION' || Game.state === 'AIMING') && Director.current()) {
     const def = Director.current();
-    const r = TIERS.radii[def.tier] * def.rScale * (def.special === 'giant' ? 1.55 : 1);
+    const r = TIERS.radii[def.tier] * def.rScale * ((SPECIALS[def.special] && SPECIALS[def.special].sizeMult) || 1);
     ctx.globalAlpha = 0.45;
     ctx.setLineDash([6, 8]);
-    ctx.strokeStyle = 'rgba(210,195,255,0.6)';
+    ctx.strokeStyle = 'rgba(150,240,200,0.6)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(Game.aimX, Game.spawnY + r);
@@ -2524,6 +2785,9 @@ function roundRect(x, y, w, h, r) {
   ctx.closePath();
 }
 function drawGhost(def, x, y, r) {
+  const sp = def.special;
+  if (sp === 'bomb') { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = '#23232c'; ctx.fill(); return; }
+  if (sp === 'star') { starPath(x, y, r * 1.12, r * 0.5, 5, 0); ctx.fillStyle = '#ffd93a'; ctx.fill(); return; }
   const sides = def.kind === 'plank' ? 4 : TIERS.sides[def.tier];
   ctx.beginPath();
   if (def.kind === 'plank') {
@@ -2535,7 +2799,7 @@ function drawGhost(def, x, y, r) {
       i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
     }
   }
-  ctx.fillStyle = def.special === 'golden' ? '#ffd700' : themeColor(def.tier);
+  ctx.fillStyle = (sp === 'golden') ? '#ffd93a' : (sp === 'ice') ? '#bfeaff' : themeColor(def.tier);
   ctx.fill();
 }
 
@@ -2615,41 +2879,52 @@ const UI = {
   renderNextPreview() {
     const c = $('next-canvas'), nctx = c.getContext('2d');
     nctx.clearRect(0, 0, 84, 84);
-    const def = Director.next();
+    const def = Director.next();   // queue[1] — finalized at roll time, so this is exactly what drops next
     if (!def) return;
-    const r = clamp(TIERS.radii[def.tier] * def.rScale * 0.55, 10, 34) * (def.special === 'giant' ? 1.3 : 1);
+    const sp = def.special;
+    const r = clamp(TIERS.radii[def.tier] * def.rScale * 0.5, 9, 30) * ((SPECIALS[sp] && SPECIALS[sp].sizeMult) ? 1.25 : 1);
     nctx.save();
     nctx.translate(42, 40);
-    const sides = def.kind === 'plank' ? 4 : def.special === 'bomb' ? 8 : TIERS.sides[def.tier];
-    nctx.beginPath();
-    if (def.kind === 'plank') {
-      nctx.rect(-r * 1.3, -r * 0.45, r * 2.6, r * 0.9);
-    } else {
+    const drawPoly = (sides) => {
+      nctx.beginPath();
       for (let i = 0; i <= sides; i++) {
         const a = (i / sides) * Math.PI * 2 - Math.PI / 2;
         i === 0 ? nctx.moveTo(Math.cos(a) * r, Math.sin(a) * r) : nctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
       }
-    }
-    const sp = def.special;
-    nctx.fillStyle = sp === 'golden' ? '#ffd700' : sp === 'bomb' ? '#3a3247' : themeColor(def.tier);
-    nctx.shadowColor = nctx.fillStyle;
-    nctx.shadowBlur = sp ? 16 : 6;
-    nctx.fill();
-    nctx.shadowBlur = 0;
-    if (sp === 'rainbow') {
-      nctx.strokeStyle = `hsl(${(now() * 0.25) % 360} 90% 65%)`;
-      nctx.lineWidth = 3;
-      nctx.stroke();
-    }
+    };
     if (sp === 'bomb') {
+      nctx.beginPath(); nctx.arc(0, 0, r, 0, Math.PI * 2);
+      nctx.fillStyle = '#23232c'; nctx.shadowColor = '#ff3050'; nctx.shadowBlur = 14; nctx.fill(); nctx.shadowBlur = 0;
       nctx.strokeStyle = '#ff4d6d'; nctx.lineWidth = 2; nctx.stroke();
+      nctx.strokeStyle = '#d8c37a'; nctx.lineWidth = 2; nctx.beginPath(); nctx.moveTo(r * 0.3, -r * 0.85); nctx.lineTo(r * 0.55, -r * 1.15); nctx.stroke();
+      nctx.beginPath(); nctx.arc(r * 0.55, -r * 1.15, 2.4, 0, Math.PI * 2); nctx.fillStyle = '#ffcf5c'; nctx.fill();
+    } else if (sp === 'star') {
+      // draw a 5-point star in the preview
+      nctx.beginPath();
+      for (let i = 0; i < 10; i++) { const rr = i % 2 ? r * 0.45 : r * 1.1; const a = -Math.PI / 2 + i * Math.PI / 5; const px = Math.cos(a) * rr, py = Math.sin(a) * rr; i === 0 ? nctx.moveTo(px, py) : nctx.lineTo(px, py); }
+      nctx.closePath();
+      nctx.fillStyle = '#ffd93a'; nctx.shadowColor = '#ffd700'; nctx.shadowBlur = 16; nctx.fill(); nctx.shadowBlur = 0;
+      nctx.strokeStyle = '#fff3b0'; nctx.lineWidth = 2; nctx.stroke();
+    } else {
+      const sides = def.kind === 'plank' ? 4 : TIERS.sides[def.tier];
+      if (def.kind === 'plank') { nctx.beginPath(); nctx.rect(-r * 1.3, -r * 0.45, r * 2.6, r * 0.9); }
+      else drawPoly(sides);
+      if (sp === 'rainbow') {
+        const rg = nctx.createLinearGradient(-r, -r, r, r);
+        for (let i = 0; i <= 6; i++) rg.addColorStop(i / 6, `hsl(${(now() * 0.03 + i * 60) % 360} 95% 62%)`);
+        nctx.fillStyle = rg; nctx.shadowColor = '#ff5ad0';
+      } else { nctx.fillStyle = sp === 'golden' ? '#ffd93a' : sp === 'ice' ? '#bfeaff' : themeColor(def.tier); nctx.shadowColor = nctx.fillStyle; }
+      nctx.shadowBlur = sp ? 16 : 6; nctx.fill(); nctx.shadowBlur = 0;
+      if (sp === 'rainbow') { nctx.strokeStyle = `hsl(${(now() * 0.25) % 360} 90% 65%)`; nctx.lineWidth = 3; nctx.stroke(); }
+      else if (sp === 'unstable') { nctx.strokeStyle = '#fff28a'; nctx.lineWidth = 2.5; nctx.stroke(); }
+      else if (sp === 'ice') { nctx.strokeStyle = 'rgba(255,255,255,0.8)'; nctx.lineWidth = 2; nctx.stroke(); }
     }
     nctx.restore();
     if (sp) {
       nctx.font = '700 9px Sora, sans-serif';
       nctx.textAlign = 'center';
-      nctx.fillStyle = sp === 'bomb' ? '#ff4d6d' : '#ffd700';
-      nctx.fillText(sp.toUpperCase(), 42, 80);
+      nctx.fillStyle = sp === 'bomb' ? '#ff4d6d' : sp === 'ice' ? '#bfeaff' : '#ffd700';
+      nctx.fillText((SPECIALS[sp] ? SPECIALS[sp].label.replace(' BLOCK', '') : sp.toUpperCase()), 42, 80);
     }
   },
   // Zeigarnik open loop, weighted by this player's detected goal (5)
@@ -2692,6 +2967,7 @@ const UI = {
       openloopEl.style.display = '';
       openloopEl.textContent = this.openLoop('bank', info.coins).headline;
       $('btn-revive').style.display = 'none';
+      $('btn-results-collection').style.display = 'none';
       // Double Coins lives here now — nothing to revive on a clean bank,
       // but the coins you just earned can still be doubled.
       $('btn-double').style.display = info.coins > 0 && !Game.doubledUsed ? '' : 'none';
@@ -2699,7 +2975,7 @@ const UI = {
       if (nu && nu.ratio < 0.45) {
         unlockMsgEl.style.display = '';
         unlockMsgEl.innerHTML = `<b>◆${fmt(nu.need)}</b> more and <b>${nu.item.name}</b> is yours — <button id="unlock-link">open Collection</button>`;
-        $('unlock-link').onclick = (e) => { e.stopPropagation(); UI.pendingConfirmId = null; UI.renderShop(); UI.show('shop'); Profile.onShopOpen(); trackEvent('shop_open', { from: 'results' }); };
+        $('unlock-link').onclick = (e) => { e.stopPropagation(); UI.renderShop(); UI.show('shop'); Profile.onShopOpen(); trackEvent('shop_open', { from: 'results' }); };
       } else { unlockMsgEl.style.display = 'none'; unlockMsgEl.innerHTML = ''; }
     } else {
       // The loss screen, kept deliberately minimal: the huge number lost,
@@ -2715,51 +2991,34 @@ const UI = {
       $('btn-double').style.display = 'none';
       const canRevive = Game.revivesUsedThisRun < Game.maxRevives() && Stack.snapshot;
       $('btn-revive').style.display = canRevive ? '' : 'none';
+      $('btn-results-collection').style.display = ''; // reach the shop straight from death
     }
     this.show('results');
     this.animateCurrency();
     this.syncStats();
   },
-  pendingConfirmId: null,
   renderShop() {
     $('shop-coins').textContent = fmt(save.coins);
     const renderItem = (item) => {
       const owned = Economy.owned(item.id);
       const equipped = owned && save.equipped[item.kind] === item.data;
-      const confirming = !owned && this.pendingConfirmId === item.id;
       const el = document.createElement('button');
-      el.className = 'shop-item' + (owned ? ' owned' : ' locked') + (equipped ? ' equipped' : '') + (confirming ? ' confirming' : '');
+      el.className = 'shop-item' + (owned ? ' owned' : ' locked') + (equipped ? ' equipped' : '');
       const progress = owned ? 1 : item.price ? clamp(save.coins / item.price, 0, 1) : 1;
       el.innerHTML =
         `<div class="swatch" style="${this.swatchStyle(item)}"></div>` +
         `<div class="name">${item.name}</div>` +
-        `<div class="kind">${item.kind}${item.power ? ' · <span class="power">' + item.power + '</span>' : ''}</div>` +
+        `<div class="kind">${item.kind === 'theme' ? 'shape pack' : item.kind}${item.power ? ' · <span class="power">' + item.power + '</span>' : ''}</div>` +
         (owned
           ? `<div class="price">${equipped ? 'EQUIPPED' : 'Tap to equip'}</div>`
-          : confirming
-            ? `<div class="price">Tap again to confirm</div>`
-            : `<div class="price">◆${fmt(item.price)}</div><div class="bar"><div style="width:${(progress * 100).toFixed(0)}%"></div></div>`) +
+          : `<div class="price">◆${fmt(item.price)}</div><div class="bar"><div style="width:${(progress * 100).toFixed(0)}%"></div></div>`) +
         (equipped ? '<span class="tag">●</span>' : '');
-      // Purchases need a deliberate second tap — an accidental first tap
-      // just arms a 3.5s confirm window instead of spending coins.
+      // Unowned → open a confirm dialog (a real pop-up, not an in-box swap).
+      // Owned → equip immediately.
       el.onclick = () => {
         Audio2.ensure(); Audio2.ui();
-        if (!owned) {
-          if (confirming) {
-            clearTimeout(this._confirmTimer);
-            this.pendingConfirmId = null;
-            if (Economy.buy(item.id)) { Economy.equip(item.id); UI.toast(`Unlocked ${item.name}!`); }
-            else UI.toast(`◆${fmt(item.price - save.coins)} more needed`);
-          } else {
-            this.pendingConfirmId = item.id;
-            clearTimeout(this._confirmTimer);
-            this._confirmTimer = setTimeout(() => { this.pendingConfirmId = null; this.renderShop(); }, 3500);
-          }
-        } else {
-          Economy.equip(item.id);
-        }
-        this.renderShop();
-        this.syncStats();
+        if (!owned) this.askBuy(item);
+        else { Economy.equip(item.id); this.renderShop(); this.syncStats(); }
       };
       return el;
     };
@@ -2785,14 +3044,34 @@ const UI = {
   },
   swatchStyle(item) {
     if (item.kind === 'theme') {
-      const t = THEMES[item.data];
-      return `background: linear-gradient(90deg, ${t[1]}, ${t[3]}, ${t[5]}, ${t[8]})`;
+      const c = THEMES[item.data].colors; // full 8-hue spread so the pack's palette reads at a glance
+      return `background: linear-gradient(90deg, ${c[1]}, ${c[2]}, ${c[3]}, ${c[4]}, ${c[5]}, ${c[6]}, ${c[7]}, ${c[8]})`;
     }
     if (item.kind === 'dock') {
       const s = DOCKS[item.data];
-      return `background: linear-gradient(180deg, ${s.top}, ${s.body}); box-shadow: 0 0 12px ${s.glow}`;
+      return `background: linear-gradient(180deg, ${s.c1}, ${s.c2}); box-shadow: inset 0 0 18px ${s.glow}, 0 0 12px ${s.glow}`;
     }
-    return 'background: linear-gradient(135deg, #5a4a9a, #2a1e57)';
+    return 'background: linear-gradient(135deg, #2fae7a, #12402d)';
+  },
+  // Confirm-purchase pop-up (real modal — never an in-box swap).
+  askBuy(item) {
+    const canAfford = save.coins >= item.price;
+    $('confirm-name').textContent = item.name;
+    $('confirm-detail').innerHTML = item.power
+      ? `<span style="color:var(--mint)">${item.power}</span>` : `${item.kind === 'theme' ? 'shape pack' : item.kind}`;
+    $('confirm-price').innerHTML = `Buy for <b>◆${fmt(item.price)}</b>`;
+    const okBtn = $('btn-confirm-ok');
+    okBtn.disabled = !canAfford;
+    okBtn.textContent = canAfford ? 'CONFIRM' : `◆${fmt(item.price - save.coins)} more needed`;
+    okBtn.onclick = (e) => {
+      e.stopPropagation();
+      Audio2.ui();
+      if (Economy.buy(item.id)) { Economy.equip(item.id); UI.toast(`Unlocked ${item.name}!`); }
+      $('confirm-dialog').classList.add('hidden');
+      this.renderShop(); this.syncStats();
+    };
+    $('btn-confirm-cancel').onclick = (e) => { e.stopPropagation(); Audio2.ui(); $('confirm-dialog').classList.add('hidden'); };
+    $('confirm-dialog').classList.remove('hidden');
   },
   renderBoard() {
     const list = $('board-list');
@@ -2900,8 +3179,9 @@ const Input = {
       if (ok) Game.startRun({ headStart: true });
     });
     bind('hud-home', () => Game.toMenu());
-    bind('btn-shop', () => { UI.pendingConfirmId = null; UI.renderShop(); UI.show('shop'); Profile.onShopOpen(); trackEvent('shop_open', { from: 'menu' }); });
-    bind('btn-shop-close', () => { UI.pendingConfirmId = null; Game.state === 'RESULTS' ? UI.show('results') : UI.showMenu(); });
+    bind('btn-shop', () => { UI.renderShop(); UI.show('shop'); Profile.onShopOpen(); trackEvent('shop_open', { from: 'menu' }); });
+    bind('btn-results-collection', () => { UI.renderShop(); UI.show('shop'); Profile.onShopOpen(); trackEvent('shop_open', { from: 'results' }); });
+    bind('btn-shop-close', () => { $('confirm-dialog').classList.add('hidden'); Game.state === 'RESULTS' ? UI.show('results') : UI.showMenu(); });
     bind('btn-settings', () => { UI.syncToggles(); UI.show('settings'); });
     bind('btn-settings-close', () => UI.showMenu());
     bind('btn-board', () => { UI.renderBoard(); UI.show('board'); Profile.onBoardOpen(); });
@@ -2996,7 +3276,8 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, Profile, Economy, save };
+window.__overstack = { Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, Profile, Economy, Camera, save };
+window.__overstackCam = Camera;
 
 })();
 </script>
