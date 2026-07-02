@@ -1,13 +1,15 @@
 # OVERSTACK
 
-A browser-based physics stacking game engineered for session length and return rate.
-Drop irregular shapes onto a wobbling stack, fuse same-tier shapes into bigger ones,
-and decide every drop: **BANK** (lock in coins, end the run safely) or **PUSH**
-(drop again, risk everything since your last bank, chase a bigger multiplier).
+*Stack. Fuse. Get greedy.*
 
-**Play it:** open `index.html` in any browser. That's it — one self-contained file,
-no build step, no install, no login, no network required (an optional Google Font
-loads when online; everything else, including Matter.js, is inlined).
+A browser-based physics stacking game engineered for session length and return rate.
+Drop shapes onto a wobbling tower — same shapes fuse into bigger, more valuable ones.
+Fusions mint **coins**. Every drop is the decision: **BANK** (lock coins into your
+permanent vault) or push on and let **GREED** multiply the next payout. Collapse
+before banking and the run's coins burn — the vault never does.
+
+**Play it:** open `index.html` in any browser. One self-contained file, no build,
+no install, no login, no network required.
 
 ## Controls
 
@@ -19,52 +21,65 @@ loads when online; everything else, including Matter.js, is inlined).
 | `Enter` | Drop again / play |
 | `Esc` | Menu |
 
-## Architecture
+## The economy (one currency, everywhere)
 
-Single file, but internally sectioned to mirror the design brief's `/src` layout:
+- **Coins** — minted by fusions (`tier value × GREED × special bonus`). The big
+  center number during a run.
+- **GREED** — event-driven multiplier. Rises only when you act: surviving a drop
+  (+ extra for risky landings), fusing. Banking resets it. It never climbs on its own.
+- **VAULT** — banked coins. Permanent, spendable in the Collection, shown top-right.
+  Collapsing never touches it.
+- **Lifetime banked** — never decreases; unlocks **superpowers** at milestones
+  (Head Start, Gold Rush, Second Wind, Titan Line).
 
-| Section | Brief module | What it does |
-|---|---|---|
-| §1 | `/data` | Tier table, themes, `RETENTION_CONFIG`, `CHURN_CONFIG`, `AD_CONFIG` — every tunable in one place (Phase 6) |
-| §2 | persistence | `localStorage` wrapper, swappable for a backend later |
-| §3 | `trackEvent` | Analytics stub; ring-buffer log at `window.__overstackEvents` |
-| §4 | `FeedbackBus` | Semantic events (`fusion`, `drop`, `bank`, `collapse`) — audio/fx/camera subscribe independently |
-| §6 | `/audio` | WebAudio synth: pitch-ascending fusion arpeggio, variant pools, resolving bank chord, adaptive ambient pad |
-| §8 | `/fx` | Pooled particles, screen shake (impulse + instability micro-shake), slow-mo controller |
-| §9 | `RewardPacer` (4.1) | Multiplier climb with Poisson-scheduled micro-jumps — never perfectly predictable |
-| §10 | `PlayerStateVector` + `EngagementEstimator` (4.2b) | EMA-smoothed per-player signals → `flowScore` vs. the player's *own* baseline |
-| §11 | `SessionArcController` (4.13) | HOOK → GROOVE → SUSTAIN → LATE whole-session pacing |
-| §12 | `ChurnRiskModel` (4.15) | Trend-based frustration vs. boredom classifier; honest levers only |
-| §13 | `DifficultyDirector` (4.2) | Flow-banded shape-spawn weighting, invisible to the player |
-| §14 | `NearMissDetector` (4.3b) | Weighted intensity from real run state; slow-mo/camera scale with it |
-| §15–17 | Economy / Streaks / Board (4.5–4.8) | Permanent coins, visible-but-locked shop, calendar streaks, local leaderboard |
-| §18 | `AdManager` (§7) | Mock adapter (game fully playable offline); revive / double / head-start rewarded placements; interstitial pacing tighter than platform caps |
-| §19–20 | `/core` | Matter.js stack, fusion resolution, explicit state machine: `DECISION → AIMING → DROPPING → RESOLVING → DECISION → (BANK \| COLLAPSE)` |
+## Shapes
 
-## Guardrails baked in
+One shape per tier — more sides = bigger = worth more:
+triangle → square → pentagon → hexagon → heptagon → octagon → nonagon → 12-sided **AUREX**.
 
-- Collapse-to-next-drop is one tap and <100 ms (measured ~70 ms in headless tests).
-- Ad offers are always opt-in, secondary to the free "Drop Again" path, one-tap dismissible.
-- Interstitials: never in the first 3 runs, never straight off a collapse, only every 5th
-  consecutive drop-again or on menu return, ≥105 s apart.
-- `ChurnRiskModel` output is deliberately **never** wired into `AdManager` — ad pacing is
-  governed only by its own session-boundary and cooldown rules. Flag any change to this
-  in code review.
-- Near-misses are detected from real run state (fusion proximity, stability 1 s prior,
-  PB delta), never randomly inserted.
-- Every run — banked or collapsed — nets some currency. No zero-progress outcomes.
+**Surprise blocks** appear every 20–40 s: ✨ GOLDEN (3× coins), 🗿 GIANT (huge, 3×),
+💣 BOMB (explodes — salvage coins, chaos), ⚡ UNSTABLE (jitters, 2×), 🌈 RAINBOW
+(fuses with anything, 2×).
+
+## The adaptation engine
+
+A persistent, per-player **Profile** (never shown as numbers, surfaced as a style
+title like THE GAMBLER / THE BANKER / THE COLLECTOR) drives:
+
+1. **Risk tolerance** — early bankers get golden temptation drops mid-run; never-bankers
+   get a lower near-miss threshold so "I ALMOST lost" fires more often.
+2. **Skill** — flow-banded `DifficultyDirector` also adapts *physics*: strugglers get
+   grippier, deader pieces; hot players get bouncier, odder, bigger-variance ones.
+3. **Frustration** — churn model detects collapse-streak trends and answers with
+   "Here. 🎁": a golden guaranteed-fusable opener next run.
+4. **Boredom** — detected separately (opposite signature); answered with novelty
+   (unstable block, never-equipped cosmetics), never with an easier game.
+5. **Goals** — collector / competitive / chaos affinities re-weight which open-loop
+   headline the results screen leads with.
+6. **Adaptive pacing** — the game learns your typical session length and schedules a
+   golden block right before your usual quit point (`retention_save` event).
+7. All of it logged through `trackEvent` with flow band, arc phase, and profile
+   snapshots attached — inspect `window.__overstackEvents`.
+
+## Guardrails
+
+- Banking is blocked the instant a piece is past saving (`Stack.isDoomed()`'s
+  "TOO LATE" state) — you cannot bank a tower that is already falling.
+- Ad offers (revive / double) are opt-in, one-tap-dismissible, and never bigger than
+  the free DROP AGAIN path. Interstitials: never in the first 3 runs, only at
+  voluntary boundaries, ≥105 s apart.
+- `ChurnRiskModel` and `Profile` output are deliberately **never** wired into
+  `AdManager`. Flag any change to this in code review.
+- Near-misses are computed from real run state, never randomly inserted.
+- Every run nets some coins (collapse pays a small salvage) — no zero-progress outcomes.
 
 ## Shipping to a real platform (Poki etc.)
 
-Replace `MockAdAdapter` (§18) with an adapter that maps the same interface onto the live
+Replace `MockAdAdapter` (§18) with an adapter mapping the same interface onto the live
 SDK (`init`, `gameLoadingStart/Finished`, `gameplayStart/Stop`, `commercialBreak`,
-`rewardedBreak`). Game logic never touches the SDK directly. Confirm current method names
-against the live Poki SDK docs at integration time.
+`rewardedBreak`). Game logic never touches the SDK directly.
 
 ## Tuning
 
-All behavioral constants live in §1 (`RETENTION_CONFIG`, `CHURN_CONFIG`, `AD_CONFIG`,
-`CONFIG`). Every `fusion` / `bank` / `collapse` / `near_miss` event carries the live
-`flowScore`, flow band, and session-arc phase, and `churn_risk_evaluated` logs both
-sub-scores plus which response fired — inspect `window.__overstackEvents` during a
-playtest. A debug handle is exposed at `window.__overstack`.
+All constants live in §1 of the script (`CONFIG`, `RETENTION_CONFIG`, `CHURN_CONFIG`,
+`AD_CONFIG`, `MILESTONES`, tier tables). Debug handle: `window.__overstack`.
