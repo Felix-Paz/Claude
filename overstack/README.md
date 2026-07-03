@@ -30,7 +30,7 @@ no install, no login, no network required.
 - **VAULT** — banked coins. Permanent, spendable in the Collection, shown top-right.
   Collapsing never touches it.
 - **Lifetime banked** — never decreases; unlocks **superpowers** at milestones
-  (Head Start, Gold Rush, Steady Aim, Encore, Chroma Rush, Titan Line). Superpowers
+  (Midas Touch, Gold Rush, Steady Aim, Encore, Chroma Rush, Titan Line). Superpowers
   are earned, never bought — see `MILESTONES` in §1.
 
 Brand identity is **fresh spring green + gold** — a bright, airy green world (no
@@ -43,10 +43,10 @@ redundant cues so value is never a subtle read: red triangle → orange square �
 yellow pentagon → green hexagon → cyan heptagon → blue octagon → violet nonagon →
 gold 12-sided **AUREX**. Every hue is spaced far from its neighbors.
 
-**Shape packs** (the Collection's `theme` items) each recolor all shapes with a
-distinct 8-hue palette *and* grant a perk (pricier = better): Ember (+6% coins),
-Oceanic (greed starts ×1.25), Toxic (+10% coins), Candy (2× golden blocks),
-Prism (+15% coins, greed ×1.3).
+**Shape packs** (the Collection's `theme` items) are radical departures from the
+default Signal palette — monochrome Noir, all-fire Inferno, jewel-tone Royal,
+arcade Retro, neon Cyber, deep-sea Oceanic, acid Toxic, sugar Candy, and
+max-saturation Prism — and each grants a perk (pricier = better).
 
 **Special blocks** each have their own unmistakable skin (never disguised as a
 normal shape) and its own behavior:
@@ -61,9 +61,11 @@ normal shape) and its own behavior:
 - 🎁 LUCKY CHEST (opens on land: coins / giant / rainbow / magnet / bomb / curse)
 - 💎 JACKPOT DIAMOND (rare, ~every 5 min, absurd 8× payout)
 
-**World events** fire live (not blocks): 🕳️ BLACK HOLE (pulls the tower into new
-shapes), ☄️ METEOR (warns, then crashes — scatters or compresses), and 🔒 CURSE
-(temporary debuff: no-banking / coin-leak / slippery / next-3-huge).
+**World events** fire live (not blocks): 🕳️ BLACK HOLE (opens ON the tower and
+devours up to 3 pieces, paying coins for each), ☄️ METEOR (warns, then crashes —
+its shockwave only pushes pieces up and toward the dock center, so it reshuffles
+but can never directly kill), 💨 WIND (gusty crosswind that sways the tower,
+harmless), and 🔒 CURSE (no-banking / coin-leak / slippery / next-3-huge).
 
 ### Event Director
 Every 45–75 s the `EventDirector` asks "what crazy thing should happen now?" and
@@ -71,22 +73,24 @@ either injects a special block or fires a world event, weighted by the retention
 engine (risk tolerance, churn state, session depth) — the whole point is a fresh
 surprise before the player can get bored. Nothing it does is instantly lethal.
 
-### Risk FX — greed made irresistible
-`RiskFX` continuously scores your risk (unbanked coins vs. best, greed, tower
-instability) and cranks the drama to match: a pulsing gold vignette that speeds
-up, gold particles raining across the screen, adrenaline micro-shakes, and the
-BANK button escalating through four "character" tiers until it's literally
-shaking and flashing **BANK ME** at you.
+### Risk FX — drama with timing
+The gold vignette is a **danger siren**, not a wealth meter: it appears only
+while the tower is genuinely at risk of dying, pulses while the danger lasts,
+and fades the moment it steadies. Separately, the BANK button escalates through
+four smooth "character" tiers (glow → grow → big pulses → BANK ME) driven by
+unbanked coins, staying calm until ~◆150,000 is on the line. All scale pulses —
+no jitter, no particles.
 
 ## Collection (◆100,000 → ◆12,000,000)
 
-Each dock in the Collection has a distinct canvas render *and*, for pricier ones,
-real powers: Slab (free), Frostpane (frosted glass), Liquid Glass (+length +
-slow-fall), Lava Forge (+60% salvage, glowing molten cracks), Reactor (+length +
-faster greed, scrolling circuitry), Bumper Deck (raised edge walls that physically
-catch throws), Aurora Deck (+length + wider combo window), Vortex Core (everything).
-Dock power dimensions: `lengthBonus`, `grip`, `forgiveness`, `slowFall`, `greedRate`,
-`salvageMult`, `comboBonusMs`, `walls`.
+16 docks, each a clean material with one quiet signature detail (restraint reads
+expensive): Slab, Heartwood, Brushed Steel, Carrara, Porcelain, Liquid Glass,
+Basalt Forge, Reactor, Bullion, Bumper Deck, Aurora Deck, Nebula, Crimson Velvet,
+Vortex Core, Obsidian, and the ◆12,000,000 OBSIDIAN CROWN. Power dimensions:
+`lengthBonus`, `grip`, `forgiveness`, `slowFall`, `greedRate`, `salvageMult`,
+`comboBonusMs`, `walls`. Difficulty also leans harder as your vault grows past
+◆100k (bigger/odder pieces — honest pressure, never rigged RNG), and spam-clicking
+sub-second drops triggers punish heat plus an "AIM!" warning.
 
 ## The adaptation engine
 
@@ -121,8 +125,9 @@ title like THE GAMBLER / THE BANKER / THE COLLECTOR) drives:
   DROP AGAIN path. Double Coins only appears on a successful bank (nothing to
   double on a loss); Revive only appears on a collapse. Interstitials: never in
   the first 3 runs, only at voluntary boundaries, ≥105 s apart.
-- Shop purchases require a deliberate second tap ("Tap again to confirm") before
-  coins are spent — a single accidental tap never buys anything.
+- Shop purchases go through a confirm pop-up before coins are spent — a single
+  accidental tap never buys anything. Cards close via a corner ✕ or tapping
+  outside the card.
 - `ChurnRiskModel` and `Profile` output are deliberately **never** wired into
   `AdManager`. Flag any change to this in code review.
 - Camera shake is reserved for two things only: near-death instability (danger
