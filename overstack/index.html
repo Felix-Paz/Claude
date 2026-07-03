@@ -15,13 +15,13 @@
    Calm base state; the game overreacts when it matters.
    ============================================================ */
 :root {
-  /* Brand identity: deep emerald green + gold. (Was violet.) */
-  --bg-a: #06160f;
-  --bg-b: #0e3325;
-  --glass: rgba(16, 42, 30, 0.55);
-  --glass-border: rgba(110, 220, 165, 0.22);
-  --text: #eafff5;
-  --text-dim: #9fc7b4;
+  /* Brand identity: fresh spring green + gold — brighter, no more cave-dark. */
+  --bg-a: #14402f;
+  --bg-b: #24704f;
+  --glass: rgba(28, 74, 54, 0.55);
+  --glass-border: rgba(150, 245, 195, 0.28);
+  --text: #f2fff8;
+  --text-dim: #b8e2cb;
   --gold: #ffcf5c;
   --gold-deep: #e8a83a;
   --hot: #ff5a6a;
@@ -36,7 +36,7 @@
 html, body { height: 100%; overflow: hidden; }
 body {
   font-family: 'Sora', 'Poppins', -apple-system, 'Segoe UI', system-ui, sans-serif;
-  background: radial-gradient(130% 110% at 50% -10%, var(--bg-b) 0%, var(--bg-a) 66%);
+  background: radial-gradient(130% 110% at 50% -10%, var(--bg-b) 0%, var(--bg-a) 70%);
   color: var(--text);
   user-select: none; -webkit-user-select: none;
   touch-action: none; overscroll-behavior: none;
@@ -59,9 +59,9 @@ body {
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
   border: 1px solid var(--glass-border);
   border-radius: 18px;
-  box-shadow: 0 8px 40px rgba(6, 2, 20, 0.55), inset 0 1px 0 rgba(255,255,255,0.07);
+  box-shadow: 0 8px 34px rgba(4, 20, 12, 0.45), inset 0 1px 0 rgba(255,255,255,0.10);
 }
-.low-fx .glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(24, 17, 46, 0.94); }
+.low-fx .glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(24, 62, 45, 0.94); }
 .btn {
   font-family: inherit; font-weight: 700; color: var(--text);
   background: rgba(26, 74, 54, 0.5);
@@ -99,14 +99,14 @@ body {
 .screen.hidden { opacity: 0; pointer-events: none; }
 
 /* loading */
-#loading { background: radial-gradient(130% 110% at 50% -10%, var(--bg-b) 0%, var(--bg-a) 66%); z-index: 100; }
+#loading { background: radial-gradient(130% 110% at 50% -10%, var(--bg-b) 0%, var(--bg-a) 70%); z-index: 100; }
 #loading .logo { font-size: 2.7rem; }
 #loading .sub { color: var(--text-dim); font-size: 0.72rem; letter-spacing: 0.34em; margin-top: 8px; }
 #loadbar { width: 190px; height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; margin-top: 24px; overflow: hidden; }
 #loadbar > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--green), var(--gold)); border-radius: 2px; transition: width 0.3s ease; }
 
 /* menu */
-#menu { background: rgba(10, 6, 24, 0.35); }
+#menu { background: rgba(10, 30, 20, 0.30); }
 #menu .logo { font-size: clamp(2.4rem, 10vw, 3.8rem); margin-bottom: 4px; text-shadow: 0 6px 40px rgba(255, 207, 92, 0.25); }
 #menu .tagline { color: var(--text-dim); font-size: 0.82rem; letter-spacing: 0.28em; margin-bottom: 10px; text-transform: uppercase; }
 #style-tag { font-size: 0.72rem; color: var(--gold); letter-spacing: 0.18em; margin-bottom: 28px; min-height: 1em; }
@@ -117,7 +117,6 @@ body {
 #menu-stats .vault-stat b { color: var(--gold); }
 #menu-nav { display: flex; gap: 12px; margin-top: 30px; }
 #menu-nav .btn { font-size: 0.78rem; letter-spacing: 0.14em; padding: 12px 18px; }
-#btn-headstart { margin-top: 16px; font-size: 0.8rem; }
 #banner {
   position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
   padding: 10px 20px; font-size: 0.85rem; color: var(--gold);
@@ -145,8 +144,8 @@ body.chase #run-score { color: var(--gold); text-shadow: 0 0 26px rgba(255, 207,
   display: inline-block; margin-top: 4px;
   font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em;
   padding: 4px 12px; border-radius: 999px;
-  border: 1px solid rgba(110,220,165,0.3);
-  background: rgba(14, 40, 28, 0.6); color: var(--mint);
+  border: 1px solid rgba(150,245,195,0.35);
+  background: rgba(20, 56, 40, 0.65); color: var(--mint);
 }
 #greed-pill.g2 { color: var(--gold); border-color: rgba(255,207,92,0.45); }
 #greed-pill.g3 { color: var(--hot); border-color: rgba(255,77,109,0.55); animation: greedpulse 0.7s ease-in-out infinite; }
@@ -191,21 +190,23 @@ body.chase #run-score { color: var(--gold); text-shadow: 0 0 26px rgba(255, 207,
 /* escalation ladder: u1 glow → u2 grow+pulse → u3 full panic */
 #btn-bank.u1 { animation: bank-u1 1.6s ease-in-out infinite; }
 @keyframes bank-u1 { 0%,100% { box-shadow: 0 6px 30px rgba(240,173,45,0.4);} 50% { box-shadow: 0 6px 46px rgba(255,207,92,0.85);} }
-#btn-bank.u2 { transform: scale(1.07); animation: bank-u2 0.9s ease-in-out infinite; }
-@keyframes bank-u2 { 0%,100% { box-shadow: 0 6px 34px rgba(255,190,60,0.6);} 50% { box-shadow: 0 8px 60px rgba(255,207,92,1);} }
-#btn-bank.u3 { transform: scale(1.12); animation: bank-u3 0.42s ease-in-out infinite; }
-@keyframes bank-u3 {
-  0%,100% { box-shadow: 0 0 40px rgba(255,207,92,1), 0 0 80px rgba(255,77,109,0.5); margin-right: 0; }
-  25% { margin-right: 3px; background: linear-gradient(165deg, #fff0b3, #ffb930); }
-  75% { margin-right: -3px; }
+/* Smooth breathing pulses only — the button GROWS and SCREAMS, it never
+   jitters or "glitches" (no translate, no rotate, ever). */
+#btn-bank.u2 { animation: bank-u2 1.2s ease-in-out infinite; }
+@keyframes bank-u2 {
+  0%,100% { transform: scale(1.03); box-shadow: 0 6px 34px rgba(255,190,60,0.55); }
+  50% { transform: scale(1.09); box-shadow: 0 8px 56px rgba(255,207,92,0.95); }
 }
-/* u4 — screaming BANK ME: bigger, faster, violently shaking, white-hot flashes */
-#btn-bank.u4 { transform: scale(1.2); animation: bank-u4 0.24s ease-in-out infinite; }
+#btn-bank.u3 { animation: bank-u3 0.7s ease-in-out infinite; }
+@keyframes bank-u3 {
+  0%,100% { transform: scale(1.05); box-shadow: 0 0 36px rgba(255,207,92,0.9); }
+  50% { transform: scale(1.16); box-shadow: 0 0 70px rgba(255,207,92,1); background: linear-gradient(165deg, #fff0b3, #ffb930); }
+}
+/* u4 — BANK ME: big, fast, white-hot — still perfectly smooth */
+#btn-bank.u4 { animation: bank-u4 0.45s ease-in-out infinite; }
 @keyframes bank-u4 {
-  0%,100% { box-shadow: 0 0 54px rgba(255,220,120,1), 0 0 120px rgba(255,90,60,0.7); transform: scale(1.2) translate(0,0) rotate(0deg); background: linear-gradient(165deg, #fff4c2, #ffb42a); }
-  20% { transform: scale(1.24) translate(-4px,1px) rotate(-2deg); }
-  50% { transform: scale(1.18) translate(4px,-1px) rotate(2deg); background: linear-gradient(165deg, #ffffff, #ffcf5c); }
-  80% { transform: scale(1.24) translate(-3px,-1px) rotate(-1.5deg); }
+  0%,100% { transform: scale(1.08); box-shadow: 0 0 46px rgba(255,220,120,0.95); }
+  50% { transform: scale(1.22); box-shadow: 0 0 90px rgba(255,220,120,1), 0 0 130px rgba(255,120,60,0.5); background: linear-gradient(165deg, #ffffff, #ffcf5c); }
 }
 .reduce-motion #btn-bank.u2, .reduce-motion #btn-bank.u3, .reduce-motion #btn-bank.u4 { animation: bank-u1 1.2s ease-in-out infinite; transform: none; }
 
@@ -298,7 +299,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 }
 
 /* ---------- results ---------- */
-#results { background: rgba(10, 6, 24, 0.55); }
+#results { background: rgba(8, 26, 18, 0.55); }
 #results-card { padding: 28px 32px; text-align: center; max-width: 430px; width: 92vw; }
 #results-verdict { font-size: 0.78rem; letter-spacing: 0.26em; font-weight: 700; margin-bottom: 10px; }
 #results-verdict.banked { color: var(--gold); }
@@ -325,7 +326,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 #unlock-msg button { background: none; border: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
 
 /* ---------- shop / settings / board cards ---------- */
-#shop-card, #settings-card, #board-card { padding: 26px; max-width: 540px; width: 94vw; max-height: 86vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+#shop-card, #settings-card, #board-card { position: relative; padding: 26px; max-width: 540px; width: 94vw; max-height: 86vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
 /* Hide the default scrollbar entirely — scroll still works by drag/wheel. */
 #shop-card::-webkit-scrollbar, #board-card::-webkit-scrollbar, #settings-card::-webkit-scrollbar { width: 0; height: 0; display: none; }
 #shop-card h2, #settings-card h2, #board-card h2 { font-size: 1.15rem; letter-spacing: 0.14em; margin-bottom: 4px; }
@@ -378,7 +379,16 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 .power-row .info .bar > div { height: 100%; background: linear-gradient(90deg, var(--mint), var(--gold)); border-radius: 2px; }
 .power-row .req { font-size: 0.66rem; color: var(--text-dim); text-align: right; white-space: nowrap; }
 .power-row.unlocked .req { color: var(--mint); font-weight: 700; }
-.close-row { display: flex; justify-content: flex-end; margin-top: 18px; }
+.close-row { display: none; }
+.card-x {
+  position: absolute; top: 14px; right: 14px; z-index: 2;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--glass-border); background: rgba(255,255,255,0.08);
+  color: var(--text); font-size: 1rem; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: inherit; line-height: 1;
+}
+.card-x:hover { background: rgba(255,255,255,0.18); }
 
 /* settings */
 .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(178,150,255,0.12); font-size: 0.92rem; }
@@ -462,7 +472,6 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
   <div class="tagline">stack · fuse · get greedy</div>
   <div id="style-tag"></div>
   <button id="btn-play" class="btn btn-primary">PLAY</button>
-  <button id="btn-headstart" class="btn btn-ghost" style="display:none;">▶ Watch ad: start with a Block</button>
   <div id="menu-stats">
     <span id="ms-streak">🔥 <b>0</b></span>
     <span>BEST <b id="ms-best">0</b></span>
@@ -494,6 +503,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 
 <div id="shop" class="screen hidden">
   <div id="shop-card" class="glass">
+    <button class="card-x" id="shop-x">✕</button>
     <h2>COLLECTION</h2>
     <div class="card-sub">Spend your vault. <span style="color:var(--gold)">◆ <span id="shop-coins">0</span></span></div>
     <div class="shop-section">DOCKS — where your tower lives · some carry powers</div>
@@ -502,27 +512,26 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
     <div id="shop-grid-themes"></div>
     <div class="shop-section">SUPERPOWERS — earned, not bought · bank lifetime ◆ to unlock</div>
     <div id="shop-powers"></div>
-    <div class="close-row"><button id="btn-shop-close" class="btn">Close</button></div>
   </div>
 </div>
 
 <div id="settings" class="screen hidden">
   <div id="settings-card" class="glass">
+    <button class="card-x" id="settings-x">✕</button>
     <h2>SETTINGS</h2>
     <div class="card-sub">Kept deliberately tiny.</div>
     <div class="setting-row"><span>Sound</span><button class="toggle" id="tgl-sound"></button></div>
     <div class="setting-row"><span>Haptics</span><button class="toggle" id="tgl-haptics"></button></div>
     <div class="setting-row"><span>Reduce motion / low power</span><button class="toggle" id="tgl-motion"></button></div>
-    <div class="close-row"><button id="btn-settings-close" class="btn">Close</button></div>
   </div>
 </div>
 
 <div id="board" class="screen hidden">
   <div id="board-card" class="glass">
+    <button class="card-x" id="board-x">✕</button>
     <h2>YOUR RUNS</h2>
     <div class="card-sub" id="board-sub">Local leaderboard — your own history.</div>
     <ol id="board-list"></ol>
-    <div class="close-row"><button id="btn-board-close" class="btn">Close</button></div>
   </div>
 </div>
 
@@ -598,44 +607,55 @@ const TIERS = {
   radii:  [0, 15, 19, 24, 31, 39, 49, 61, 76],
 };
 
-/* Shape packs — each a full, high-contrast 8-hue rainbow (so adjacent tiers
-   are unmistakable) with its own overall identity, PLUS a real gameplay perk.
-   Pricier packs carry better perks. `colors[tier]` drives every shape. */
+/* Shape packs — each pack is a RADICAL departure from Signal (not a subtle
+   recolor): monochrome noir, all-fire inferno, jewel-tone royal, arcade retro…
+   Adjacent tiers stay unmistakable inside every pack. Perks scale with price. */
 const THEMES = {
   default: { name: 'Signal',  bonus: {},
     colors: ['', '#FF2E2E', '#FF7A00', '#FFE500', '#22DD4B', '#00D4D4', '#2E6BFF', '#B23BFF', '#FFC21E'] },
-  ember:   { name: 'Ember',   bonus: { coinMult: 1.06 },
-    colors: ['', '#FF1F3B', '#FF5C00', '#FF9E00', '#FFD400', '#9BE000', '#00C98A', '#FF4FA0', '#FFE9A0'] },
-  oceanic: { name: 'Oceanic', bonus: { greedStart: 1.25 },
-    colors: ['', '#00E0C0', '#00B0E6', '#2E7BFF', '#6A5BFF', '#A05BFF', '#38C86A', '#FF7AB0', '#FFE08A'] },
-  toxic:   { name: 'Toxic',   bonus: { coinMult: 1.10 },
-    colors: ['', '#C6FF1A', '#6BE000', '#00E05A', '#00E0C0', '#00C0FF', '#6B5BFF', '#FF3DDC', '#EEFF5B'] },
-  candy:   { name: 'Candy',   bonus: { goldenBias: 2.0 },
-    colors: ['', '#FF5C8A', '#FF9E6B', '#FFE07A', '#7BE0A0', '#6BC8FF', '#9B8DFF', '#D07AFF', '#FFF0A8'] },
-  prism:   { name: 'Prism',   bonus: { coinMult: 1.15, greedStart: 1.3 },
+  noir:    { name: 'Noir',    bonus: { coinMult: 1.04 }, // monochrome ladder, one blood accent, gold apex
+    colors: ['', '#F8F8F8', '#C4C4CC', '#8E8E9A', '#5E5E6C', '#3B3B47', '#1F1F28', '#E01E3C', '#FFD700'] },
+  oceanic: { name: 'Oceanic', bonus: { greedStart: 1.2 }, // deep-sea ladder: foam → abyss
+    colors: ['', '#D8FBFF', '#7CE8F0', '#2EC4E0', '#0E8FD0', '#1F5FC0', '#2E3AA8', '#521E98', '#FFE08A'] },
+  toxic:   { name: 'Toxic',   bonus: { coinMult: 1.08 }, // acid / uv-lab
+    colors: ['', '#EEFF00', '#A8F000', '#4CE800', '#00E070', '#00D8C8', '#8A5BFF', '#E82EFF', '#F4FF9E'] },
+  candy:   { name: 'Candy',   bonus: { goldenBias: 2.0 }, // saturated sugar shop
+    colors: ['', '#FF4D9E', '#FF8A3C', '#FFE03C', '#4CE87A', '#3CD4FF', '#8A7AFF', '#E060FF', '#FFF6C8'] },
+  retro:   { name: 'Retro',   bonus: { coinMult: 1.08, greedStart: 1.15 }, // 80s arcade cabinet
+    colors: ['', '#FF3355', '#FF9722', '#FFEE33', '#33EE66', '#22DDEE', '#4477FF', '#EE44EE', '#F8F0D8'] },
+  inferno: { name: 'Inferno', bonus: { coinMult: 1.12 }, // everything burns — heat ladder
+    colors: ['', '#FFF1A8', '#FFD24C', '#FFA02E', '#FF6B1A', '#F53D2E', '#C81E50', '#8E1060', '#FFFFFF'] },
+  royal:   { name: 'Royal',   bonus: { greedStart: 1.25, coinMult: 1.06 }, // jewel tones on velvet
+    colors: ['', '#E8B4B8', '#D4485F', '#B01E48', '#20A46E', '#1E7898', '#2E4EA8', '#6E2EA0', '#F0C420'] },
+  cyber:   { name: 'Cyber',   bonus: { coinMult: 1.10, goldenBias: 1.5 }, // neon on gunmetal
+    colors: ['', '#00FFD4', '#00C8FF', '#4C8AFF', '#8A5BFF', '#C43CFF', '#FF2ED4', '#FF3C6B', '#EAFBFF'] },
+  prism:   { name: 'Prism',   bonus: { coinMult: 1.15, greedStart: 1.35 }, // max saturation, white apex
     colors: ['', '#FF0044', '#FF7A00', '#FFE800', '#00FF66', '#00E5FF', '#3366FF', '#C400FF', '#FFFFFF'] },
 };
 
-/* Docks — the shop's anchor purchase. Each has a distinct canvas render
-   `style` (slab / frosted / liquid-glass / lava / reactor / bumper / aurora /
-   vortex) AND, for the pricier ones, real powers:
-     lengthBonus  — longer dock
-     grip         — higher friction (pieces slide less)
-     forgiveness  — small stability + edge-tolerance buff
-     slowFall     — pieces descend slower (frictionAir) → more aim time
-     greedRate    — GREED climbs faster
-     salvageMult  — bigger collapse payout
-     comboBonusMs — wider chain window
-     walls        — raised edge walls that physically catch throws          */
+/* Docks — the shop's anchor purchase. Design rule learned the hard way:
+   restraint reads expensive. Each style is a clean material with ONE quiet
+   signature detail (a vein, a seam, a trim line) — no screen-wide effect
+   spam. Powers (pricier docks):
+     lengthBonus / grip / forgiveness / slowFall / greedRate / salvageMult /
+     comboBonusMs / walls                                                    */
 const DOCKS = {
-  slab:    { style: 'slab',    c1: '#2e6f52', c2: '#123a2a', glow: 'rgba(70,220,150,0.35)' },
-  frost:   { style: 'frost',   c1: '#dfeaff', c2: '#9fb6d8', glow: 'rgba(200,220,255,0.5)' },
-  glass:   { style: 'glass',   c1: '#bff3ff', c2: '#3f92b8', glow: 'rgba(150,230,255,0.6)',  lengthBonus: 0.05, slowFall: 0.014 },
-  lava:    { style: 'lava',    c1: '#3a1410', c2: '#160604', glow: 'rgba(255,90,20,0.6)',    forgiveness: 0.02, salvageMult: 1.6 },
-  circuit: { style: 'circuit', c1: '#0d3a2e', c2: '#04140f', glow: 'rgba(46,230,150,0.6)',   lengthBonus: 0.06, greedRate: 0.5 },
-  bumper:  { style: 'bumper',  c1: '#ffb43a', c2: '#8a5a10', glow: 'rgba(255,180,58,0.6)',   grip: 0.3, forgiveness: 0.05, walls: true },
-  aurora:  { style: 'aurora',  c1: '#7ef9c9', c2: '#3a6fd8', glow: 'rgba(126,249,201,0.6)',  lengthBonus: 0.10, forgiveness: 0.04, comboBonusMs: 900 },
-  vortex:  { style: 'vortex',  c1: '#c9a8ff', c2: '#2c1554', glow: 'rgba(201,168,255,0.75)', lengthBonus: 0.22, grip: 0.3, forgiveness: 0.10, greedRate: 0.3 },
+  slab:      { style: 'slab',      c1: '#3d8a66', c2: '#1d5038', glow: 'rgba(90,230,160,0.30)' },
+  oak:       { style: 'wood',      c1: '#a8763e', c2: '#6b4423', glow: 'rgba(220,170,100,0.25)' },
+  steel:     { style: 'steel',     c1: '#b8c2d0', c2: '#68727f', glow: 'rgba(200,215,235,0.28)' },
+  marble:    { style: 'marble',    c1: '#f2f0ec', c2: '#b8b4ac', glow: 'rgba(255,252,244,0.30)' },
+  porcelain: { style: 'porcelain', c1: '#faf6ee', c2: '#d8cfc0', glow: 'rgba(255,244,220,0.30)', forgiveness: 0.02 },
+  glass:     { style: 'glass',     c1: '#d4f2fa', c2: '#7fb8cc', glow: 'rgba(180,235,255,0.35)', lengthBonus: 0.05, slowFall: 0.014 },
+  basalt:    { style: 'lava',      c1: '#3c3038', c2: '#1a1216', glow: 'rgba(255,110,40,0.35)',  forgiveness: 0.02, salvageMult: 1.6 },
+  circuit:   { style: 'circuit',   c1: '#12403a', c2: '#071a16', glow: 'rgba(60,230,170,0.35)',  lengthBonus: 0.06, greedRate: 0.5 },
+  gold:      { style: 'gold',      c1: '#f5d36b', c2: '#a87818', glow: 'rgba(255,210,110,0.40)', greedRate: 0.25, salvageMult: 1.3 },
+  bumper:    { style: 'bumper',    c1: '#f2b93c', c2: '#9a6a14', glow: 'rgba(255,190,70,0.35)',  grip: 0.3, forgiveness: 0.05, walls: true },
+  aurora:    { style: 'aurora',    c1: '#8fe8c8', c2: '#3a6fb8', glow: 'rgba(140,240,205,0.35)', lengthBonus: 0.10, forgiveness: 0.04, comboBonusMs: 900 },
+  nebula:    { style: 'nebula',    c1: '#2c2450', c2: '#120e28', glow: 'rgba(150,130,255,0.40)', lengthBonus: 0.08, slowFall: 0.010, greedRate: 0.25 },
+  velvet:    { style: 'velvet',    c1: '#7a1e3c', c2: '#3c0e1e', glow: 'rgba(220,80,120,0.35)',  lengthBonus: 0.10, grip: 0.25, comboBonusMs: 700, salvageMult: 1.4 },
+  vortex:    { style: 'vortex',    c1: '#b393e8', c2: '#3a2468', glow: 'rgba(185,150,240,0.40)', lengthBonus: 0.16, grip: 0.3, forgiveness: 0.08, greedRate: 0.3 },
+  obsidian:  { style: 'obsidian',  c1: '#2a2a34', c2: '#0c0c12', glow: 'rgba(140,150,180,0.35)', lengthBonus: 0.14, forgiveness: 0.08, slowFall: 0.012, salvageMult: 1.5 },
+  crown:     { style: 'crown',     c1: '#14141c', c2: '#040408', glow: 'rgba(255,214,110,0.45)', lengthBonus: 0.22, grip: 0.3, forgiveness: 0.10, greedRate: 0.4, salvageMult: 1.8, comboBonusMs: 1000, walls: true },
 };
 
 /* Special blocks — each with its own unmistakable skin (drawn in §21) and its
@@ -663,7 +683,7 @@ const SPECIALS = {
 
 const WORLD = {
   width: 480,
-  platformY: 760,
+  platformY: 700,          // raised — the dock sat too low on screen
   platformW: 275,          // +10% over v1 — the sweet spot ask
   platformH: 20,
   spawnClearance: 150,
@@ -700,24 +720,37 @@ const CONFIG = {
     worldEventChance: 0.35,          // vs. injecting a special block
     jackpotEveryMs: 5 * 60_000,      // the rare huge diamond
     curseMs: 9_000,
-    blackholeMs: 4_500,
-    blackholeForce: 0.00016,
+    blackholeMs: 5_500,
+    blackholeForce: 0.0012,   // per-mass, ramps with proximity
+    blackholeMaxEaten: 3,            // it consumes up to this many pieces, paying coins for each
     meteorWarnMs: 1200,
+    windMs: 4_500,
+    windForce: 0.0016,               // gentle sway per-mass — never kill-strength
   },
-  magnetForce: 0.00010,       // magnet block pull on same-tier neighbours
+  magnetForce: 0.0014,        // magnet block pull on same-tier neighbours (per-mass)
   angryJumpDelayMs: 550,
+  // Invisible difficulty pressure — two triggers, both "harder, never cheating":
+  difficulty: {
+    wealthRampStart: 100_000,  // vault size where the game starts leaning harder
+    wealthRampFull: 1_000_000, // …and where the lean maxes out
+    wealthMaxEffect: 0.5,      // 0..1 scalar applied to size/odd/bounce pressure
+    spamGapMs: 1000,           // drops faster than this…
+    spamStreak: 3,             // …this many times in a row = mindless spamming
+    spamDecayPerSec: 0.18,     // heat cools once they slow down and aim
+  },
+  bankDramaAt: 150_000,        // unbanked coins where the BANK button starts escalating
 };
 
 /* Milestone superpowers — earned by LIFETIME banked coins, never bought.
    Revive always costs an ad watch (see §20 Game.revive) — ENCORE only
    grants an extra revive attempt, it never makes one free. */
 const MILESTONES = [
-  { at: 2000,   id: 'power_headstart',  icon: '🧱', name: 'HEAD START',   desc: 'Every run begins with a Block already on the dock' },
-  { at: 6000,   id: 'power_goldrush',   icon: '✨', name: 'GOLD RUSH',    desc: 'Golden blocks appear twice as often' },
-  { at: 15000,  id: 'power_steadyaim',  icon: '🎯', name: 'STEADY AIM',   desc: 'The dock catches slightly wider throws' },
-  { at: 35000,  id: 'power_encore',     icon: '🔁', name: 'ENCORE',       desc: 'Revive up to twice per run (still watch an ad each time)' },
-  { at: 75000,  id: 'power_chromarush', icon: '🌈', name: 'CHROMA RUSH',  desc: 'Rainbow blocks appear twice as often' },
-  { at: 150000, id: 'power_titanline',  icon: '🏗️', name: 'TITAN LINE',  desc: 'Dock permanently +10% longer' },
+  { at: 5000,    id: 'power_midas',      icon: '🪙', name: 'MIDAS TOUCH',  desc: 'Every fusion permanently mints +5% coins' },
+  { at: 20000,   id: 'power_goldrush',   icon: '✨', name: 'GOLD RUSH',    desc: 'Golden blocks appear twice as often' },
+  { at: 60000,   id: 'power_steadyaim',  icon: '🎯', name: 'STEADY AIM',   desc: 'The dock catches slightly wider throws' },
+  { at: 150000,  id: 'power_encore',     icon: '🔁', name: 'ENCORE',       desc: 'Revive up to twice per run (still watch an ad each time)' },
+  { at: 400000,  id: 'power_chromarush', icon: '🌈', name: 'CHROMA RUSH',  desc: 'Rainbow blocks appear twice as often' },
+  { at: 1000000, id: 'power_titanline',  icon: '🏗️', name: 'TITAN LINE',  desc: 'Dock permanently +10% longer' },
 ];
 
 // 4.14 Retention config surface.
@@ -784,28 +817,42 @@ const BAND_WEIGHTS = {
   BORED:      { guaranteedFusable: false, fusableBias: -0.35, sizeVariance: 0.35, oddShapeChance: 0.3, friction: 0.72, restitution: 0.09 },
 };
 
+/* Prices are deliberately steep: the cheapest skin is ◆100,000 and the
+   flagship OBSIDIAN CROWN sits at ◆12,000,000 — long-horizon goals. */
 const SHOP_CATALOG = [
-  // DOCKS — where the tower lives. Each looks wildly different; pricier ones carry powers.
-  { id: 'dock_slab',    kind: 'dock', name: 'Slab',         price: 0,      data: 'slab',    power: '' },
-  { id: 'dock_frost',   kind: 'dock', name: 'Frostpane',    price: 1500,   data: 'frost',   power: 'frosted glass · cosmetic' },
-  { id: 'dock_glass',   kind: 'dock', name: 'Liquid Glass', price: 5000,   data: 'glass',   power: '+5% length · SLOW-FALL (more aim time)' },
-  { id: 'dock_lava',    kind: 'dock', name: 'Lava Forge',   price: 9000,   data: 'lava',    power: '+60% collapse salvage' },
-  { id: 'dock_circuit', kind: 'dock', name: 'Reactor',      price: 16000,  data: 'circuit', power: '+6% length · GREED climbs faster' },
-  { id: 'dock_bumper',  kind: 'dock', name: 'Bumper Deck',  price: 30000,  data: 'bumper',  power: 'edge WALLS catch throws · grip' },
-  { id: 'dock_aurora',  kind: 'dock', name: 'Aurora Deck',  price: 60000,  data: 'aurora',  power: '+10% length · wider combo window' },
-  { id: 'dock_vortex',  kind: 'dock', name: 'Vortex Core',  price: 120000, data: 'vortex',  power: '+22% length · grip · greed · max forgiveness' },
-  // SHAPE PACKS — recolor every shape AND grant a perk. Pricier = better perk.
-  { id: 'theme_default', kind: 'theme', name: 'Signal',  price: 0,      data: 'default', power: '' },
-  { id: 'theme_ember',   kind: 'theme', name: 'Ember',   price: 3000,   data: 'ember',   power: '+6% fusion coins' },
-  { id: 'theme_oceanic', kind: 'theme', name: 'Oceanic', price: 8000,   data: 'oceanic', power: 'GREED starts at ×1.25' },
-  { id: 'theme_toxic',   kind: 'theme', name: 'Toxic',   price: 18000,  data: 'toxic',   power: '+10% fusion coins' },
-  { id: 'theme_candy',   kind: 'theme', name: 'Candy',   price: 40000,  data: 'candy',   power: 'golden blocks 2× as often' },
-  { id: 'theme_prism',   kind: 'theme', name: 'Prism',   price: 90000,  data: 'prism',   power: '+15% coins · GREED starts ×1.3' },
+  // DOCKS
+  { id: 'dock_slab',      kind: 'dock', name: 'Slab',           price: 0,          data: 'slab',      power: '' },
+  { id: 'dock_oak',       kind: 'dock', name: 'Heartwood',      price: 100000,     data: 'oak',       power: '' },
+  { id: 'dock_steel',     kind: 'dock', name: 'Brushed Steel',  price: 140000,     data: 'steel',     power: '' },
+  { id: 'dock_marble',    kind: 'dock', name: 'Carrara',        price: 200000,     data: 'marble',    power: '' },
+  { id: 'dock_porcelain', kind: 'dock', name: 'Porcelain',      price: 280000,     data: 'porcelain', power: 'slight forgiveness' },
+  { id: 'dock_glass',     kind: 'dock', name: 'Liquid Glass',   price: 400000,     data: 'glass',     power: '+5% length · SLOW-FALL' },
+  { id: 'dock_basalt',    kind: 'dock', name: 'Basalt Forge',   price: 550000,     data: 'basalt',    power: '+60% collapse salvage' },
+  { id: 'dock_circuit',   kind: 'dock', name: 'Reactor',        price: 750000,     data: 'circuit',   power: '+6% length · GREED climbs faster' },
+  { id: 'dock_gold',      kind: 'dock', name: 'Bullion',        price: 1000000,    data: 'gold',      power: 'greed + salvage boost' },
+  { id: 'dock_bumper',    kind: 'dock', name: 'Bumper Deck',    price: 1300000,    data: 'bumper',    power: 'edge WALLS catch throws · grip' },
+  { id: 'dock_aurora',    kind: 'dock', name: 'Aurora Deck',    price: 1700000,    data: 'aurora',    power: '+10% length · wider combo window' },
+  { id: 'dock_nebula',    kind: 'dock', name: 'Nebula',         price: 2200000,    data: 'nebula',    power: '+8% length · slow-fall · greed' },
+  { id: 'dock_velvet',    kind: 'dock', name: 'Crimson Velvet', price: 3000000,    data: 'velvet',    power: '+10% length · grip · combo · salvage' },
+  { id: 'dock_vortex',    kind: 'dock', name: 'Vortex Core',    price: 4500000,    data: 'vortex',    power: '+16% length · grip · greed · forgiveness' },
+  { id: 'dock_obsidian',  kind: 'dock', name: 'Obsidian',       price: 6500000,    data: 'obsidian',  power: '+14% length · forgiveness · slow-fall · salvage' },
+  { id: 'dock_crown',     kind: 'dock', name: 'OBSIDIAN CROWN', price: 12000000,   data: 'crown',     power: 'EVERYTHING · +22% length · walls · max greed' },
+  // SHAPE PACKS
+  { id: 'theme_default', kind: 'theme', name: 'Signal',  price: 0,        data: 'default', power: '' },
+  { id: 'theme_noir',    kind: 'theme', name: 'Noir',    price: 100000,   data: 'noir',    power: '+4% fusion coins' },
+  { id: 'theme_oceanic', kind: 'theme', name: 'Oceanic', price: 160000,   data: 'oceanic', power: 'GREED starts ×1.2' },
+  { id: 'theme_toxic',   kind: 'theme', name: 'Toxic',   price: 260000,   data: 'toxic',   power: '+8% fusion coins' },
+  { id: 'theme_candy',   kind: 'theme', name: 'Candy',   price: 420000,   data: 'candy',   power: 'golden blocks 2× as often' },
+  { id: 'theme_retro',   kind: 'theme', name: 'Retro',   price: 700000,   data: 'retro',   power: '+8% coins · GREED starts ×1.15' },
+  { id: 'theme_inferno', kind: 'theme', name: 'Inferno', price: 1100000,  data: 'inferno', power: '+12% fusion coins' },
+  { id: 'theme_royal',   kind: 'theme', name: 'Royal',   price: 1800000,  data: 'royal',   power: '+6% coins · GREED starts ×1.25' },
+  { id: 'theme_cyber',   kind: 'theme', name: 'Cyber',   price: 2800000,  data: 'cyber',   power: '+10% coins · more goldens' },
+  { id: 'theme_prism',   kind: 'theme', name: 'Prism',   price: 5000000,  data: 'prism',   power: '+15% coins · GREED starts ×1.35' },
 ];
 
 /* ============================ §2 PERSISTENCE ============================== */
 const SaveStore = {
-  KEY: 'overstack.save.v3',
+  KEY: 'overstack.save.v4',
   data: null,
   defaults() {
     return {
@@ -1383,33 +1430,48 @@ const Director = {
     return BAND_WEIGHTS[this.band()];
   },
   stackTiers() { return Stack.pieces().map((b) => b.plugin.tier); },
+  // Pressure beyond the flow bands — both honest "harder", never rigged RNG:
+  //  · wealth: a ◆200k+ vault means this player has outgrown the base game —
+  //    lean in with bigger, odder, bouncier pieces so wins stay earned.
+  //  · spam: mindless sub-second drop mashing (Game.spamHeat) gets punished
+  //    hard so the player learns the game wants AIM, not clicks.
+  pressure() {
+    const D = CONFIG.difficulty;
+    const wealth = clamp((save.coins - D.wealthRampStart) / (D.wealthRampFull - D.wealthRampStart), 0, 1) * D.wealthMaxEffect;
+    const spam = Game.spamHeat || 0;
+    return { wealth, spam, total: clamp(wealth + spam, 0, 1.2) };
+  },
   rollPiece() {
     const w = this.weights();
+    const p = this.pressure();
     const onStack = [...new Set(this.stackTiers().filter((t) => t < TIERS.count))];
     let tier;
-    if (w.guaranteedFusable && onStack.length) {
+    if (w.guaranteedFusable && onStack.length && p.spam < 0.5) { // spammers lose the assist
       const low = onStack.filter((t) => t <= 4);
       tier = pick(low.length ? low : onStack);
     } else {
-      const bias = w.fusableBias || 0;
+      const bias = (w.fusableBias || 0) - p.total * 0.3;
       const fusableCandidates = onStack.filter((t) => t <= 3);
       if (bias > 0 && fusableCandidates.length && Math.random() < bias) {
         tier = pick(fusableCandidates);
       } else if (bias < 0 && onStack.length && Math.random() < -bias) {
         const avoid = new Set(onStack);
         const options = [1, 2, 3].filter((t) => !avoid.has(t));
-        tier = options.length ? pick(options) : this.baseRoll();
+        tier = options.length ? pick(options) : this.baseRoll(p.total);
       } else {
-        tier = this.baseRoll();
+        tier = this.baseRoll(p.total);
       }
     }
-    const odd = Math.random() < (w.oddShapeChance || 0);
-    const rScale = clamp(1 + (w.sizeVariance || 0) * rand(0.4, 1), 0.68, 1.45);
+    const odd = Math.random() < ((w.oddShapeChance || 0) + p.total * 0.3);
+    const rScale = clamp(1 + ((w.sizeVariance || 0) + p.wealth * 0.35 + p.spam * 0.5) * rand(0.4, 1), 0.68, 1.8);
     return { tier, kind: odd ? 'plank' : 'poly', rScale, special: null,
-      friction: w.friction ?? 0.85, restitution: w.restitution ?? 0.04 };
+      friction: clamp((w.friction ?? 0.85) - p.spam * 0.3, 0.35, 1),
+      restitution: clamp((w.restitution ?? 0.04) + p.total * 0.06, 0, 0.2) };
   },
-  baseRoll() {
+  baseRoll(pressure = 0) {
+    // under pressure, bigger tiers show up straight from the queue
     const r = Math.random();
+    if (pressure > 0 && Math.random() < pressure * 0.55) return r < 0.5 ? 3 : 4;
     return r < 0.5 ? 1 : r < 0.8 ? 2 : 3;
   },
   refill(seed) {
@@ -1558,7 +1620,11 @@ const Economy = {
   get comboWindowMs() { return CONFIG.chainWindowMs + (this.dock.comboBonusMs || 0); },
   // --- shape-pack perks ---
   get pack() { return THEMES[save.equipped.theme] || THEMES.default; },
-  get coinMult() { return (this.pack.bonus && this.pack.bonus.coinMult) || 1; },
+  get coinMult() {
+    let m = (this.pack.bonus && this.pack.bonus.coinMult) || 1;
+    if (save.powers.includes('power_midas')) m *= 1.05; // MIDAS TOUCH superpower
+    return m;
+  },
   get greedStart() { return (this.pack.bonus && this.pack.bonus.greedStart) || 1; },
   get goldenBias() { return (this.pack.bonus && this.pack.bonus.goldenBias) || 0; },
   checkMilestones() {
@@ -1943,13 +2009,21 @@ const Stack = {
     if (!this.snapshot) return false;
     this.pieces().forEach((b) => Composite.remove(engine.world, b));
     this.fusionQueue.length = 0;
+    const hw = this.platform.plugin.halfW, cx = WORLD.width / 2;
+    let restored = 0;
     for (const s of this.snapshot) {
+      // Anything the snapshot caught hanging past the dock edge or below the
+      // surface would just fall and kill the player again the moment physics
+      // resumes — the piece that killed you (and its accomplices) disappear.
+      if (Math.abs(s.x - cx) > hw + 4) continue;
+      if (s.y > WORLD.platformY + 4) continue;
       const body = this.makeBody(s.x, s.y, s);
       Body.setAngle(body, s.angle);
       Body.setVelocity(body, { x: 0, y: 0 });
       Composite.add(engine.world, body);
+      restored++;
     }
-    return true;
+    return restored > 0;
   },
 };
 
@@ -1989,6 +2063,7 @@ const Game = {
   earnedCoinsLastRun: 0, lastOutcome: '', lostCoins: 0,
   chaseNotified: false, bestBeatenThisRun: false,
   pointerTrail: [], _restarting: false,
+  spamHeat: 0, spamStreak: 0, lastDropAt: 0, spamWarned: false,
 
   set(state) { this.state = state; },
   inPlay() { return ['DECISION', 'AIMING', 'DROPPING', 'RESOLVING'].includes(this.state); },
@@ -2011,23 +2086,17 @@ const Game = {
     this.spawnY = WORLD.platformY - WORLD.spawnClearance;
     Camera.reset();
     RiskFX.reset();
+    this.spamHeat = 0; this.spamStreak = 0; this.lastDropAt = 0; this.spamWarned = false;
     PSV.runsThisSession++;
     PSV.samplePace();
     Streak.onRunStart();
-    // HEAD START superpower (milestone) or the ad-boosted Gem start
-    if (opts.headStart) {
-      Stack.spawnPiece({ tier: 3, kind: 'poly', rScale: 1 }, WORLD.width / 2, WORLD.platformY - 40);
-      this.droppedCount = 1;
-    } else if (save.powers.includes('power_headstart')) {
-      Stack.spawnPiece({ tier: 2, kind: 'poly', rScale: 1 }, WORLD.width / 2, WORLD.platformY - 40);
-    }
     UI.showGame();
     this.set('DECISION');
     this.decisionStartT = now();
     AdManager.notifyGameplayStart();
     trackEvent('run_start', {
       run: PSV.runsThisSession, arcPhase: SessionArc.phase,
-      flowScore: Director.flowScore, band: Director.flowBand, headStart: !!opts.headStart,
+      flowScore: Director.flowScore, band: Director.flowBand,
     });
     if (Director.current() && Director.current().giftNote) {
       UI.toast('Here. 🎁');
@@ -2058,6 +2127,26 @@ const Game = {
     // before the fatal drop — the killer piece is gone (was: post-settle
     // snapshot could include a briefly-stable killer that then toppled).
     if (Stack.pieces().length && Stack.stability() > CONFIG.snapshotMinStability) Stack.takeSnapshot();
+    // Spam-click detection: several sub-second drops in a row = mashing
+    // without aiming. The game answers by getting HARDER (bigger, odder,
+    // bouncier pieces — see Director.pressure) so they learn fast that
+    // careless throwing loses. Never rigged, just far less forgiving.
+    const gap = this.lastDropAt ? now() - this.lastDropAt : Infinity;
+    this.lastDropAt = now();
+    if (gap < CONFIG.difficulty.spamGapMs) {
+      this.spamStreak++;
+      if (this.spamStreak >= CONFIG.difficulty.spamStreak) {
+        this.spamHeat = 1;
+        if (!this.spamWarned) {
+          this.spamWarned = true;
+          UI.react('AIM!', 'var(--hot)');
+          UI.toast('⚠ Careless throws — the tower punishes button-mashing');
+          trackEvent('spam_detected', { streak: this.spamStreak });
+        }
+      }
+    } else {
+      this.spamStreak = 0;
+    }
     const def = Director.current();
     this.dropBody = Stack.spawnPiece(def, this.aimX, this.spawnY);
     this.dropAimX = this.aimX;
@@ -2286,7 +2375,7 @@ const Game = {
           if (o === b || o.plugin.tier !== b.plugin.tier) continue;
           const dx = b.position.x - o.position.x, dy = b.position.y - o.position.y;
           const d = Math.hypot(dx, dy);
-          if (d > 1 && d < 220) { const f = CONFIG.magnetForce * o.mass / d; Body.applyForce(o, o.position, { x: dx * f, y: dy * f }); Sleeping.set(o, false); }
+          if (d > 1 && d < 220) { const f = CONFIG.magnetForce * o.mass * (1 - d / 220) / Math.max(d, 8); Body.applyForce(o, o.position, { x: dx * f, y: dy * f }); Sleeping.set(o, false); }
         }
       } else if (sp === 'angry' && b.plugin.landedAt && !b.plugin.jumped && now() - b.plugin.landedAt > CONFIG.angryJumpDelayMs) {
         b.plugin.jumped = true;                 // ANGRY: one chaotic jump after landing
@@ -2300,7 +2389,13 @@ const Game = {
       }
     }
 
-    // world events (curse leak / black hole / meteor) advance here
+    // spam heat cools once the player slows down and aims again
+    if (this.spamHeat > 0) {
+      this.spamHeat = Math.max(0, this.spamHeat - CONFIG.difficulty.spamDecayPerSec * dt);
+      if (this.spamHeat === 0) this.spamWarned = false;
+    }
+
+    // world events (curse leak / black hole / meteor / wind) advance here
     EventDirector.tick(dt, this.runActive());
 
     // collapse check (bombs & split fragments below the floor vanish quietly)
@@ -2515,13 +2610,14 @@ const Game = {
 const EventDirector = {
   nextAt: 0, hugeCharges: 0,
   curse: null,              // { type, until }
-  blackhole: null,          // { x, y, until }
+  blackhole: null,          // { x, y, until, eaten, max }
   meteor: null,             // { x, y, vx, vy, warnUntil, fired }
+  wind: null,               // { until, dir }
   lastJackpotAt: 0,
 
   reset() {
     this.nextAt = now() + CONFIG.events.firstEventDelayMs;
-    this.hugeCharges = 0; this.curse = null; this.blackhole = null; this.meteor = null;
+    this.hugeCharges = 0; this.curse = null; this.blackhole = null; this.meteor = null; this.wind = null;
     this.lastJackpotAt = now();
     document.body.classList.remove('cursed');
   },
@@ -2556,6 +2652,7 @@ const EventDirector = {
     this.updateCurse();
     this.updateBlackhole();
     this.updateMeteor(dt);
+    this.updateWind(dt);
     if (!runActive) return;
 
     // the rare jackpot diamond, on its own long timer
@@ -2573,12 +2670,13 @@ const EventDirector = {
 
   fire() {
     // Don't stack world events; if one's live, inject a block instead.
-    const worldBusy = this.blackhole || this.meteor || this.curseActive();
+    const worldBusy = this.blackhole || this.meteor || this.wind || this.curseActive();
     if (!worldBusy && Math.random() < CONFIG.events.worldEventChance) {
-      const kind = pick(['meteor', 'blackhole', 'curse']);
+      const kind = pick(['meteor', 'blackhole', 'curse', 'wind']);
       trackEvent('world_event', { kind, riskTolerance: +Profile.riskTolerance.toFixed(2) });
       if (kind === 'meteor') this.startMeteor();
       else if (kind === 'blackhole') this.startBlackhole();
+      else if (kind === 'wind') this.startWind();
       else this.startCurse();
     } else {
       Surprise.force(this.rollBlock());
@@ -2606,25 +2704,79 @@ const EventDirector = {
   },
 
   // ---- BLACK HOLE ----
+  // Opens right on the tower (not in random air) and EATS a few pieces —
+  // pulling them in one by one, paying coins for each, then collapsing shut.
   startBlackhole() {
-    this.blackhole = { x: rand(WORLD.width * 0.3, WORLD.width * 0.7), y: WORLD.platformY - rand(120, 260), until: now() + CONFIG.events.blackholeMs };
-    UI.react('BLACK HOLE!', '#b98bff');
-    UI.toast('🕳️ a black hole warps the tower');
+    const ps = Stack.pieces().filter((b) => b.plugin.special !== 'bomb');
+    if (!ps.length) { Surprise.force(this.rollBlock()); return; } // nothing to eat — inject a block instead
+    const target = pick(ps);
+    this.blackhole = {
+      x: clamp(target.position.x, 70, WORLD.width - 70),
+      y: clamp(target.position.y - 30, 160, WORLD.platformY - 50),
+      until: now() + CONFIG.events.blackholeMs,
+      eaten: 0, max: CONFIG.events.blackholeMaxEaten,
+    };
+    UI.react('BLACK HOLE!', '#cfd8ff');
+    UI.toast('🕳️ a black hole is feeding on the tower');
     trackEvent('blackhole_start', {});
   },
   updateBlackhole() {
     const bh = this.blackhole;
     if (!bh) return;
-    if (now() >= bh.until) { this.blackhole = null; Stack.wakeAll(); return; }
+    if (now() >= bh.until || bh.eaten >= bh.max) {
+      this.blackhole = null;
+      Stack.wakeAll();
+      Particles.burst(bh.x, bh.y, '#cfd8ff', 22, 260, 0.8);
+      return;
+    }
     for (const b of Stack.pieces()) {
       const dx = bh.x - b.position.x, dy = bh.y - b.position.y;
       const d = Math.hypot(dx, dy);
-      if (d > 4 && d < 260) { const f = CONFIG.events.blackholeForce * b.mass / Math.max(d, 30); Body.applyForce(b, b.position, { x: dx * f, y: dy * f }); Sleeping.set(b, false); }
+      if (d > 4 && d < 240) {
+        const f = CONFIG.events.blackholeForce * b.mass * (1 - d / 240) / Math.max(d, 8);
+        Body.applyForce(b, b.position, { x: dx * f, y: dy * f });
+        Sleeping.set(b, false);
+      }
+      // devour pieces that reach the core — paid, not punished
+      if (d < 26 && bh.eaten < bh.max && b.plugin.special !== 'bomb') {
+        bh.eaten++;
+        const payout = Math.round(TIERS.values[b.plugin.tier] * 0.6 * Greed.value * Economy.coinMult);
+        Game.runCoins += payout;
+        spawnPopup(bh.x, bh.y - 40, `+◆${fmt(payout)}`, '#cfd8ff', true);
+        Particles.burst(b.position.x, b.position.y, '#cfd8ff', 16, 180, 0.6);
+        Composite.remove(engine.world, b);
+        Stack.wakeAll();
+      }
     }
-    if (Math.random() < 0.5) Particles.spawn({ x: bh.x + rand(-40, 40), y: bh.y + rand(-40, 40), vx: 0, vy: 0, life: 0.4, maxLife: 0.4, size: rand(1, 3), color: '#b98bff', glow: true });
+  },
+
+  // ---- WIND ----
+  // A gusty crosswind that sways the whole tower for a few seconds. Pure
+  // tension/reshuffle — the force is far too gentle to throw pieces off.
+  startWind() {
+    this.wind = { until: now() + CONFIG.events.windMs, dir: Math.random() < 0.5 ? 1 : -1 };
+    UI.react('💨 WIND!', '#d8f6ff');
+    UI.toast(this.wind.dir > 0 ? '💨 wind blowing east' : '💨 wind blowing west');
+    trackEvent('wind_start', { dir: this.wind.dir });
+  },
+  updateWind(dt) {
+    const w = this.wind;
+    if (!w) return;
+    if (now() >= w.until) { this.wind = null; return; }
+    const gust = 0.55 + 0.45 * Math.sin(now() * 0.004);
+    for (const b of Stack.pieces()) {
+      Body.applyForce(b, b.position, { x: w.dir * gust * CONFIG.events.windForce * b.mass, y: 0 });
+      Sleeping.set(b, false);
+    }
+    if (perf.tier !== 'low' && Math.random() < 0.6) {
+      Particles.spawn({ x: w.dir > 0 ? -20 : WORLD.width + 20, y: rand(WORLD.platformY - 320, WORLD.platformY - 20), vx: w.dir * rand(180, 320) * gust, vy: rand(-8, 8), life: 0.8, maxLife: 0.8, size: rand(1, 2), color: 'rgba(216,246,255,0.7)', glow: false, drag: 1 });
+    }
   },
 
   // ---- METEOR ----
+  // Spectacle + reshuffle, NEVER a direct kill: the shockwave only pushes
+  // pieces UPWARD and TOWARD THE DOCK CENTER, so the tower gets scrambled
+  // but nothing is ever flung off the edge by the meteor itself.
   startMeteor() {
     const tx = clamp(WORLD.width / 2 + rand(-90, 90), 60, WORLD.width - 60);
     this.meteor = { x: tx - 260, y: -240, vx: 6.0, vy: 6.4, warnUntil: now() + CONFIG.events.meteorWarnMs, fired: false, tx };
@@ -2644,10 +2796,18 @@ const EventDirector = {
       m.fired = true;
       Shake.impulse(0.8); flashScreen();
       Particles.burst(m.x, m.y, '#ff7a2c', 50, 420, 1.3);
+      const cx = WORLD.width / 2;
       let salvage = 0;
       for (const b of Stack.pieces()) {
         const d = Math.hypot(b.position.x - m.x, b.position.y - m.y);
-        if (d < 150) { const k = (1 - d / 150) * 0.06; Body.applyForce(b, b.position, { x: (b.position.x - m.x) * 0.0006, y: -k }); Sleeping.set(b, false); salvage += 2; }
+        if (d < 150) {
+          const k = (1 - d / 150) * 0.045;
+          // up + toward center only — reshuffles, can't push anything off
+          const inward = Math.sign(cx - b.position.x) * Math.min(Math.abs(cx - b.position.x) * 0.0002, 0.015);
+          Body.applyForce(b, b.position, { x: inward, y: -k });
+          Sleeping.set(b, false);
+          salvage += 2;
+        }
       }
       Game.runCoins += Math.round(salvage * Greed.value);
       UI.react('IMPACT!', 'var(--hot)');
@@ -2657,39 +2817,34 @@ const EventDirector = {
 };
 
 /* ==================== §20c RISK FX ======================================= */
-/* Make greed irresistible: the more unbanked coins + higher greed + shakier
-   tower, the more the whole screen screams. Drives a pulsing gold vignette,
-   escalating gold-particle drizzle, the occasional adrenaline shake, and the
-   BANK button's "character" tiers. */
+/* The gold vignette is now a DANGER siren, not a wealth meter: it only
+   appears while the tower is genuinely at risk of dying (low stability or a
+   doomed piece), pulses while the danger lasts, and fades the moment the
+   tower steadies — in danger, gone, in danger again, gone. No particle
+   drizzle, no extra shakes (the instability micro-shake already covers it). */
 const RiskFX = {
-  level: 0, lastShakeT: 0,
-  reset() { this.level = 0; document.body.classList.remove('risk1', 'risk2', 'risk3'); },
-  compute() {
-    const coinRisk = clamp(Game.runCoins / Math.max(save.best, 600), 0, 1.3);
-    const greedRisk = clamp((Greed.value - 1) / 4, 0, 1);
-    const instability = 1 - Stack.stability();
-    return clamp(coinRisk * 0.5 + greedRisk * 0.35 + instability * 0.15, 0, 1);
+  level: 0,
+  reset() {
+    this.level = 0;
+    document.body.classList.remove('risk1', 'risk2', 'risk3');
+    const v = $('risk-vignette'); if (v) v.style.opacity = '0';
   },
   update(dt) {
     if (!Game.runActive() || Game.runCoins <= 0) { if (this.level) this.reset(); return; }
-    const target = this.compute();
-    this.level = lerp(this.level, target, Math.min(dt * 3, 1));
+    const stab = Stack.stability();
+    const danger = clamp((0.5 - stab) / 0.5, 0, 1);       // only real wobble counts
+    const target = Math.max(danger, Stack.isDoomed() ? 1 : 0);
+    // rise fast when danger appears, ease out when it passes
+    this.level = target > this.level
+      ? lerp(this.level, target, Math.min(dt * 5, 1))
+      : lerp(this.level, target, Math.min(dt * 1.8, 1));
+    if (this.level < 0.02) this.level = 0;
     const L = this.level;
-    // gold vignette intensity + tier classes
     const v = $('risk-vignette');
-    if (v) v.style.opacity = (L * 0.55).toFixed(3);
-    document.body.classList.toggle('risk1', L > 0.3 && L <= 0.6);
-    document.body.classList.toggle('risk2', L > 0.6 && L <= 0.82);
-    document.body.classList.toggle('risk3', L > 0.82);
-    // gold particle drizzle from the top edge, rate ∝ risk
-    if (!Settings.reduceMotion && Math.random() < L * L * 0.9) {
-      Particles.spawn({ x: rand(0, WORLD.width), y: Game.spawnY - 120, vx: rand(-10, 10), vy: rand(10, 40), life: rand(0.7, 1.4), maxLife: 1.4, size: rand(1.5, 3.5), color: pick(['#ffd700', '#ffcf5c', '#fff3b0']), glow: true, gravity: 60, drag: 0.99 });
-    }
-    // adrenaline micro-shakes at very high risk
-    if (L > 0.82 && now() - this.lastShakeT > lerp(900, 320, (L - 0.82) / 0.18)) {
-      this.lastShakeT = now();
-      Shake.impulse(0.06 + (L - 0.82) * 0.5);
-    }
+    if (v) v.style.opacity = (L * 0.6).toFixed(3);
+    document.body.classList.toggle('risk1', L > 0.2 && L <= 0.5);
+    document.body.classList.toggle('risk2', L > 0.5 && L <= 0.8);
+    document.body.classList.toggle('risk3', L > 0.8);
   },
 };
 
@@ -3072,69 +3227,161 @@ function drawBody(b, glowStrength, t) {
   }
 }
 
-/* Per-dock canvas render — each style looks wildly different. */
+/* Per-dock canvas render — the v6 rule: RESTRAINT reads expensive.
+   Every dock = clean material gradient + crisp top light + soft ground
+   shadow + ONE quiet signature detail. No effect spam. */
 function drawDock(hw) {
   const skin = Economy.dock, t = now();
   const x0 = WORLD.width / 2 - hw, w = hw * 2, y0 = WORLD.platformY, h = WORLD.platformH + 26;
+  const cx = WORLD.width / 2;
+  // soft ground shadow — grounds the dock in the scene
   ctx.save();
-  if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 26; }
+  const gs = ctx.createRadialGradient(cx, y0 + h + 6, 8, cx, y0 + h + 6, hw * 1.1);
+  gs.addColorStop(0, 'rgba(0,0,0,0.35)'); gs.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gs;
+  ctx.beginPath(); ctx.ellipse(cx, y0 + h + 8, hw * 1.05, 14, 0, 0, Math.PI * 2); ctx.fill();
+  // subtle ambient glow for premium docks only
+  if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 16; }
   // body
   const bg = ctx.createLinearGradient(0, y0, 0, y0 + h);
   bg.addColorStop(0, skin.c1); bg.addColorStop(1, skin.c2);
   ctx.fillStyle = bg;
-  roundRect(x0, y0, w, h, 8); ctx.fill();
+  roundRect(x0, y0, w, h, 9); ctx.fill();
   ctx.shadowBlur = 0;
-  // style-specific surface treatment
-  ctx.save(); roundRect(x0, y0, w, h, 8); ctx.clip();
+  // signature details, clipped to the body
+  ctx.save(); roundRect(x0, y0, w, h, 9); ctx.clip();
   switch (skin.style) {
-    case 'frost': {
-      ctx.fillStyle = 'rgba(255,255,255,0.18)';
-      for (let i = 0; i < 30; i++) ctx.fillRect(x0 + rand(0, w), y0 + rand(0, h), rand(1, 3), rand(1, 3));
+    case 'wood': { // three quiet grain lines
+      ctx.strokeStyle = 'rgba(60,32,12,0.30)'; ctx.lineWidth = 1;
+      for (let i = 1; i <= 3; i++) {
+        const gy = y0 + (h * i) / 4;
+        ctx.beginPath(); ctx.moveTo(x0, gy);
+        ctx.bezierCurveTo(x0 + w * 0.3, gy - 3, x0 + w * 0.6, gy + 3, x0 + w, gy - 1);
+        ctx.stroke();
+      }
       break;
     }
-    case 'glass': { // liquid glass — a bright sheen sweeping across
-      const sweep = (Math.sin(t * 0.0012) * 0.5 + 0.5) * w;
-      const gl = ctx.createLinearGradient(x0 + sweep - 60, 0, x0 + sweep + 60, 0);
-      gl.addColorStop(0, 'rgba(255,255,255,0)'); gl.addColorStop(0.5, 'rgba(255,255,255,0.55)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
+    case 'steel': { // fine horizontal brushing + end rivets
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+      for (let gy = y0 + 3; gy < y0 + h; gy += 3) { ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(x0 + w, gy); ctx.stroke(); }
+      ctx.fillStyle = 'rgba(40,46,58,0.8)';
+      for (const rx of [x0 + 14, x0 + w - 14]) { ctx.beginPath(); ctx.arc(rx, y0 + h / 2, 3, 0, Math.PI * 2); ctx.fill(); }
+      break;
+    }
+    case 'marble': { // two faint diagonal veins
+      ctx.strokeStyle = 'rgba(120,116,108,0.35)'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(x0 + w * 0.2, y0);
+      ctx.bezierCurveTo(x0 + w * 0.3, y0 + h * 0.6, x0 + w * 0.42, y0 + h * 0.4, x0 + w * 0.5, y0 + h);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(120,116,108,0.22)';
+      ctx.beginPath(); ctx.moveTo(x0 + w * 0.68, y0);
+      ctx.bezierCurveTo(x0 + w * 0.74, y0 + h * 0.5, x0 + w * 0.8, y0 + h * 0.3, x0 + w * 0.86, y0 + h);
+      ctx.stroke();
+      break;
+    }
+    case 'porcelain': { // single gold trim line
+      ctx.strokeStyle = 'rgba(220,168,58,0.85)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x0 + 6, y0 + 10); ctx.lineTo(x0 + w - 6, y0 + 10); ctx.stroke();
+      break;
+    }
+    case 'glass': { // one slow, narrow sheen — nothing else
+      const sweep = (Math.sin(t * 0.0006) * 0.5 + 0.5) * w;
+      const gl = ctx.createLinearGradient(x0 + sweep - 30, 0, x0 + sweep + 30, 0);
+      gl.addColorStop(0, 'rgba(255,255,255,0)'); gl.addColorStop(0.5, 'rgba(255,255,255,0.35)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = gl; ctx.fillRect(x0, y0, w, h);
       break;
     }
-    case 'lava': { // molten cracks glowing
-      ctx.strokeStyle = `rgba(255,${90 + 60 * Math.sin(t * 0.005)},20,0.9)`; ctx.lineWidth = 2;
-      if (perf.tier !== 'low') { ctx.shadowColor = '#ff5a14'; ctx.shadowBlur = 10; }
-      for (let i = 0; i < 4; i++) {
-        const cx = x0 + (i + 0.5) * w / 4;
-        ctx.beginPath(); ctx.moveTo(cx, y0); ctx.lineTo(cx + rand(-8, 8), y0 + h); ctx.stroke();
-      }
+    case 'lava': { // one thin ember seam, breathing slowly
+      const glow = 0.55 + 0.35 * Math.sin(t * 0.002);
+      ctx.strokeStyle = `rgba(255,110,30,${glow})`; ctx.lineWidth = 2;
+      if (perf.tier !== 'low') { ctx.shadowColor = '#ff6b1e'; ctx.shadowBlur = 8; }
+      ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + h * 0.55);
+      ctx.lineTo(x0 + w * 0.3, y0 + h * 0.45); ctx.lineTo(x0 + w * 0.55, y0 + h * 0.6);
+      ctx.lineTo(x0 + w * 0.8, y0 + h * 0.5); ctx.lineTo(x0 + w - 8, y0 + h * 0.58);
+      ctx.stroke(); ctx.shadowBlur = 0;
+      break;
+    }
+    case 'circuit': { // static traces + one slow light pulse
+      ctx.strokeStyle = 'rgba(60,230,170,0.25)'; ctx.lineWidth = 1;
+      const midY = y0 + h / 2;
+      ctx.beginPath(); ctx.moveTo(x0, midY); ctx.lineTo(x0 + w, midY); ctx.stroke();
+      ctx.fillStyle = 'rgba(60,230,170,0.35)';
+      for (let i = 1; i <= 4; i++) { ctx.beginPath(); ctx.arc(x0 + (w * i) / 5, midY, 2, 0, Math.PI * 2); ctx.fill(); }
+      const px = x0 + ((t * 0.045) % w);
+      if (perf.tier !== 'low') { ctx.shadowColor = '#3ce6aa'; ctx.shadowBlur = 8; }
+      ctx.fillStyle = '#8affd4'; ctx.beginPath(); ctx.arc(px, midY, 2.6, 0, Math.PI * 2); ctx.fill();
       ctx.shadowBlur = 0;
-      if (Math.random() < 0.3 && perf.tier !== 'low') Particles.spawn({ x: x0 + rand(0, w), y: y0, vx: rand(-8, 8), vy: rand(-30, -10), life: 0.6, maxLife: 0.6, size: rand(1, 2.5), color: pick(['#ff5a14', '#ffb020']), glow: true });
       break;
     }
-    case 'circuit': { // scrolling light line
-      const scroll = (t * 0.06) % w;
-      ctx.strokeStyle = 'rgba(46,230,150,0.7)'; ctx.lineWidth = 1;
-      for (let gx = -w; gx < w; gx += 22) { ctx.beginPath(); ctx.moveTo(x0 + ((gx + scroll) % w + w) % w, y0); ctx.lineTo(x0 + ((gx + scroll) % w + w) % w, y0 + h); ctx.stroke(); }
+    case 'gold': { // polished bullion: one bright band + bevel edges
+      const band = ctx.createLinearGradient(0, y0, 0, y0 + h);
+      band.addColorStop(0.25, 'rgba(255,255,255,0)'); band.addColorStop(0.4, 'rgba(255,250,220,0.5)'); band.addColorStop(0.55, 'rgba(255,255,255,0)');
+      ctx.fillStyle = band; ctx.fillRect(x0, y0, w, h);
+      ctx.strokeStyle = 'rgba(120,80,10,0.5)'; ctx.lineWidth = 1.2;
+      ctx.strokeRect(x0 + 5, y0 + 5, w - 10, h - 10);
       break;
     }
-    case 'aurora': { // shifting hue band
+    case 'aurora': { // one soft, very slow hue band
+      const hue = (t * 0.01) % 360;
       const ag = ctx.createLinearGradient(x0, 0, x0 + w, 0);
-      ag.addColorStop(0, `hsla(${(t * 0.05) % 360},80%,60%,0.5)`);
-      ag.addColorStop(0.5, `hsla(${(t * 0.05 + 90) % 360},80%,60%,0.5)`);
-      ag.addColorStop(1, `hsla(${(t * 0.05 + 180) % 360},80%,60%,0.5)`);
+      ag.addColorStop(0, `hsla(${hue},70%,65%,0.20)`);
+      ag.addColorStop(1, `hsla(${(hue + 80) % 360},70%,65%,0.20)`);
       ctx.fillStyle = ag; ctx.fillRect(x0, y0, w, h);
       break;
     }
-    case 'vortex': { // swirling glow
-      const vg = ctx.createRadialGradient(WORLD.width / 2, y0 + h / 2, 4, WORLD.width / 2, y0 + h / 2, hw);
-      vg.addColorStop(0, `hsla(${(t * 0.1) % 360},90%,70%,0.6)`); vg.addColorStop(1, 'rgba(0,0,0,0)');
+    case 'nebula': { // static starfield + one faint magenta wisp
+      const wisp = ctx.createRadialGradient(x0 + w * 0.65, y0 + h * 0.5, 4, x0 + w * 0.65, y0 + h * 0.5, w * 0.4);
+      wisp.addColorStop(0, 'rgba(200,120,255,0.16)'); wisp.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = wisp; ctx.fillRect(x0, y0, w, h);
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      for (let i = 0; i < 7; i++) { const sx = x0 + ((i * 977) % w), sy = y0 + ((i * 397) % h); ctx.fillRect(sx, sy, 1.4, 1.4); }
+      break;
+    }
+    case 'velvet': { // fabric sheen arc + a thin gold filigree line
+      const sheen = ctx.createLinearGradient(0, y0, 0, y0 + h * 0.6);
+      sheen.addColorStop(0, 'rgba(255,180,200,0.14)'); sheen.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = sheen; ctx.fillRect(x0, y0, w, h);
+      ctx.strokeStyle = 'rgba(240,196,32,0.6)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x0 + 10, y0 + h - 8);
+      ctx.bezierCurveTo(x0 + w * 0.35, y0 + h - 14, x0 + w * 0.65, y0 + h - 2, x0 + w - 10, y0 + h - 8);
+      ctx.stroke();
+      break;
+    }
+    case 'vortex': { // gentle center glow, slow ring — no strobing
+      const vg = ctx.createRadialGradient(cx, y0 + h / 2, 4, cx, y0 + h / 2, hw * 0.8);
+      vg.addColorStop(0, 'rgba(200,170,255,0.28)'); vg.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = vg; ctx.fillRect(x0, y0, w, h);
+      ctx.strokeStyle = 'rgba(220,200,255,0.4)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(cx, y0 + h / 2, 12, t * 0.001, t * 0.001 + Math.PI * 1.4); ctx.stroke();
+      break;
+    }
+    case 'obsidian': { // volcanic glass: one sharp static diagonal highlight
+      ctx.strokeStyle = 'rgba(255,255,255,0.28)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x0 + w * 0.16, y0 + h); ctx.lineTo(x0 + w * 0.3, y0); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(x0 + w * 0.2, y0 + h); ctx.lineTo(x0 + w * 0.34, y0); ctx.stroke();
+      break;
+    }
+    case 'crown': { // the flagship: black glass, double gold trim, diamond emblem
+      ctx.strokeStyle = 'rgba(255,214,110,0.9)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + 8); ctx.lineTo(x0 + w - 8, y0 + 8); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,214,110,0.45)';
+      ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + h - 8); ctx.lineTo(x0 + w - 8, y0 + h - 8); ctx.stroke();
+      const pulse = 0.7 + 0.3 * Math.sin(t * 0.0015);
+      if (perf.tier !== 'low') { ctx.shadowColor = '#ffd66e'; ctx.shadowBlur = 10 * pulse; }
+      ctx.fillStyle = '#ffd66e';
+      polyPath(ctx, cx, y0 + h / 2, 4, 7, Math.PI / 4); ctx.fill();
+      ctx.shadowBlur = 0;
       break;
     }
   }
   ctx.restore();
-  // top surface
-  ctx.fillStyle = skin.style === 'glass' || skin.style === 'frost' ? 'rgba(255,255,255,0.9)' : lighten(skin.c1, 0.25);
-  roundRect(x0, y0, w, 6, 3); ctx.fill();
+  // crisp top light — the one detail every dock shares
+  ctx.fillStyle = ['marble', 'porcelain', 'glass', 'steel'].includes(skin.style) ? 'rgba(255,255,255,0.9)' : lighten(skin.c1, 0.28);
+  roundRect(x0, y0, w, 4, 2); ctx.fill();
+  // thin inner rim for definition
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1;
+  roundRect(x0 + 1, y0 + 1, w - 2, h - 2, 8); ctx.stroke();
   ctx.restore();
   // bumper walls
   if (Stack.walls) {
@@ -3142,7 +3389,7 @@ function drawDock(hw) {
     for (const wl of Stack.walls) {
       const wx = wl.position.x;
       ctx.fillStyle = lighten(skin.c1, 0.1);
-      if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 14; }
+      if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 10; }
       roundRect(wx - 6, WORLD.platformY - wallH + 6, 12, wallH, 4); ctx.fill();
       ctx.shadowBlur = 0;
       ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -3150,6 +3397,7 @@ function drawDock(hw) {
     }
   }
 }
+
 
 function render(t) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -3165,13 +3413,13 @@ function render(t) {
   const viewH = ch / Camera.zoom;
   const topY = Camera.y - viewH, botY = WORLD.platformY + 200;
   const bgGrad = ctx.createLinearGradient(0, topY, 0, botY);
-  bgGrad.addColorStop(0, '#05130d');
-  bgGrad.addColorStop(0.7, '#0b2c1f');
-  bgGrad.addColorStop(1, '#12402d');
+  bgGrad.addColorStop(0, '#123b2c');
+  bgGrad.addColorStop(0.65, '#1c5a41');
+  bgGrad.addColorStop(1, '#287a58');
   ctx.fillStyle = bgGrad;
   ctx.fillRect(-500, topY, WORLD.width + 1000, botY - topY + 100);
   const horizon = ctx.createRadialGradient(WORLD.width / 2, WORLD.platformY + 60, 40, WORLD.width / 2, WORLD.platformY + 60, 560);
-  horizon.addColorStop(0, document.body.classList.contains('chase') ? 'rgba(255,200,70,0.24)' : 'rgba(60,220,150,0.16)');
+  horizon.addColorStop(0, document.body.classList.contains('chase') ? 'rgba(255,205,80,0.28)' : 'rgba(140,255,200,0.22)');
   horizon.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = horizon;
   ctx.fillRect(-500, WORLD.platformY - 500, WORLD.width + 1000, 1100);
@@ -3181,7 +3429,7 @@ function render(t) {
   for (const s of bgShapes) {
     const y = s.y + par * s.depth;
     ctx.globalAlpha = s.alpha;
-    ctx.strokeStyle = '#5fe0a8';
+    ctx.strokeStyle = '#9fffd8';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     for (let i = 0; i <= s.sides; i++) {
@@ -3197,7 +3445,7 @@ function render(t) {
   for (const d of ambientDots) {
     const y = ((d.y - t * 0.001 * d.spd + par) % (WORLD.platformY + 200) + WORLD.platformY + 200) % (WORLD.platformY + 200) - 100;
     ctx.globalAlpha = 0.16 + 0.12 * Math.sin(t * 0.001 + d.phase);
-    ctx.fillStyle = document.body.classList.contains('chase') ? '#ffd166' : '#45e0a0';
+    ctx.fillStyle = document.body.classList.contains('chase') ? '#ffd166' : '#8fffd0';
     ctx.beginPath();
     ctx.arc(d.x, y, d.r, 0, Math.PI * 2);
     ctx.fill();
@@ -3207,15 +3455,34 @@ function render(t) {
   // dock (per-style render)
   if (Stack.platform) drawDock(Stack.platform.plugin.halfW);
 
-  // black hole (behind pieces)
+  // black hole (behind pieces) — a clean void: pure dark core, one thin
+  // white-hot accretion ring, soft light-bend halo. Sits ON the tower.
   const bh = EventDirector.blackhole;
   if (bh) {
-    const rr = 34 + 6 * Math.sin(t * 0.02);
-    const g = ctx.createRadialGradient(bh.x, bh.y, 2, bh.x, bh.y, rr * 2.4);
-    g.addColorStop(0, '#000'); g.addColorStop(0.55, 'rgba(60,20,90,0.85)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bh.x, bh.y, rr * 2.4, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = `hsl(${(t * 0.3) % 360} 80% 65%)`; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(bh.x, bh.y, rr, t * 0.01, t * 0.01 + Math.PI * 1.6); ctx.stroke();
+    const rr = 20;
+    // light-bend halo
+    const halo = ctx.createRadialGradient(bh.x, bh.y, rr * 0.6, bh.x, bh.y, rr * 3.2);
+    halo.addColorStop(0, 'rgba(10,10,18,0.85)');
+    halo.addColorStop(0.55, 'rgba(20,24,40,0.35)');
+    halo.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(bh.x, bh.y, rr * 3.2, 0, Math.PI * 2); ctx.fill();
+    // core
+    ctx.beginPath(); ctx.arc(bh.x, bh.y, rr, 0, Math.PI * 2);
+    ctx.fillStyle = '#000'; ctx.fill();
+    // thin accretion ring, slow spin, slight ellipse for depth
+    ctx.save();
+    ctx.translate(bh.x, bh.y); ctx.rotate(t * 0.0008); ctx.scale(1, 0.82);
+    if (perf.tier !== 'low') { ctx.shadowColor = '#cfe0ff'; ctx.shadowBlur = 10; }
+    ctx.strokeStyle = 'rgba(235,242,255,0.9)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, rr + 4, 0, Math.PI * 2); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+    // spiraling infall sparks
+    if (perf.tier !== 'low' && Math.random() < 0.5) {
+      const a = rand(0, 6.28), d0 = rand(rr * 2, rr * 3.5);
+      Particles.spawn({ x: bh.x + Math.cos(a) * d0, y: bh.y + Math.sin(a) * d0, vx: -Math.cos(a) * 80, vy: -Math.sin(a) * 80, life: 0.35, maxLife: 0.35, size: 1.4, color: '#cfe0ff', glow: true, drag: 1 });
+    }
   }
 
   // pieces — rim glow rises with greed
@@ -3342,7 +3609,6 @@ const UI = {
     $('ms-coins').textContent = '◆' + fmt(save.coins);
     $('ms-streak').innerHTML = `🔥 <b>${Streak.days || 0}</b>`;
     $('style-tag').textContent = Profile.styleTitle ? `STYLE · ${Profile.styleTitle}` : '';
-    $('btn-headstart').style.display = save.runsTotal >= 5 ? '' : 'none';
     this.syncStats();
   },
   hint(text) {
@@ -3613,6 +3879,10 @@ const UI = {
     $('tgl-motion').classList.toggle('on', Settings.reduceMotion);
   },
   hudTick(dt) {
+    // keep the NEXT preview live so animated specials (rainbow, golden…) are
+    // unmistakable in the box, not a stale single frame
+    this._pvT = (this._pvT || 0) + dt;
+    if (this._pvT > 0.15 && Game.inPlay()) { this._pvT = 0; this.renderNextPreview(); }
     Game.displayCoins = lerp(Game.displayCoins, Game.runCoins, Math.min(dt * 9, 1));
     $('run-score-num').textContent = fmt(Game.displayCoins);
     const gv = Greed.value;
@@ -3631,14 +3901,14 @@ const UI = {
       bank.disabled = !bankable;
       bank.classList.toggle('doomed', doomed || cursed);
       $('bank-amt').textContent = cursed ? 'CURSED' : doomed ? 'TOO LATE' : `+◆ ${fmt(Game.runCoins)}`;
-      // The BANK button is a CHARACTER: its urgency tracks live RiskFX, so the
-      // longer you refuse to bank a fat greedy tower, the harder it screams.
-      const urgency = !bankable ? 0 : Math.max(RiskFX.level,
-        clamp(Game.runCoins / Math.max(save.best, 400), 0, 1) * 0.55 + clamp((gv - 1) / 3, 0, 1) * 0.3);
-      bank.classList.toggle('u1', urgency > 0.22 && urgency <= 0.5);
-      bank.classList.toggle('u2', urgency > 0.5 && urgency <= 0.75);
-      bank.classList.toggle('u3', urgency > 0.75 && urgency <= 0.9);
-      bank.classList.toggle('u4', urgency > 0.9);
+      // The BANK button is a CHARACTER, but a well-timed one: it stays calm
+      // until real money is on the line (~◆150k unbanked) then escalates —
+      // glow, grow, BIG smooth pulses, SCREAM. No jitter, no glitching.
+      const drama = !bankable ? 0 : Game.runCoins / CONFIG.bankDramaAt;
+      bank.classList.toggle('u1', drama > 0.35 && drama <= 0.7);
+      bank.classList.toggle('u2', drama > 0.7 && drama < 1);
+      bank.classList.toggle('u3', drama >= 1 && drama < 2);
+      bank.classList.toggle('u4', drama >= 2);
     } else {
       bank.disabled = true;
       bank.classList.remove('u1', 'u2', 'u3', 'u4', 'doomed');
@@ -3700,18 +3970,20 @@ const Input = {
     bind('btn-again', () => Game.dropAgain());
     bind('btn-revive', () => Game.revive());
     bind('btn-double', () => Game.doubleReward());
-    bind('btn-headstart', async () => {
-      const ok = await AdManager.requestRewarded('headstart');
-      if (ok) Game.startRun({ headStart: true });
-    });
     bind('hud-home', () => Game.toMenu());
     bind('btn-shop', () => { UI.renderShop(); UI.show('shop'); Profile.onShopOpen(); trackEvent('shop_open', { from: 'menu' }); });
     bind('btn-results-collection', () => { UI.renderShop(); UI.show('shop'); Profile.onShopOpen(); trackEvent('shop_open', { from: 'results' }); });
-    bind('btn-shop-close', () => { $('confirm-dialog').classList.add('hidden'); Game.state === 'RESULTS' ? UI.show('results') : UI.showMenu(); });
+    // cards close via the ✕ in the corner OR a tap anywhere outside the card
+    const closeShop = () => { $('confirm-dialog').classList.add('hidden'); Game.state === 'RESULTS' ? UI.show('results') : UI.showMenu(); };
+    bind('shop-x', closeShop);
     bind('btn-settings', () => { UI.syncToggles(); UI.show('settings'); });
-    bind('btn-settings-close', () => UI.showMenu());
+    bind('settings-x', () => UI.showMenu());
     bind('btn-board', () => { UI.renderBoard(); UI.show('board'); Profile.onBoardOpen(); });
-    bind('btn-board-close', () => UI.showMenu());
+    bind('board-x', () => UI.showMenu());
+    $('shop').addEventListener('click', (e) => { if (e.target === $('shop')) { Audio2.ui(); closeShop(); } });
+    $('settings').addEventListener('click', (e) => { if (e.target === $('settings')) { Audio2.ui(); UI.showMenu(); } });
+    $('board').addEventListener('click', (e) => { if (e.target === $('board')) { Audio2.ui(); UI.showMenu(); } });
+    $('confirm-dialog').addEventListener('click', (e) => { if (e.target === $('confirm-dialog')) $('confirm-dialog').classList.add('hidden'); });
     bind('tgl-sound', () => { Settings.toggle('sound'); Audio2.muteCheck(); UI.syncToggles(); });
     bind('tgl-haptics', () => { Settings.toggle('haptics'); UI.syncToggles(); });
     bind('tgl-motion', () => { Settings.toggle('reduceMotion'); UI.syncToggles(); });

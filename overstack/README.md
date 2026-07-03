@@ -33,8 +33,8 @@ no install, no login, no network required.
   (Head Start, Gold Rush, Steady Aim, Encore, Chroma Rush, Titan Line). Superpowers
   are earned, never bought — see `MILESTONES` in §1.
 
-Brand identity is **emerald green + gold** (deep green world, green→gold wordmark).
-The in-game logo sits bottom-center of the play screen.
+Brand identity is **fresh spring green + gold** — a bright, airy green world (no
+more cave-dark), green→gold wordmark, in-game logo at the bottom-center.
 
 ## Shapes
 
@@ -78,7 +78,7 @@ up, gold particles raining across the screen, adrenaline micro-shakes, and the
 BANK button escalating through four "character" tiers until it's literally
 shaking and flashing **BANK ME** at you.
 
-## Docks
+## Collection (◆100,000 → ◆12,000,000)
 
 Each dock in the Collection has a distinct canvas render *and*, for pricier ones,
 real powers: Slab (free), Frostpane (frosted glass), Liquid Glass (+length +
