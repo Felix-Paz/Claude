@@ -1,0 +1,1962 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>DRIFTLINE — powered by SIREN</title>
+</head>
+<body>
+<style>
+  :root{
+    --bg:#04060d; --panel:#0a0f1e; --panel2:#0d1428; --line:#1b2748;
+    --cy:#4ef3ff; --mg:#ff4ecd; --gd:#ffd24e; --gn:#5dff9e; --rd:#ff5d6e;
+    --tx:#dfe9ff; --dim:#7c8db5; --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);
+    font-family:system-ui,-apple-system,'Segoe UI',sans-serif;user-select:none;touch-action:none}
+  #cv{position:fixed;inset:0;display:block;cursor:crosshair}
+
+  /* ---------- HUD ---------- */
+  #hud{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .4s;z-index:5}
+  #hud.on{opacity:1}
+  .hudTL{position:absolute;top:14px;left:16px;font-family:var(--mono)}
+  #score{font-size:clamp(26px,4vw,40px);font-weight:800;letter-spacing:1px;
+    color:#fff;text-shadow:0 0 18px rgba(78,243,255,.55)}
+  #shardHud{margin-top:2px;font-size:14px;color:var(--gd);text-shadow:0 0 10px rgba(255,210,78,.4)}
+  #hpPips{margin-top:8px;display:flex;gap:6px}
+  .pip{width:22px;height:8px;border-radius:4px;background:var(--cy);box-shadow:0 0 10px var(--cy)}
+  .pip.off{background:#1c2a4a;box-shadow:none}
+  .hudTC{position:absolute;top:12px;left:50%;transform:translateX(-50%);text-align:center;width:min(360px,60vw)}
+  #comboMult{font-family:var(--mono);font-size:clamp(20px,3vw,30px);font-weight:800;
+    color:var(--mg);text-shadow:0 0 16px rgba(255,78,205,.6);transition:transform .1s}
+  #comboBar{height:4px;border-radius:2px;background:#182448;margin-top:4px;overflow:hidden}
+  #comboFill{height:100%;width:0%;background:linear-gradient(90deg,var(--mg),var(--cy));border-radius:2px}
+  .hudTR{position:absolute;top:14px;right:16px;text-align:right;max-width:290px}
+  #goalHudTxt{font-size:12px;color:var(--dim);letter-spacing:.4px}
+  #goalHudBar{height:4px;border-radius:2px;background:#182448;margin-top:5px;overflow:hidden}
+  #goalHudFill{height:100%;width:0%;background:var(--gn);border-radius:2px;transition:width .5s}
+  .hudBC{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:min(300px,55vw);text-align:center}
+  #grazeLbl{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--dim)}
+  #grazeBar{height:7px;border-radius:4px;background:#182448;margin-top:4px;overflow:hidden;
+    box-shadow:inset 0 0 8px rgba(0,0,0,.6)}
+  #grazeFill{height:100%;width:0%;background:linear-gradient(90deg,#4ef3ff,#5dff9e);border-radius:4px}
+  #grazeBar.ready #grazeFill{animation:pulseG .5s infinite alternate}
+  @keyframes pulseG{from{filter:brightness(1)}to{filter:brightness(1.8)}}
+  #eventBanner{position:absolute;top:18%;left:50%;transform:translateX(-50%) scale(.8);opacity:0;
+    font-family:var(--mono);font-size:clamp(22px,4vw,38px);font-weight:800;letter-spacing:6px;
+    color:#fff;text-shadow:0 0 24px var(--mg),0 0 60px var(--mg);white-space:nowrap;
+    transition:all .25s cubic-bezier(.2,1.6,.4,1)}
+  #eventBanner.show{opacity:1;transform:translateX(-50%) scale(1)}
+
+  /* ---------- screens ---------- */
+  .screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;
+    justify-content:center;z-index:10;padding:20px;overflow-y:auto;
+    background:radial-gradient(ellipse at 50% 30%,rgba(10,16,34,.72),rgba(4,6,13,.9));
+    backdrop-filter:blur(6px)}
+  .screen.active{display:flex}
+  .glowTitle{font-family:var(--mono);font-weight:800;letter-spacing:10px;
+    font-size:clamp(34px,7vw,64px);color:#fff;
+    text-shadow:0 0 12px var(--cy),0 0 45px rgba(78,243,255,.55),0 0 90px rgba(255,78,205,.3)}
+  .tagline{color:var(--dim);letter-spacing:3px;font-size:12px;margin-top:8px;text-transform:uppercase}
+  .btn{pointer-events:auto;cursor:pointer;border:1px solid var(--line);background:rgba(13,20,40,.85);
+    color:var(--tx);border-radius:12px;padding:12px 22px;font-family:var(--mono);font-size:15px;
+    letter-spacing:2px;transition:all .15s;text-transform:uppercase}
+  .btn:hover{border-color:var(--cy);box-shadow:0 0 18px rgba(78,243,255,.35);transform:translateY(-1px)}
+  .btn.primary{border-color:var(--cy);background:linear-gradient(180deg,rgba(78,243,255,.16),rgba(78,243,255,.05));
+    font-size:clamp(18px,3vw,24px);padding:16px 54px;font-weight:800;
+    box-shadow:0 0 26px rgba(78,243,255,.28)}
+  .btn.primary:hover{box-shadow:0 0 40px rgba(78,243,255,.55)}
+  .btnRow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+  .card{background:rgba(10,15,30,.92);border:1px solid var(--line);border-radius:14px;padding:16px 20px}
+
+  #dailyCard{margin-top:22px;width:min(430px,92vw);text-align:left;position:relative}
+  #dailyCard h3{font-family:var(--mono);font-size:12px;letter-spacing:3px;color:var(--gd);margin-bottom:6px}
+  #dailyMod{font-size:14px;color:var(--tx)}
+  #dailyTask{font-size:12px;color:var(--dim);margin-top:6px}
+  #dailyTaskBar{height:4px;background:#182448;border-radius:2px;margin-top:4px;overflow:hidden}
+  #dailyTaskFill{height:100%;width:0%;background:var(--gd)}
+  #streakRow{display:flex;gap:5px;margin-top:10px;align-items:center}
+  .day{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);display:flex;
+    align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .day.lit{border-color:var(--gd);color:var(--gd);box-shadow:0 0 10px rgba(255,210,78,.35)}
+  .day.today{border-color:var(--gn);color:var(--gn)}
+  #streakNum{margin-left:8px;font-family:var(--mono);font-size:12px;color:var(--gd)}
+
+  /* summary */
+  #sumScore{font-family:var(--mono);font-size:clamp(44px,9vw,84px);font-weight:800;color:#fff;
+    text-shadow:0 0 20px rgba(78,243,255,.6)}
+  #sumBest{font-family:var(--mono);color:var(--gd);font-size:14px;letter-spacing:2px;margin-top:2px}
+  #sumStats{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+  .chip{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:20px;
+    padding:5px 12px;color:var(--dim)}
+  .chip b{color:var(--tx)}
+  #xpRow{width:min(430px,92vw);margin-top:20px}
+  #xpTop{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--dim)}
+  #lvlBadge{color:var(--cy)}
+  #xpBar{height:9px;background:#182448;border-radius:5px;margin-top:5px;overflow:hidden}
+  #xpFill{height:100%;width:0%;background:linear-gradient(90deg,var(--cy),var(--mg));border-radius:5px;
+    transition:width .9s cubic-bezier(.3,1,.3,1)}
+  #goalList{width:min(430px,92vw);margin-top:16px;display:flex;flex-direction:column;gap:8px}
+  .goal{border:1px solid var(--line);border-radius:10px;padding:9px 13px;background:rgba(10,15,30,.85)}
+  .goal .gt{display:flex;justify-content:space-between;font-size:13px}
+  .goal .gt em{font-style:normal;color:var(--gn);font-family:var(--mono);font-size:11px}
+  .goal .gb{height:4px;background:#182448;border-radius:2px;margin-top:6px;overflow:hidden}
+  .goal .gf{height:100%;background:var(--gn);border-radius:2px;transition:width .8s}
+  #sumCallout{margin-top:14px;font-size:13px;color:var(--gd);font-family:var(--mono);letter-spacing:.5px;
+    min-height:18px;text-align:center;max-width:460px}
+
+  /* hangar */
+  .balRow{display:flex;gap:16px;font-family:var(--mono);font-size:15px;margin:10px 0 16px}
+  .balRow .shards{color:var(--gd)} .balRow .cores{color:var(--mg)}
+  #upGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:10px;
+    width:min(900px,94vw);max-height:46vh;overflow-y:auto;padding:4px}
+  .up{border:1px solid var(--line);border-radius:12px;padding:12px;background:rgba(10,15,30,.9)}
+  .up h4{font-size:13px;letter-spacing:.5px}
+  .up .lv{font-family:var(--mono);font-size:11px;color:var(--cy);margin-top:2px}
+  .up p{font-size:11px;color:var(--dim);margin-top:5px;min-height:28px}
+  .up .buy{margin-top:8px;width:100%;padding:7px;font-size:12px}
+  .up .buy.cant{opacity:.4;pointer-events:none}
+  .up .buy.maxed{opacity:.55;pointer-events:none;border-color:var(--gn);color:var(--gn)}
+  #skinRow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center}
+  .skin{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;pointer-events:auto}
+  .skin.sel{border-color:#fff;box-shadow:0 0 14px rgba(255,255,255,.35)}
+  .skin.lock{opacity:.3;cursor:default}
+  .skin i{width:18px;height:18px;border-radius:50%;display:block}
+
+  /* achievements */
+  #achList{width:min(560px,94vw);max-height:56vh;overflow-y:auto;display:flex;
+    flex-direction:column;gap:7px;padding:4px}
+  .achv{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;
+    padding:9px 13px;background:rgba(10,15,30,.9)}
+  .achv .ic{font-size:20px;filter:grayscale(1);opacity:.4}
+  .achv.done .ic{filter:none;opacity:1}
+  .achv .tx{flex:1}.achv .tx h5{font-size:13px}.achv .tx p{font-size:11px;color:var(--dim)}
+  .achv .pr{font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .achv.done .pr{color:var(--gn)}
+
+  /* ---------- SIREN dashboard ---------- */
+  #dash{justify-content:flex-start;padding-top:34px}
+  #dash h2{font-family:var(--mono);letter-spacing:6px;font-size:20px;color:var(--cy);
+    text-shadow:0 0 14px rgba(78,243,255,.5)}
+  #dash .sub{font-size:11px;color:var(--dim);letter-spacing:2px;margin-top:4px;text-transform:uppercase}
+  #dashGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;
+    width:min(1020px,95vw);margin-top:16px;max-height:70vh;overflow-y:auto;padding:4px}
+  .dcard{background:rgba(9,13,27,.94);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+  .dcard h4{font-family:var(--mono);font-size:11px;letter-spacing:2.5px;color:var(--dim);
+    margin-bottom:10px;text-transform:uppercase}
+  .gauge{margin-bottom:9px}
+  .gauge .gl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;
+    color:var(--tx);margin-bottom:3px}
+  .gauge .gl span:last-child{color:var(--cy)}
+  .gauge .gbar{height:6px;background:#141d38;border-radius:3px;overflow:hidden}
+  .gauge .gfill{height:100%;border-radius:3px;transition:width .4s}
+  #flowCanvas{width:100%;height:150px;border-radius:8px;background:#070b18}
+  .bandit{margin-bottom:8px}
+  .bandit .bl{display:flex;justify-content:space-between;font-family:var(--mono);
+    font-size:11px;margin-bottom:3px}
+  .bandit .bl b{color:var(--tx);font-weight:600}.bandit .bl span{color:var(--dim)}
+  .bandit .bbar{height:5px;background:#141d38;border-radius:3px;position:relative;overflow:hidden}
+  .bandit .bfill{height:100%;background:linear-gradient(90deg,#3a5bd9,var(--cy));border-radius:3px}
+  #dossier{font-size:12.5px;line-height:1.65;color:var(--tx)}
+  #dossier b{color:var(--cy)}
+  #dlog{font-family:var(--mono);font-size:10.5px;line-height:1.75;max-height:230px;overflow-y:auto;
+    color:var(--dim);white-space:pre-wrap}
+  #dlog .t-model{color:#7fb8ff}#dlog .t-flow{color:#5dff9e}#dlog .t-bandit{color:#ffd24e}
+  #dlog .t-reward{color:#ff9e5d}#dlog .t-sculpt{color:#ff4ecd}#dlog .t-churn{color:#ff5d6e}
+
+  /* toasts + floaters */
+  #toasts{position:fixed;top:70px;right:16px;z-index:40;display:flex;flex-direction:column;
+    gap:8px;pointer-events:none}
+  .toast{background:rgba(10,16,32,.95);border:1px solid var(--cy);border-radius:10px;
+    padding:10px 16px;font-size:13px;box-shadow:0 0 22px rgba(78,243,255,.25);
+    animation:toastIn .35s cubic-bezier(.2,1.4,.4,1);max-width:280px}
+  .toast.gold{border-color:var(--gd);box-shadow:0 0 22px rgba(255,210,78,.3)}
+  .toast small{display:block;color:var(--dim);font-size:11px;margin-top:2px}
+  .toast.out{animation:toastOut .3s forwards}
+  @keyframes toastIn{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}
+  @keyframes toastOut{to{transform:translateX(60px);opacity:0}}
+
+  #pauseOv{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;
+    background:rgba(4,6,13,.75);backdrop-filter:blur(4px);font-family:var(--mono);
+    letter-spacing:8px;font-size:26px;color:var(--cy)}
+  #pauseOv.on{display:flex}
+  .hint{position:fixed;bottom:10px;right:14px;z-index:6;font-family:var(--mono);font-size:10px;
+    color:#3d4c73;letter-spacing:1px;pointer-events:none}
+  ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#1b2748;border-radius:4px}
+</style>
+
+<canvas id="cv"></canvas>
+
+<div id="hud">
+  <div class="hudTL">
+    <div id="score">0</div>
+    <div id="shardHud">◆ 0</div>
+    <div id="hpPips"></div>
+  </div>
+  <div class="hudTC">
+    <div id="comboMult"></div>
+    <div id="comboBar"><div id="comboFill"></div></div>
+  </div>
+  <div class="hudTR">
+    <div id="goalHudTxt"></div>
+    <div id="goalHudBar"><div id="goalHudFill"></div></div>
+  </div>
+  <div class="hudBC">
+    <div id="grazeLbl">OVERDRIVE</div>
+    <div id="grazeBar"><div id="grazeFill"></div></div>
+  </div>
+  <div id="eventBanner"></div>
+</div>
+
+<div id="menu" class="screen active">
+  <div class="glowTitle">DRIFTLINE</div>
+  <div class="tagline" id="menuTag">graze the void &middot; feed the core</div>
+  <div class="btnRow" style="margin-top:30px"><button class="btn primary" id="playBtn">Launch</button></div>
+  <div class="card" id="dailyCard">
+    <h3>◈ DAILY RIFT — <span id="dailyName"></span></h3>
+    <div id="dailyMod"></div>
+    <div id="dailyTask"></div>
+    <div id="dailyTaskBar"><div id="dailyTaskFill"></div></div>
+    <div id="streakRow"></div>
+  </div>
+  <div class="btnRow">
+    <button class="btn" id="hangarBtn">Hangar</button>
+    <button class="btn" id="achBtn">Records</button>
+    <button class="btn" id="dashBtn">⟁ Engine</button>
+    <button class="btn" id="soundBtn">Sound: On</button>
+  </div>
+</div>
+
+<div id="summary" class="screen">
+  <div class="tagline" id="sumTitle">SIGNAL LOST</div>
+  <div id="sumScore">0</div>
+  <div id="sumBest"></div>
+  <div id="sumStats"></div>
+  <div id="xpRow">
+    <div id="xpTop"><span id="lvlBadge">PILOT LV 1</span><span id="xpText"></span></div>
+    <div id="xpBar"><div id="xpFill"></div></div>
+  </div>
+  <div id="goalList"></div>
+  <div id="sumCallout"></div>
+  <div class="btnRow">
+    <button class="btn primary" id="againBtn">One More Run</button>
+    <button class="btn" id="toMenuBtn">Dock</button>
+  </div>
+</div>
+
+<div id="hangar" class="screen">
+  <div class="glowTitle" style="font-size:26px;letter-spacing:6px">HANGAR</div>
+  <div class="balRow"><span class="shards">◆ <b id="shardBal">0</b></span>
+    <span class="cores">⬡ <b id="coreBal">0</b></span></div>
+  <div id="upGrid"></div>
+  <div id="skinRow"></div>
+  <div class="btnRow"><button class="btn" id="hangarBack">Back</button></div>
+</div>
+
+<div id="ach" class="screen">
+  <div class="glowTitle" style="font-size:26px;letter-spacing:6px">RECORDS</div>
+  <div id="achList" style="margin-top:16px"></div>
+  <div class="btnRow"><button class="btn" id="achBack">Back</button></div>
+</div>
+
+<div id="dash" class="screen">
+  <h2>⟁ SIREN CORE</h2>
+  <div class="sub">self-improving retention engine — live internals</div>
+  <div id="dashGrid">
+    <div class="dcard"><h4>Player Model</h4>
+      <div class="gauge" id="gSkill"></div><div class="gauge" id="gFrus"></div>
+      <div class="gauge" id="gBore"></div><div class="gauge" id="gChurn"></div>
+    </div>
+    <div class="dcard"><h4>Flow Channel — challenge vs. skill</h4>
+      <canvas id="flowCanvas"></canvas></div>
+    <div class="dcard"><h4>Content Bandit — Thompson posteriors</h4><div id="banditBars"></div></div>
+    <div class="dcard"><h4>Motivation Profile</h4><div id="motivBars"></div></div>
+    <div class="dcard"><h4>Player Dossier — what SIREN believes</h4><div id="dossier"></div></div>
+    <div class="dcard"><h4>Director Decision Log</h4><div id="dlog"></div></div>
+  </div>
+  <div class="btnRow" style="margin-top:14px"><button class="btn" id="dashBack">Back</button></div>
+</div>
+
+<div id="toasts"></div>
+<div id="pauseOv">PAUSED</div>
+<div class="hint">P pause · E engine · M mute</div>
+<script>
+'use strict';
+/* ================================================================================
+   DRIFTLINE — powered by SIREN (Self-Improving Retention Engine)
+   --------------------------------------------------------------------------------
+   Everything below runs locally. Every byte of telemetry stays in this browser
+   (localStorage) and is inspectable in-game: press E for the live engine view.
+   ================================================================================ */
+
+// ---------- tiny utils ----------
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const clamp01 = v => clamp(v, 0, 1);
+const lerp = (a, b, t) => a + (b - a) * t;
+const rand = (a = 1, b) => b === undefined ? Math.random() * a : a + Math.random() * (b - a);
+const irand = (a, b) => Math.floor(rand(a, b + 1));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const TAU = Math.PI * 2;
+const dist2 = (ax, ay, bx, by) => { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy; };
+const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e4 ? (n / 1e3).toFixed(1) + 'k' : Math.floor(n).toLocaleString();
+const pc = v => Math.round(v * 100) + '%';
+const $ = id => document.getElementById(id);
+const now = () => performance.now();
+
+// Gaussian sample (Box–Muller), used by the model's noise + bandit sampling.
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * v);
+}
+// Marsaglia–Tsang gamma sampler → exact Beta draws for Thompson sampling.
+function gammaSample(k) {
+  if (k < 1) return gammaSample(k + 1) * Math.pow(Math.random(), 1 / k);
+  const d = k - 1 / 3, c = 1 / Math.sqrt(9 * d);
+  for (;;) {
+    let x, v;
+    do { x = randn(); v = 1 + c * x; } while (v <= 0);
+    v = v * v * v;
+    const u = Math.random();
+    if (u < 1 - 0.0331 * x * x * x * x) return d * v;
+    if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+  }
+}
+const betaSample = (a, b) => { const x = gammaSample(a); return x / (x + gammaSample(b)); };
+
+// Deterministic RNG for the daily seed (mulberry32) so everyone's daily matches.
+function mulberry32(seed) {
+  return function () {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const dayKey = (d = new Date()) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const daySeed = key => { let h = 2166136261; for (const ch of key) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+
+/* ================================================================================
+   VAULT — versioned persistence with in-memory fallback (sandboxed iframes may
+   deny localStorage; the game must still run, it just forgets on refresh).
+   ================================================================================ */
+const Vault = {
+  KEY: 'driftline.v1', mem: null, usable: true,
+  defaults() {
+    return {
+      version: 1,
+      shards: 0, cores: 0, xp: 0, level: 1,
+      best: 0, bestTime: 0,
+      upgrades: {}, skin: 0, unlockedSkins: [0],
+      ach: {}, achProgress: {},
+      totals: { runs: 0, motes: 0, grazes: 0, shardsEarned: 0, time: 0, events: 0, elites: 0, novaKills: 0, overdrives: 0 },
+      daily: { last: '', streak: 0, claimed: '', taskProgress: 0, taskDone: '', shieldWeek: '' },
+      sessions: [],            // {t0,t1,runs,endFrus,endScore}
+      lastSeen: 0,
+      model: null,             // SIREN state, serialized by the engine itself
+      settings: { sound: true },
+    };
+  },
+  load() {
+    let raw = null;
+    try { raw = localStorage.getItem(this.KEY); } catch (e) { this.usable = false; }
+    let data = this.defaults();
+    if (raw) { try { data = Object.assign(data, JSON.parse(raw)); } catch (e) { /* corrupt save → fresh start */ } }
+    this.mem = data;
+    return data;
+  },
+  save() {
+    if (!this.usable) return;
+    try { localStorage.setItem(this.KEY, JSON.stringify(this.mem)); } catch (e) { this.usable = false; }
+  },
+};
+const P = Vault.load();   // "P" = the player's persistent profile, used everywhere
+
+/* ================================================================================
+   SYNTH — all audio generated with WebAudio oscillators; zero assets.
+   ================================================================================ */
+const Synth = {
+  ctx: null, master: null,
+  ensure() {
+    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return true; }
+    try {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = 0.42;
+      this.master.connect(this.ctx.destination);
+      return true;
+    } catch (e) { return false; }
+  },
+  tone(freq, dur, type = 'sine', vol = 0.5, slideTo = 0, delay = 0) {
+    if (!P.settings.sound || !this.ensure()) return;
+    const t = this.ctx.currentTime + delay;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(20, slideTo), t + dur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(this.master);
+    o.start(t); o.stop(t + dur + 0.02);
+  },
+  noise(dur, vol = 0.4, freq = 800) {
+    if (!P.settings.sound || !this.ensure()) return;
+    const t = this.ctx.currentTime, n = this.ctx.sampleRate * dur;
+    const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq;
+    const g = this.ctx.createGain(); g.gain.value = vol;
+    src.connect(f); f.connect(g); g.connect(this.master);
+    src.start(t);
+  },
+  blip(combo) { this.tone(320 + Math.min(combo, 24) * 42, 0.09, 'sine', 0.22); },
+  rich() { this.tone(660, 0.14, 'triangle', 0.3, 990); this.tone(990, 0.2, 'sine', 0.18, 1320, 0.06); },
+  graze() { this.tone(1200, 0.16, 'sawtooth', 0.07, 2400); },
+  hit() { this.noise(0.25, 0.5, 500); this.tone(160, 0.3, 'square', 0.25, 60); },
+  death() { this.noise(0.7, 0.6, 300); this.tone(220, 0.8, 'sawtooth', 0.3, 40); },
+  powerup() { [523, 659, 784].forEach((f, i) => this.tone(f, 0.18, 'triangle', 0.22, 0, i * 0.05)); },
+  overdrive() { [392, 523, 659, 784, 1046].forEach((f, i) => this.tone(f, 0.22, 'square', 0.12, 0, i * 0.06)); },
+  levelup() { [523, 659, 784, 1046, 1318].forEach((f, i) => this.tone(f, 0.3, 'triangle', 0.2, 0, i * 0.09)); },
+  eventFanfare() { this.tone(196, 0.5, 'sawtooth', 0.15, 392); this.tone(587, 0.3, 'triangle', 0.2, 0, 0.15); },
+  click() { this.tone(880, 0.05, 'sine', 0.12); },
+  toast() { this.tone(1046, 0.12, 'sine', 0.15); this.tone(1568, 0.18, 'sine', 0.12, 0, 0.07); },
+};
+
+/* ================================================================================
+   SIREN — Self-Improving Retention Engine
+   --------------------------------------------------------------------------------
+   Five cooperating modules, one philosophy: the most retentive game is the one
+   that understands its player. SIREN watches everything, models the player, and
+   feeds that model back into every knob the game exposes.
+
+     Telemetry      → raw behavioral signal (input energy, actions, affect events)
+     PlayerModel    → Kalman-filtered skill, frustration/boredom affect,
+                      motivation profile, churn risk
+     FlowDirector   → dynamic difficulty + pacing waves, keeps the player inside
+                      the Csikszentmihalyi flow channel
+     RewardEngine   → drop scheduling with pity timers + mercy shifts, and a
+                      Thompson-sampling bandit that learns WHICH content this
+                      specific player responds to
+     SessionSculptor→ session-scale hooks: goal ladders, comeback gifts,
+                      peak-end framing of every run summary
+
+   Every decision is written to a human-readable log (press E in game).
+   ================================================================================ */
+
+// ---------- Telemetry: the engine's senses ----------
+class Telemetry {
+  constructor() {
+    this.reset();
+    this.engEWMA = 0.3;          // engagement: blended actions/sec + input energy
+    this.inputEWMA = 0; this.inputVar = 0.5;
+  }
+  reset() {
+    this.run = { time: 0, motes: 0, grazes: 0, hits: 0, richMotes: 0, powerups: 0,
+                 maxCombo: 0, comboBreaks: 0, eventsSeen: 0, score: 0, nearDeaths: 0 };
+    this.actionWindow = [];      // timestamps of "interesting" player actions
+  }
+  action() {
+    const t = now();
+    this.actionWindow.push(t);
+    while (this.actionWindow.length && this.actionWindow[0] < t - 4000) this.actionWindow.shift();
+  }
+  sampleInput(speedPxSec, dt) {
+    const s = clamp01(speedPxSec / 1400);
+    this.inputVar = lerp(this.inputVar, Math.abs(s - this.inputEWMA) * 2, dt * 0.8);
+    this.inputEWMA = lerp(this.inputEWMA, s, dt * 1.5);
+    const aps = clamp01(this.actionWindow.length / 4 / 3);   // ~3 actions/sec = "hot"
+    this.engEWMA = lerp(this.engEWMA, 0.55 * aps + 0.45 * this.inputEWMA, dt * 0.6);
+  }
+  engagement() { return this.engEWMA; }
+}
+
+// ---------- PlayerModel: what SIREN believes about you ----------
+class PlayerModel {
+  constructor(saved) {
+    Object.assign(this, {
+      skill: 0.32, skillVar: 0.09,          // Kalman state over latent skill ∈ [0,1]
+      frustration: 0.15, boredom: 0.15,     // affect, decayed continuously
+      motiv: { thrill: 0.25, collector: 0.25, achiever: 0.25, explorer: 0.25 },
+      churn: 0.25, runsSeen: 0,
+      skillHist: [],                        // per-run skill trace for the dashboard
+    }, saved || {});
+  }
+  // Continuous affect dynamics — frustration and boredom both decay toward
+  // baseline; boredom additionally *grows* when nothing threatens the player
+  // and their hand goes quiet. That growth is the trigger for spice.
+  tick(dt, threat, inputVar) {
+    this.frustration = Math.max(0, this.frustration - this.frustration * dt / 70);
+    this.boredom = Math.max(0, this.boredom - this.boredom * dt / 90);
+    if (threat < 0.25) this.boredom = clamp01(this.boredom + dt * 0.014 * (1 - threat) * (1.2 - inputVar));
+    else this.boredom = Math.max(0, this.boredom - dt * 0.02 * threat);
+  }
+  bump(field, amt) { this[field] = clamp01(this[field] + amt); }
+  nudgeMotiv(key, amt) {
+    this.motiv[key] += amt;
+    const sum = Object.values(this.motiv).reduce((a, b) => a + b, 0);
+    for (const k in this.motiv) this.motiv[k] /= sum;
+  }
+  archetype() {
+    const names = { thrill: 'THRILL-SEEKER', collector: 'COLLECTOR', achiever: 'ACHIEVER', explorer: 'EXPLORER' };
+    return names[Object.entries(this.motiv).sort((a, b) => b[1] - a[1])[0][0]];
+  }
+  // Kalman update, one observation per run: how the run went vs. what the
+  // current skill estimate predicted. Q keeps the filter alive so a player
+  // who improves across weeks is tracked, not frozen at their first estimate.
+  observeRun(run, siren) {
+    const predicted = 30 + 95 * this.skill;                       // expected survival (s)
+    const perf = clamp01(run.time / predicted);
+    const finesse = clamp01(run.grazes / Math.max(8, run.time * 0.3));
+    const sloppy = clamp01(run.hits / 4);
+    const obs = clamp01(0.55 * perf + 0.30 * finesse + 0.15 * (1 - sloppy));
+    const R = 0.055, Q = 0.004;
+    const K = this.skillVar / (this.skillVar + R);
+    const prev = this.skill;
+    this.skill = clamp01(this.skill + K * (obs - this.skill));
+    this.skillVar = (1 - K) * this.skillVar + Q;
+    this.runsSeen++;
+    this.skillHist.push(+this.skill.toFixed(3));
+    if (this.skillHist.length > 60) this.skillHist.shift();
+    siren.log('model', `skill ${prev.toFixed(2)}→${this.skill.toFixed(2)} (obs ${obs.toFixed(2)}, K ${K.toFixed(2)}; survived ${run.time.toFixed(0)}s vs ~${predicted.toFixed(0)}s expected)`);
+    // Behavioral motivation profiling from how the run was actually played:
+    if (run.time > 5) {
+      this.nudgeMotiv('thrill', clamp01(run.grazes / Math.max(1, run.motes)) * 0.10);
+      this.nudgeMotiv('collector', clamp01(run.motes / Math.max(20, run.time * 1.2)) * 0.06);
+      this.nudgeMotiv('explorer', clamp01(run.eventsSeen / 3) * 0.05);
+    }
+  }
+  // Session-scale churn hazard: gap trend + how the last session ended.
+  // Peak-end rule — a session that ends frustrated predicts absence.
+  assessChurn(sessions, siren) {
+    if (sessions.length < 2) { this.churn = 0.25; return; }
+    const recent = sessions.slice(-6);
+    let gapSum = 0, n = 0;
+    for (let i = 1; i < recent.length; i++) { gapSum += (recent[i].t0 - recent[i - 1].t0) / 864e5; n++; }
+    const avgGap = n ? gapSum / n : 1;
+    const lastFrus = recent[recent.length - 1].endFrus || 0;
+    const z = -1.5 + 0.5 * Math.min(avgGap, 5) + 1.1 * lastFrus;
+    this.churn = clamp01(1 / (1 + Math.exp(-z)));
+    siren.log('churn', `risk ${this.churn.toFixed(2)} (avg gap ${avgGap.toFixed(1)}d, last session ended at frustration ${lastFrus.toFixed(2)})`);
+  }
+  serialize() {
+    const { skill, skillVar, frustration, boredom, motiv, churn, runsSeen, skillHist } = this;
+    return { skill, skillVar, frustration, boredom, motiv, churn, runsSeen, skillHist };
+  }
+}
+
+// ---------- Bandit: Thompson sampling over content ----------
+// Each in-run event (gold rush, meteor storm, …) is an arm. Reward = measured
+// engagement lift during the event vs. the pre-event baseline. Over sessions,
+// SIREN literally learns which spectacle THIS player's hands respond to.
+class ContentBandit {
+  constructor(arms, saved) {
+    this.arms = {};
+    for (const a of arms) this.arms[a] = (saved && saved[a]) ? saved[a] : { a: 1, b: 1, n: 0 };
+  }
+  choose(siren) {
+    let best = null, bestDraw = -1;
+    const draws = [];
+    for (const [name, s] of Object.entries(this.arms)) {
+      const d = betaSample(s.a, s.b);
+      draws.push(`${name} ${d.toFixed(2)}`);
+      if (d > bestDraw) { bestDraw = d; best = name; }
+    }
+    siren.log('bandit', `thompson draws: ${draws.join(' · ')} → ${best}`);
+    return best;
+  }
+  update(name, reward, siren) {
+    const s = this.arms[name];
+    s.a += reward; s.b += 1 - reward; s.n++;
+    siren.log('bandit', `${name} reward ${reward.toFixed(2)} → posterior μ ${(s.a / (s.a + s.b)).toFixed(2)} (${s.n} trials)`);
+  }
+  mean(name) { const s = this.arms[name]; return s.a / (s.a + s.b); }
+  favorite() { return Object.entries(this.arms).sort((x, y) => this.mean(y[0]) - this.mean(x[0]))[0]; }
+  serialize() { return this.arms; }
+}
+
+// ---------- FlowDirector: difficulty + pacing ----------
+class FlowDirector {
+  constructor(model) {
+    this.model = model;
+    this.intensity = 0.5; this.difficulty = 1; this.budget = 0;
+    this.reliefUntil = 0; this.runT = 0;
+    this.nextEventAt = 18; this.pendingEvent = null; this.eventActive = false;
+    this.hist = [];                       // {skill, challenge} trace for the chart
+    this.wavePeriod = rand(24, 34);
+  }
+  // Base difficulty chases the skill estimate; affect bends it. A frustrated
+  // player gets slack they never see; a bored one gets teeth. The target is
+  // the flow channel: challenge ≈ skill, never far above or below.
+  baseDifficulty() {
+    const m = this.model;
+    const grace = m.runsSeen < 3 ? 0.72 : 1;   // onboarding: the first runs must be winnable
+    return Math.max(0.4, (0.55 + 2.3 * m.skill) * (1 - 0.40 * m.frustration + 0.30 * m.boredom) * grace);
+  }
+  startRun(siren) {
+    this.runT = 0; this.budget = 0; this.reliefUntil = 0;
+    this.nextEventAt = rand(14, 20); this.pendingEvent = null; this.eventActive = false;
+    this.difficulty = this.baseDifficulty();
+    this.wavePeriod = rand(24, 34);
+    siren.log('flow', `run start: base difficulty ${this.difficulty.toFixed(2)} (skill ${this.model.skill.toFixed(2)}, frus ${this.model.frustration.toFixed(2)}, bore ${this.model.boredom.toFixed(2)})`);
+  }
+  onPlayerHit() { this.reliefUntil = this.runT + 3.5; }   // invisible mercy window
+  update(dt, siren, luck) {
+    this.runT += dt;
+    const ramp = 0.6 + Math.min(1.6, this.runT / 75);                 // arcade escalation
+    const wave = 0.68 + 0.32 * Math.sin(TAU * this.runT / this.wavePeriod - Math.PI / 2);
+    let inten = wave;
+    if (this.runT < this.reliefUntil) inten *= 0.3;                   // post-hit breather
+    this.intensity = inten;
+    this.difficulty = this.baseDifficulty() * ramp;
+    this.budget += dt * (0.22 + 0.5 * this.difficulty * inten);
+    // Sample the flow trace ~every 2s for the dashboard.
+    if (!this._sampleT || this.runT - this._sampleT > 2) {
+      this._sampleT = this.runT;
+      this.hist.push({ s: this.model.skill, c: clamp01(this.difficulty / 3.2) });
+      if (this.hist.length > 240) this.hist.shift();
+    }
+    // Event scheduling: boredom accelerates the clock — spice on demand.
+    const boredomHaste = 1 + this.model.boredom * 0.8;
+    if (!this.eventActive && !this.pendingEvent && this.runT * boredomHaste * luck > this.nextEventAt) {
+      this.pendingEvent = siren.bandit.choose(siren);
+      if (this.model.boredom > 0.45) siren.log('flow', `boredom ${this.model.boredom.toFixed(2)} → event clock accelerated`);
+    }
+  }
+  consumeEvent() { const e = this.pendingEvent; this.pendingEvent = null; this.eventActive = !!e; return e; }
+  eventDone() { this.eventActive = false; this.nextEventAt = this.runT + rand(20, 32); }
+  speedMul() { return 0.75 + 0.3 * Math.min(2, this.difficulty); }
+  maxThreatCost() { return 3.2 + 5 * Math.min(2.4, this.difficulty); }
+}
+
+// ---------- RewardEngine: drops, pity, mercy ----------
+class RewardEngine {
+  constructor(saved) {
+    Object.assign(this, { pity: 0, drops: 0, nextDropAt: 10 }, saved || {});
+  }
+  // Variable-interval powerup schedule. Two honesty-preserving twists:
+  //  · pity — a rare drop is guaranteed within PITY_CAP drops, killing dry streaks
+  //  · mercy — high frustration silently reweights the table toward defense
+  static PITY_CAP = 5;
+  update(dt, runT, model, siren) {
+    if (runT < this.nextDropAt) return null;
+    this.nextDropAt = runT + rand(11, 19) * (1 - model.boredom * 0.25);
+    this.drops++;
+    let table = [['shield', 3], ['magnet', 3], ['slow', 2.2], ['nova', 1.2]];
+    if (model.frustration > 0.55) {
+      table = [['shield', 5.5], ['slow', 3.5], ['magnet', 2], ['nova', 1]];
+      siren.log('reward', `mercy shift: frustration ${model.frustration.toFixed(2)} → defensive drop table`);
+    }
+    this.pity++;
+    let type;
+    if (this.pity >= RewardEngine.PITY_CAP) {
+      type = 'nova'; this.pity = 0;
+      siren.log('reward', `pity cap hit (${RewardEngine.PITY_CAP}) → guaranteed NOVA`);
+    } else {
+      const total = table.reduce((s, e) => s + e[1], 0);
+      let r = Math.random() * total;
+      for (const [t, w] of table) { r -= w; if (r <= 0) { type = t; break; } }
+      if (type === 'nova') this.pity = 0;
+    }
+    return type;
+  }
+  serialize() { const { pity, drops, nextDropAt } = this; return { pity, drops }; }
+}
+
+// ---------- SessionSculptor: the long game ----------
+// Operates at session scale: what greets you when you return, which goals are
+// dangled in front of you, and how each run's ending is framed. Built on the
+// goal-gradient effect (near-complete goals pull hardest) and the peak-end
+// rule (sessions are remembered by their peak and their final moment).
+class SessionSculptor {
+  constructor(model) { this.model = model; this.sessionT0 = Date.now(); this.runsThisSession = 0; }
+  // Welcome-back package, scaled by absence and churn risk. An at-risk player
+  // returning after days gets a visibly warmer welcome than a daily regular —
+  // and the engine says so in its log, because SIREN doesn't lie to you.
+  welcomeGift(hoursAway, siren) {
+    if (hoursAway < 20 || P.totals.runs === 0) return null;
+    const days = hoursAway / 24;
+    const gift = { shards: Math.round((40 + P.level * 22) * (1 + this.model.churn) * Math.min(days, 4)), cores: days >= 3 ? 1 : 0 };
+    siren.log('sculpt', `welcome-back gift: ${gift.shards}◆${gift.cores ? ' +1⬡' : ''} (away ${days.toFixed(1)}d, churn ${this.model.churn.toFixed(2)})`);
+    return gift;
+  }
+  // The goal ladder: always exactly three live goals at three horizons,
+  // re-ranked by proximity × motivation fit. Nothing on it is fabricated —
+  // it surfaces real progress the player already made.
+  goalLadder(siren) {
+    const cands = Meta.goalCandidates();
+    const m = this.model.motiv;
+    const fit = { upgrade: m.collector, ach: m.achiever, level: m.achiever, daily: m.explorer, skin: m.collector, best: m.thrill };
+    cands.forEach(c => c.score = c.prog * 0.72 + (fit[c.kind] || 0.25) * 0.28 + (c.prog > 0.55 && c.prog < 1 ? 0.15 : 0));
+    cands.sort((a, b) => b.score - a.score);
+    const out = []; const kinds = new Set();
+    for (const c of cands) {
+      if (c.prog >= 1 || kinds.has(c.kind)) continue;
+      kinds.add(c.kind); out.push(c);
+      if (out.length === 3) break;
+    }
+    if (out.length) siren.log('sculpt', `goal ladder: ${out.map(g => `${g.label} ${pc(g.prog)}`).join(' · ')}`);
+    return out;
+  }
+  // Peak-end framing: pick the single line the death screen leads with.
+  // prevBest = the record before this run's rewards were applied.
+  summaryCallout(run, prevBest) {
+    let msg;
+    if (run.score > prevBest) msg = '★ NEW PERSONAL BEST — the drift bends to you';
+    else if (prevBest && run.score === prevBest) msg = 'Dead even with your record. One more mote settles it.';
+    else if (prevBest && run.score > prevBest * 0.9) msg = `${fmt(prevBest - run.score)} from your record. It felt closer than that, didn't it?`;
+    else if (run.grazes >= 25) msg = `${run.grazes} grazes. The void barely touched you.`;
+    else if (run.maxCombo >= 12) msg = `Combo ×${run.maxCombo}. The core remembers.`;
+    else {
+      const g = this.lastLadder && this.lastLadder[0];
+      msg = g ? `Next: ${g.label} — ${pc(g.prog)} there.` : 'The drift is listening. Again.';
+    }
+    Siren.log('sculpt', `summary framing: "${msg}"`);
+    return msg;
+  }
+  endSession() {
+    P.sessions.push({ t0: this.sessionT0, t1: Date.now(), runs: this.runsThisSession, endFrus: +this.model.frustration.toFixed(2), endScore: P.best });
+    if (P.sessions.length > 30) P.sessions.shift();
+  }
+}
+
+// ---------- Siren: the facade that wires it together ----------
+const EVENT_ARMS = ['GOLD RUSH', 'METEOR STORM', 'PHANTOM CHASE', 'GRAVITY WELL', 'ELITE HUNT'];
+const Siren = {
+  boot() {
+    const saved = P.model || {};
+    this.tel = new Telemetry();
+    this.model = new PlayerModel(saved.player);
+    this.bandit = new ContentBandit(EVENT_ARMS, saved.bandit);
+    this.flow = new FlowDirector(this.model);
+    this.reward = new RewardEngine(saved.reward);
+    this.sculpt = new SessionSculptor(this.model);
+    this.logBuf = (saved.log || []).slice(-25);
+    this.eventBaseline = 0;
+    this.model.assessChurn(P.sessions, this);
+    const hoursAway = P.lastSeen ? (Date.now() - P.lastSeen) / 36e5 : 0;
+    this.pendingGift = this.sculpt.welcomeGift(hoursAway, this);
+    this.log('model', `session start — skill ${this.model.skill.toFixed(2)} ±${Math.sqrt(this.model.skillVar).toFixed(2)}, archetype ${this.model.archetype()}, ${P.totals.runs} lifetime runs`);
+  },
+  log(tag, msg) {
+    this.logBuf.push({ tag, msg, at: Date.now() });
+    if (this.logBuf.length > 80) this.logBuf.shift();
+    if (typeof UI !== 'undefined' && UI.dashOpen) UI.renderDlog();
+  },
+  onRunStart() {
+    this.tel.reset();
+    this.flow.startRun(this);
+    this.reward.nextDropAt = 10;
+    this.sculpt.runsThisSession++;
+  },
+  tick(dt, threat, inputSpeed) {
+    this.tel.sampleInput(inputSpeed, dt);
+    this.model.tick(dt, threat, this.tel.inputVar);
+    this.flow.update(dt, this, Meta.eventLuck());
+  },
+  // Single telemetry entry point — the game narrates, SIREN listens.
+  note(ev, x) {
+    const t = this.tel, m = this.model;
+    switch (ev) {
+      case 'mote': t.run.motes++; t.action(); break;
+      case 'rich': t.run.richMotes++; t.action(); break;
+      case 'graze': t.run.grazes++; t.action(); m.nudgeMotiv('thrill', 0.004); break;
+      case 'hit': t.run.hits++; m.bump('frustration', 0.07); this.flow.onPlayerHit(); break;
+      case 'nearDeath': t.run.nearDeaths++; m.nudgeMotiv('thrill', 0.01); break;
+      case 'comboBreak': t.run.comboBreaks++; if (x >= 8) m.bump('frustration', 0.05); break;
+      case 'powerup': t.run.powerups++; t.action(); break;
+      case 'overdrive': m.bump('boredom', -0.2); break;
+      case 'purchase': m.nudgeMotiv('collector', 0.03); break;
+      case 'dash_open': m.nudgeMotiv('explorer', 0.02); break;
+      case 'ach': m.nudgeMotiv('achiever', 0.02); break;
+      case 'eventStart':
+        t.run.eventsSeen++;
+        this.eventBaseline = t.engagement();
+        break;
+      case 'eventEnd': {
+        const lift = t.engagement() - this.eventBaseline;
+        this.bandit.update(x, clamp01(0.5 + lift * 1.6), this);
+        this.flow.eventDone();
+        break;
+      }
+    }
+  },
+  onDeath(run) {
+    const quick = run.time < 20;
+    this.model.bump('frustration', quick ? 0.30 : 0.16);
+    this.model.observeRun(run, this);
+    this.model.bump('boredom', -0.1);
+    this.sculpt.lastLadder = this.sculpt.goalLadder(this);
+    this.persist();
+  },
+  persist() {
+    P.model = {
+      player: this.model.serialize(),
+      bandit: this.bandit.serialize(),
+      reward: this.reward.serialize(),
+      log: this.logBuf.slice(-25),
+    };
+    P.lastSeen = Date.now();
+    Vault.save();
+  },
+  dossier() {
+    const m = this.model;
+    const fav = this.bandit.favorite();
+    const sessions = P.sessions.length;
+    const pctl = Math.round(clamp01((m.skill - 0.1) / 0.75) * 99);
+    return `Pilot is a <b>${m.archetype()}</b> (${Object.entries(m.motiv).map(([k, v]) => `${k} ${pc(v)}`).join(', ')}). ` +
+      `Latent skill <b>${m.skill.toFixed(2)}</b> (±${Math.sqrt(m.skillVar).toFixed(2)}) after ${m.runsSeen} observed runs — roughly <b>percentile ${pctl}</b> of the difficulty curve. ` +
+      `Current affect: frustration ${pc(m.frustration)}, boredom ${pc(m.boredom)}. ` +
+      `Most engaging content so far: <b>${fav[0]}</b> (posterior μ ${this.bandit.mean(fav[0]).toFixed(2)}, ${fav[1].n} trials). ` +
+      `Churn risk <b>${pc(m.churn)}</b> across ${sessions} recorded sessions. ` +
+      `Every number on this screen was learned from your play — and stays on your device.`;
+  },
+};
+
+/* ================================================================================
+   DRIFTLINE — the game body. Pointer-driven drift, graze-for-glory scoring,
+   director-controlled hazard waves. SIREN owns the knobs; this file obeys them.
+   ================================================================================ */
+
+const cv = $('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+function resize() {
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = W * DPR; cv.height = H * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', resize); resize();
+
+// Pre-tinted radial glow sprites — shadowBlur is too slow for hundreds of draws.
+const glowCache = {};
+function glow(color) {
+  if (glowCache[color]) return glowCache[color];
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grd.addColorStop(0, color); grd.addColorStop(0.35, color + '88'); grd.addColorStop(1, color + '00');
+  g.fillStyle = grd; g.fillRect(0, 0, 64, 64);
+  return glowCache[color] = c;
+}
+const SKINS = [
+  { name: 'IONBLUE', hull: '#4ef3ff', trail: '#4ef3ff', lv: 1 },
+  { name: 'EMBER', hull: '#ffb44e', trail: '#ff6b4e', lv: 3 },
+  { name: 'VIRIDIA', hull: '#5dff9e', trail: '#b4ff4e', lv: 5 },
+  { name: 'PHANTOM', hull: '#e6ccff', trail: '#b47aff', lv: 8 },
+  { name: 'SINGULARITY', hull: '#ff4ecd', trail: '#ffffff', lv: 12 },
+];
+
+// ---------- FX: particles, floaters, shake, slow-mo ----------
+const FX = {
+  parts: [], floats: [], shake: 0, flash: 0, flashCol: '#fff',
+  ts: 1, tsTarget: 1, tsHold: 0,
+  burst(x, y, color, n = 10, spd = 160, size = 7) {
+    for (let i = 0; i < n && this.parts.length < 420; i++) {
+      const a = rand(TAU), s = rand(spd * 0.3, spd);
+      this.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.4, 0.9), max: 0.9, color, size: rand(size * 0.5, size) });
+    }
+  },
+  float(x, y, txt, color = '#fff', size = 15) {
+    if (this.floats.length > 24) this.floats.shift();
+    this.floats.push({ x, y, txt, color, size, life: 1 });
+  },
+  slowmo(scale, hold) { this.tsTarget = scale; this.tsHold = hold; },
+  kick(amt) { this.shake = Math.min(18, this.shake + amt); },
+  doFlash(col, amt = 0.35) { this.flash = amt; this.flashCol = col; },
+  update(dtRaw) {
+    if (this.tsHold > 0) { this.tsHold -= dtRaw; if (this.tsHold <= 0) this.tsTarget = 1; }
+    this.ts = lerp(this.ts, this.tsTarget, 1 - Math.pow(0.001, dtRaw));
+    this.shake *= Math.pow(0.02, dtRaw);
+    this.flash *= Math.pow(0.008, dtRaw);
+    const dt = dtRaw * this.ts;
+    for (let i = this.parts.length - 1; i >= 0; i--) {
+      const p = this.parts[i];
+      p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.98; p.vy *= 0.98;
+      if (p.life <= 0) this.parts.splice(i, 1);
+    }
+    for (let i = this.floats.length - 1; i >= 0; i--) {
+      const f = this.floats[i];
+      f.life -= dtRaw * 0.9; f.y -= 34 * dtRaw;
+      if (f.life <= 0) this.floats.splice(i, 1);
+    }
+  },
+  draw() {
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of this.parts) {
+      const a = clamp01(p.life / p.max);
+      ctx.globalAlpha = a;
+      const s = p.size * (0.5 + a) * 2.2;
+      ctx.drawImage(glow(p.color), p.x - s / 2, p.y - s / 2, s, s);
+    }
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    for (const f of this.floats) {
+      ctx.globalAlpha = clamp01(f.life);
+      ctx.font = `800 ${f.size}px ui-monospace,monospace`;
+      ctx.textAlign = 'center';
+      ctx.fillStyle = f.color; ctx.fillText(f.txt, f.x, f.y);
+    }
+    ctx.globalAlpha = 1;
+  },
+};
+
+// ---------- background starfield ----------
+const stars = Array.from({ length: 110 }, () => ({ x: rand(1), y: rand(1), z: rand(0.15, 1), tw: rand(TAU) }));
+function drawBG(t, dt) {
+  ctx.fillStyle = '#04060d'; ctx.fillRect(0, 0, W, H);
+  const grd = ctx.createRadialGradient(W / 2, H * 0.35, 0, W / 2, H * 0.35, Math.max(W, H) * 0.8);
+  grd.addColorStop(0, '#0a1226'); grd.addColorStop(1, '#04060d');
+  ctx.fillStyle = grd; ctx.fillRect(0, 0, W, H);
+  for (const s of stars) {
+    s.y += dt * 0.008 * s.z; if (s.y > 1) s.y -= 1;
+    const a = 0.25 + 0.5 * s.z + 0.2 * Math.sin(t * 2 + s.tw);
+    ctx.globalAlpha = clamp01(a);
+    ctx.fillStyle = s.z > 0.7 ? '#cfe9ff' : '#5b6f9e';
+    ctx.fillRect(s.x * W, s.y * H, s.z * 2, s.z * 2);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ---------- input ----------
+const ptr = { x: innerWidth / 2, y: innerHeight / 2, px: 0, py: 0, speed: 0, down: false };
+window.addEventListener('pointermove', e => { ptr.x = e.clientX; ptr.y = e.clientY; });
+window.addEventListener('pointerdown', e => { ptr.down = true; ptr.x = e.clientX; ptr.y = e.clientY; Synth.ensure(); });
+window.addEventListener('pointerup', () => ptr.down = false);
+
+// ---------- game ----------
+const G = {
+  state: 'menu', t: 0, score: 0, runShards: 0,
+  ship: null, motes: [], hazards: [], pups: [], wells: [],
+  chain: 0, comboT: 0, maxCombo: 0,
+  grazeMeter: 0, overdriveT: 0, magnetT: 0, slowT: 0,
+  event: null, usedRevive: false, dying: 0, threat: 0,
+
+  multiplier() { return 1 + Math.floor(this.chain / 4); },
+
+  startRun() {
+    const skin = SKINS[P.skin] || SKINS[0];
+    this.ship = { x: W / 2, y: H * 0.6, vx: 0, vy: 0, hp: Meta.startHp(), maxHp: Meta.startHp(), inv: 1.2, trail: [], skin };
+    this.motes = []; this.hazards = []; this.pups = []; this.wells = [];
+    this.t = 0; this.score = 0; this.runShards = 0;
+    this.chain = 0; this.comboT = 0; this.maxCombo = 0;
+    this.grazeMeter = 0; this.overdriveT = 0; this.magnetT = 0; this.slowT = 0;
+    this.event = null; this.usedRevive = false; this.dying = 0;
+    this.moteT = 0;
+    for (let i = 0; i < 8; i++) this.spawnMote();
+    Siren.onRunStart();
+    this.state = 'run';
+    UI.onRunStart();
+  },
+
+  spawnMote(x, y, rich) {
+    if (this.motes.length > 40) return;
+    const isRich = rich !== undefined ? rich : Math.random() < 0.055 * (Meta.mod.id === 'AURUM' ? 2.5 : 1);
+    this.motes.push({
+      x: x !== undefined ? x : rand(40, W - 40), y: y !== undefined ? y : rand(60, H - 60),
+      vx: rand(-14, 14), vy: rand(-14, 14), r: isRich ? 8 : 5.5, rich: isRich, ph: rand(TAU),
+    });
+  },
+
+  edgeSpawn(margin = 30) {
+    const side = irand(0, 3);
+    if (side === 0) return { x: rand(W), y: -margin };
+    if (side === 1) return { x: W + margin, y: rand(H) };
+    if (side === 2) return { x: rand(W), y: H + margin };
+    return { x: -margin, y: rand(H) };
+  },
+
+  spawnHazard(type) {
+    const p = this.edgeSpawn();
+    const sm = Siren.flow.speedMul();
+    if (type === 'chaser') this.hazards.push({ type, x: p.x, y: p.y, a: 0, speed: rand(120, 170) * sm, turn: rand(1.6, 2.6), r: 10, cost: 1, grazed: false });
+    else if (type === 'mine') this.hazards.push({ type, x: rand(60, W - 60), y: rand(80, H - 80), vx: rand(-18, 18), vy: rand(-18, 18), r: 9, fuse: -1, cost: 0.8, grazed: false, born: this.t });
+    else if (type === 'swarm') {
+      const dir = p.x < W / 2 ? 1 : -1, baseY = clamp(p.y, 80, H - 80);
+      for (let i = 0; i < 6; i++)
+        this.hazards.push({ type, x: p.x - dir * i * 34, y: baseY, baseY, ph: i * 0.8, speed: 130 * sm * dir, r: 7, cost: 0.33, grazed: false });
+    } else if (type === 'sweep') {
+      const horiz = Math.random() < 0.5;
+      this.hazards.push({ type, horiz, pos: horiz ? rand(H * 0.15, H * 0.85) : rand(W * 0.15, W * 0.85), t: 0, r: 14, cost: 1.5, grazed: false });
+    } else if (type === 'meteor') {
+      const tx = rand(W * 0.2, W * 0.8), ty = rand(H * 0.2, H * 0.8);
+      const a = Math.atan2(ty - p.y, tx - p.x), s = rand(260, 380);
+      this.hazards.push({ type, x: p.x, y: p.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: rand(9, 15), cost: 0, grazed: false });
+    } else if (type === 'elite') {
+      this.hazards.push({ type, x: p.x, y: p.y, a: 0, speed: 210 * sm, turn: 1.9, r: 20, cost: 0, grazed: false, lifeT: 12, cooldown: 0 });
+    }
+  },
+
+  aliveCost() { return this.hazards.reduce((s, h) => s + h.cost, 0); },
+
+  // ---- events (the bandit's arms made flesh) ----
+  startEvent(name) {
+    const dur = { 'GOLD RUSH': 8, 'METEOR STORM': 10, 'PHANTOM CHASE': 9, 'GRAVITY WELL': 9, 'ELITE HUNT': 13 }[name];
+    this.event = { name, t: 0, dur, tick: 0 };
+    Siren.note('eventStart');
+    Meta.bumpTotal('events', 1);
+    UI.banner(name);
+    Synth.eventFanfare();
+    if (name === 'GRAVITY WELL') {
+      this.wells.push({ x: rand(W * 0.25, W * 0.75), y: rand(H * 0.25, H * 0.75), r: 190, ph: 0, emitT: 0 });
+    } else if (name === 'ELITE HUNT') this.spawnHazard('elite');
+    else if (name === 'PHANTOM CHASE') {
+      const p = this.edgeSpawn();
+      this.wisp = { x: p.x, y: p.y, vx: 0, vy: 0, caught: false };
+    }
+  },
+  endEvent() {
+    const name = this.event.name;
+    if (name === 'GRAVITY WELL') this.wells = [];
+    if (name === 'PHANTOM CHASE') this.wisp = null;
+    if (name === 'ELITE HUNT') {
+      const e = this.hazards.find(h => h.type === 'elite');
+      if (e) { // survived the hunt → the elite overloads into loot
+        FX.burst(e.x, e.y, '#ff4ecd', 34, 300, 10); FX.kick(9); Synth.powerup();
+        for (let i = 0; i < 12; i++) this.spawnMote(e.x + rand(-70, 70), e.y + rand(-70, 70), i < 4);
+        this.earnShards(40, e.x, e.y, 'ELITE DOWN');
+        Meta.bumpTotal('elites', 1);
+        this.hazards.splice(this.hazards.indexOf(e), 1);
+      }
+    }
+    Siren.note('eventEnd', name);
+    this.event = null;
+    UI.banner('');
+  },
+  updateEvent(dt) {
+    const ev = this.event; if (!ev) return;
+    ev.t += dt; ev.tick += dt;
+    if (ev.name === 'GOLD RUSH' && ev.tick > 0.22) { ev.tick = 0; this.spawnMote(undefined, undefined, Math.random() < 0.4); }
+    if (ev.name === 'METEOR STORM' && ev.tick > 0.55) { ev.tick = 0; this.spawnHazard('meteor'); }
+    if (ev.name === 'GRAVITY WELL') {
+      for (const w of this.wells) {
+        w.ph += dt * 2; w.emitT += dt;
+        if (w.emitT > 0.8) { w.emitT = 0; this.spawnMote(w.x + rand(-w.r, w.r) * 0.6, w.y + rand(-w.r, w.r) * 0.6, Math.random() < 0.2); }
+      }
+    }
+    if (ev.name === 'PHANTOM CHASE' && this.wisp) {
+      const w = this.wisp, s = this.ship;
+      const d = Math.hypot(s.x - w.x, s.y - w.y) || 1;
+      // flees the ship, but imperfectly — catchable with a good cut-off
+      w.vx += ((w.x - s.x) / d * 300 - w.vx) * dt * 2.2 + Math.sin(ev.t * 5) * 30 * dt;
+      w.vy += ((w.y - s.y) / d * 300 - w.vy) * dt * 2.2 + Math.cos(ev.t * 4) * 30 * dt;
+      w.x = clamp(w.x + w.vx * dt, 20, W - 20); w.y = clamp(w.y + w.vy * dt, 20, H - 20);
+      if (Math.random() < dt * 22) FX.burst(w.x, w.y, '#ffd24e', 1, 30, 4);
+      if (d < 26) {
+        const worth = Meta.mod.id === 'PHANTOM' ? 150 : 75;
+        this.earnShards(worth, w.x, w.y, 'PHANTOM CAUGHT');
+        FX.burst(w.x, w.y, '#ffd24e', 26, 260, 9); FX.slowmo(0.35, 0.35); Synth.rich();
+        this.wisp = null; ev.t = ev.dur; // event resolves as a win
+      }
+    }
+    if (ev.t >= ev.dur) this.endEvent();
+  },
+
+  earnShards(n, x, y, label) {
+    n = Math.round(n * Meta.shardMul());
+    this.runShards += n;
+    if (x !== undefined) FX.float(x, y - 14, (label ? label + ' ' : '') + '+' + n + '◆', '#ffd24e', label ? 16 : 12);
+    Meta.dailyProgress('shards', n);
+  },
+
+  hitShip(h) {
+    const s = this.ship;
+    if (s.inv > 0 || this.overdriveT > 0) return;
+    s.hp--;
+    Siren.note('hit');
+    if (this.chain >= 8) Siren.note('comboBreak', this.multiplier());
+    this.chain = 0; this.comboT = 0;
+    FX.kick(12); FX.doFlash('#ff5d6e', 0.4); FX.burst(s.x, s.y, '#ff5d6e', 20, 240, 8);
+    Synth.hit();
+    if (h && h.type !== 'sweep' && h.type !== 'elite') this.killHazard(h, false);
+    if (h && h.type === 'elite') h.cooldown = 1.6;
+    if (s.hp === 0) Siren.note('nearDeath');
+    if (s.hp < 0) {
+      if (Meta.val('phoenix') > 0 && !this.usedRevive) {
+        this.usedRevive = true; s.hp = 1; s.inv = 2.5;
+        for (const hz of [...this.hazards]) if (dist2(hz.x ?? W / 2, hz.y ?? H / 2, s.x, s.y) < 320 * 320) this.killHazard(hz, true);
+        UI.banner('PHOENIX PROTOCOL'); setTimeout(() => UI.banner(''), 1400);
+        FX.doFlash('#ffb44e', 0.5); FX.burst(s.x, s.y, '#ffb44e', 40, 320, 10); Synth.overdrive();
+      } else {
+        this.dying = 0.9; this.state = 'dying';
+        FX.slowmo(0.15, 0.9); FX.kick(16); FX.burst(s.x, s.y, s.skin.hull, 46, 380, 11);
+        Synth.death();
+      }
+    } else s.inv = 1.6;
+    UI.updatePips();
+  },
+
+  killHazard(h, reward) {
+    const i = this.hazards.indexOf(h); if (i < 0) return;
+    this.hazards.splice(i, 1);
+    FX.burst(h.x, h.y, '#ff4ecd', 8, 180, 6);
+    if (reward) { this.earnShards(6, h.x, h.y); Meta.bumpTotal('novaKills', 1); }
+  },
+
+  applyPowerup(type, x, y) {
+    Siren.note('powerup'); Synth.powerup();
+    FX.burst(x, y, '#5dff9e', 16, 200, 8);
+    if (type === 'shield') { this.ship.hp = Math.min(this.ship.maxHp, this.ship.hp + 1); FX.float(x, y, 'SHIELD +1', '#5dff9e'); UI.updatePips(); }
+    else if (type === 'magnet') { this.magnetT = 6.5; FX.float(x, y, 'MAGNET SURGE', '#4ef3ff'); }
+    else if (type === 'slow') { this.slowT = 4.5; FX.float(x, y, 'TIME DILATION', '#b47aff'); }
+    else if (type === 'nova') {
+      FX.doFlash('#4ef3ff', 0.5); FX.kick(10); FX.slowmo(0.3, 0.3);
+      for (const h of [...this.hazards]) if (h.type !== 'elite' && dist2((h.x ?? 0), (h.y ?? 0), x, y) < 300 * 300) this.killHazard(h, true);
+      FX.float(x, y, 'NOVA', '#4ef3ff', 22);
+    }
+  },
+
+  update(dtRaw) {
+    if (this.state === 'dying') {
+      this.dying -= dtRaw;
+      if (this.dying <= 0) this.finishRun();
+      return;
+    }
+    if (this.state !== 'run') return;
+    if (this.slowT > 0) { this.slowT -= dtRaw; FX.tsTarget = Math.min(FX.tsTarget, 0.55); if (this.slowT <= 0 && FX.tsHold <= 0) FX.tsTarget = 1; }
+    const dt = dtRaw * FX.ts;
+    this.t += dt;
+    const s = this.ship;
+
+    // ship spring physics (critically damped follow — floaty but precise)
+    const w0 = 9.5;
+    s.vx += ((ptr.x - s.x) * w0 * w0 - 2 * w0 * s.vx) * dt;
+    s.vy += ((ptr.y - s.y) * w0 * w0 - 2 * w0 * s.vy) * dt;
+    // gravity wells bend the ship's path
+    for (const w of this.wells) {
+      const d = Math.hypot(w.x - s.x, w.y - s.y) || 1;
+      if (d < w.r * 1.8) { const f = 5200 / Math.max(60, d); s.vx += (w.x - s.x) / d * f * dt * 12; s.vy += (w.y - s.y) / d * f * dt * 12; }
+    }
+    s.x = clamp(s.x + s.vx * dt, 10, W - 10); s.y = clamp(s.y + s.vy * dt, 10, H - 10);
+    if (s.inv > 0) s.inv -= dt;
+    s.trail.unshift({ x: s.x, y: s.y });
+    if (s.trail.length > 22) s.trail.pop();
+    const ptrSpeed = Math.hypot(ptr.x - ptr.px, ptr.y - ptr.py) / Math.max(dtRaw, 1e-4);
+    ptr.px = ptr.x; ptr.py = ptr.y;
+
+    // combo decay
+    if (this.chain > 0) {
+      this.comboT -= dt;
+      if (this.comboT <= 0) {
+        if (this.chain >= 8) Siren.note('comboBreak', this.multiplier());
+        this.chain = 0;
+      }
+    }
+    // overdrive
+    if (this.overdriveT > 0) { this.overdriveT -= dt; if (this.overdriveT <= 0) UI.grazeReady(false); }
+
+    // motes
+    this.moteT += dt;
+    if (this.moteT > 0.55 && this.motes.length < 14) { this.moteT = 0; this.spawnMote(); }
+    const magnetR = this.magnetT > 0 || this.overdriveT > 0 ? 260 : Meta.magnetR();
+    if (this.magnetT > 0) this.magnetT -= dt;
+    for (let i = this.motes.length - 1; i >= 0; i--) {
+      const m = this.motes[i];
+      m.ph += dt * 3;
+      for (const w of this.wells) { const d = Math.hypot(w.x - m.x, w.y - m.y) || 1; if (d < w.r * 1.6) { m.vx += (w.x - m.x) / d * 90 * dt; m.vy += (w.y - m.y) / d * 90 * dt; } }
+      const d = Math.hypot(s.x - m.x, s.y - m.y);
+      if (d < magnetR) { const pull = 620 * (1 - d / magnetR) + 60; m.vx += (s.x - m.x) / d * pull * dt; m.vy += (s.y - m.y) / d * pull * dt; }
+      m.x += m.vx * dt; m.y += m.vy * dt;
+      m.vx *= 1 - dt * 0.4; m.vy *= 1 - dt * 0.4;
+      if (m.x < 8 || m.x > W - 8) m.vx *= -1; if (m.y < 8 || m.y > H - 8) m.vy *= -1;
+      if (d < 16 + m.r) {
+        this.motes.splice(i, 1);
+        this.chain++; this.comboT = Meta.comboWindow(); this.maxCombo = Math.max(this.maxCombo, this.multiplier());
+        const mult = this.multiplier() * (this.overdriveT > 0 ? 2 : 1);
+        const pts = (m.rich ? 55 : 10) * mult;
+        this.score += pts;
+        this.earnShards(m.rich ? 5 : 1);
+        Siren.note(m.rich ? 'rich' : 'mote');
+        Meta.dailyProgress('motes', 1); Meta.bumpTotal('motes', 1);
+        FX.burst(m.x, m.y, m.rich ? '#ffd24e' : '#4ef3ff', m.rich ? 14 : 6, 150, m.rich ? 8 : 5);
+        if (m.rich || mult > 1) FX.float(m.x, m.y, '+' + pts, m.rich ? '#ffd24e' : '#9feaff', m.rich ? 17 : 12);
+        m.rich ? Synth.rich() : Synth.blip(this.chain);
+        if (Math.random() < 0.3) this.spawnMote();
+      }
+    }
+
+    // hazards
+    let threatAcc = 0;
+    for (let i = this.hazards.length - 1; i >= 0; i--) {
+      const h = this.hazards[i];
+      if (h.type === 'chaser' || h.type === 'elite') {
+        if (h.cooldown > 0) h.cooldown -= dt;
+        const want = Math.atan2(s.y - h.y, s.x - h.x);
+        let da = want - h.a; while (da > Math.PI) da -= TAU; while (da < -Math.PI) da += TAU;
+        h.a += clamp(da, -h.turn * dt, h.turn * dt);
+        const sp = h.cooldown > 0 ? h.speed * 0.3 : h.speed;
+        h.x += Math.cos(h.a) * sp * dt; h.y += Math.sin(h.a) * sp * dt;
+        if (h.type === 'elite') { h.lifeT -= dt; }
+      } else if (h.type === 'mine') {
+        h.x += h.vx * dt; h.y += h.vy * dt;
+        if (h.x < 20 || h.x > W - 20) h.vx *= -1; if (h.y < 20 || h.y > H - 20) h.vy *= -1;
+        const d = Math.hypot(s.x - h.x, s.y - h.y);
+        if (h.fuse < 0 && d < 110 && this.t - h.born > 1.5) h.fuse = 0.85;
+        if (h.fuse >= 0) {
+          h.fuse -= dt;
+          if (h.fuse <= 0) {
+            FX.burst(h.x, h.y, '#ff5d6e', 22, 260, 9); FX.kick(6); Synth.noise(0.3, 0.4, 600);
+            if (d < 90) this.hitShip(null);
+            this.hazards.splice(i, 1); continue;
+          }
+        }
+      } else if (h.type === 'swarm') {
+        h.x += h.speed * dt; h.ph += dt * 4;
+        h.y = h.baseY + Math.sin(h.ph) * 46;
+        if (h.x < -60 || h.x > W + 60) { this.hazards.splice(i, 1); continue; }
+      } else if (h.type === 'meteor') {
+        h.x += h.vx * dt; h.y += h.vy * dt;
+        if (Math.random() < dt * 18) FX.burst(h.x, h.y, '#ff9e5d', 1, 40, 4);
+        if (h.x < -60 || h.x > W + 60 || h.y < -60 || h.y > H + 60) { this.hazards.splice(i, 1); continue; }
+      } else if (h.type === 'sweep') {
+        h.t += dt;
+        if (h.t > 2.1) { this.hazards.splice(i, 1); continue; }
+      }
+      // collision + graze (positional hazards)
+      if (h.type !== 'sweep') {
+        const d = Math.hypot(s.x - h.x, s.y - h.y);
+        threatAcc += 1 / (1 + d / 260);
+        if (d < h.r + 11) this.hitShip(h);
+        else if (d < h.r + 40 && !h.grazed && s.inv <= 0) {
+          h.grazed = true;
+          this.onGraze(s.x + (h.x - s.x) / 2, s.y + (h.y - s.y) / 2);
+        }
+      } else {
+        // sweeping beam: telegraph 1.2s, lethal 0.6s
+        const active = h.t > 1.2 && h.t < 1.8;
+        const d = h.horiz ? Math.abs(s.y - h.pos) : Math.abs(s.x - h.pos);
+        if (active) {
+          threatAcc += 1 / (1 + d / 200);
+          if (d < h.r) this.hitShip(h);
+          else if (d < h.r + 34 && !h.grazed && s.inv <= 0) { h.grazed = true; this.onGraze(s.x, s.y - 30); }
+        }
+      }
+    }
+    this.threat = clamp01(threatAcc / 2.6);
+
+    // powerup crates
+    for (let i = this.pups.length - 1; i >= 0; i--) {
+      const p = this.pups[i];
+      p.t += dt; p.y += Math.sin(p.t * 2) * 8 * dt;
+      if (p.t > 12) { this.pups.splice(i, 1); continue; }
+      if (dist2(s.x, s.y, p.x, p.y) < 26 * 26) { this.applyPowerup(p.type, p.x, p.y); this.pups.splice(i, 1); }
+    }
+
+    // ---- SIREN heartbeat ----
+    Siren.tick(dt, this.threat, ptrSpeed);
+    const drop = Siren.reward.update(dt, this.t, Siren.model, Siren);
+    if (drop) { const pos = { x: rand(W * 0.15, W * 0.85), y: rand(H * 0.2, H * 0.8) }; this.pups.push({ type: drop, x: pos.x, y: pos.y, t: 0 }); }
+    const evName = Siren.flow.pendingEvent ? Siren.flow.consumeEvent() : null;
+    if (evName && !this.event) this.startEvent(evName);
+    this.updateEvent(dt);
+
+    // spawn from the director's budget
+    const flow = Siren.flow;
+    while (flow.budget >= 0.8 && this.aliveCost() < flow.maxThreatCost()) {
+      const d = flow.difficulty;
+      const table = [['chaser', 3]];
+      if (this.t > 12) table.push(['mine', 2]);
+      if (this.t > 25) table.push(['swarm', 1.3]);
+      if (this.t > 40 && d > 1.2) table.push(['sweep', 0.7 + (d - 1) * 0.5]);
+      const total = table.reduce((a, e) => a + e[1], 0);
+      let r = Math.random() * total, type = 'chaser';
+      for (const [ty, wt] of table) { r -= wt; if (r <= 0) { type = ty; break; } }
+      flow.budget -= { chaser: 1, mine: 0.8, swarm: 2, sweep: 1.5 }[type];
+      this.spawnHazard(type);
+    }
+
+    Meta.dailyProgress('time', dt);
+    Meta.checkLive(this);
+    UI.updateHUD();
+  },
+
+  onGraze(x, y) {
+    const bonus = (2 + Meta.val('graze')) * (Meta.mod.id === 'TEMPEST' ? 2 : 1);
+    this.score += 15 * this.multiplier();
+    this.earnShards(bonus, x, y, 'GRAZE');
+    Siren.note('graze');
+    Meta.dailyProgress('grazes', 1); Meta.bumpTotal('grazes', 1);
+    FX.slowmo(0.45, 0.12); FX.burst(x, y, '#5dff9e', 5, 120, 5);
+    Synth.graze();
+    if (this.overdriveT <= 0) {
+      this.grazeMeter += 0.085 + Meta.val('overdrive') * 0.006;
+      if (this.grazeMeter >= 1) {
+        this.grazeMeter = 0;
+        this.overdriveT = Meta.overdriveDur();
+        Siren.note('overdrive'); Meta.bumpTotal('overdrives', 1);
+        UI.banner('OVERDRIVE'); setTimeout(() => UI.banner(''), 1200);
+        FX.doFlash('#5dff9e', 0.45); Synth.overdrive();
+        UI.grazeReady(true);
+      }
+    }
+  },
+
+  finishRun() {
+    this.state = 'dead';
+    const run = Siren.tel.run;
+    run.time = this.t; run.score = this.score; run.maxCombo = this.maxCombo;
+    Siren.onDeath(run);
+    Meta.onRunEnd(this);
+    UI.showSummary(this, run);
+  },
+
+  // ---------- render ----------
+  draw(tNow, dtRaw) {
+    drawBG(tNow, dtRaw);
+    ctx.save();
+    if (FX.shake > 0.3) ctx.translate(rand(-FX.shake, FX.shake), rand(-FX.shake, FX.shake));
+
+    // gravity wells
+    for (const w of this.wells) {
+      ctx.strokeStyle = '#b47aff'; ctx.globalAlpha = 0.5;
+      for (let k = 0; k < 3; k++) {
+        const rr = w.r * (0.35 + 0.3 * k) * (1 + 0.06 * Math.sin(w.ph + k));
+        ctx.beginPath(); ctx.arc(w.x, w.y, rr, w.ph * (k % 2 ? 1 : -1), w.ph * (k % 2 ? 1 : -1) + TAU * 0.7); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.drawImage(glow('#b47aff'), w.x - 40, w.y - 40, 80, 80);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    if (this.state === 'run' || this.state === 'dying') {
+      // motes
+      ctx.globalCompositeOperation = 'lighter';
+      for (const m of this.motes) {
+        const col = m.rich ? '#ffd24e' : '#4ef3ff';
+        const sz = (m.r * 2 + 10) * (1 + 0.15 * Math.sin(m.ph)) * 2;
+        ctx.drawImage(glow(col), m.x - sz / 2, m.y - sz / 2, sz, sz);
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * 0.55, 0, TAU); ctx.fill();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+
+      // powerups
+      for (const p of this.pups) {
+        const col = { shield: '#5dff9e', magnet: '#4ef3ff', slow: '#b47aff', nova: '#ffffff' }[p.type];
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.t);
+        ctx.strokeStyle = col; ctx.lineWidth = 2;
+        ctx.strokeRect(-11, -11, 22, 22);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.drawImage(glow(col), -22, -22, 44, 44);
+        ctx.restore();
+        ctx.fillStyle = col; ctx.font = '800 11px ui-monospace,monospace'; ctx.textAlign = 'center';
+        ctx.fillText({ shield: 'S', magnet: 'M', slow: 'T', nova: 'N' }[p.type], p.x, p.y + 4);
+      }
+
+      // hazards
+      for (const h of this.hazards) {
+        if (h.type === 'chaser' || h.type === 'elite') {
+          const col = h.type === 'elite' ? '#ff4ecd' : '#ff5d6e';
+          ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(h.a);
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.drawImage(glow(col), -h.r * 2.4, -h.r * 2.4, h.r * 4.8, h.r * 4.8);
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = col;
+          ctx.beginPath(); ctx.moveTo(h.r * 1.4, 0); ctx.lineTo(-h.r, h.r * 0.9); ctx.lineTo(-h.r * 0.5, 0); ctx.lineTo(-h.r, -h.r * 0.9); ctx.closePath(); ctx.fill();
+          ctx.restore();
+          if (h.type === 'elite') {   // survival timer ring — the promise of loot
+            ctx.strokeStyle = '#ffd24e'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 9, -Math.PI / 2, -Math.PI / 2 + TAU * (h.lifeT / 12)); ctx.stroke();
+          }
+        } else if (h.type === 'mine') {
+          const warn = h.fuse >= 0;
+          const col = warn ? '#ff5d6e' : '#ff9e5d';
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.drawImage(glow(col), h.x - 20, h.y - 20, 40, 40);
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = col; ctx.beginPath(); ctx.arc(h.x, h.y, h.r * (warn ? 1 + 0.3 * Math.sin(this.t * 30) : 1), 0, TAU); ctx.fill();
+          if (warn) { ctx.strokeStyle = '#ff5d6e88'; ctx.beginPath(); ctx.arc(h.x, h.y, 90, 0, TAU); ctx.stroke(); }
+        } else if (h.type === 'swarm') {
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.drawImage(glow('#ff9e5d'), h.x - 14, h.y - 14, 28, 28);
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = '#ffcf9e'; ctx.beginPath(); ctx.arc(h.x, h.y, h.r * 0.6, 0, TAU); ctx.fill();
+        } else if (h.type === 'meteor') {
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.drawImage(glow('#ff9e5d'), h.x - h.r * 2.2, h.y - h.r * 2.2, h.r * 4.4, h.r * 4.4);
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = '#e8b090'; ctx.beginPath(); ctx.arc(h.x, h.y, h.r * 0.8, 0, TAU); ctx.fill();
+        } else if (h.type === 'sweep') {
+          const active = h.t > 1.2 && h.t < 1.8;
+          const a = active ? 0.9 : 0.25 + 0.15 * Math.sin(h.t * 20);
+          ctx.globalAlpha = a;
+          ctx.strokeStyle = active ? '#ff4ecd' : '#ff4ecd';
+          ctx.lineWidth = active ? h.r * 2 : 2;
+          ctx.setLineDash(active ? [] : [10, 12]);
+          ctx.beginPath();
+          if (h.horiz) { ctx.moveTo(0, h.pos); ctx.lineTo(W, h.pos); } else { ctx.moveTo(h.pos, 0); ctx.lineTo(h.pos, H); }
+          ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+        }
+      }
+
+      // wisp
+      if (this.wisp) {
+        const w = this.wisp;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.drawImage(glow('#ffd24e'), w.x - 26, w.y - 26, 52, 52);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(w.x, w.y, 6, 0, TAU); ctx.fill();
+      }
+
+      // ship
+      const s = this.ship;
+      if (this.state !== 'dying' || this.dying > 0.6) {
+        const skin = s.skin;
+        ctx.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < s.trail.length; i++) {
+          const p = s.trail[i], a = 1 - i / s.trail.length;
+          const sz = 22 * a;
+          ctx.globalAlpha = a * 0.5;
+          ctx.drawImage(glow(skin.trail), p.x - sz / 2, p.y - sz / 2, sz, sz);
+        }
+        ctx.globalAlpha = 1;
+        ctx.drawImage(glow(skin.hull), s.x - 30, s.y - 30, 60, 60);
+        ctx.globalCompositeOperation = 'source-over';
+        const ang = Math.atan2(s.vy, s.vx);
+        const blink = s.inv > 0 && Math.sin(tNow * 30) > 0;
+        if (!blink) {
+          ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(Math.hypot(s.vx, s.vy) > 30 ? ang : -Math.PI / 2);
+          ctx.fillStyle = '#fff';
+          ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(-9, 8); ctx.lineTo(-5, 0); ctx.lineTo(-9, -8); ctx.closePath(); ctx.fill();
+          ctx.restore();
+        }
+        // combo aura + overdrive ring
+        const tier = Math.min(4, Math.floor(this.chain / 8));
+        if (tier > 0) {
+          ctx.strokeStyle = ['#4ef3ff', '#5dff9e', '#ffd24e', '#ff4ecd'][tier - 1] + 'aa';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(s.x, s.y, 20 + tier * 3 + 2 * Math.sin(tNow * 6), 0, TAU); ctx.stroke();
+        }
+        if (this.overdriveT > 0) {
+          ctx.strokeStyle = '#5dff9e'; ctx.lineWidth = 2.5;
+          ctx.beginPath(); ctx.arc(s.x, s.y, 30 + 4 * Math.sin(tNow * 12), 0, TAU); ctx.stroke();
+        }
+        // graze ring (subtle — the skill halo)
+        ctx.strokeStyle = skin.hull + '22'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(s.x, s.y, 40, 0, TAU); ctx.stroke();
+      }
+    }
+
+    FX.draw();
+    ctx.restore();
+    if (FX.flash > 0.02) { ctx.globalAlpha = FX.flash; ctx.fillStyle = FX.flashCol; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+    if (this.overdriveT > 0) { ctx.globalAlpha = 0.07; ctx.fillStyle = '#5dff9e'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+  },
+};
+
+/* ================================================================================
+   META — the long-horizon game: upgrades, achievements, daily rift, streaks,
+   offline salvage, pilot levels. This is the layer SIREN's SessionSculptor
+   mines for goal ladders: every number here is a hook the engine can surface.
+   ================================================================================ */
+
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+const UPGRADES = [
+  { id: 'magnet', n: 'Magnet Core', d: '+14 collection radius per level', base: 60, max: 10 },
+  { id: 'combo', n: 'Combo Stabilizer', d: '+0.18s combo window per level', base: 80, max: 10 },
+  { id: 'refine', n: 'Shard Refinery', d: '+8% shard value per level', base: 100, max: 10 },
+  { id: 'aegis', n: 'Aegis Plating', d: '+1 hull integrity per level', base: 280, max: 3 },
+  { id: 'graze', n: 'Graze Harmonics', d: '+1◆ per graze per level', base: 70, max: 8 },
+  { id: 'overdrive', n: 'Overdrive Coil', d: '+0.5s overdrive per level', base: 90, max: 8 },
+  { id: 'drones', n: 'Salvage Drones', d: '+0.6◆/min while away per level', base: 120, max: 10 },
+  { id: 'luck', n: 'Lucky Antenna', d: '+6% event frequency per level', base: 110, max: 8 },
+  { id: 'phoenix', n: 'Phoenix Protocol', d: 'Revive once per run, clearing nearby hazards', base: 1500, max: 1 },
+];
+const DAILY_MODS = [
+  { id: 'AURUM', n: 'Aurum Surge', d: 'Gold motes spawn 2.5× as often' },
+  { id: 'TEMPEST', n: 'Tempest', d: 'Graze rewards are doubled' },
+  { id: 'PHANTOM', n: 'Phantom Day', d: 'Phantoms are worth double shards' },
+  { id: 'OVERCLOCK', n: 'Overclock', d: 'Overdrive lasts 50% longer' },
+  { id: 'HARVEST', n: 'Harvest', d: 'All shard gains +25%' },
+];
+const DAILY_TASKS = [
+  { kind: 'motes', target: 120, d: 'Collect 120 motes' },
+  { kind: 'grazes', target: 35, d: 'Graze 35 hazards' },
+  { kind: 'shards', target: 400, d: 'Earn 400 shards' },
+  { kind: 'time', target: 240, d: 'Survive 240s (across runs)' },
+];
+const ACH = [
+  { id: 'first', n: 'Ignition', d: 'Complete your first run', ic: '🚀', t: 1, p: () => P.totals.runs },
+  { id: 'graze25', n: 'Thread the Needle', d: 'Graze 25 hazards in one run', ic: '🪡', t: 25, p: () => Siren.tel.run.grazes },
+  { id: 'combo8', n: 'Resonance', d: 'Reach combo ×8', ic: '🌀', t: 8, p: () => G.maxCombo },
+  { id: 'combo16', n: 'Harmonic Cascade', d: 'Reach combo ×16', ic: '🌪️', t: 16, p: () => G.maxCombo },
+  { id: 'surv120', n: 'Two Minutes of Grace', d: 'Survive 120 seconds', ic: '⏱️', t: 120, p: () => G.t },
+  { id: 'surv300', n: 'Untouchable', d: 'Survive 300 seconds', ic: '👁️', t: 300, p: () => G.t },
+  { id: 'motes1k', n: 'Harvester', d: 'Collect 1,000 motes (lifetime)', ic: '✨', t: 1000, p: () => P.totals.motes },
+  { id: 'grazes500', n: 'Edgewalker', d: '500 lifetime grazes', ic: '🔪', t: 500, p: () => P.totals.grazes },
+  { id: 'shards5k', n: 'Magnate', d: 'Earn 5,000 shards (lifetime)', ic: '💎', t: 5000, p: () => P.totals.shardsEarned },
+  { id: 'events25', n: 'Storm Chaser', d: 'Witness 25 rift events', ic: '🌩️', t: 25, p: () => P.totals.events },
+  { id: 'elite5', n: 'Apex Bait', d: 'Outlast 5 elite hunters', ic: '🎯', t: 5, p: () => P.totals.elites },
+  { id: 'nova50', n: 'Starbreaker', d: 'Destroy 50 hazards with novas', ic: '💥', t: 50, p: () => P.totals.novaKills },
+  { id: 'over10', n: 'Overdriven', d: 'Trigger overdrive 10 times', ic: '⚡', t: 10, p: () => P.totals.overdrives },
+  { id: 'runs10', n: 'Regular', d: 'Fly 10 runs', ic: '🛰️', t: 10, p: () => P.totals.runs },
+  { id: 'runs50', n: 'Lifer', d: 'Fly 50 runs', ic: '🛸', t: 50, p: () => P.totals.runs },
+  { id: 'lv5', n: 'Wings', d: 'Reach pilot level 5', ic: '🎖️', t: 5, p: () => P.level },
+  { id: 'lv10', n: 'Ace', d: 'Reach pilot level 10', ic: '🏅', t: 10, p: () => P.level },
+  { id: 'streak3', n: 'Gravity', d: '3-day streak', ic: '🔥', t: 3, p: () => P.daily.streak },
+  { id: 'streak7', n: 'Orbit Decay', d: '7-day streak', ic: '☄️', t: 7, p: () => P.daily.streak },
+  { id: 'upg1', n: 'Tinkerer', d: 'Buy your first upgrade', ic: '🔧', t: 1, p: () => Object.values(P.upgrades).reduce((a, b) => a + b, 0) },
+  { id: 'curtain', n: 'Behind the Curtain', d: 'Open the SIREN engine view', ic: '⟁', t: 1, p: () => P.achProgress.curtain || 0 },
+];
+
+const Meta = {
+  mod: null, task: null, lastRunInfo: null, _liveT: 0,
+
+  lvl(id) { return P.upgrades[id] || 0; },
+  val(id) { return this.lvl(id); },
+  cost(id) { const u = UPGRADES.find(u => u.id === id); return Math.round(u.base * Math.pow(1.55, this.lvl(id))); },
+  startHp() { return 1 + this.lvl('aegis'); },
+  magnetR() { return 70 + this.lvl('magnet') * 14; },
+  comboWindow() { return 2.2 + this.lvl('combo') * 0.18; },
+  shardMul() { return (1 + this.lvl('refine') * 0.08) * (this.mod.id === 'HARVEST' ? 1.25 : 1); },
+  overdriveDur() { return (4 + this.lvl('overdrive') * 0.5) * (this.mod.id === 'OVERCLOCK' ? 1.5 : 1); },
+  droneRate() { return 0.5 + this.lvl('drones') * 0.6; },   // shards per minute away
+  eventLuck() { return 1 + this.lvl('luck') * 0.06; },
+  xpNeed() { return Math.round(100 * Math.pow(1.35, P.level - 1)); },
+
+  bumpTotal(k, n) { P.totals[k] = (P.totals[k] || 0) + n; },
+
+  buy(id) {
+    const u = UPGRADES.find(u => u.id === id);
+    const c = this.cost(id);
+    if (this.lvl(id) >= u.max || P.shards < c) return;
+    P.shards -= c;
+    P.upgrades[id] = this.lvl(id) + 1;
+    Siren.note('purchase');
+    Siren.log('sculpt', `purchase: ${u.n} ${ROMAN[P.upgrades[id]]} for ${c}◆`);
+    Synth.powerup();
+    this.checkAch();
+    Vault.save();
+    UI.renderHangar();
+  },
+
+  // ---- daily rift: seeded modifier + task, streak with one weekly shield ----
+  boot() {
+    const today = dayKey();
+    const rng = mulberry32(daySeed(today));
+    this.mod = DAILY_MODS[Math.floor(rng() * DAILY_MODS.length)];
+    this.task = DAILY_TASKS[Math.floor(rng() * DAILY_TASKS.length)];
+
+    if (P.daily.last !== today) {
+      const yesterday = dayKey(new Date(Date.now() - 864e5));
+      const twoAgo = dayKey(new Date(Date.now() - 2 * 864e5));
+      const weekId = today.slice(0, 8);
+      if (P.daily.last === yesterday) P.daily.streak++;
+      else if (P.daily.last === twoAgo && P.daily.shieldWeek !== weekId) {
+        P.daily.shieldWeek = weekId; P.daily.streak++;
+        UI.toast('STREAK SHIELD USED', 'Missed a day — your streak survived', true);
+        Siren.log('sculpt', 'streak shield consumed: 1-day gap forgiven');
+      } else P.daily.streak = 1;
+      P.daily.last = today;
+      P.daily.taskProgress = 0;
+      const reward = [0, 50, 75, 100, 150, 200, 300, 500][Math.min(P.daily.streak, 7)];
+      P.shards += reward;
+      UI.toast(`DAY ${P.daily.streak} STREAK`, `+${reward}◆ streak bonus`, true);
+    }
+    // offline salvage
+    if (P.lastSeen) {
+      const mins = Math.min((Date.now() - P.lastSeen) / 6e4, 480);
+      if (mins > 10) {
+        const haul = Math.round(mins * this.droneRate());
+        P.shards += haul;
+        UI.toast('SALVAGE REPORT', `Drones recovered ${haul}◆ while you were away`, true);
+        Siren.log('sculpt', `offline salvage: ${haul}◆ over ${mins.toFixed(0)}min (rate ${this.droneRate().toFixed(1)}/min)`);
+      }
+    }
+    // churn-scaled welcome-back package, computed by the sculptor at boot
+    if (Siren.pendingGift) {
+      const g = Siren.pendingGift;
+      P.shards += g.shards; P.cores += g.cores;
+      UI.toast('WELCOME BACK, PILOT', `+${g.shards}◆${g.cores ? ` +${g.cores}⬡` : ''} — the drift kept these for you`, true);
+    }
+    Vault.save();
+  },
+
+  dailyProgress(kind, n) {
+    if (!this.task || this.task.kind !== kind) return;
+    const today = dayKey();
+    if (P.daily.taskDone === today) return;
+    P.daily.taskProgress += n;
+    if (P.daily.taskProgress >= this.task.target) {
+      P.daily.taskDone = today;
+      P.cores += 2; P.shards += 150;
+      UI.toast('DAILY RIFT CLEARED', '+150◆ +2⬡', true);
+      Siren.log('sculpt', 'daily task complete → appointment kept, reward paid');
+      this.checkAch();
+    }
+  },
+
+  checkAch() {
+    for (const a of ACH) {
+      if (P.ach[a.id]) continue;
+      let v; try { v = a.p(); } catch (e) { v = 0; }
+      P.achProgress[a.id] = Math.max(P.achProgress[a.id] || 0, v);
+      if (v >= a.t) {
+        P.ach[a.id] = Date.now();
+        P.cores += 2;
+        Siren.note('ach');
+        Siren.log('sculpt', `achievement unlocked: ${a.n}`);
+        UI.toast(`${a.ic} ${a.n}`, a.d + ' · +2⬡');
+        Synth.toast();
+      }
+    }
+  },
+  checkLive(g) {
+    this._liveT += 1;
+    if (this._liveT % 45 !== 0) return;   // ~every 0.75s at 60fps
+    this.checkAch();
+  },
+
+  onRunEnd(g) {
+    const prevBest = P.best;
+    const bonus = Math.round(g.score / 50);
+    P.shards += g.runShards + bonus;
+    this.bumpTotal('shardsEarned', g.runShards + bonus);
+    this.bumpTotal('runs', 1);
+    this.bumpTotal('time', g.t);
+    const newBest = g.score > P.best;
+    if (newBest) { P.best = g.score; P.bestTime = Math.max(P.bestTime, g.t); }
+
+    // pilot XP — the always-filling bar
+    const xpBefore = { level: P.level, xp: P.xp, need: this.xpNeed() };
+    P.xp += Math.round(g.score / 12);
+    let levelUps = 0;
+    while (P.xp >= this.xpNeed()) {
+      P.xp -= this.xpNeed(); P.level++; levelUps++;
+      const reward = 50 * P.level;
+      P.shards += reward; P.cores += 1;
+      UI.toast(`PILOT LEVEL ${P.level}`, `+${reward}◆ +1⬡`, true);
+      Synth.levelup();
+      for (const [i, s] of SKINS.entries()) {
+        if (s.lv === P.level && !P.unlockedSkins.includes(i)) {
+          P.unlockedSkins.push(i);
+          UI.toast(`SKIN UNLOCKED: ${s.name}`, 'Equip it in the hangar', true);
+        }
+      }
+    }
+    this.lastRunInfo = { prevBest, newBest, bonus, xpBefore, levelUps };
+    this.checkAch();
+    Siren.persist();
+  },
+
+  // Goal candidates for the sculptor's ladder — every entry is real progress.
+  goalCandidates() {
+    const out = [];
+    out.push({ kind: 'level', label: `Pilot level ${P.level + 1}`, prog: clamp01(P.xp / this.xpNeed()) });
+    let bestUp = null;
+    for (const u of UPGRADES) {
+      if (this.lvl(u.id) >= u.max) continue;
+      const prog = clamp01(P.shards / this.cost(u.id));
+      if (!bestUp || prog > bestUp.prog) bestUp = { kind: 'upgrade', label: `${u.n} ${ROMAN[this.lvl(u.id) + 1]}`, prog };
+    }
+    if (bestUp) out.push(bestUp);
+    let bestAch = null;
+    for (const a of ACH) {
+      if (P.ach[a.id]) continue;
+      const prog = clamp01((P.achProgress[a.id] || 0) / a.t);
+      if (!bestAch || prog > bestAch.prog) bestAch = { kind: 'ach', label: `${a.ic} ${a.n}`, prog };
+    }
+    if (bestAch) out.push(bestAch);
+    if (P.daily.taskDone !== dayKey() && this.task)
+      out.push({ kind: 'daily', label: `Daily: ${this.task.d}`, prog: clamp01(P.daily.taskProgress / this.task.target) });
+    const nextSkin = SKINS.find((s, i) => !P.unlockedSkins.includes(i));
+    if (nextSkin) out.push({ kind: 'skin', label: `Unlock ${nextSkin.name} hull`, prog: clamp01(P.level / nextSkin.lv) });
+    if (P.best > 0) out.push({ kind: 'best', label: `Beat your best (${fmt(P.best)})`, prog: 0.6 });
+    return out;
+  },
+};
+
+/* ================================================================================
+   UI — DOM wiring, HUD, screens, toasts, and the SIREN dashboard renderer.
+   ================================================================================ */
+const UI = {
+  dashOpen: false, paused: false, _score: 0,
+
+  showScreen(id) {
+    for (const s of document.querySelectorAll('.screen')) s.classList.toggle('active', s.id === id);
+    this.dashOpen = id === 'dash';
+    $('hud').classList.toggle('on', !id && G.state === 'run');
+  },
+
+  toast(title, sub, gold) {
+    const el = document.createElement('div');
+    el.className = 'toast' + (gold ? ' gold' : '');
+    el.innerHTML = `<div>${title}</div>${sub ? `<small>${sub}</small>` : ''}`;
+    $('toasts').appendChild(el);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 350); }, 3600);
+  },
+
+  banner(t) { const b = $('eventBanner'); b.textContent = t; b.classList.toggle('show', !!t); },
+  grazeReady(on) { $('grazeBar').classList.toggle('ready', on); },
+
+  updatePips() {
+    const s = G.ship; if (!s) return;
+    const el = $('hpPips'); el.innerHTML = '';
+    for (let i = 0; i < s.maxHp + 1; i++) {
+      const d = document.createElement('div');
+      d.className = 'pip' + (i < s.hp + 1 ? '' : ' off');
+      el.appendChild(d);
+    }
+  },
+
+  onRunStart() {
+    this.showScreen(null);
+    $('hud').classList.add('on');
+    this.updatePips();
+    // HUD goal: the daily task while it's live (it progresses in-run), else the
+    // sculptor's top ladder goal — there is always a "why" on screen.
+    const daily = P.daily.taskDone !== dayKey();
+    const g = daily ? { label: 'DAILY: ' + Meta.task.d } : (Siren.sculpt.lastLadder && Siren.sculpt.lastLadder[0]);
+    $('goalHudTxt').textContent = g ? g.label : '';
+  },
+
+  updateHUD() {
+    this._score = lerp(this._score, G.score, 0.15);
+    $('score').textContent = fmt(Math.round(this._score));
+    $('shardHud').textContent = '◆ ' + fmt(G.runShards);
+    const m = G.multiplier();
+    $('comboMult').textContent = G.chain > 0 ? '×' + m : '';
+    $('comboFill').style.width = pc(G.chain > 0 ? clamp01(G.comboT / Meta.comboWindow()) : 0);
+    $('grazeFill').style.width = pc(G.overdriveT > 0 ? 1 : G.grazeMeter);
+    if (Meta.task && P.daily.taskDone !== dayKey())
+      $('goalHudFill').style.width = pc(clamp01(P.daily.taskProgress / Meta.task.target));
+  },
+
+  showSummary(g, run) {
+    $('hud').classList.remove('on');
+    const info = Meta.lastRunInfo;
+    $('sumTitle').textContent = info.newBest ? '★ NEW BEST SIGNAL ★' : 'SIGNAL LOST';
+    $('sumBest').textContent = 'BEST ' + fmt(P.best);
+    $('sumStats').innerHTML = [
+      ['TIME', run.time.toFixed(0) + 's'], ['MOTES', run.motes], ['GRAZES', run.grazes],
+      ['COMBO', '×' + run.maxCombo], ['SHARDS', '+' + fmt(g.runShards + info.bonus) + '◆'],
+    ].map(([k, v]) => `<span class="chip">${k} <b>${v}</b></span>`).join('');
+    // score count-up: the number should feel earned
+    const el = $('sumScore'); const target = g.score; const t0 = now();
+    const count = () => {
+      const k = clamp01((now() - t0) / 900);
+      el.textContent = fmt(Math.round(target * (1 - Math.pow(1 - k, 3))));
+      if (k < 1) requestAnimationFrame(count);
+    };
+    count();
+    // XP bar animates from where it was to where it is now
+    $('lvlBadge').textContent = 'PILOT LV ' + P.level;
+    $('xpText').textContent = fmt(P.xp) + ' / ' + fmt(Meta.xpNeed()) + ' XP';
+    const fill = $('xpFill');
+    fill.style.transition = 'none';
+    fill.style.width = info.levelUps > 0 ? '0%' : pc(clamp01(info.xpBefore.xp / info.xpBefore.need));
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      fill.style.transition = '';
+      fill.style.width = pc(clamp01(P.xp / Meta.xpNeed()));
+    }));
+    // goal ladder — recomputed after rewards landed, so every bar is current
+    const ladder = Siren.sculpt.goalLadder(Siren);
+    Siren.sculpt.lastLadder = ladder;
+    $('goalList').innerHTML = ladder.map(l =>
+      `<div class="goal"><div class="gt"><span>${l.label}</span><em>${pc(l.prog)}</em></div>
+       <div class="gb"><div class="gf" style="width:0%"></div></div></div>`).join('');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.querySelectorAll('#goalList .gf').forEach((el2, i) => el2.style.width = pc(ladder[i].prog));
+    }));
+    $('sumCallout').textContent = Siren.sculpt.summaryCallout(run, info.prevBest);
+    this.showScreen('summary');
+    $('againBtn').focus();
+  },
+
+  renderMenu() {
+    $('dailyName').textContent = Meta.mod.n.toUpperCase();
+    $('dailyMod').textContent = Meta.mod.d;
+    const done = P.daily.taskDone === dayKey();
+    $('dailyTask').textContent = (done ? '✓ ' : '◌ ') + Meta.task.d + (done ? ' — cleared' : '');
+    $('dailyTaskFill').style.width = pc(done ? 1 : clamp01(P.daily.taskProgress / Meta.task.target));
+    const row = $('streakRow'); row.innerHTML = '';
+    const lit = Math.min(P.daily.streak, 7);
+    for (let i = 0; i < 7; i++) {
+      const d = document.createElement('div');
+      d.className = 'day' + (i < lit ? ' lit' : '') + (i === lit - 1 ? ' today' : '');
+      d.textContent = i + 1;
+      row.appendChild(d);
+    }
+    const n = document.createElement('span'); n.id = 'streakNum';
+    n.textContent = P.daily.streak + ' day' + (P.daily.streak === 1 ? '' : 's');
+    row.appendChild(n);
+    $('menuTag').textContent = P.totals.runs === 0 ? 'graze the void · feed the core'
+      : `${P.totals.runs} runs · best ${fmt(P.best)} · ${fmt(P.totals.grazes)} grazes`;
+  },
+
+  renderHangar() {
+    $('shardBal').textContent = fmt(P.shards);
+    $('coreBal').textContent = fmt(P.cores);
+    $('upGrid').innerHTML = '';
+    for (const u of UPGRADES) {
+      const lv = Meta.lvl(u.id), maxed = lv >= u.max, cost = Meta.cost(u.id);
+      const card = document.createElement('div'); card.className = 'up';
+      card.innerHTML = `<h4>${u.n}</h4><div class="lv">LV ${lv}/${u.max}</div><p>${u.d}</p>
+        <button class="btn buy ${maxed ? 'maxed' : P.shards < cost ? 'cant' : ''}">${maxed ? 'MAXED' : cost + ' ◆'}</button>`;
+      card.querySelector('.buy').addEventListener('click', () => Meta.buy(u.id));
+      $('upGrid').appendChild(card);
+    }
+    const row = $('skinRow'); row.innerHTML = '';
+    SKINS.forEach((s, i) => {
+      const unlocked = P.unlockedSkins.includes(i);
+      const d = document.createElement('div');
+      d.className = 'skin' + (P.skin === i ? ' sel' : '') + (unlocked ? '' : ' lock');
+      d.title = s.name + (unlocked ? '' : ` — unlocks at level ${s.lv}`);
+      d.innerHTML = `<i style="background:${s.hull};box-shadow:0 0 10px ${s.hull}"></i>`;
+      if (unlocked) d.addEventListener('click', () => { P.skin = i; Vault.save(); Synth.click(); this.renderHangar(); });
+      row.appendChild(d);
+    });
+  },
+
+  renderAch() {
+    $('achList').innerHTML = ACH.map(a => {
+      const done = !!P.ach[a.id];
+      const v = Math.min(P.achProgress[a.id] || 0, a.t);
+      return `<div class="achv${done ? ' done' : ''}"><div class="ic">${a.ic}</div>
+        <div class="tx"><h5>${a.n}</h5><p>${a.d}</p></div>
+        <div class="pr">${done ? '✓' : fmt(v) + '/' + fmt(a.t)}</div></div>`;
+    }).join('');
+  },
+
+  // ---------- SIREN dashboard ----------
+  gauge(el, label, val, color) {
+    $(el).innerHTML = `<div class="gl"><span>${label}</span><span>${val.toFixed(2)}</span></div>
+      <div class="gbar"><div class="gfill" style="width:${pc(clamp01(val))};background:${color}"></div></div>`;
+  },
+  renderDash() {
+    const m = Siren.model;
+    this.gauge('gSkill', 'LATENT SKILL', m.skill, '#4ef3ff');
+    this.gauge('gFrus', 'FRUSTRATION', m.frustration, '#ff5d6e');
+    this.gauge('gBore', 'BOREDOM', m.boredom, '#ff9e5d');
+    this.gauge('gChurn', 'CHURN RISK', m.churn, '#ff4ecd');
+    $('banditBars').innerHTML = Object.entries(Siren.bandit.arms).map(([name, s]) => {
+      const mu = s.a / (s.a + s.b);
+      const sd = Math.sqrt(s.a * s.b / ((s.a + s.b) ** 2 * (s.a + s.b + 1)));
+      return `<div class="bandit"><div class="bl"><b>${name}</b><span>μ ${mu.toFixed(2)} ±${sd.toFixed(2)} · ${s.n} trials</span></div>
+        <div class="bbar"><div class="bfill" style="width:${pc(mu)}"></div></div></div>`;
+    }).join('');
+    $('motivBars').innerHTML = Object.entries(m.motiv).map(([k, v]) =>
+      `<div class="bandit"><div class="bl"><b>${k.toUpperCase()}</b><span>${pc(v)}</span></div>
+       <div class="bbar"><div class="bfill" style="width:${pc(v)};background:linear-gradient(90deg,#7a3ad9,#ff4ecd)"></div></div></div>`).join('');
+    $('dossier').innerHTML = Siren.dossier();
+    this.renderFlow();
+    this.renderDlog();
+  },
+  renderFlow() {
+    const c = $('flowCanvas');
+    const w = c.clientWidth || 300, h = 150;
+    c.width = w * DPR; c.height = h * DPR;
+    const x = c.getContext('2d'); x.setTransform(DPR, 0, 0, DPR, 0, 0);
+    x.fillStyle = '#070b18'; x.fillRect(0, 0, w, h);
+    const hist = Siren.flow.hist.length ? Siren.flow.hist
+      : Siren.model.skillHist.map(s => ({ s, c: s }));
+    if (!hist.length) {
+      x.fillStyle = '#3d4c73'; x.font = '11px ui-monospace,monospace'; x.textAlign = 'center';
+      x.fillText('play a run to trace the flow channel', w / 2, h / 2);
+      return;
+    }
+    const px = i => hist.length === 1 ? w / 2 : i / (hist.length - 1) * (w - 16) + 8;
+    const py = v => h - 12 - clamp01(v) * (h - 24);
+    // flow band = skill ± 0.18: challenge should live inside this river
+    x.fillStyle = 'rgba(78,243,255,0.10)';
+    x.beginPath();
+    hist.forEach((p, i) => i ? x.lineTo(px(i), py(p.s + 0.18)) : x.moveTo(px(0), py(p.s + 0.18)));
+    for (let i = hist.length - 1; i >= 0; i--) x.lineTo(px(i), py(hist[i].s - 0.18));
+    x.closePath(); x.fill();
+    const line = (get, col) => {
+      x.strokeStyle = col; x.lineWidth = 1.6; x.beginPath();
+      hist.forEach((p, i) => i ? x.lineTo(px(i), py(get(p))) : x.moveTo(px(0), py(get(p))));
+      x.stroke();
+    };
+    line(p => p.s, '#4ef3ff');
+    line(p => p.c, '#ff4ecd');
+    x.font = '10px ui-monospace,monospace'; x.textAlign = 'left';
+    x.fillStyle = '#4ef3ff'; x.fillText('skill', 10, 14);
+    x.fillStyle = '#ff4ecd'; x.fillText('challenge', 46, 14);
+  },
+  renderDlog() {
+    if (!this.dashOpen) return;
+    const el = $('dlog');
+    el.innerHTML = Siren.logBuf.slice().reverse().map(e => {
+      const t = new Date(e.at).toTimeString().slice(0, 8);
+      return `<div><span class="t-${e.tag}">[${e.tag.toUpperCase()}]</span> ${t} ${e.msg}</div>`;
+    }).join('');
+  },
+
+  init() {
+    const bind = (id, fn) => $(id).addEventListener('click', () => { Synth.click(); fn(); });
+    bind('playBtn', () => G.startRun());
+    bind('againBtn', () => G.startRun());
+    bind('toMenuBtn', () => { this.renderMenu(); this.showScreen('menu'); });
+    bind('hangarBtn', () => { this.renderHangar(); this.showScreen('hangar'); });
+    bind('hangarBack', () => { this.renderMenu(); this.showScreen('menu'); });
+    bind('achBtn', () => { this.renderAch(); this.showScreen('ach'); });
+    bind('achBack', () => { this.renderMenu(); this.showScreen('menu'); });
+    bind('dashBtn', () => this.openDash());
+    bind('dashBack', () => {
+      if (G.state === 'run') { this.showScreen(null); this.setPause(false); }
+      else { this.renderMenu(); this.showScreen('menu'); }
+    });
+    bind('soundBtn', () => {
+      P.settings.sound = !P.settings.sound; Vault.save();
+      $('soundBtn').textContent = 'Sound: ' + (P.settings.sound ? 'On' : 'Off');
+    });
+    $('soundBtn').textContent = 'Sound: ' + (P.settings.sound ? 'On' : 'Off');
+
+    window.addEventListener('keydown', e => {
+      if (e.repeat) return;
+      const k = e.key.toLowerCase();
+      if (k === 'e') this.dashOpen ? $('dashBack').click() : this.openDash();
+      else if (k === 'p' && G.state === 'run' && !this.dashOpen) this.setPause(!this.paused);
+      else if (k === 'm') $('soundBtn').click();
+      else if ((k === ' ' || k === 'enter') && G.state === 'dead') { e.preventDefault(); G.startRun(); }
+    });
+    // Leaving the tab mid-run is a signal, not just a pause.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (G.state === 'run' && !this.dashOpen) this.setPause(true);
+        Siren.persist();
+      }
+    });
+    window.addEventListener('pagehide', () => {
+      if (!this._closed) { this._closed = true; Siren.sculpt.endSession(); Siren.persist(); }
+    });
+    this.renderMenu();
+  },
+  openDash() {
+    if (G.state === 'run') this.setPause(true, true);
+    if (!P.achProgress.curtain) { P.achProgress.curtain = 1; Meta.checkAch(); }
+    Siren.note('dash_open');
+    this.showScreen('dash');   // sets dashOpen before the log renders
+    this.renderDash();
+  },
+  setPause(on, silent) {
+    this.paused = on;
+    $('pauseOv').classList.toggle('on', on && !silent && !this.dashOpen);
+  },
+};
+
+/* ---------- boot + main loop ---------- */
+Siren.boot();
+Meta.boot();
+UI.init();
+Meta.checkAch();
+
+let _last = now(), _frames = 0;
+function frame() {
+  const t = now();
+  let dtRaw = Math.min(0.05, (t - _last) / 1000);
+  _last = t;
+  if (UI.paused) dtRaw = 0;
+  FX.update(dtRaw);
+  G.update(dtRaw);
+  G.draw(t / 1000, dtRaw * FX.ts);
+  if (UI.dashOpen && ++_frames % 30 === 0) UI.renderDash();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
