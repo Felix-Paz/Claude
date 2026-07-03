@@ -16,10 +16,10 @@ no install, no login, no network required.
 | Input | Action |
 |---|---|
 | Drag / move + release (or click) | Aim and drop |
-| `Space` | Bank |
+| `Space` / `Enter` | Continue (menu → play, results → drop again); in a run `Space` = BANK |
 | `←` `→` `↓` | Aim / drop (desktop) |
-| `Enter` | Drop again / play |
-| `Esc` | Menu |
+| `R` | Restart (instant from menu/results; mid-run asks for a confirming second press — unbanked coins burn) |
+| `Esc` | Back out of whatever is open: dialog → card → run/results → menu |
 
 ## The economy (one currency, everywhere)
 
@@ -34,7 +34,10 @@ no install, no login, no network required.
   are earned, never bought — see `MILESTONES` in §1.
 
 Brand identity is **fresh spring green + gold** — a bright, airy green world (no
-more cave-dark), green→gold wordmark, in-game logo at the bottom-center.
+more cave-dark), green→gold wordmark, in-game logo at the bottom-center. The
+backdrop itself keeps score: every run starts spring green, then the world's hue
+drifts with the unbanked pile (log-scale — the greedier the pile, the further it
+goes): green → teal → blue → violet → magenta. Bank, and it eases back to green.
 
 ## Shapes
 
@@ -63,9 +66,14 @@ normal shape) and its own behavior:
 
 **World events** fire live (not blocks): 🕳️ BLACK HOLE (opens ON the tower and
 devours up to 3 pieces, paying coins for each), ☄️ METEOR (warns, then crashes —
-its shockwave only pushes pieces up and toward the dock center, so it reshuffles
-but can never directly kill), 💨 WIND (gusty crosswind that sways the tower,
-harmless), and 🔒 CURSE (no-banking / coin-leak / slippery / next-3-huge).
+it can knock pieces clean off the dock, but knocked-off pieces just *vanish in a
+poof* during its grace window: a meteor can cost you blocks, never the run),
+💨 WIND (gusts on the block that is FALLING — the drop drifts sideways to a spot
+you didn't pick, its landing x hard-clamped over the dock so wind alone can never
+kill; the settled stack is untouched), and 🔒 CURSE (no-banking / coin-leak /
+slippery / next-3-huge). 😠 ANGRY's jump and 🏋️ HEAVY's slam run under the same
+no-direct-death rule — chaos blocks knocked off the edge disappear instead of
+ending the run.
 
 ### Event Director
 Every 45–75 s the `EventDirector` asks "what crazy thing should happen now?" and
@@ -81,12 +89,15 @@ four smooth "character" tiers (glow → grow → big pulses → BANK ME) driven 
 unbanked coins, staying calm until ~◆150,000 is on the line. All scale pulses —
 no jitter, no particles.
 
-## Collection (◆100,000 → ◆12,000,000)
+## Collection (◆30,000 → ◆10,000,000)
 
+Prices climb in honest bands: pure looks ◆30–70k, entry perks ◆100–150k, solid
+powers ◆200–500k, legends ◆750k–3M, and ONE crown jewel at ◆10,000,000.
 16 docks, each a clean material with one quiet signature detail (restraint reads
-expensive): Slab, Heartwood, Brushed Steel, Carrara, Porcelain, Liquid Glass,
+expensive): Slab (the free default — a cool charcoal-slate that pops against the
+green world), Heartwood, Brushed Steel, Carrara, Porcelain, Liquid Glass,
 Basalt Forge, Reactor, Bullion, Bumper Deck, Aurora Deck, Nebula, Crimson Velvet,
-Vortex Core, Obsidian, and the ◆12,000,000 OBSIDIAN CROWN. Power dimensions:
+Vortex Core, Obsidian, and the ◆10,000,000 OBSIDIAN CROWN. Power dimensions:
 `lengthBonus`, `grip`, `forgiveness`, `slowFall`, `greedRate`, `salvageMult`,
 `comboBonusMs`, `walls`. Difficulty also leans harder as your vault grows past
 ◆100k (bigger/odder pieces — honest pressure, never rigged RNG), and spam-clicking
@@ -134,6 +145,11 @@ title like THE GAMBLER / THE BANKER / THE COLLECTOR) drives:
   micro-shake, gated below ~55% stability) and a huge merge (3+ chain, jackpot
   fusion, bomb). Nothing shakes or zooms on an ordinary drop.
 - Near-misses are computed from real run state, never randomly inserted.
+- The NEXT box and the aim ghost use the SAME renderer as the live pieces —
+  real skin, real radius (a HEAVY looks iron, a GIANT fills the box, a tier-1
+  looks genuinely small). The preview never lies about what's coming.
+- In-play messages stay out of the action: toasts and the big reaction words
+  live below the dock line, where gameplay never happens.
 - Every run nets some coins (collapse pays a small salvage) — no zero-progress outcomes.
 - Adjacent same-tier pieces fuse even when they come to rest a hair apart (a
   proximity + active-contact scan, not just first-contact events).
