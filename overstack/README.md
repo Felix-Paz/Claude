@@ -32,6 +32,11 @@ no install, no login, no network required.
 - **Lifetime banked** — never decreases; unlocks **superpowers** at milestones
   (Midas Touch, Gold Rush, Steady Aim, Encore, Chroma Rush, Titan Line). Superpowers
   are earned, never bought — see `MILESTONES` in §1.
+- **Daily reward** — log in every day and claim a vault gift that **doubles**
+  each consecutive day: ◆50k → 100k → 200k → 400k → 800k → 1.6M → **3.2M (max)**.
+  Miss a day and the ladder restarts at ◆50k. The 🎁 DAILY card auto-greets you
+  once per session when a claim is waiting, and its 7-day calendar shows exactly
+  what the coming week pays.
 
 Brand identity is **fresh spring green + gold** — a bright, airy green world (no
 more cave-dark), green→gold wordmark, in-game logo at the bottom-center. The
@@ -71,9 +76,13 @@ poof* during its grace window: a meteor can cost you blocks, never the run),
 💨 WIND (gusts on the block that is FALLING — the drop drifts sideways to a spot
 you didn't pick, its landing x hard-clamped over the dock so wind alone can never
 kill; the settled stack is untouched), and 🔒 CURSE (no-banking / coin-leak /
-slippery / next-3-huge). 😠 ANGRY's jump and 🏋️ HEAVY's slam run under the same
-no-direct-death rule — chaos blocks knocked off the edge disappear instead of
-ending the run.
+slippery / next-3-huge). Curses are always felt: the HUGE curse balloons the
+pieces already in the queue (the aim ghost and NEXT box grow instantly), the
+leak drips visible `-◆` losses off the tower, and the director only picks a
+curse that can bite right now. 😠 ANGRY's jump and 🏋️ HEAVY's slam run under
+the same no-direct-death rule — chaos blocks knocked off the edge disappear
+instead of ending the run. When any special block is announced as *incoming*,
+it IS the next drop — never hidden behind another queued piece.
 
 ### Event Director
 Every 45–75 s the `EventDirector` asks "what crazy thing should happen now?" and
@@ -148,8 +157,19 @@ title like THE GAMBLER / THE BANKER / THE COLLECTOR) drives:
 - The NEXT box and the aim ghost use the SAME renderer as the live pieces —
   real skin, real radius (a HEAVY looks iron, a GIANT fills the box, a tier-1
   looks genuinely small). The preview never lies about what's coming.
-- In-play messages stay out of the action: toasts and the big reaction words
-  live below the dock line, where gameplay never happens.
+- In-play messages stay out of the action: toasts sit centered between the
+  dock and the wordmark; reaction words splash over the dock face.
+- No tunneling: pieces have a terminal per-tick fall speed and the dock's
+  physics slab is deeper than any single solver step, so a fast triangle can
+  never pass through the dock.
+- The ≡ menu button follows the BANK button exactly: leaving mid-run banks
+  only if BANK is currently lit — a grayed-out BANK (falling piece, curse,
+  doomed tower) can't be bypassed by exiting.
+- Watching the double-coins ad counts the banked headline up to its doubled
+  value, the same animation the vault total plays.
+- The first 3 runs are a hot lap: the sim runs ~18% faster with grippy,
+  low-tier, always-fusable pieces and no world events — quick, generous, and
+  very hard to lose. Run 4 returns to the normal game.
 - Every run nets some coins (collapse pays a small salvage) — no zero-progress outcomes.
 - Adjacent same-tier pieces fuse even when they come to rest a hair apart (a
   proximity + active-contact scan, not just first-contact events).

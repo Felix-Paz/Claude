@@ -262,16 +262,16 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 
 #hint {
   position: fixed; left: 50%; transform: translateX(-50%);
-  bottom: calc(84px + var(--safe-bottom));
+  bottom: calc(78px + var(--safe-bottom));
   padding: 10px 20px; font-size: 0.9rem; color: var(--text);
   z-index: 30; pointer-events: none; opacity: 0; transition: opacity 0.35s ease;
   text-align: center; max-width: 88vw;
 }
 #hint.show { opacity: 1; }
-/* toasts live under the dock line — gameplay never happens down there */
+/* toasts sit centered in the calm band between the dock and the wordmark */
 #toast {
   position: fixed; left: 50%; transform: translateX(-50%);
-  top: auto; bottom: calc(132px + var(--safe-bottom)); padding: 10px 20px; font-size: 0.9rem;
+  top: auto; bottom: calc(110px + var(--safe-bottom)); padding: 10px 20px; font-size: 0.9rem;
   z-index: 30; pointer-events: none; opacity: 0; transition: opacity 0.35s ease; text-align: center;
   max-width: 88vw;
 }
@@ -393,6 +393,51 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
 }
 .card-x:hover { background: rgba(255,255,255,0.18); }
 
+/* daily reward */
+#btn-daily.ready {
+  border-color: rgba(255,207,92,0.75); color: var(--gold);
+  box-shadow: 0 0 18px rgba(255,207,92,0.35);
+  animation: dailyready 1.6s ease-in-out infinite;
+}
+@keyframes dailyready { 0%,100% { transform: scale(1); box-shadow: 0 0 12px rgba(255,207,92,0.25);} 50% { transform: scale(1.05); box-shadow: 0 0 26px rgba(255,207,92,0.55);} }
+#daily-card {
+  position: relative; width: min(430px, 92vw); padding: 30px 26px 24px;
+  border-radius: 24px; text-align: center;
+}
+#daily-gift { font-size: 2.6rem; line-height: 1; margin-bottom: 6px; filter: drop-shadow(0 6px 18px rgba(255,207,92,0.45)); }
+#daily-card h2 { letter-spacing: 0.18em; }
+#daily-card .card-sub { margin-bottom: 18px; }
+#daily-days {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 4px 0 18px;
+}
+.day-chip {
+  position: relative; padding: 10px 2px 8px; border-radius: 12px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.day-chip .d-lab { font-size: 0.5rem; letter-spacing: 0.08em; color: var(--text-dim); }
+.day-chip b { font-size: 0.68rem; color: var(--text); }
+.day-chip.today {
+  background: linear-gradient(160deg, rgba(255,207,92,0.28), rgba(255,170,40,0.14));
+  border-color: rgba(255,207,92,0.8);
+  box-shadow: 0 0 18px rgba(255,207,92,0.35);
+  animation: dailyready 1.6s ease-in-out infinite;
+}
+.day-chip.today b, .day-chip.today .d-lab { color: var(--gold); }
+.day-chip.claimed { border-color: rgba(140,255,200,0.5); background: rgba(140,255,200,0.08); }
+.day-chip .d-check { position: absolute; top: -7px; right: -5px; font-size: 0.72rem; color: var(--mint); text-shadow: 0 0 8px rgba(140,255,200,0.8); }
+.day-chip .d-max { font-size: 0.44rem; letter-spacing: 0.1em; color: var(--gold); }
+#btn-claim { width: 100%; font-size: 1rem; letter-spacing: 0.1em; }
+#btn-claim:disabled { opacity: 0.55; cursor: default; }
+#daily-foot { margin-top: 14px; font-size: 0.68rem; color: var(--text-dim); }
+#daily-foot b { color: var(--gold); }
+#daily-card.claimpop { animation: claimpop 0.7s cubic-bezier(0.18, 1.5, 0.4, 1); }
+@keyframes claimpop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.05); box-shadow: 0 0 60px rgba(255,207,92,0.65); }
+  100% { transform: scale(1); }
+}
+
 /* settings */
 .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(178,150,255,0.12); font-size: 0.92rem; }
 .toggle { width: 52px; height: 28px; border-radius: 14px; background: rgba(255,255,255,0.14); border: none; position: relative; cursor: pointer; transition: background 0.2s ease; }
@@ -481,6 +526,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
     <span class="vault-stat">VAULT <b id="ms-coins">◆0</b></span>
   </div>
   <div id="menu-nav">
+    <button id="btn-daily" class="btn">🎁 DAILY</button>
     <button id="btn-shop" class="btn">◆ COLLECTION</button>
     <button id="btn-board" class="btn">▤ RUNS</button>
     <button id="btn-settings" class="btn">⚙</button>
@@ -535,6 +581,18 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.4s ease-in-out 
     <h2>YOUR RUNS</h2>
     <div class="card-sub" id="board-sub">Local leaderboard — your own history.</div>
     <ol id="board-list"></ol>
+  </div>
+</div>
+
+<div id="daily" class="screen hidden">
+  <div id="daily-card" class="glass">
+    <button class="card-x" id="daily-x">✕</button>
+    <div id="daily-gift">🎁</div>
+    <h2>DAILY REWARD</h2>
+    <div class="card-sub" id="daily-sub"></div>
+    <div id="daily-days"></div>
+    <button id="btn-claim" class="btn btn-primary"></button>
+    <div id="daily-foot">Miss a day and the ladder restarts at ◆50,000 · Vault <b id="daily-vault">◆0</b></div>
   </div>
 </div>
 
@@ -757,7 +815,7 @@ const MILESTONES = [
   { at: 1000000, id: 'power_titanline',  icon: '🏗️', name: 'TITAN LINE',  desc: 'Dock permanently +10% longer' },
 ];
 
-// 4.14 Retention config surface.
+// 4.14 Pacing and difficulty tuning constants.
 const RETENTION_CONFIG = {
   flow: {
     emaAlphaFast: 0.25,
@@ -780,7 +838,7 @@ const RETENTION_CONFIG = {
     sustainWindowMs: 20 * 60_000,
     grooveThresholds: { struggling: 0.30, low: 0.48, high: 0.68, bored: 0.88 },
   },
-  pacing: { // adaptive pacing (6): fire a save right before the usual quit point
+  pacing: {
     retentionSaveAtRatio: 0.85,
     minBaselineMinutes: 3,
   },
@@ -821,8 +879,7 @@ const BAND_WEIGHTS = {
   BORED:      { guaranteedFusable: false, fusableBias: -0.35, sizeVariance: 0.35, oddShapeChance: 0.3, friction: 0.72, restitution: 0.09 },
 };
 
-/* Prices are deliberately steep: the cheapest skin is ◆100,000 and the
-   flagship OBSIDIAN CROWN sits at ◆12,000,000 — long-horizon goals. */
+/* Shop catalog. */
 const SHOP_CATALOG = [
   // DOCKS
   { id: 'dock_slab',      kind: 'dock', name: 'Slab',           price: 0,          data: 'slab',      power: '' },
@@ -870,10 +927,11 @@ const SaveStore = {
       powers: [],
       topRuns: [],
       streakDays: 0, lastPlayDate: '',
+      daily: { last: '', streak: 0 },   // daily login reward: date last claimed + consecutive claims
       hints: { fusion: false, bank: false, safe: false },
       settings: { sound: true, haptics: true, reduceMotion: false },
       baselines: { decisionLatency: 0, decisionLatencySamples: [], sessionPace: 0, sessionMinutes: 0, sessions: 0 },
-      profile: { // (7) the quiet player profile — drives adaptation, shown as a style tag
+      profile: { // persisted play-style stats — surfaced as a style title
         greedAtBank: 1.6, banks: 0, collapses: 0,
         collector: 0, competitive: 0, chaos: 0,
         chainFusions: 0, soloFusions: 0,
@@ -1246,8 +1304,7 @@ function computeFlowScore(v) {
 }
 
 /* ==================== §10b PLAYER PROFILE ================================= */
-/* (1)(5)(7) — risk tolerance, goals, style. Persisted, per-player, quiet.
-   Read by SurpriseDirector, NearMiss, open-loop selection. NEVER by ads. */
+/* Persisted per-player play-style stats. NEVER read by ads. */
 const Profile = {
   p: save.profile,
   onBank(greed) {
@@ -1271,7 +1328,7 @@ const Profile = {
     const collapsePart = total >= 4 ? clamp(this.p.collapses / total, 0, 1) : 0.4;
     return clamp(greedPart * 0.65 + collapsePart * 0.35, 0, 1);
   },
-  // dominant goal — used to weight which open loop headline gets surfaced (5)
+  // dominant play style — picks which headline the results screen leads with
   get goal() {
     const g = { collector: this.p.collector, competitive: this.p.competitive, chaos: this.p.chaos };
     const top = Object.entries(g).sort((a, b) => b[1] - a[1])[0];
@@ -1323,8 +1380,7 @@ const SessionArc = {
       default: return { struggling: base.struggling, low: base.low, target: base.target, high: base.high };
     }
   },
-  // (6) adaptive pacing: right before this player's USUAL quit time, make
-  // something rare happen — a real golden block + the truest open loop.
+  // once per long session, queue a single golden block
   checkRetentionSave() {
     if (this.retentionSaveFired) return;
     const baseMin = save.baselines.sessionMinutes;
@@ -1338,7 +1394,7 @@ const SessionArc = {
   },
 };
 
-/* ==================== §12 CHURN RISK MODEL ================================ */
+/* ==================== §12 PLAY-TREND MODEL (Churn) ======================== */
 const Churn = {
   history: [], active: null, giftPending: false,
   recordRun(sample) {
@@ -1388,7 +1444,7 @@ const Churn = {
         nearMissThreshold: CHURN_CONFIG.frustration.nearMissThreshold,
         surfaceOpenLoop: 'nearest',
       };
-      // (3) the "Here." moment — next run opens with a golden guaranteed-fusable gift
+      // next run opens with a golden guaranteed-fusable piece
       this.giftPending = true;
     } else {
       this.active = {
@@ -1396,14 +1452,14 @@ const Churn = {
         varietyInjection: CHURN_CONFIG.boredom.varietyInjectionEnabled,
         surfaceOpenLoop: 'nearest',
       };
-      // (4) bored players get the glowing unstable cube, not an easier game
+      // inject the unstable block for variety
       Surprise.force('unstable');
     }
     return this.active;
   },
   get nearMissThreshold() {
     let t = (this.active && this.active.nearMissThreshold) || RETENTION_CONFIG.nearMiss.intensityThreshold;
-    // (1) never-bankers live for close calls — surface true near-misses more often
+    // lower threshold for high-risk players
     if (Profile.riskTolerance > 0.72) t = Math.min(t, 0.24);
     return t;
   },
@@ -1434,11 +1490,9 @@ const Director = {
     return BAND_WEIGHTS[this.band()];
   },
   stackTiers() { return Stack.pieces().map((b) => b.plugin.tier); },
-  // Pressure beyond the flow bands — both honest "harder", never rigged RNG:
-  //  · wealth: a ◆200k+ vault means this player has outgrown the base game —
-  //    lean in with bigger, odder, bouncier pieces so wins stay earned.
-  //  · spam: mindless sub-second drop mashing (Game.spamHeat) gets punished
-  //    hard so the player learns the game wants AIM, not clicks.
+  // Extra difficulty pressure — never rigged RNG:
+  //  · wealth: a large vault leans toward bigger, odder, bouncier pieces
+  //  · spam: sub-second drop mashing raises pressure (Game.spamHeat)
   pressure() {
     const D = CONFIG.difficulty;
     const wealth = clamp((save.coins - D.wealthRampStart) / (D.wealthRampFull - D.wealthRampStart), 0, 1) * D.wealthMaxEffect;
@@ -1446,6 +1500,14 @@ const Director = {
     return { wealth, spam, total: clamp(wealth + spam, 0, 1.2) };
   },
   rollPiece() {
+    // First 3 runs: friendly rolls only — low tiers that always have a fuse
+    // partner on the stack, no planks, no size variance, extra grip. The full
+    // roll table takes over from run 4.
+    if (save.runsTotal < 3) {
+      const low = [...new Set(this.stackTiers().filter((t) => t <= 3))];
+      const tier = low.length && Math.random() < 0.75 ? pick(low) : 1 + ((Math.random() * 2) | 0);
+      return { tier, kind: 'poly', rScale: 1, special: null, friction: 1.15, restitution: 0.01 };
+    }
     const w = this.weights();
     const p = this.pressure();
     const onStack = [...new Set(this.stackTiers().filter((t) => t < TIERS.count))];
@@ -1482,7 +1544,7 @@ const Director = {
     this.queue = [];
     if (seed) seed.forEach((t) => this.queue.push({ tier: t, kind: 'poly', rScale: 1, special: null, friction: 0.95, restitution: 0.02 }));
     while (this.queue.length < 2) this.queue.push(this.rollPiece());
-    // (3) frustration gift: "Here." — a golden piece that WILL fuse
+    // gift: a golden piece that will fuse
     if (Churn.giftPending) {
       Churn.giftPending = false;
       this.queue[0].special = 'golden';
@@ -1498,6 +1560,13 @@ const Director = {
       // injected on settle, which mutated the already-previewed piece and made
       // the preview lie ("shows a random shape, then the real one differs").
       Surprise.decorate(p);
+      // huge-curse charges inflate pieces as they enter the queue, so the
+      // NEXT preview shows the real oversized block
+      if (typeof EventDirector !== 'undefined' && EventDirector.hugeCharges > 0 && !p.special) {
+        p.cursedHuge = true;
+        p.rScale = Math.max(p.rScale || 1, 1) * 1.75; // HUGE regardless of the base roll
+        EventDirector.hugeCharges--;
+      }
       this.queue.push(p);
     }
     return this.queue[0];
@@ -1508,12 +1577,23 @@ const Director = {
 
 /* ==================== §13b BLOCK INJECTOR ================================ */
 /* Turns a freshly-rolled tail piece into a "special" when the EventDirector
-   (or a frustration gift) has queued one. Scheduling/selection lives in the
+   (or a gift) has queued one. Scheduling/selection lives in the
    EventDirector (§20b); this just stamps the forced type onto the next piece
    BEFORE it is ever previewed, so the NEXT box never lies. */
 const Surprise = {
   forced: null,
-  force(type) { this.forced = type; },
+  // An announced block becomes the NEXT drop: it stamps the piece already
+  // sitting in the NEXT slot (current piece, THEN the announced one) instead
+  // of hiding behind another queued piece. Falls back to the queue tail only
+  // if the NEXT slot is already a special.
+  force(type) {
+    this.forced = type;
+    const nxt = Director.queue && Director.queue[1];
+    if (nxt && !nxt.special) {
+      this.decorate(nxt);
+      if (typeof UI !== 'undefined' && UI.renderNextPreview) UI.renderNextPreview();
+    }
+  },
   decorate(def) {
     if (!def || def.special || !this.forced) return;
     const type = this.forced; this.forced = null;
@@ -1708,8 +1788,8 @@ const Board = {
 };
 
 /* ==================== §18 AD MANAGER (mock adapter) ======================= */
-/* Blind to ChurnRiskModel AND PlayerProfile — pacing is session-boundary
-   + cooldown rules only. Swap MockAdAdapter for the live SDK at deploy. */
+/* Ad pacing follows session-boundary + cooldown rules ONLY — ChurnRiskModel
+   and PlayerProfile must never feed it. Swap in the live SDK at deploy. */
 const MockAdAdapter = {
   init() { return Promise.resolve(); },
   gameLoadingStart() {}, gameLoadingFinished() {},
@@ -1781,6 +1861,17 @@ const AdManager = {
 const { Engine, Bodies, Body, Composite, Events, Sleeping } = Matter;
 const engine = Engine.create({ enableSleeping: true });
 engine.gravity.y = 1;
+engine.positionIterations = 10;
+engine.velocityIterations = 8;
+// Terminal fall speed. A small fast piece could step PAST the dock slab in a
+// single solver tick and fall straight through it (tunneling — seen with
+// triangles/squares). Clamping per-tick speed below the slab depth makes
+// that geometrically impossible.
+Events.on(engine, 'beforeUpdate', () => {
+  for (const b of Composite.allBodies(engine.world)) {
+    if (b.plugin && b.plugin.piece && b.velocity.y > 12) Body.setVelocity(b, { x: b.velocity.x, y: 12 });
+  }
+});
 
 const Stack = {
   platform: null,
@@ -1795,7 +1886,9 @@ const Stack = {
     if (this.walls) { this.walls.forEach((wl) => Composite.remove(engine.world, wl)); this.walls = null; }
     const dock = Economy.dock;
     const w = WORLD.platformW * Economy.dockLengthMult;
-    this.platform = Bodies.rectangle(WORLD.width / 2, WORLD.platformY + WORLD.platformH / 2, w, WORLD.platformH, {
+    // Physics slab is 60px deep (visual stays WORLD.platformH) — deep enough
+    // that no clamped-speed piece can ever tunnel through it in one tick.
+    this.platform = Bodies.rectangle(WORLD.width / 2, WORLD.platformY + 30, w, 60, {
       isStatic: true, friction: 1 + (dock.grip || 0), label: 'platform',
     });
     this.platform.plugin = { platform: true, halfW: w / 2 };
@@ -1825,17 +1918,18 @@ const Stack = {
   },
   makeBody(x, y, def) {
     const meta = SPECIALS[def.special] || {};
-    // Curse: "next N pieces are huge" inflates the drop temporarily (§20b).
-    const curseHuge = (def.special ? 1 : (EventDirector.consumeHuge() ? 1.5 : 1));
-    const rScale = (def.rScale || 1) * (meta.sizeMult || 1) * curseHuge;
+    // huge-curse inflation is applied to the def's rScale at queue time (so
+    // the previews show the real size) — nothing extra happens here
+    const rScale = (def.rScale || 1) * (meta.sizeMult || 1);
     const r = TIERS.radii[def.tier] * rScale;
     const grip = Economy.dock.grip || 0;
     let baseFriction = meta.friction != null ? meta.friction : (def.friction ?? 0.85);
     if (EventDirector.curseActive('slippery')) baseFriction = Math.min(baseFriction, 0.05); // slippery curse
+    if (save.runsTotal < 3) baseFriction = Math.max(baseFriction, 1.05); // first runs: extra grip, hard to lose
     const friction = baseFriction + grip * 0.3;
     const common = {
       friction, frictionStatic: 1 + grip,
-      restitution: meta.restitution != null ? meta.restitution : (def.restitution ?? 0.04),
+      restitution: save.runsTotal < 3 ? 0.01 : (meta.restitution != null ? meta.restitution : (def.restitution ?? 0.04)),
       slop: 0.02,
       density: meta.density || 0.001,           // Heavy Block is far denser
       frictionAir: Economy.dockSlowFall || 0,   // Liquid Glass dock → slow-fall
@@ -2132,9 +2226,7 @@ const Game = {
     // snapshot could include a briefly-stable killer that then toppled).
     if (Stack.pieces().length && Stack.stability() > CONFIG.snapshotMinStability) Stack.takeSnapshot();
     // Spam-click detection: several sub-second drops in a row = mashing
-    // without aiming. The game answers by getting HARDER (bigger, odder,
-    // bouncier pieces — see Director.pressure) so they learn fast that
-    // careless throwing loses. Never rigged, just far less forgiving.
+    // without aiming — raises the difficulty pressure (see Director.pressure).
     const gap = this.lastDropAt ? now() - this.lastDropAt : Infinity;
     this.lastDropAt = now();
     if (gap < CONFIG.difficulty.spamGapMs) {
@@ -2600,12 +2692,26 @@ const Game = {
       Economy.addToVault(this.earnedCoinsLastRun);
       UI.animateCurrency();
       $('btn-double').style.display = 'none';
+      // the "+◆X" banked headline counts UP to its doubled value, exactly
+      // like the vault total does
+      const from = this.earnedCoinsLastRun, to = from * 2;
+      const big = $('big-amount'), t0 = now();
+      big.classList.remove('gain'); void big.offsetWidth; big.classList.add('gain');
+      const step = () => {
+        const k = clamp((now() - t0) / 900, 0, 1);
+        big.textContent = `+◆${fmt(Math.round(lerp(from, to, 1 - Math.pow(1 - k, 3))))}`;
+        if (k < 1) requestAnimationFrame(step);
+      };
+      step();
       UI.toast(`+◆${fmt(this.earnedCoinsLastRun)} doubled`);
     }
   },
 
   async toMenu() {
-    if (this.inPlay() && this.runCoins > 0 && !Stack.isDoomed()) this.bank({ force: true });
+    // Exit-banking follows the BANK button exactly: bank() applies the same
+    // guards that light the button (piece in preview, coins, no curse, not
+    // doomed). If the button is grayed out, leaving banks nothing.
+    if (this.inPlay()) this.bank();
     AdManager.notifyGameplayStop();
     AdManager.consecutiveDropAgains = 0;
     UI.hideScreens();
@@ -2616,11 +2722,8 @@ const Game = {
 };
 
 /* ==================== §20b EVENT DIRECTOR ================================= */
-/* Every 45–75s the game asks "what crazy thing should happen now?" and either
-   injects a special block or fires a live WORLD event (curse / black hole /
-   meteor). Selection is weighted by the retention engine (Profile risk
-   tolerance, Churn, session depth). Nothing here is instantly lethal — the
-   whole point is a fresh surprise before the player can get bored. */
+/* Every 45–75s: inject a special block or fire a live WORLD event (curse /
+   black hole / meteor / wind). Nothing here is instantly lethal. */
 const EventDirector = {
   nextAt: 0, hugeCharges: 0, graceUntil: 0,
   curse: null,              // { type, until }
@@ -2635,7 +2738,6 @@ const EventDirector = {
     this.lastJackpotAt = now();
     document.body.classList.remove('cursed');
   },
-  consumeHuge() { if (this.hugeCharges > 0) { this.hugeCharges--; return true; } return false; },
   curseActive(type) { return this.curse && (!type || this.curse.type === type) && now() < this.curse.until; },
   clearCurse() { this.curse = null; document.body.classList.remove('cursed'); $('curse-banner') && $('curse-banner').classList.add('hidden'); },
 
@@ -2644,8 +2746,8 @@ const EventDirector = {
     const w = { golden: 3, giant: 2, bomb: 1.6, unstable: 1.6, rainbow: 1.2, star: 1.4, ice: 1.4,
       magnet: 1.6, heavy: 1.6, split: 1.4, angry: 1.6, dice: 1.4, chest: 1.6 };
     const rt = Profile.riskTolerance;
-    if (rt < 0.35) { w.golden += 2.5; w.rainbow += 1.5; w.star += 1; w.chest += 1; }  // tempt the early banker
-    if (rt > 0.7) { w.bomb += 1; w.unstable += 1; w.heavy += 1; w.split += 1; }        // feed the daredevil
+    if (rt < 0.35) { w.golden += 2.5; w.rainbow += 1.5; w.star += 1; w.chest += 1; }
+    if (rt > 0.7) { w.bomb += 1; w.unstable += 1; w.heavy += 1; w.split += 1; }
     if (Profile.goal === 'chaos') { w.bomb += 1.5; w.split += 1.5; w.angry += 1.5; w.dice += 1; }
     if (save.powers.includes('power_goldrush')) w.golden *= 2;
     if (save.powers.includes('power_chromarush')) w.rainbow *= 2;
@@ -2668,6 +2770,7 @@ const EventDirector = {
     this.updateMeteor(dt);
     this.updateWind(dt);
     if (!runActive) return;
+    if (save.runsTotal < 3) return; // no events during the first runs — clean, fast, safe
 
     // the rare jackpot diamond, on its own long timer
     if (now() - this.lastJackpotAt > CONFIG.events.jackpotEveryMs && !Surprise.forced) {
@@ -2699,22 +2802,49 @@ const EventDirector = {
 
   // ---- CURSE ----
   startCurse() {
-    const type = pick(['nobank', 'leak', 'slippery', 'huge']);
-    this.curse = { type, until: now() + CONFIG.events.curseMs };
-    if (type === 'huge') this.hugeCharges = 3;
+    // pick a curse the player can actually FEEL right now: leak/nobank need
+    // coins on the line, slippery needs pieces on the dock
+    const pool = ['huge'];
+    if (Game.runCoins > 400) pool.push('nobank', 'leak');
+    if (Stack.pieces().length >= 2) pool.push('slippery');
+    const type = pick(pool);
+    this.curse = { type, until: now() + CONFIG.events.curseMs, lastLeakFx: 0 };
+    if (type === 'huge') {
+      // 3 HUGE blocks — inflate the pieces already queued so the aim ghost
+      // and the NEXT box balloon instantly; the rest inflate as they queue up
+      this.hugeCharges = 3;
+      for (const def of Director.queue) {
+        if (this.hugeCharges > 0 && !def.special && !def.cursedHuge) {
+          def.cursedHuge = true;
+          def.rScale = Math.max(def.rScale || 1, 1) * 1.75; // HUGE regardless of the base roll
+          this.hugeCharges--;
+        }
+      }
+      UI.renderNextPreview();
+    }
     if (type === 'slippery') for (const b of Stack.pieces()) { b.friction = 0.03; Sleeping.set(b, false); }
     document.body.classList.add('cursed');
     const label = { nobank: '🔒 CURSE — no banking', leak: '💧 CURSE — coins leaking', slippery: '🧊 CURSE — slippery!', huge: '🗿 CURSE — next 3 are HUGE' }[type];
     const banner = $('curse-banner');
     if (banner) { banner.textContent = label; banner.classList.remove('hidden'); }
     UI.react('CURSED!', 'var(--hot)');
+    UI.toast(label);
     Shake.impulse(0.3); flashScreen();
     trackEvent('curse_start', { type });
   },
   updateCurse() {
     if (!this.curse) return;
     if (now() >= this.curse.until) { this.clearCurse(); return; }
-    if (this.curse.type === 'leak' && Game.runCoins > 0) Game.runCoins = Math.max(0, Game.runCoins - Game.runCoins * 0.0004);
+    if (this.curse.type === 'leak' && Game.runCoins > 0) {
+      const before = Game.runCoins;
+      Game.runCoins = Math.max(0, Game.runCoins - Game.runCoins * 0.0004);
+      // make the drain VISIBLE: a red "-◆X" drips off the tower every second
+      if (now() - this.curse.lastLeakFx > 1000) {
+        const lost = Math.max(1, Math.round(before * 0.0004 * 60));
+        this.curse.lastLeakFx = now();
+        spawnPopup(WORLD.width / 2 + rand(-40, 40), Stack.stackTopY() - 30, `-◆${fmt(lost)}`, '#ff5a6e');
+      }
+    }
   },
 
   // ---- BLACK HOLE ----
@@ -3759,9 +3889,35 @@ function drawDefIcon(c, def, x, y, r, t) {
   c.restore();
 }
 
+/* ==================== §21c DAILY REWARD =================================== */
+/* Log in every day → claim a vault gift that DOUBLES each consecutive day:
+   ◆50k → 100k → 200k → 400k → 800k → 1.6M → 3.2M (cap). Miss a day and the
+   ladder restarts at ◆50k. */
+const Daily = {
+  BASE: 50000, CAP_STEP: 6, // step 6 = ◆3.2M, stays there
+  amountFor(i) { return this.BASE * Math.pow(2, Math.min(Math.max(i, 0), this.CAP_STEP)); },
+  state() {
+    const today = todayStr();
+    const last = (save.daily && save.daily.last) || '';
+    if (last === today) return { claimable: false, idx: Math.max((save.daily.streak || 1) - 1, 0), today };
+    const gap = last ? Math.round((new Date(today) - new Date(last)) / 86400000) : 99;
+    return { claimable: true, idx: gap === 1 ? (save.daily.streak || 0) : 0, today };
+  },
+  claim() {
+    const st = this.state();
+    if (!st.claimable) return 0;
+    const amount = this.amountFor(st.idx);
+    save.daily = { last: st.today, streak: st.idx + 1 };
+    Economy.addToVault(amount);
+    SaveStore.save();
+    trackEvent('daily_claim', { day: st.idx + 1, amount });
+    return amount;
+  },
+};
+
 /* ==================== §22 UI ============================================== */
 const UI = {
-  screens: ['loading', 'menu', 'results', 'shop', 'settings', 'board'],
+  screens: ['loading', 'menu', 'results', 'shop', 'settings', 'board', 'daily'],
   hideScreens() { this.screens.forEach((s) => $(s).classList.add('hidden')); },
   show(id) { this.hideScreens(); $(id).classList.remove('hidden'); },
   showGame() {
@@ -3778,6 +3934,14 @@ const UI = {
     $('ms-streak').innerHTML = `🔥 <b>${Streak.days || 0}</b>`;
     $('style-tag').textContent = Profile.styleTitle ? `STYLE · ${Profile.styleTitle}` : '';
     this.syncStats();
+    const daily = Daily.state();
+    $('btn-daily').classList.toggle('ready', daily.claimable);
+    if (daily.claimable && !this._dailyAutoShown) {
+      // greet the day once per session with the reward waiting
+      this._dailyAutoShown = true;
+      this.renderDaily();
+      this.show('daily');
+    }
   },
   hint(text) {
     const el = $('hint');
@@ -3851,7 +4015,40 @@ const UI = {
       nctx.fillText((SPECIALS[sp] ? SPECIALS[sp].label.replace(' BLOCK', '') : sp.toUpperCase()), S / 2, S - 4);
     }
   },
-  // Zeigarnik open loop, weighted by this player's detected goal (5)
+  renderDaily() {
+    const st = Daily.state();
+    const baseIdx = st.claimable ? st.idx : Math.max((save.daily.streak || 1) - 1, 0);
+    const short = (n) => n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0).replace(/\.0$/, '') + 'M' : (n / 1000) + 'K';
+    const days = $('daily-days');
+    days.innerHTML = '';
+    for (let j = 0; j < 7; j++) {
+      const amt = Daily.amountFor(baseIdx + j);
+      const el = document.createElement('div');
+      el.className = 'day-chip' + (j === 0 ? (st.claimable ? ' today' : ' claimed') : '');
+      el.innerHTML = `<span class="d-lab">${j === 0 ? 'TODAY' : j === 1 ? 'TMRW' : `+${j} DAYS`}</span>` +
+        `<b>◆${short(amt)}</b>` +
+        (j === 0 && !st.claimable ? '<span class="d-check">✓</span>' : '') +
+        (baseIdx + j >= Daily.CAP_STEP ? '<span class="d-max">MAX</span>' : '');
+      days.appendChild(el);
+    }
+    const btn = $('btn-claim');
+    if (st.claimable) {
+      btn.disabled = false;
+      btn.textContent = `CLAIM ◆${fmt(Daily.amountFor(st.idx))}`;
+      $('daily-sub').textContent = st.idx > 0
+        ? `Day ${st.idx + 1} of your streak — it keeps doubling`
+        : 'Claim today — the reward DOUBLES every day in a row';
+    } else {
+      btn.disabled = true;
+      btn.textContent = 'CLAIMED ✓';
+      const nextAmt = Daily.amountFor(save.daily.streak || 0);
+      const todayAmt = Daily.amountFor(Math.max((save.daily.streak || 1) - 1, 0));
+      $('daily-sub').textContent = nextAmt > todayAmt
+        ? `Come back tomorrow to win ◆${fmt(nextAmt)} — 2× today's!`
+        : `Come back tomorrow for another ◆${fmt(nextAmt)}!`;
+    }
+    $('daily-vault').textContent = '◆' + fmt(save.coins);
+  },
   openLoop(kind, score) {
     const goal = Profile.goal;
     const candidates = [];
@@ -4111,7 +4308,7 @@ const Input = {
       } else if (e.code === 'Escape') {
         if (open('confirm-dialog')) $('confirm-dialog').classList.add('hidden');
         else if (open('shop')) closeShop();
-        else if (open('settings') || open('board')) UI.showMenu();
+        else if (open('settings') || open('board') || open('daily')) UI.showMenu();
         else if (Game.state === 'RESULTS' || Game.inPlay()) Game.toMenu();
       }
     });
@@ -4132,6 +4329,20 @@ const Input = {
     bind('settings-x', () => UI.showMenu());
     bind('btn-board', () => { UI.renderBoard(); UI.show('board'); Profile.onBoardOpen(); });
     bind('board-x', () => UI.showMenu());
+    bind('btn-daily', () => { UI.renderDaily(); UI.show('daily'); });
+    bind('daily-x', () => UI.showMenu());
+    bind('btn-claim', () => {
+      const amount = Daily.claim();
+      if (!amount) return;
+      UI.animateCurrency();
+      UI.renderDaily();
+      UI.syncStats();
+      $('btn-daily').classList.remove('ready');
+      const card = $('daily-card');
+      card.classList.remove('claimpop'); void card.offsetWidth; card.classList.add('claimpop');
+      Audio2.bank && Audio2.bank();
+    });
+    $('daily').addEventListener('click', (e) => { if (e.target === $('daily')) { Audio2.ui(); UI.showMenu(); } });
     $('shop').addEventListener('click', (e) => { if (e.target === $('shop')) { Audio2.ui(); closeShop(); } });
     $('settings').addEventListener('click', (e) => { if (e.target === $('settings')) { Audio2.ui(); UI.showMenu(); } });
     $('board').addEventListener('click', (e) => { if (e.target === $('board')) { Audio2.ui(); UI.showMenu(); } });
@@ -4155,7 +4366,11 @@ function frame(t) {
   if (paused) return;
   perfSample(rawDt);
   SlowMo.update();
-  const ts = SlowMo.scale;
+  // First 3 runs the whole sim runs ~18% hotter — drops fall faster, turns
+  // come quicker. Combined with grippy low-tier pieces it makes the opening
+  // minutes snappy and nearly loss-proof; run 4 returns to normal speed.
+  const boost = (save.runsTotal < 3 && (Game.inPlay() || Game.state === 'COLLAPSING')) ? 1.18 : 1;
+  const ts = SlowMo.scale * boost;
   const dt = (rawDt / 1000) * ts;
 
   if (Game.inPlay() || Game.state === 'COLLAPSING') {
@@ -4227,7 +4442,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, save, engine, Composite, Body };
+window.__overstack = { Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, save, engine, Composite, Body };
 window.__overstackCam = Camera;
 
 })();
