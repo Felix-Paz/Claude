@@ -1,27 +1,3 @@
-// =====================================================================
-//  director.js — the adaptive brain (v4).
-//
-//  Goal: maximise P(player starts one more level).
-//
-//  PLAYER MODEL (each 0..1 unless noted):
-//    skill        — ELO rating (number), how likely they win
-//    frustration  — "too hard / unfair", near-quit-from-pain
-//    boredom       — "too easy / same-y", near-quit-from-tedium (OPPOSITE of frustration)
-//    excitement   — near-misses, close wins, secrets — keeps people despite risk
-//    curiosity    — appetite for new things (decays with sameness)
-//    fatigue       — focus vs grinding
-//
-//  CHURN is a Bayesian-ish belief: a leave-probability WITH a CONFIDENCE
-//  that grows as evidence accumulates. Risk has emotional inertia (it
-//  decays gradually, not in jumps). A psychological STATE MACHINE
-//  (exploring→learning→flow→challenged→frustrated→recovering→bored→
-//  mastery→leaving) keeps transitions smooth. Frustration and boredom get
-//  OPPOSITE treatments. Interventions are scored by whether risk actually
-//  fell afterwards, so the director learns what works for THIS player.
-//
-//  Maze SIZE is a separate learned preference from difficulty.
-//  A player-facing difficulty dial biases the whole band.
-// =====================================================================
 import { DIRECTOR, SIZE_ORDER, DIFFICULTY_PRESETS } from './config.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -40,14 +16,12 @@ export class Director {
     this.excitement = 0.3;
     this.fatigue = 0;
     this.arch = saved?.arch ?? { explorer: 1, speedrunner: 1, competitor: 1, collector: 1, survivor: 1 };
-    // cross-session memory
-    this.baselineDeaths = saved?.baselineDeaths ?? 1.5;     // this player's "normal" deaths/level
+    this.baselineDeaths = saved?.baselineDeaths ?? 1.5;
     this.sizeStats = saved?.sizeStats ?? Object.fromEntries(SIZE_ORDER.map(s => [s, { n: 0, sat: 0.5 }]));
-    this.interv = saved?.interv ?? {};                       // intervention -> {n, delta}
+    this.interv = saved?.interv ?? {};
     this.preset = saved?.preset ?? 'normal';
     this.sessions = (saved?.sessions ?? 0) + 1;
 
-    // live belief
     this.risk = 25; this.riskSmoothed = 25; this.confidence = 0.1;
     this.modelTrust = saved?.modelTrust ?? 0.6;
     this.state = 'exploring';
@@ -69,7 +43,6 @@ export class Director {
   }
   _save() { this.onSave(this.serialize()); }
 
-  // ---- difficulty dial ----
   setDifficulty(preset) { if (DIFFICULTY_PRESETS[preset]) { this.preset = preset; this._save(); } }
   _bias() { return (DIFFICULTY_PRESETS[this.preset] || DIFFICULTY_PRESETS.normal).bias; }
   _k() { return (DIFFICULTY_PRESETS[this.preset] || DIFFICULTY_PRESETS.normal).k; }
@@ -79,7 +52,6 @@ export class Director {
   meters() { return { skill01: c01((this.skill - DIRECTOR.diffMin) / (DIRECTOR.diffMax - DIRECTOR.diffMin)), frustration: c01(this.frustration), boredom: c01(this.boredom), excitement: c01(this.excitement), curiosity: c01(this.curiosity), fatigue: c01(this.fatigue), momentum: Math.round(this.momentum) }; }
   archetype() { let best = 'explorer', v = -1; for (const k in this.arch) if (this.arch[k] > v) { v = this.arch[k]; best = k; } return best; }
 
-  // ---- signals ----
   noteLevelStart() { this.session.levelStartMs = now(); this.session.idle = false; this.session.paused = false; this.session.quickDeath = false; this.session.slowPlay = false; this.session.deathsThisLevel = 0; this.sessionLevels++; this.levelsSinceNovel++; this.fatigue = c01(this.fatigue + 0.04); this.events++; }
   noteMove() { this.session.idle = false; this._mom(+1); }
   noteCoin() { this._mom(+1.5); }
@@ -94,7 +66,6 @@ export class Director {
   noteRetryNow() {
     if (this.session.lastDeathAt != null) {
       const rs = (now() - this.session.lastDeathAt) / 1000; this.session.retrySpeed = rs;
-      // fast retry = rage-to-continue (engaged); slow = considering quitting
       this._mom(rs < 1.2 ? +14 : rs < 4 ? +2 : rs < 10 ? -10 : -24);
       if (rs < 1.5) this.excitement = c01(this.excitement + 0.05);
       this.session.lastDeathAt = null;
@@ -102,7 +73,6 @@ export class Director {
   }
   _mom(d) { this.momentum = clamp(this.momentum * 0.9 + d, -100, 100); this.events++; }
 
-  // ---- outcomes ----
   recordWin({ difficulty, timeMs, par, coins, coinTotal, deaths }) {
     const exp = this.expected(difficulty);
     this.skill = clamp(this.skill + this._k() * (1 - exp), DIRECTOR.diffMin - 200, DIRECTOR.diffMax + 200);
@@ -111,8 +81,6 @@ export class Director {
     const easy = deaths === 0 && exp > 0.82;
     const beatPar = par && timeMs <= par;
     this.frustration = c01(this.frustration - (deaths > 0 ? 0.15 : 0.3));
-    // boredom rises from easy wins AND long unbroken streaks (the game feels
-    // "solved"); a hard-fought win relieves it.
     this.boredom = c01(this.boredom + (easy ? 0.16 : -0.06) + Math.max(0, this.session.winStreak - 2) * 0.06);
     this.excitement = c01(this.excitement + (beatPar ? 0.25 : 0.05) + (deaths > 0 ? 0.1 : 0));
     this.fatigue = c01(this.fatigue - (coins >= coinTotal ? 0.18 : 0.08));
@@ -129,11 +97,10 @@ export class Director {
     this.history.push({ d: difficulty, won: 0 });
     this.session.loseStreak++; this.session.winStreak = 0; this.session.deathStreak++; this.session.retries++; this.session.deathsThisLevel++;
     this.session.quickDeath = timeMs < 3500;
-    // frustration relative to THIS PLAYER'S baseline (some people die a lot and stay)
     const rel = this.session.deathsThisLevel / Math.max(1, this.baselineDeaths);
     this.frustration = c01(this.frustration + (this.session.quickDeath ? 0.2 : 0.1) * clamp(rel, 0.5, 2));
     this.boredom = c01(this.boredom - 0.1);
-    if (nearFinish) this.excitement = c01(this.excitement + 0.2);          // "so close" is exciting, not just painful
+    if (nearFinish) this.excitement = c01(this.excitement + 0.2);
     if (deathSpot && this.session.lastDeathSpot) { const d = Math.hypot(deathSpot.x - this.session.lastDeathSpot.x, deathSpot.z - this.session.lastDeathSpot.z); this.session.repeatedSpot = d < 6 ? this.session.repeatedSpot + 1 : 0; }
     this.session.lastDeathSpot = deathSpot || null;
     this.arch.survivor = Math.max(1, this.arch.survivor - 0.3);
@@ -142,33 +109,29 @@ export class Director {
   _baseline(deaths) { this.baselineDeaths = lerp(this.baselineDeaths, deaths, 0.12); }
   _afterOutcome() { this.confidence = c01(0.12 + this.sessionLevels * 0.08 + this.events * 0.004); this._pushRisk(); this._updateState(); }
 
-  // ---- size preference (learned, with exploration) ----
   _scoreSize(delta) {
     const s = this.sizeStats[this._lastSize]; if (!s) return;
     const engaged = clamp(0.5 + this.momentum / 200 + (delta > 0 ? 0.2 : -0.2) - this.frustration * 0.3 + this.excitement * 0.2, 0, 1);
     s.n++; s.sat = lerp(s.sat, engaged, 0.3);
-    if (this._exploringSize === this._lastSize) { this._exploringSize = null; } // we evaluated the experiment
+    if (this._exploringSize === this._lastSize) { this._exploringSize = null; }
   }
   pickSize() {
     let best = SIZE_ORDER[0], v = -1;
     for (const k of SIZE_ORDER) if (this.sizeStats[k].sat > v) { v = this.sizeStats[k].sat; best = k; }
-    // explore ~20%: try a different size to test if they'd enjoy it more
     let pick = best;
     if (Math.random() < 0.2) { const others = SIZE_ORDER.filter(s => s !== best); pick = others[Math.floor(Math.random() * others.length)]; this._exploringSize = pick; }
     this._lastSize = pick; return pick;
   }
 
-  // ---- intervention learning ----
   _beginIntervention(kind) { this._lastIntervention = kind; this._riskBeforeInterv = this.risk; }
   _finishIntervention() {
     if (!this._lastIntervention || this._riskBeforeInterv == null) return;
-    const delta = this.risk - this._riskBeforeInterv;          // negative = it helped
+    const delta = this.risk - this._riskBeforeInterv;
     const e = this.interv[this._lastIntervention] || { n: 0, delta: 0 };
     e.delta = (e.delta * e.n + delta) / (e.n + 1); e.n++; this.interv[this._lastIntervention] = e;
     this._lastIntervention = null; this._riskBeforeInterv = null;
   }
 
-  // ---- churn / leave-probability with confidence + projection ----
   _instRisk() {
     const C = DIRECTOR.churn; let r = 16; const reasons = [];
     const add = (v, why) => { r += v; if (v > 0) reasons.push({ why, v }); };
@@ -183,13 +146,12 @@ export class Director {
     add(this.boredom * 30, this.boredom > 0.5 ? 'getting bored' : '');
     add(Math.max(0, -this.momentum) * 0.25, '');
     if (this.session.winStreak >= 1) add(C.recentWin, '');
-    add(-this.excitement * 25, '');                            // excitement keeps people
+    add(-this.excitement * 25, '');
     reasons.sort((a, b) => b.v - a.v);
     return { r: clamp(r, 0, 100), reason: reasons[0]?.why || 'engaged' };
   }
   _pushRisk() {
     const inst = this._instRisk();
-    // emotional inertia: risk eases toward the instant value, faster up than down
     const up = inst.r > this.risk; this.risk = lerp(this.risk, inst.r, up ? 0.6 : 0.3);
     this.riskSmoothed = lerp(this.riskSmoothed, this.risk, 0.5);
     this.riskHist.push(this.risk); if (this.riskHist.length > 6) this.riskHist.shift();
@@ -202,7 +164,6 @@ export class Director {
     const leaveProb = clamp(Math.round(this.riskSmoothed * (0.6 + 0.4 * this.modelTrust)), 0, 100);
     const s30 = clamp(Math.round(this.riskSmoothed + fv * 1.5), 0, 100);
     const s60 = clamp(Math.round(this.riskSmoothed + fv * 3), 0, 100);
-    // act on zone only as strongly as confidence allows (Bayesian-ish)
     const eff = leaveProb * (0.5 + 0.5 * this.confidence);
     const zone = eff >= 80 ? 'panic' : eff >= 64 ? 'red' : eff >= 48 ? 'orange' : eff >= 30 ? 'yellow' : 'green';
     return { risk: Math.round(this.risk), leaveProb, confidence: Math.round(this.confidence * 100), zone,
@@ -211,7 +172,6 @@ export class Director {
       momentum: Math.round(this.momentum), frustrationVelocity: Math.round(fv) };
   }
 
-  // ---- psychological state machine ----
   _updateState() {
     const m = this.meters(); const ch = this.churn(); const prev = this.state;
     let s;
@@ -226,18 +186,16 @@ export class Director {
     this.state = s;
   }
 
-  // ---- the plan ----
   planNext(stage, ctx = {}) {
     const m = this.meters(); const ch = this.churn(); const archetype = this.archetype();
-    this.excitement = c01(this.excitement - 0.06);        // decays each level
+    this.excitement = c01(this.excitement - 0.06);
     this.curiosity = c01(this.curiosity - 0.12);
     const curiosityDebt = this.curiosity < 0.35 || this.levelsSinceNovel >= 5;
     let novelty = !!(ctx.newMechanic || ctx.worldChanged) || curiosityDebt || this.state === 'bored';
 
-    // MODE from state (frustration & boredom get OPPOSITE treatments)
     let mode;
     if (this.state === 'leaving' || this.state === 'frustrated') mode = 'rescue';
-    else if (this.state === 'bored') mode = 'challenge';              // boredom -> MORE, not less
+    else if (this.state === 'bored') mode = 'challenge';
     else if (ctx.newMechanic) mode = 'teach';
     else if (this.state === 'challenged' || this.state === 'mastery') mode = 'challenge';
     else mode = 'flow';
@@ -260,7 +218,6 @@ export class Director {
     }
     if (m.fatigue > 0.7) { mods.closerFinish = true; }
 
-    // archetype-flavoured help
     if (mode === 'rescue' || mode === 'flow') {
       if (archetype === 'collector' || archetype === 'explorer') mods.extraCoins += 4;
       if (archetype === 'speedrunner') mods.addBoost = true;
@@ -269,7 +226,7 @@ export class Director {
     }
 
     target = clamp(Math.round(ctx.scripted?.difficulty ?? target), DIRECTOR.diffMin, DIRECTOR.diffMax);
-    const sizeBucket = ctx.scripted ? 'small' : this.pickSize();    // scripted early levels stay small
+    const sizeBucket = ctx.scripted ? 'small' : this.pickSize();
     if (novelty) this.levelsSinceNovel = 0;
     this._save();
     return { stage, difficulty: target, sizeBucket, mods, mode, churn: ch, meters: m, archetype, novelty, mission: this._mission(archetype) };

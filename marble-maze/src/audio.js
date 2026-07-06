@@ -1,15 +1,9 @@
-// =====================================================================
-//  audio.js — 100% procedural sound via WebAudio (no asset files).
-//  SFX + a speed-reactive rolling loop + a gentle generative music bed.
-//  Must be resumed on a user gesture (browser autoplay policy).
-// =====================================================================
-
 let ctx = null;
 let master, sfxGain, musicGain, noiseBuf;
 let enabled = { sound: true, music: true };
-let rolling = null;       // { src, filter, gain }
+let rolling = null;
 let musicTimer = null;
-let musicScale = [0, 3, 5, 7, 10]; // minor pentatonic offsets
+let musicScale = [0, 3, 5, 7, 10];
 let musicRoot = 220;
 
 function ensure() {
@@ -20,7 +14,6 @@ function ensure() {
   master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination);
   sfxGain = ctx.createGain(); sfxGain.gain.value = 0.9; sfxGain.connect(master);
   musicGain = ctx.createGain(); musicGain.gain.value = 0.0; musicGain.connect(master);
-  // shared noise buffer for rolling / impacts
   const len = ctx.sampleRate * 1.0;
   noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
   const d = noiseBuf.getChannelData(0);
@@ -39,7 +32,6 @@ export function setEnabled(opts) {
   if (!enabled.music) stopMusic();
 }
 
-// ---- low-level helpers ----
 function tone(freq, t0, dur, type = 'sine', peak = 0.5, glideTo = null) {
   if (!ctx || !enabled.sound) return;
   const o = ctx.createOscillator();
@@ -65,7 +57,6 @@ function noiseBurst(t0, dur, freq = 1200, q = 1, peak = 0.4, type = 'bandpass') 
   src.start(t0); src.stop(t0 + dur + 0.02);
 }
 
-// ---- public SFX ----
 export function coin(combo = 0) {
   if (!ensure()) return;
   const t = ctx.currentTime;
@@ -108,7 +99,6 @@ export function star(i = 0) {
 }
 export function gold() {
   if (!ensure()) return; const t = ctx.currentTime;
-  // triumphant rising arpeggio for GOLD RUSH
   const notes = [523, 659, 784, 1047, 1319, 1568];
   notes.forEach((n, i) => tone(n, t + i * 0.06, 0.3, 'triangle', 0.34));
   noiseBurst(t, 0.5, 5000, 0.5, 0.18, 'highpass');
@@ -127,7 +117,6 @@ export function uiBack() {
   tone(330, t, 0.06, 'square', 0.16);
 }
 
-// ---- rolling loop (call setRolling each frame) ----
 export function startRolling() {
   if (!ensure() || rolling) return;
   const src = ctx.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
@@ -149,7 +138,6 @@ export function stopRolling() {
   rolling = null;
 }
 
-// ---- generative music bed ----
 export function configureMusic(scale, rootHz) {
   if (scale) musicScale = scale;
   if (rootHz) musicRoot = rootHz;
@@ -171,7 +159,6 @@ export function startMusic() {
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
     o.connect(g); g.connect(musicGain);
     o.start(t); o.stop(t + 0.55);
-    // soft bass every 4 steps
     if (step % 4 === 0) {
       const b = ctx.createOscillator(); const bg = ctx.createGain();
       b.type = 'triangle'; b.frequency.value = musicRoot / 2;

@@ -1,7 +1,3 @@
-// =====================================================================
-//  ui.js — all DOM screens, HUD, shop, daily, overlays.
-//  Pure presentation + input wiring; game logic lives in main.js.
-// =====================================================================
 import { SKINS, TRAILS, RARITY, POWERUPS, ECON, PERKS } from './config.js';
 import { drawMarbleTexture } from './marbletex.js';
 import * as S from './storage.js';
@@ -11,11 +7,8 @@ const hex = (n) => '#' + ('000000' + (n >>> 0).toString(16)).slice(-6);
 
 export class UI {
   constructor() {
-    this.h = {};                  // handlers set by main
+    this.h = {};
     this.shopTab = 'skins';
-    // base screens are mutually exclusive; OVERLAYS layer on top of whatever
-    // base/HUD is showing (so closing one returns you to the menu — no more
-    // "stuck with nothing visible" bug).
     this.base = ['loading', 'menu', 'shop'];
     this.overlays = ['pause', 'win', 'lose', 'daily', 'settings', 'tiltPrompt', 'adCurtain', 'chest'];
     this.screens = [...this.base, ...this.overlays];
@@ -23,20 +16,18 @@ export class UI {
   }
   setHandlers(h) { this.h = h; }
 
-  // ---- screen management ----
-  showScreen(name) {                                  // base transition: hide everything else
+  showScreen(name) {
     for (const s of this.screens) $(s)?.classList.toggle('hidden', s !== name);
     if (name === 'menu') this.refreshMenu();
     if (name === 'shop') this.buildShop(this.shopTab);
   }
-  showOverlay(name) { $(name)?.classList.remove('hidden'); }   // layer on top
+  showOverlay(name) { $(name)?.classList.remove('hidden'); }
   hideOverlay(name) { $(name)?.classList.add('hidden'); }
   hideOverlays() { for (const s of this.overlays) $(s)?.classList.add('hidden'); }
   visibleOverlay() { for (const s of this.overlays) if (!$(s)?.classList.contains('hidden')) return s; return null; }
   visibleBase() { for (const s of this.base) if (!$(s)?.classList.contains('hidden')) return s; return null; }
   showHUD(on) { $('hud').classList.toggle('hidden', !on); }
 
-  // ---- static bindings ----
   _bindStatic() {
     const click = (id, fn) => { const e = $(id); if (e) e.addEventListener('click', () => { this.h.sfx?.('uiClick'); fn(); }); };
     click('playBtn', () => this.h.play?.());
@@ -55,14 +46,12 @@ export class UI {
     click('tiltEnableBtn', () => this.h.enableTilt?.());
     click('tiltTouchBtn', () => this.h.useTouch?.());
 
-    // shop tabs
     document.querySelectorAll('.shop-tabs .tab').forEach(t => t.addEventListener('click', () => {
       this.h.sfx?.('uiClick');
       document.querySelectorAll('.shop-tabs .tab').forEach(x => x.classList.remove('active'));
       t.classList.add('active'); this.shopTab = t.dataset.tab; this.buildShop(this.shopTab);
     }));
 
-    // settings controls
     $('setSound').addEventListener('change', e => this.h.setSetting?.('sound', e.target.checked));
     $('setMusic').addEventListener('change', e => this.h.setSetting?.('music', e.target.checked));
     $('setSens').addEventListener('input', e => { $('sensVal').textContent = (+e.target.value).toFixed(1); this.h.setSetting?.('tiltSensitivity', +e.target.value); });
@@ -70,7 +59,6 @@ export class UI {
     this._seg('setQuality', v => this.h.setSetting?.('quality', v));
     this._seg('setDifficulty', v => this.h.setSetting?.('difficulty', v));
 
-    // boost button (touch)
     const bb = $('boostBtn');
     const on = (e) => { e.preventDefault(); this.h.boost?.(true); };
     const off = (e) => { e.preventDefault(); this.h.boost?.(false); };
@@ -92,7 +80,6 @@ export class UI {
     $(id)?.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.v === v));
   }
 
-  // ---- menu ----
   refreshMenu() {
     const st = S.get();
     $('menuCoins').textContent = fmt(st.coins);
@@ -106,29 +93,24 @@ export class UI {
   setProvider(p) { $('menuProvider').textContent = p === 'none' ? 'standalone' : p; }
   setCoinBalance(n) { $('menuCoins').textContent = fmt(n); $('shopCoins').textContent = fmt(n); }
 
-  // ---- HUD ----
   updateHUD(s) {
     $('hudLevel').textContent = 'Level ' + s.level;
-    $('hudCoins').textContent = `${s.coins}`;                 // coins are a BONUS, not a goal
+    $('hudCoins').textContent = `${s.coins}`;
     $('hudTime').textContent = (s.timeMs / 1000).toFixed(1);
-    // timer turns red when over par for THIS level
     $('hudTimePill').classList.toggle('overtime', s.parMs && s.timeMs > s.parMs);
     const pct = Math.min(100, (s.speed / (s.maxSpeed * 1.8)) * 100);
     $('speedBar').style.width = pct + '%';
     $('boostFlare').classList.toggle('on', !!s.boosting);
   }
 
-  // ---- GOAL compass (pinned in the corner; rotates to point at the hole) ----
   finishArrow(info) {
     const el = $('goalArrow');
     if (!info || info.hide || info.angle == null) { el.classList.remove('show'); return; }
     el.classList.add('show');
-    // '➤' points right at angle 0; info.angle is already screen-space radians.
     el.querySelector('.ga-arrow').style.transform = `rotate(${info.angle}rad)`;
   }
   hideGoalArrow() { $('goalArrow').classList.remove('show'); }
 
-  // ---- chest mini-game: 9 chests, pick 2 ----
   showChest(base, onCollect) {
     this.showOverlay('chest');
     const grid = $('chestGrid'); grid.innerHTML = '';
@@ -161,7 +143,6 @@ export class UI {
     if (on) this.banner('🔥 GOD MODE 🔥', 'GOLD RUSH!');
   }
 
-  // cool menu/shop exit -> reveal the game, then show HUD (fixes lingering logo)
   enterGame() {
     const open = this.screens.map(s => $(s)).find(e => e && !e.classList.contains('hidden'));
     const done = () => { for (const s of this.screens) $(s)?.classList.add('hidden'); this.showHUD(true); };
@@ -170,7 +151,6 @@ export class UI {
   }
 
   surprise(text, sub) { this.banner(text, sub); }
-  // persistent indicator of the equipped skin's perk (so players know it's active)
   setPerk(perk) {
     const el = $('perkChip'); if (!el) return;
     if (!perk || !PERKS[perk]) { el.classList.add('hidden'); return; }
@@ -194,7 +174,6 @@ export class UI {
     }
   }
 
-  // ---- win ----
   showWin(data, opts) {
     this.hideGoalArrow();
     this.showOverlay('win');
@@ -210,7 +189,7 @@ export class UI {
     if (opts.missionDone) $('winMission').textContent = opts.missionLabel || 'Mission complete!';
     const cb = $('chestBtn');
     cb.classList.toggle('hidden', !opts.canChest);
-    cb.onclick = () => { this.h.sfx?.('uiClick'); cb.classList.add('hidden'); opts.onChest?.(); };  // one-shot
+    cb.onclick = () => { this.h.sfx?.('uiClick'); cb.classList.add('hidden'); opts.onChest?.(); };
     const db = $('doubleBtn');
     db.classList.toggle('hidden', !opts.canDouble);
     db.onclick = () => { this.h.sfx?.('uiClick'); opts.onDouble?.(); };
@@ -221,7 +200,6 @@ export class UI {
   setWinCoins(n) { $('winCoins').textContent = '+' + n; }
   disableDouble() { $('doubleBtn').classList.add('hidden'); }
 
-  // ---- lose ----
   showLose(reason, opts) {
     this.hideGoalArrow();
     this.showOverlay('lose');
@@ -243,7 +221,6 @@ export class UI {
     $('loseMenuBtn').onclick = () => { this.h.sfx?.('uiClick'); opts.onMenu?.(); };
   }
 
-  // ---- shop ----
   buildShop(tab) {
     const grid = $('shopGrid'); grid.innerHTML = '';
     $('shopCoins').textContent = fmt(S.get().coins);
@@ -300,7 +277,6 @@ export class UI {
     c.appendChild(btn); return c;
   }
 
-  // ---- daily ----
   showDaily() {
     this.showOverlay('daily');
     const d = S.dailyStatus();
@@ -331,7 +307,6 @@ export class UI {
     };
   }
 
-  // ---- settings ----
   showSettings() {
     this.showOverlay('settings');
     const st = S.get();
@@ -343,14 +318,12 @@ export class UI {
     this.setSeg('setDifficulty', st.settings.difficulty || 'normal');
   }
 
-  // first-time control hint that fades the moment you roll
   tutorialHint(show, text) {
     const el = $('tutHint'); if (!el) return;
     if (show) { el.textContent = text || ''; el.classList.remove('hidden'); requestAnimationFrame(() => el.classList.add('show')); }
     else { el.classList.remove('show'); setTimeout(() => el.classList.add('hidden'), 300); }
   }
 
-  // ---- transient ----
   toast(msg, dur = 1800) {
     const t = $('toast'); t.textContent = msg; t.classList.remove('hidden');
     requestAnimationFrame(() => t.classList.add('show'));
@@ -375,8 +348,6 @@ export class UI {
 
 function fmt(n) { return n >= 10000 ? (n / 1000).toFixed(1) + 'k' : '' + n; }
 
-// Circular marble preview for the shop — uses the SAME painter as the game,
-// so what you see in the shop is what you roll.
 function skinSwatch(s) {
   const c = document.createElement('canvas'); c.width = c.height = 120; c.className = 'swatch-canvas';
   const x = c.getContext('2d'); const R = 56, cx = 60, cy = 60;
@@ -384,7 +355,6 @@ function skinSwatch(s) {
   if (s.tex) drawMarbleTexture(x, s.tex, 120);
   else if (s.rainbow) { const g = x.createLinearGradient(0, 0, 120, 120); g.addColorStop(0, '#2ff0d0'); g.addColorStop(0.5, '#49d0ff'); g.addColorStop(1, '#7a3aff'); x.fillStyle = g; x.fillRect(0, 0, 120, 120); }
   else { const g = x.createRadialGradient(44, 40, 6, 60, 60, 64); g.addColorStop(0, '#ffffff'); g.addColorStop(0.42, hex(s.mat.color)); g.addColorStop(1, '#00000055'); x.fillStyle = g; x.fillRect(0, 0, 120, 120); if (s.mat.metalness >= 0.9) { x.fillStyle = 'rgba(255,255,255,.3)'; x.fillRect(0, 80, 120, 8); } }
-  // glossy highlight
   const hl = x.createRadialGradient(46, 40, 2, 50, 44, 40); hl.addColorStop(0, 'rgba(255,255,255,.85)'); hl.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = hl; x.beginPath(); x.arc(48, 42, 30, 0, 7); x.fill();
   x.restore();
   if (s.ring) { x.strokeStyle = '#e8c98a'; x.lineWidth = 6; x.save(); x.translate(cx, cy); x.rotate(-0.4); x.scale(1, 0.32); x.beginPath(); x.arc(0, 0, 52, 0, 7); x.stroke(); x.restore(); }

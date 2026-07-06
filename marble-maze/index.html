@@ -11,16 +11,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./styles.css">
 
-<!-- To ship on a portal, uncomment ONE SDK (see src/sdk.js): -->
-<!-- <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script> -->
-<!-- <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script> -->
+<!-- Optional SDKs (enable one):
+<script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
+<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+-->
 </head>
 <body>
 <canvas id="game"></canvas>
 
 <div id="ui">
 
-  <!-- ============ HUD ============ -->
   <div id="hud" class="hidden">
     <div class="game-logo">MARBLE<b>MAZE</b></div>
     <div class="hud-top">
@@ -38,14 +38,12 @@
     <div id="boostBtn" class="boost-btn hidden">BOOST ⚡</div>
   </div>
 
-  <!-- ============ LOADING ============ -->
   <div id="loading" class="screen center">
     <div class="loader-marble"></div>
     <div class="loader-title">MARBLE<span>MAZE</span></div>
     <div class="loader-sub">Loading…</div>
   </div>
 
-  <!-- ============ MAIN MENU ============ -->
   <div id="menu" class="screen center hidden">
     <div class="menu-coins"><span class="dot gold"></span><span id="menuCoins">0</span></div>
     <div class="menu-panel">
@@ -63,7 +61,6 @@
     </div>
   </div>
 
-  <!-- ============ PAUSE ============ -->
   <div id="pause" class="screen overlay hidden">
     <div class="panel">
       <div class="panel-brand">MARBLE<b>MAZE</b></div>
@@ -74,7 +71,6 @@
     </div>
   </div>
 
-  <!-- ============ WIN ============ -->
   <div id="win" class="screen overlay hidden">
     <div class="panel win-panel">
       <div class="stars" id="winStars"><span>★</span><span>★</span><span>★</span></div>
@@ -94,7 +90,6 @@
     </div>
   </div>
 
-  <!-- ============ LOSE ============ -->
   <div id="lose" class="screen overlay hidden">
     <div class="panel lose-panel">
       <div class="panel-brand">MARBLE<b>MAZE</b></div>
@@ -109,7 +104,6 @@
     </div>
   </div>
 
-  <!-- ============ SHOP ============ -->
   <div id="shop" class="screen hidden">
     <div class="shop-head">
       <button class="icon-btn" id="shopBackBtn">←</button>
@@ -122,7 +116,6 @@
     <div class="shop-grid" id="shopGrid"></div>
   </div>
 
-  <!-- ============ CHEST ============ -->
   <div id="chest" class="screen overlay hidden">
     <div class="panel chest-panel">
       <h2>Bonus Chests!</h2>
@@ -132,7 +125,6 @@
     </div>
   </div>
 
-  <!-- ============ DAILY ============ -->
   <div id="daily" class="screen overlay hidden">
     <div class="panel">
       <h2>Daily Reward</h2>
@@ -143,7 +135,6 @@
     </div>
   </div>
 
-  <!-- ============ SETTINGS ============ -->
   <div id="settings" class="screen overlay hidden">
     <div class="panel settings-panel">
       <h2>Settings</h2>
@@ -183,7 +174,6 @@
     </div>
   </div>
 
-  <!-- ============ TILT PERMISSION ============ -->
   <div id="tiltPrompt" class="screen overlay hidden">
     <div class="panel">
       <h2>Tilt to Roll</h2>
@@ -193,12 +183,10 @@
     </div>
   </div>
 
-  <!-- ============ AD CURTAIN ============ -->
   <div id="adCurtain" class="screen overlay hidden">
     <div class="ad-box"><div class="loader-marble small"></div><div>Loading reward…</div></div>
   </div>
 
-  <!-- ============ TOAST + BANNER ============ -->
   <div id="banner" class="banner hidden"></div>
   <div id="toast" class="toast hidden"></div>
   <div id="comboPop" class="combo-pop hidden"></div>

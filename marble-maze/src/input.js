@@ -1,17 +1,10 @@
-// =====================================================================
-//  input.js — unified, forgiving controls.
-//   Desktop : WASD / Arrows to move, Shift to boost.
-//   Mobile  : device tilt (with calibration) OR touch-drag joystick.
-//  Exposes a smoothed move vector {x,y} in [-1,1] and a boost flag.
-// =====================================================================
-
 export class Input {
   constructor() {
-    this.raw = { x: 0, y: 0 };       // instantaneous target
-    this.vec = { x: 0, y: 0 };       // smoothed output (read by game)
+    this.raw = { x: 0, y: 0 };
+    this.vec = { x: 0, y: 0 };
     this.boost = false;
-    this.mode = 'auto';              // auto | keys | tilt | touch
-    this.activeMode = 'keys';        // resolved mode actually driving input
+    this.mode = 'auto';
+    this.activeMode = 'keys';
     this.sensitivity = 1.0;
     this.tiltAvailable = ('DeviceOrientationEvent' in window);
     this.tiltPermitted = false;
@@ -34,7 +27,6 @@ export class Input {
     window.addEventListener('keyup', this._onKeyUp);
     window.addEventListener('blur', this._onBlur);
     window.addEventListener('deviceorientation', this._onTilt);
-    // Default mode pick
     if (this.mode === 'auto') {
       this.activeMode = this.isTouchDevice() ? (this.tiltPermitted ? 'tilt' : 'touch') : 'keys';
     } else {
@@ -53,7 +45,6 @@ export class Input {
 
   setSensitivity(s) { this.sensitivity = s; }
 
-  // iOS 13+ requires a user gesture to grant orientation access.
   async requestTilt() {
     if (!this.tiltAvailable) return false;
     try {
@@ -62,7 +53,7 @@ export class Input {
         const res = await D.requestPermission();
         this.tiltPermitted = (res === 'granted');
       } else {
-        this.tiltPermitted = true; // Android / older iOS
+        this.tiltPermitted = true;
       }
     } catch (e) { this.tiltPermitted = false; }
     if (this.tiltPermitted && (this.mode === 'auto' || this.mode === 'tilt')) {
@@ -72,14 +63,12 @@ export class Input {
     return this.tiltPermitted;
   }
 
-  // Set current device attitude as the neutral "flat" position.
   calibrate() {
     if (this._lastTilt) this.tiltNeutral = { beta: this._lastTilt.beta, gamma: this._lastTilt.gamma };
   }
 
   setTouchBoost(b) { this._touchBoost = b; }
 
-  // ---- touch joystick (attached to the game canvas / overlay) ----
   bindTouchSurface(el) {
     el.addEventListener('touchstart', this._onTouchStart, { passive: false });
     el.addEventListener('touchmove', this._onTouchMove, { passive: false });
@@ -87,9 +76,7 @@ export class Input {
     el.addEventListener('touchcancel', this._onTouchEnd, { passive: false });
   }
 
-  // ---- per-frame update: smooth raw -> vec ----
   update(dt) {
-    // gather raw based on active mode
     let rx = 0, ry = 0;
     if (this.activeMode === 'keys' || this.mode === 'auto') {
       const k = this._keys;
@@ -114,12 +101,10 @@ export class Input {
     if (mag > 1) { rx /= mag; ry /= mag; }
     this.raw.x = rx; this.raw.y = ry;
 
-    // smoothing (responsive but not twitchy)
     const k = 1 - Math.exp(-18 * dt);
     this.vec.x += (this.raw.x - this.vec.x) * k;
     this.vec.y += (this.raw.y - this.vec.y) * k;
 
-    // boost resolution
     const keyBoost = this._keys.has('shift');
     this.boost = keyBoost || this._touchBoost;
   }
@@ -134,7 +119,6 @@ export class Input {
     this._bound = false;
   }
 
-  // ---- handlers (arrow fns to keep `this`) ----
   _onKeyDown = (e) => {
     const key = e.key.toLowerCase();
     if (['arrowup','arrowdown','arrowleft','arrowright',' '].includes(key)) e.preventDefault();
@@ -157,7 +141,7 @@ export class Input {
   };
 
   _onTouchStart = (e) => {
-    if (this.activeMode === 'tilt') return; // tilt mode ignores joystick
+    if (this.activeMode === 'tilt') return;
     e.preventDefault();
     const t = e.changedTouches[0];
     this._touch.active = true; this._touch.id = t.identifier;

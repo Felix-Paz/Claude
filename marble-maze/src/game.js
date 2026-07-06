@@ -1,9 +1,3 @@
-// =====================================================================
-//  game.js — the 3D engine & gameplay (Retention v2).
-//  Readability-first: RED == death everywhere, FINISH is a bright green
-//  beam with particles + an off-screen arrow, walls get bright top caps,
-//  and dark biomes are lifted with ambient + emissive caps.
-// =====================================================================
 import * as THREE from 'three';
 import {
   T, WALL_H, WALL_CAP, MARBLE_R, PHYS, RADII, STARS, POWERUPS,
@@ -34,7 +28,6 @@ export class Game {
     this.holesPatched = false;
     this.gold = { active: false, timer: 0, times: [], coins: [] };
     this.idleTimer = 0; this._idleFired = false;
-    // perf
     this.autoQuality = true; this.qfixed = null; this._fpsAcc = 0; this._fpsN = 0; this._degraded = 0;
 
     this._initRenderer();
@@ -59,7 +52,7 @@ export class Game {
     r.shadowMap.enabled = true;
     r.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer = r;
-    this.shadowSize = 1024;   // lighter startup + smoother on weak devices
+    this.shadowSize = 1024;
   }
 
   _initScene() {
@@ -91,7 +84,6 @@ export class Game {
   geo(key, make) { return this._geo[key] || (this._geo[key] = make()); }
   _own(m) { m.userData = m.userData || {}; m.userData._own = true; return m; }
 
-  // wall box whose TOP face is the bright cap colour (single mesh => no z-fight)
   _wallGeo(w) {
     const g = new THREE.BoxGeometry(T, WALL_H, T); g.userData = { _own: true };
     const pos = g.attributes && g.attributes.position;
@@ -104,14 +96,13 @@ export class Game {
     return g;
   }
 
-  // skin perks: a reason to want a skin beyond looks
   _applyPerks(skinDef) {
     this.perkMagnet = false; this.speedPerk = 1; this.coinPerk = 1;
     const p = skinDef && skinDef.perk;
-    if (p === 'shield') this.shield = true;                 // one free hit at level start
+    if (p === 'shield') this.shield = true;
     else if (p === 'magnet') this.perkMagnet = true;
-    else if (p === 'headstart') this.speedPerk = 1.16;      // clearly faster
-    else if (p === 'lucky') this.coinPerk = 1.2;            // +20% coins
+    else if (p === 'headstart') this.speedPerk = 1.16;
+    else if (p === 'lucky') this.coinPerk = 1.2;
   }
 
   _makeEnvCube(world) {
@@ -139,9 +130,6 @@ export class Game {
     if (this.envCube) { this.envCube.dispose?.(); this.envCube = null; }
   }
 
-  // ---------------------------------------------------------------
-  //  LEVEL BUILD
-  // ---------------------------------------------------------------
   loadLevel(data, skinDef, trailDef) {
     this._clearLevel();
     this.level = data; this.skinDef = skinDef; this.trailDef = trailDef;
@@ -159,14 +147,12 @@ export class Game {
     const half = Math.max((data.gw / 2) * T + T, (data.gh / 2) * T + T);
     const sc = this.sun.shadow.camera; sc.left = -half; sc.right = half; sc.top = half; sc.bottom = -half; sc.near = 1; sc.far = 180; sc.updateProjectionMatrix();
 
-    // floor + apron
     const fW = data.gw * T, fD = data.gh * T;
     const floor = new THREE.Mesh(this._own(new THREE.BoxGeometry(fW, 1.5, fD)), this._own(new THREE.MeshStandardMaterial({ color: w.floor, roughness: 0.95 })));
     floor.position.y = -0.75; floor.receiveShadow = true; this.levelGroup.add(floor);
     const apron = new THREE.Mesh(this._own(new THREE.BoxGeometry(fW + T * 0.6, 3.6, fD + T * 0.6)), this._own(new THREE.MeshStandardMaterial({ color: w.floorEdge, roughness: 1 })));
     apron.position.y = -2.6; apron.receiveShadow = true; this.levelGroup.add(apron);
 
-    // walls (body + bright top cap) in a group so phase-walls can drop them
     this.wallGroup = new THREE.Group(); this.levelGroup.add(this.wallGroup);
     const wallTiles = [];
     this.openTiles = [];
@@ -176,8 +162,6 @@ export class Game {
       for (const [dx, dy] of [[0,-1],[1,0],[0,1],[-1,0]]) { const nx = x+dx, ny = y+dy; if (nx<0||ny<0||nx>=data.gw||ny>=data.gh||data.grid[ny][nx]===0) { exposed = true; break; } }
       if (exposed) wallTiles.push([x, y]);
     }
-    // ONE vertex-coloured mesh (top face = bright cap colour). A single mesh
-    // removes the coplanar body/cap faces that caused the walls to shimmer.
     const wallGeo = this._wallGeo(w);
     const wallMat = this._own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: w.emissiveWorld ? 0.2 : 0.04, emissive: new THREE.Color(w.emissiveWorld ? w.wall : 0x000000), emissiveIntensity: w.emissiveWorld ? 0.22 : 0 }));
     const body = new THREE.InstancedMesh(wallGeo, wallMat, wallTiles.length); body.castShadow = true; body.receiveShadow = true;
@@ -186,11 +170,9 @@ export class Game {
     body.instanceMatrix.needsUpdate = true;
     this.wallGroup.add(body);
 
-    // holes
     this.finishMesh = this._makeHole(data.finish, true, w);
     this.decoyMeshes = (data.decoys || []).map(d => this._makeHole(d, false, w));
 
-    // entities
     this.coins = (data.coins || []).map(c => this._makeCoin(c));
     this.coinsCollected = 0;
     this.boostPads = (data.boostPads || []).map(p => this._makeBoostPad(p, w));
@@ -203,7 +185,6 @@ export class Game {
     this.movers = (data.movingWalls || []).map(mw => this._makeMover(mw));
     this.powerups = (data.powerups || []).map(p => this._makePowerup(p));
 
-    // marble
     this._makeMarble(skinDef, trailDef);
     const sp = this.tileWorld(data.start.tx, data.start.ty);
     this.radius = MARBLE_R; this.baseRadius = MARBLE_R;
@@ -232,7 +213,6 @@ export class Game {
     this.state = 'playing';
   }
 
-  // ---- hole factory ----
   _makeHole(tile, isFinish, w) {
     const g = new THREE.Group(); const p = this.tileWorld(tile.tx, tile.ty); g.position.set(p.x, 0, p.z);
     const R = T * 0.42;
@@ -250,7 +230,6 @@ export class Game {
       ring2.rotation.x = -Math.PI / 2; ring2.position.y = 0.08; ring2.scale.setScalar(R); g.add(ring2);
       g.userData.beam = beam; g.userData.ring2 = ring2;
     } else {
-      // red danger glow plate so wrong holes scream "no"
       const warn = new THREE.Mesh(this.geo('warn', () => new THREE.RingGeometry(1.05, 1.5, 28)), this._own(new THREE.MeshBasicMaterial({ color: DANGER, transparent: true, opacity: 0.4, side: THREE.DoubleSide, depthWrite: false })));
       warn.rotation.x = -Math.PI / 2; warn.position.y = 0.04; warn.scale.setScalar(R); g.add(warn);
       g.userData.warn = warn;
@@ -270,8 +249,6 @@ export class Game {
   _makePowerup(p) {
     const def = POWERUPS[p.type] || POWERUPS.shield;
     const g = new THREE.Group(); const wp = this.tileWorld(p.tx, p.ty); g.position.set(wp.x, 1.55, wp.z);
-    // unmistakable vs coins: glowing orb + white halo + light pillar + a
-    // billboarded ICON so the player instantly reads what it does.
     const orb = new THREE.Mesh(this.geo('puOrb', () => new THREE.SphereGeometry(0.66, 20, 16)), this._own(new THREE.MeshStandardMaterial({ color: def.color, emissive: def.color, emissiveIntensity: 1.1, roughness: 0.12, metalness: 0.25 })));
     orb.castShadow = true; g.add(orb);
     const halo = new THREE.Mesh(this.geo('puHalo', () => new THREE.TorusGeometry(1.05, 0.08, 12, 28)), this._own(new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })));
@@ -293,8 +270,6 @@ export class Game {
   }
 
   _makeBoostPad(p, w) {
-    // a non-directional glowing SPEED pad (two-way) with a light shaft — NO
-    // collision body, so it never blocks the marble.
     const g = new THREE.Group(); const wp = this.tileWorld(p.tx, p.ty); g.position.set(wp.x, 0.05, wp.z);
     const pad = new THREE.Mesh(this.geo('spPad', () => new THREE.CylinderGeometry(T * 0.36, T * 0.42, 0.12, 24)), this._own(new THREE.MeshStandardMaterial({ color: 0x081830, emissive: 0x18e0ff, emissiveIntensity: 0.95, roughness: 0.3 })));
     g.add(pad);
@@ -313,11 +288,9 @@ export class Game {
   }
 
   _makeCrawler(c) {
-    // witty RED toxic blob with an angry face
     const g = new THREE.Group();
     const body = new THREE.Mesh(this.geo('crawlBody', () => new THREE.SphereGeometry(0.78, 20, 16)), this._own(new THREE.MeshStandardMaterial({ map: this._tex('toxicFace'), color: 0xffffff, emissive: DANGER, emissiveIntensity: 0.45, roughness: 0.4 })));
     body.castShadow = true; g.add(body);
-    // toxic drip spikes
     for (let i = 0; i < 6; i++) { const s = new THREE.Mesh(this.geo('crawlSpk', () => new THREE.ConeGeometry(0.16, 0.4, 6)), this._own(new THREE.MeshStandardMaterial({ color: DANGER_DARK, emissive: DANGER, emissiveIntensity: 0.5 }))); const a = i / 6 * Math.PI * 2; s.position.set(Math.cos(a) * 0.7, -0.55, Math.sin(a) * 0.7); s.rotation.x = Math.PI; g.add(s); }
     const pts = c.path.map(t => { const p = this.tileWorld(t.tx, t.ty); return new THREE.Vector3(p.x, 0.78, p.z); });
     g.userData = { pts, speed: c.speed, u: 0, dir: 1, body }; if (pts.length) g.position.copy(pts[0]);
@@ -325,7 +298,6 @@ export class Game {
   }
 
   _makeSpike(s) {
-    // real 3D spikes that RISE (red, deadly) and retract; red telegraph first
     const g = new THREE.Group(); const wp = this.tileWorld(s.tx, s.ty); g.position.set(wp.x, 0, wp.z);
     const base = new THREE.Mesh(this.geo('spkBase', () => new THREE.CylinderGeometry(T * 0.36, T * 0.4, 0.12, 16)), this._own(new THREE.MeshStandardMaterial({ color: 0x1a1d26, roughness: 1 })));
     base.position.y = 0.02; g.add(base);
@@ -334,7 +306,7 @@ export class Game {
     const cluster = new THREE.Group();
     const offs = [[0, 0], [0.5, 0.5], [-0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]];
     for (const [ox, oz] of offs) { const cone = new THREE.Mesh(this.geo('spkCone', () => new THREE.ConeGeometry(0.32, 1.5, 6)), this._own(new THREE.MeshStandardMaterial({ color: DANGER, emissive: DANGER, emissiveIntensity: 0.55, metalness: 0.3, roughness: 0.4 }))); cone.position.set(ox, 0.75, oz); cluster.add(cone); }
-    cluster.position.y = -1.6; g.add(cluster);  // start hidden below floor
+    cluster.position.y = -1.6; g.add(cluster);
     g.userData = { tile: s, phase: s.phase, period: s.period, cluster, tel, up: 0 };
     this.levelGroup.add(g); return g;
   }
@@ -359,8 +331,6 @@ export class Game {
     const g = new THREE.Group(); const wp = this.tileWorld(r.tx, r.ty); g.position.set(wp.x, 0.85, wp.z);
     const hub = new THREE.Mesh(this.geo('rHub', () => new THREE.CylinderGeometry(0.5, 0.62, 1.8, 16)), this._own(new THREE.MeshStandardMaterial({ color: 0x2b3346, metalness: 0.7, roughness: 0.35 }))); g.add(hub);
     const len = r.len * T;
-    // the deadly RED bar starts AT the pivot and reaches `len`; a thicker bar
-    // so the lethal zone matches what you SEE (you die only on real contact).
     const arm = new THREE.Mesh(this._own(new THREE.BoxGeometry(len, 0.62, 0.72)), this._own(new THREE.MeshStandardMaterial({ color: DANGER, emissive: DANGER, emissiveIntensity: 0.85, roughness: 0.4 })));
     arm.position.x = len / 2; arm.castShadow = true; g.add(arm);
     const tip = new THREE.Mesh(this.geo('rTip', () => new THREE.SphereGeometry(0.45, 12, 10)), this._own(new THREE.MeshStandardMaterial({ color: DANGER, emissive: DANGER, emissiveIntensity: 1.3 }))); tip.position.x = len; g.add(tip);
@@ -368,9 +338,7 @@ export class Game {
   }
 
   _makeMover(mw) {
-    // a sliding AMBER wall that retracts into a side wall, opening the corridor
     const wp = this.tileWorld(mw.tx, mw.ty);
-    // retract direction = a perpendicular side that is a wall (hide there)
     const perp = mw.dir.x ? [[0, -1], [0, 1]] : [[-1, 0], [1, 0]];
     let retract = perp.find(([dx, dy]) => this.isWall(mw.tx + dx, mw.ty + dy)) || perp[0];
     const mesh = new THREE.Mesh(this._own(new THREE.BoxGeometry(T * 0.96, WALL_H * 0.92, T * 0.96)), this._own(new THREE.MeshStandardMaterial({ color: DANGER, emissive: DANGER, emissiveIntensity: 0.55, metalness: 0.3, roughness: 0.5 })));
@@ -385,7 +353,6 @@ export class Game {
       this.marble.castShadow = true; this.scene.add(this.marble);
       this.blob = new THREE.Mesh(new THREE.CircleGeometry(MARBLE_R * 1.25, 20), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3, depthWrite: false }));
       this.blob.rotation.x = -Math.PI / 2; this.scene.add(this.blob);
-      // shield bubble — visible whenever a shield / Extra-Life perk is active
       this.shieldAura = new THREE.Mesh(new THREE.SphereGeometry(MARBLE_R * 1.5, 20, 16),
         new THREE.MeshBasicMaterial({ color: 0x4dffa3, transparent: true, opacity: 0.26, depthWrite: false, side: THREE.DoubleSide }));
       this.shieldAura.visible = false; this.marble.add(this.shieldAura);
@@ -397,7 +364,7 @@ export class Game {
   applySkin(def) {
     this.skinDef = def; const mat = this.marble.material; const mm = def.mat;
     if (mat.map) { mat.map.dispose?.(); mat.map = null; }
-    mat.transparent = false; mat.opacity = 1;              // never inherit a stale Ghost look
+    mat.transparent = false; mat.opacity = 1;
     mat.color = new THREE.Color(mm.color);
     mat.metalness = mm.metalness ?? 0; mat.roughness = mm.roughness ?? 0.2;
     mat.clearcoat = mm.clearcoat ?? 0; mat.clearcoatRoughness = 0.08;
@@ -421,12 +388,11 @@ export class Game {
       x.fillStyle = '#7a0d0d'; for (let i = 0; i < 10; i++) { x.beginPath(); x.arc(Math.random() * 128, Math.random() * 128, 6 + Math.random() * 8, 0, 7); x.fill(); }
       x.fillStyle = '#fff'; x.beginPath(); x.arc(48, 56, 14, 0, 7); x.fill(); x.beginPath(); x.arc(84, 56, 14, 0, 7); x.fill();
       x.fillStyle = '#111'; x.beginPath(); x.arc(50, 58, 6, 0, 7); x.fill(); x.beginPath(); x.arc(82, 58, 6, 0, 7); x.fill();
-      x.strokeStyle = '#111'; x.lineWidth = 6; x.lineCap = 'round'; x.beginPath(); x.arc(66, 96, 22, Math.PI + 0.3, -0.3); x.stroke(); // frown
+      x.strokeStyle = '#111'; x.lineWidth = 6; x.lineCap = 'round'; x.beginPath(); x.arc(66, 96, 22, Math.PI + 0.3, -0.3); x.stroke();
     }
     const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; this._texCache[name] = tex; return tex;
   }
 
-  // ---- trail ----
   _initTrail() {
     const N = 46; const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
@@ -436,7 +402,6 @@ export class Game {
     this._trailN = N; this._trailHead = 0; this._trailLife = new Float32Array(N); this.trailColor = new THREE.Color(0xffffff);
   }
 
-  // ---- particles ----
   _initParticles() {
     const M = 700; this.pM = M; const geo = new THREE.BufferGeometry();
     this.pPos = new Float32Array(M * 3); this.pCol = new Float32Array(M * 3);
@@ -476,9 +441,6 @@ export class Game {
   pause() { if (this.state === 'playing') this.state = 'paused'; }
   resume() { if (this.state === 'paused') this.state = 'playing'; }
 
-  // ---------------------------------------------------------------
-  //  MAIN UPDATE
-  // ---------------------------------------------------------------
   update(dt, input) {
     dt = Math.min(dt, 0.05); this._t += dt; const sdt = dt * this.timeScale;
     if (this.state === 'playing') {
@@ -508,15 +470,14 @@ export class Game {
     return { coins: this.coinsCollected, coinTotal: this.level.coinTotal, timeMs: this.clockMs, parMs: this.level.parTimeMs, speed, maxSpeed: PHYS.maxSpeed, boosting: !!this._boosting, gold: this.gold.active };
   }
 
-  // ---- physics ----
   _physics(dt, input) {
     const w = this.level.world; const boosting = input && input.boost; this._boosting = boosting;
     let accel = PHYS.accel * (boosting ? PHYS.boostMult : 1);
     let maxv = PHYS.maxSpeed * (boosting ? PHYS.boostMult : 1);
     if (this.activePowerups.has('speed')) { accel *= 1.4; maxv *= 1.4; }
-    accel *= this.speedPerk; maxv *= this.speedPerk;          // skin headstart perk
+    accel *= this.speedPerk; maxv *= this.speedPerk;
     const sizeF = this.baseRadius / this.radius; maxv *= sizeF; accel *= sizeF;
-    if (this.launchTimer > 0) { this.launchTimer -= dt; maxv = Math.max(maxv, 38); }   // boost-pad launch carries through
+    if (this.launchTimer > 0) { this.launchTimer -= dt; maxv = Math.max(maxv, 38); }
     let fric = PHYS.friction;
     if (w.sig === 'slippery') fric *= 0.45;
     if (w.sig === 'lowgrav') { fric *= 0.62; maxv *= 1.1; }
@@ -530,7 +491,6 @@ export class Game {
     for (let s = 0; s < nSub; s++) { this.marble.position.x += hx; this.marble.position.z += hz; this._resolveWalls(); }
     const v = Math.hypot(this.vel.x, this.vel.z);
     if (v > 0.01) { const axis = tmpV.set(-this.vel.z, 0, this.vel.x).normalize(); this.marble.rotateOnWorldAxis(axis, (v * dt) / this.radius); }
-    // Ghost ignores interior walls but must NOT leave the platform.
     if (this.ghost) {
       const hx = (this.level.gw * T) / 2 - this.radius, hz = (this.level.gh * T) / 2 - this.radius;
       if (this.marble.position.x < -hx) { this.marble.position.x = -hx; this.vel.x = Math.max(0, this.vel.x); }
@@ -550,8 +510,8 @@ export class Game {
     return { nx, nz, push: r - d };
   }
   _resolveWalls() {
-    if (this.ghost) return;                              // ghost passes through
-    if (this.wallsPhased && this.phaseAmt > 0.5) return; // phased through
+    if (this.ghost) return;
+    if (this.wallsPhased && this.phaseAmt > 0.5) return;
     const r = this.radius, px0 = this.marble.position.x, pz0 = this.marble.position.z;
     const { tx, ty } = this.worldTile(px0, pz0);
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
@@ -560,7 +520,6 @@ export class Game {
       const hit = this._circleVsBox(this.marble.position.x, this.marble.position.z, c.x, c.z, T / 2, T / 2, r);
       if (hit) this._applyHit(hit);
     }
-    // (moving walls are now lethal, handled in _checkHazards — they don't block)
   }
   _applyHit(hit) {
     this.marble.position.x += hit.nx * hit.push; this.marble.position.z += hit.nz * hit.push;
@@ -568,10 +527,8 @@ export class Game {
     if (vn < 0) { this.vel.x -= (1 + PHYS.wallRestitution) * vn * hit.nx; this.vel.z -= (1 + PHYS.wallRestitution) * vn * hit.nz; }
   }
 
-  // ---- entity motion ----
   _entities(dt) {
     if (!this.freeze) this._moveHazards(dt);
-    // cooldowns / non-hazard motion still tick under Freeze
     for (const b of this.bouncers) { if (b.userData.cd > 0) b.userData.cd -= dt; b.userData.squash = Math.max(0, b.userData.squash - dt * 4); const sq = b.userData.squash; b.scale.set(1 + sq * 0.3, 1 - sq * 0.5, 1 + sq * 0.3); }
     for (const p of this.boostPads) if (p.userData.cd > 0) p.userData.cd -= dt;
     for (const z of this.sizeZones) if (z.userData.cd > 0) z.userData.cd -= dt;
@@ -587,7 +544,6 @@ export class Game {
     }
     for (const s of this.spikes) {
       const u = (this._t / s.userData.period + s.userData.phase) % 1;
-      // 0..0.35 warn, 0.35..0.55 strike up, 0.55..0.8 down
       let up = 0, tel = 0;
       if (u < 0.35) { tel = (u / 0.35); up = 0; }
       else if (u < 0.55) { up = (u - 0.35) / 0.2; tel = 1; }
@@ -599,10 +555,9 @@ export class Game {
     for (const p of this.projectiles) { if (!p.alive) continue; p.mesh.position.x += p.vx * dt; p.mesh.position.z += p.vz * dt; const { tx, ty } = this.worldTile(p.mesh.position.x, p.mesh.position.z); if (this.isWall(tx, ty)) { p.alive = false; this.levelGroup.remove(p.mesh); this.burst(p.mesh.position.x, 0.6, p.mesh.position.z, DANGER, 6, 4, 0.3); } }
     this.projectiles = this.projectiles.filter(p => p.alive);
     for (const r of this.rotators) { r.userData.angle += r.userData.speed * dt; r.rotation.y = r.userData.angle; }
-    // sliding walls
     for (const mv of this.movers || []) {
       const u = (this._t / mv.userData.period + mv.userData.phase) % 1;
-      const off = 0.5 - 0.5 * Math.cos(u * Math.PI * 2); // 0..1..0
+      const off = 0.5 - 0.5 * Math.cos(u * Math.PI * 2);
       mv.userData.offset = off;
       mv.position.x = mv.userData.base.x + mv.userData.retract.x * off * T;
       mv.position.z = mv.userData.base.z + mv.userData.retract.y * off * T;
@@ -616,12 +571,10 @@ export class Game {
     this.projectiles.push({ mesh, vx: t.userData.dir.x * speed, vz: t.userData.dir.y * speed, alive: true });
   }
 
-  // ---- pickups ----
   _checkPickups() {
     const mx = this.marble.position.x, mz = this.marble.position.z;
     const magnetActive = this.activePowerups.has('magnet');
     const magnet = magnetActive || this.perkMagnet;
-    // strong passive (perk) magnet — nearly as good as the power-up
     const mRange = magnetActive ? T * 4.2 : T * 3.6, mPull = magnetActive ? 28 : 24;
     for (const coin of this.coins) {
       if (coin.userData.collected) continue;
@@ -633,12 +586,10 @@ export class Game {
     for (const p of this.boostPads) {
       if (p.userData.cd > 0) continue;
       if (Math.hypot(p.position.x - mx, p.position.z - mz) < T * 0.5) {
-        // TWO-WAY: launch along the marble's current heading (or the corridor
-        // axis if nearly stopped). Strong but controllable.
         const sp = Math.hypot(this.vel.x, this.vel.z); let dx, dz;
         if (sp > 1.2) { dx = this.vel.x / sp; dz = this.vel.z / sp; } else { dx = p.userData.dir.x; dz = p.userData.dir.y; }
         this.vel.x = dx * 40; this.vel.z = dz * 40; p.userData.cd = 0.6;
-        this.launchTimer = 0.65;                          // bypass the speed cap so it carries down the corridor
+        this.launchTimer = 0.65;
         this.burst(p.position.x, 0.5, p.position.z, 0x6cf0ff, 18, 9, 0.45, 3); this.cb.onSfx?.('boost');
       }
     }
@@ -657,8 +608,6 @@ export class Game {
     this.burst(coin.position.x, coin.position.y, coin.position.z, gold ? 0xffe14d : 0xffd23a, 12, 5, 0.5, 2);
     this.cb.onCoin?.(this.coinsCollected, val, this.combo);
     this.cb.onSfx?.('coin', this.combo);
-    // GOLD RUSH — rare & earned: once per level, only when nearly ALL coins are
-    // grabbed, or a big burst very fast.
     if (!this.gold.active && !this.gold.used && !gold) {
       this.gold.times.push(this._t);
       this.gold.times = this.gold.times.filter(tt => this._t - tt < GOLD_RUSH.windowSec);
@@ -674,7 +623,6 @@ export class Game {
     this.burst(pu.position.x, 1.4, pu.position.z, 0xffffff, 12, 5, 0.5, 3);
     this._startPowerup(pu.userData.type); this.cb.onSfx?.('powerup');
   }
-  // allow the director (panic/reward) to trigger a rush
   forceGoldRush() { if (!this.gold.active && !this.gold.used) this._startGoldRush(); }
 
   _startPowerup(id) {
@@ -720,7 +668,6 @@ export class Game {
     if (this.wallGroup) this.wallGroup.position.y = -this.phaseAmt * (WALL_H + 0.6);
   }
 
-  // ---- GOLD RUSH (god mode) ----
   _startGoldRush() {
     this.gold.active = true; this.gold.used = true; this.gold.timer = GOLD_RUSH.durationSec; this.gold.times = [];
     const open = this.openTiles.filter(t => !(t.tx === this.level.finish.tx && t.ty === this.level.finish.ty));
@@ -746,7 +693,6 @@ export class Game {
     this.cb.onGoldRush?.(false);
   }
 
-  // ---- holes ----
   _checkHoles() {
     const mx = this.marble.position.x, mz = this.marble.position.z;
     const f = this.finishMesh;
@@ -764,7 +710,6 @@ export class Game {
     }
   }
 
-  // ---- hazards (RED == death) ----
   _checkHazards() {
     if (this.state !== 'playing') return;
     const mx = this.marble.position.x, mz = this.marble.position.z, r = this.radius - this.forgive * 0.15;
@@ -772,15 +717,12 @@ export class Game {
     for (const c of this.crawlers) if (hit(c.position.x, c.position.z, 0.68)) return this._lethal(c.position.x, c.position.z);
     for (const s of this.spikes) if (s.userData.up > 0.5 && hit(s.position.x, s.position.z, 0.55)) return this._lethal(s.position.x, s.position.z);
     for (const p of this.projectiles) if (p.alive && hit(p.mesh.position.x, p.mesh.position.z, 0.3)) { p.alive = false; this.levelGroup.remove(p.mesh); return this._lethal(p.mesh.position.x, p.mesh.position.z); }
-    // clock-hand: only lethal on real contact with the red bar (tight threshold)
     for (const rt of this.rotators) { const ang = rt.userData.angle; const ex = rt.position.x + Math.cos(ang) * rt.userData.len; const ez = rt.position.z + Math.sin(ang) * rt.userData.len; if (distToSeg(mx, mz, rt.position.x, rt.position.z, ex, ez) < r + 0.14) return this._lethal(mx, mz); }
-    // moving walls are now RED & lethal — touching an extended one kills
     for (const mv of this.movers || []) { if (mv.userData.offset > 0.55) continue; if (hit(mv.position.x, mv.position.z, T * 0.46)) return this._lethal(mv.position.x, mv.position.z); }
   }
   _lethal(x, z) { if (this.shield) { this._consumeShield(x, z); return; } this._die('hazard', x, z); }
   _consumeShield(x, z) { this.shield = false; this.activePowerups.delete('shield'); this.burst(x, 0.8, z, 0x4dffa3, 30, 10, 0.7, 4); this.cb.onSfx?.('shieldHit'); this.cb.onShieldSave?.(); this.cb.onPowerupEnd?.('shield'); this.cb.onPowerups?.(this._activeList()); this.vel.x *= -0.6; this.vel.z *= -0.6; }
 
-  // ---- win/die ----
   _win() {
     if (this.state !== 'playing') return; this.state = 'win'; this._endGold();
     this._fall = { x: this.finishMesh.position.x, z: this.finishMesh.position.z, t: 0 };
@@ -810,18 +752,14 @@ export class Game {
   }
   beginResolveReset() { this._resolved = false; }
 
-  // ---- idle detection (churn signal) ----
   _idleCheck(dt, input) {
     const moving = input && (Math.abs(input.vec.x) > 0.05 || Math.abs(input.vec.y) > 0.05);
     if (moving || Math.hypot(this.vel.x, this.vel.z) > 0.5) { this.idleTimer = 0; if (this._idleFired) { this._idleFired = false; this.cb.onActive?.(); } }
     else { this.idleTimer += dt; if (this.idleTimer > 5 && !this._idleFired) { this._idleFired = true; this.cb.onIdle?.(); } }
   }
 
-  // ---- finish arrow ----
   _finishArrow() {
     if (!this.cb.onFinishArrow) return;
-    // Camera orientation is fixed (north-up), so world XZ maps straight to
-    // screen: +X = right, +Z = down. Point the compass along marble->hole.
     const dx = this.finishMesh.position.x - this.marble.position.x;
     const dz = this.finishMesh.position.z - this.marble.position.z;
     this.cb.onFinishArrow({ angle: Math.atan2(dz, dx), dist: Math.hypot(dx, dz) });
@@ -852,7 +790,6 @@ export class Game {
     this.trail.geometry.attributes.position.needsUpdate = true; this.trail.geometry.attributes.color.needsUpdate = true;
   }
 
-  // ---- camera ----
   _camOffset() { const span = Math.max(this.level.gw, this.level.gh) * T; return { h: 16 + span * 0.22, d: 11 + span * 0.16 }; }
   _updateCameraImmediate() { const { h, d } = this._camOffset(); this.camPos.set(this.marble.position.x, h, this.marble.position.z + d); this.camera.position.copy(this.camPos); this.camTarget.copy(this.marble.position); this.camera.lookAt(this.camTarget); this.sun.position.set(this.marble.position.x + 18, 44, this.marble.position.z + 24); this.sun.target.position.copy(this.marble.position); }
   _camera(dt) {
@@ -868,7 +805,6 @@ export class Game {
 
   _onResize = () => { if (!this.renderer) return; this.camera.aspect = window.innerWidth / window.innerHeight; this.camera.updateProjectionMatrix(); this.renderer.setSize(window.innerWidth, window.innerHeight); };
 
-  // ---- performance ----
   setQuality(q) {
     this.qfixed = (q === 'auto') ? null : q; this.autoQuality = (q === 'auto');
     if (q === 'low') this._applyTier(2); else if (q === 'high') this._applyTier(0); else this._applyTier(this._degraded);
@@ -886,15 +822,12 @@ export class Game {
       const fps = this._fpsN / this._fpsAcc; this._fpsAcc = 0; this._fpsN = 0;
       if (fps < 40) { this._lowStreak = (this._lowStreak || 0) + 1; if (this._lowStreak >= 2 && this._degraded < 2) { this._applyTier(this._degraded + 1); this._lowStreak = 0; } }
       else this._lowStreak = 0;
-      // NEVER auto-upgrade: re-toggling pixelRatio/shadows mid-session is what
-      // caused the periodic whole-screen flicker. Quality only steps down.
     }
   }
 
   dispose() { window.removeEventListener('resize', this._onResize); this._clearLevel(); this.renderer.dispose(); }
 }
 
-// ---- helpers ----
 function distToSeg(px, pz, ax, az, bx, bz) { const dx = bx - ax, dz = bz - az; const l2 = dx*dx + dz*dz || 1e-6; let t = ((px-ax)*dx + (pz-az)*dz)/l2; t = Math.max(0, Math.min(1, t)); const cx = ax+t*dx, cz = az+t*dz; return Math.hypot(px-cx, pz-cz); }
 function chevronGeo() { return new THREE.BoxGeometry(0.9, 0.06, 0.28); }
 function pent(x, cx, cy, r, rot) { x.beginPath(); for (let i = 0; i < 5; i++) { const a = rot + i / 5 * Math.PI * 2; const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r; i ? x.lineTo(px, py) : x.moveTo(px, py); } x.closePath(); x.fill(); }

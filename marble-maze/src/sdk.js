@@ -1,22 +1,8 @@
-// =====================================================================
-//  sdk.js — portal SDK abstraction (Poki / CrazyGames).
-//  The game calls these neutral methods; this maps them to whichever
-//  portal SDK is present. With no SDK loaded it falls back to safe
-//  no-ops (and *grants* rewarded actions) so the game is fully playable
-//  standalone during development.
-//
-//  To ship on a portal, add ONE of these to index.html <head> and set
-//  the id — everything below auto-detects it:
-//    Poki:        <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
-//    CrazyGames:  <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
-// =====================================================================
-
-let provider = 'none';        // 'poki' | 'crazygames' | 'none'
+let provider = 'none';
 let ready = false;
 let adInProgress = false;
 
 const noop = () => {};
-// UI hook: set by ui.js to show/hide a "muting for ad" curtain.
 let onAdStateChange = noop;
 export function setAdStateHandler(fn) { onAdStateChange = fn || noop; }
 
@@ -43,7 +29,6 @@ export async function init() {
 
 export function getProvider() { return provider; }
 
-// Loading screen lifecycle (helps portals show their own splash correctly).
 export function loadingStart() {
   if (provider === 'poki') window.PokiSDK?.gameLoadingStart?.();
 }
@@ -52,7 +37,6 @@ export function loadingFinished() {
   if (provider === 'crazygames') window.CrazyGames?.SDK?.game?.loadingStop?.();
 }
 
-// Gameplay markers — portals pause their own timers/ads accordingly.
 export function gameplayStart() {
   if (provider === 'poki') window.PokiSDK?.gameplayStart?.();
   if (provider === 'crazygames') window.CrazyGames?.SDK?.game?.gameplayStart?.();
@@ -66,7 +50,6 @@ export function happyMoment() {
   if (provider === 'crazygames') window.CrazyGames?.SDK?.game?.happytime?.();
 }
 
-// Interstitial — only call at NATURAL breaks (never mid-roll).
 export async function commercialBreak() {
   if (adInProgress) return;
   adInProgress = true; onAdStateChange(true);
@@ -80,12 +63,10 @@ export async function commercialBreak() {
         });
       });
     }
-    // 'none' → instant
-  } catch (e) { /* ignore */ }
+  } catch (e) { }
   adInProgress = false; onAdStateChange(false);
 }
 
-// Rewarded — returns true if the reward should be granted.
 export async function rewardedBreak() {
   if (adInProgress) return false;
   adInProgress = true; onAdStateChange(true);
@@ -102,7 +83,6 @@ export async function rewardedBreak() {
         });
       });
     } else {
-      // standalone dev: grant the reward so the loop is testable
       success = true;
     }
   } catch (e) { success = false; }

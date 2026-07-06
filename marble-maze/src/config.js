@@ -1,30 +1,14 @@
-// =====================================================================
-//  MARBLE MAZE — config.js  (Retention v2)
-//  Central data: geometry, physics, biome WORLDS, skins, trails,
-//  power-ups, content-unlock pacing, economy, and the adaptive
-//  difficulty director's tuning constants.
-//
-//  READABILITY RULES baked in here:
-//   • DANGER is always RED. If it's red, it kills you.
-//   • The FINISH is always the same friendly green-cyan + light beam.
-//   • Every world keeps wall value clearly distinct from floor value,
-//     and walls get a bright top "cap" so edges read instantly.
-// =====================================================================
+export const T = 3.2;
+export const WALL_H = 2.5;
+export const WALL_CAP = 0.34;
+export const MARBLE_R = 0.95;
 
-// ---- Core geometry ----
-export const T = 3.2;          // tile size (rooms & walls share this)
-export const WALL_H = 2.5;     // wall height
-export const WALL_CAP = 0.34;  // bright top-cap thickness (readability)
-export const MARBLE_R = 0.95;  // default marble radius
-
-// ---- Universal colours ----
-export const DANGER = 0xff2b2b;       // RED == death (spikes, wrong holes, enemies, bullets)
+export const DANGER = 0xff2b2b;
 export const DANGER_DARK = 0x8c1414;
-export const FINISH_COLOR = 0x2bff9e; // friendly green-cyan == "go here"
-export const MOVER_COLOR = 0xffb02e;  // moving walls (mechanical amber — NOT lethal)
+export const FINISH_COLOR = 0x2bff9e;
+export const MOVER_COLOR = 0xffb02e;
 export const PORTAL_A = 0x46b6ff, PORTAL_B = 0xff7adf;
 
-// ---- Physics feel (smooth, forgiving, responsive) ----
 export const PHYS = {
   accel: 80,
   maxSpeed: 15.5,
@@ -44,11 +28,6 @@ export const RADII = {
 
 export const STARS = { coinFractionFor2: 0.5, coinFractionFor3: 0.999 };
 
-// =====================================================================
-//  WORLDS — distinct biomes. Tuned for contrast + visibility.
-//  Lighting: sun (key, casts shadow) + hemi (sky/ground fill) + amb.
-//  Dark biomes get higher amb + emissive wall caps so they stay legible.
-// =====================================================================
 export const WORLDS = [
   { id:'meadow', name:'Sunny Meadow',
     floor:0x74c56a, floorEdge:0x549a4c, wall:0x9a6a40, wallTop:0xc99a66, accent:0xffd23a,
@@ -111,19 +90,12 @@ export const WORLDS = [
     sig:'lowgrav', blurb:'Low gravity. Stay sharp.' },
 ];
 
-// Worlds rotate frequently so the player keeps seeing new places.
 export const LEVELS_PER_WORLD = 3;
 export function worldIndexForLevel(level) {
   return Math.floor((level - 1) / LEVELS_PER_WORLD) % WORLDS.length;
 }
 export function worldForLevel(level) { return WORLDS[worldIndexForLevel(level)]; }
 
-// =====================================================================
-//  CONTENT PACING — when each mechanic is first allowed to appear.
-//  The adaptive director controls *how hard* a level is; this table
-//  controls the *order* the player meets new things (teaching cadence).
-//  Early levels are deliberately sparse so the first minute is clean.
-// =====================================================================
 export const MECHANIC_UNLOCKS = [
   { key:'coins',       level:1,  label:'Collect coins (bonus!)' },
   { key:'decoys',      level:2,  label:'Avoid the RED holes' },
@@ -144,10 +116,6 @@ export function mechanicsForLevel(level) {
 }
 export function newMechanicAt(level) { return MECHANIC_UNLOCKS.find(m => m.level === level) || null; }
 
-// =====================================================================
-//  POWER-UPS — floating pickups (distinct from coins: bigger, ringed,
-//  icon-bearing, float higher). Several show an on-screen countdown.
-// =====================================================================
 export const POWERUPS = {
   magnet:    { id:'magnet',    name:'Coin Magnet',  color:0xffcf3a, dur:7,  icon:'🧲', timed:true,  blurb:'Pulls coins in' },
   x2:        { id:'x2',        name:'2× Coins',     color:0xffe14d, dur:9,  icon:'✨', timed:true,  blurb:'Double coins' },
@@ -162,11 +130,8 @@ export const POWERUPS = {
 };
 export const POWERUP_POOL = Object.keys(POWERUPS);
 
-// GOLD RUSH (god mode) — must feel rare & earned. Triggers when the player
-// grabs nearly all the level's coins, OR a big burst very fast. Once per level.
 export const GOLD_RUSH = { fraction: 0.85, minFast: 12, windowSec: 3.0, durationSec: 6, fillCount: 60 };
 
-// Skin perks (a reason to want a skin beyond looks).
 export const PERKS = {
   shield:   { icon:'🛡️', label:'Extra Life', blurb:'Start each level shielded' },
   magnet:   { icon:'🧲', label:'Coin Pull',  blurb:'Gentle passive coin magnet' },
@@ -174,10 +139,6 @@ export const PERKS = {
   lucky:    { icon:'🍀', label:'Lucky',      blurb:'+15% coins earned' },
 };
 
-// =====================================================================
-//  MARBLE SKINS — witty, iconic, hypercasual. `tex` = procedural
-//  canvas texture type (drawn in game.js). PBR-only skins omit `tex`.
-// =====================================================================
 export const RARITY = {
   common:    { label:'Common',    color:'#9aa6b2', order:0 },
   rare:      { label:'Rare',      color:'#3fa9ff', order:1 },
@@ -186,7 +147,6 @@ export const RARITY = {
 };
 
 export const SKINS = [
-  // commons
   { id:'pearl',   name:'Classic Pearl', rarity:'common', price:0,    unlocked:true,
     mat:{ color:0xf3f5f8, metalness:0.0, roughness:0.16, clearcoat:1 } },
   { id:'beach',   name:'Beach Ball',    rarity:'common', price:150,  tex:'beach',
@@ -196,7 +156,6 @@ export const SKINS = [
   { id:'donut',   name:'Sprinkle Donut',rarity:'common', price:280,  tex:'donut',
     mat:{ color:0xffffff, metalness:0.0, roughness:0.4 } },
 
-  // rares
   { id:'soccer',  name:'Soccer',        rarity:'rare', price:450, tex:'soccer',
     mat:{ color:0xffffff, metalness:0.0, roughness:0.3 } },
   { id:'basket',  name:'Basketball',    rarity:'rare', price:500, tex:'basket',
@@ -206,7 +165,6 @@ export const SKINS = [
   { id:'melon',   name:'Watermelon',    rarity:'rare', price:600, tex:'melon',
     mat:{ color:0x49b04a, metalness:0.0, roughness:0.38 } },
 
-  // epics (perks start here)
   { id:'disco',   name:'Disco Ball',    rarity:'epic', price:1100, tex:'disco', perk:'lucky',
     mat:{ color:0xcfd6e6, metalness:1.0, roughness:0.14 } },
   { id:'panda',   name:'Panda',         rarity:'epic', price:1200, tex:'panda', perk:'lucky',
@@ -216,7 +174,6 @@ export const SKINS = [
   { id:'magma',   name:'Magma Core',    rarity:'epic', price:1400, perk:'headstart',
     mat:{ color:0x2a0f0c, metalness:0.4, roughness:0.4, emissive:0xff4a16, emissiveInt:1.5 } },
 
-  // legendaries (best perks + flair)
   { id:'gold',    name:'Solid Gold',    rarity:'legendary', price:2400, perk:'lucky',
     mat:{ color:0xffc23a, metalness:1.0, roughness:0.15 } },
   { id:'saturn',  name:'Lil Planet',    rarity:'legendary', price:3000, tex:'planet', ring:true, perk:'magnet',
@@ -229,9 +186,6 @@ export const SKINS = [
     mat:{ color:0xeaf6ff, metalness:0.1, roughness:0.02, clearcoat:1, emissive:0x9fdfff, emissiveInt:0.25 } },
 ];
 
-// =====================================================================
-//  TRAILS
-// =====================================================================
 export const TRAILS = [
   { id:'none',    name:'No Trail',    price:0,    unlocked:true,  color:0xffffff },
   { id:'spark',   name:'Sparkles',    price:200,  color:0xffe14d },
@@ -241,25 +195,16 @@ export const TRAILS = [
   { id:'rainbow', name:'Rainbow',     price:1500, color:0xff00ff, rainbow:true },
 ];
 
-// =====================================================================
-//  ECONOMY / REWARDS
-// =====================================================================
 export const ECON = {
   coinValue: 1,
   finishBonus: (level) => 18 + level * 3,
   perfectBonus: 50,
   daily: [50, 75, 100, 150, 200, 300, 500],
   dailySkinAt: 7,
-  // a small chest every few levels so progress is felt constantly
   chestEvery: 3,
   chestCoins: (level) => 40 + level * 6,
 };
 
-// =====================================================================
-//  ADAPTIVE DIRECTOR tuning (see director.js)
-// =====================================================================
-// Maze SIZE is independent of difficulty (a maze can be huge+easy or
-// small+hard). The director learns which size the player enjoys.
 export const SIZE_BUCKETS = {
   small:  { cols: [4, 6],  rows: [4, 5] },
   medium: { cols: [7, 9],  rows: [6, 8] },
@@ -268,7 +213,6 @@ export const SIZE_BUCKETS = {
 };
 export const SIZE_ORDER = ['small', 'medium', 'large', 'huge'];
 
-// Player-facing difficulty dial (dictates the ELO band).
 export const DIFFICULTY_PRESETS = {
   chill:  { label: 'Chill',  bias: -260, k: 28 },
   normal: { label: 'Normal', bias: 0,    k: 64 },
@@ -279,12 +223,11 @@ export const DIFFICULTY_ORDER = ['chill', 'normal', 'hard', 'expert'];
 
 export const DIRECTOR = {
   startSkill: 1000,
-  K: 64,                  // ELO step
-  targetWinProb: 0.72,    // serve mazes the player should clear ~72%
-  offsetEasy: -120,       // when churn-risk high, aim below skill
-  offsetHard: +140,       // when bored/skilled, aim above skill
-  diffMin: 640, diffMax: 2600,   // raised ceiling so aces can be challenged
-  // churn-risk signal weights (points added to a 0-100 risk score)
+  K: 64,
+  targetWinProb: 0.72,
+  offsetEasy: -120,
+  offsetHard: +140,
+  diffMin: 640, diffMax: 2600,
   churn: {
     deathStreak2: 22, deathStreak3: 40, quickDeath: 18, idle5s: 16,
     pausedMidLevel: 10, repeatedSpot: 20, longLoseStreak: 30, tabBlur: 14,

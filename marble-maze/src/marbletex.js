@@ -1,11 +1,5 @@
-// =====================================================================
-//  marbletex.js — shared procedural marble-skin painter.
-//  Used by game.js (256px sphere map) AND ui.js (shop swatch) so a
-//  skin looks identical in the shop and in play.
-//  drawMarbleTexture(ctx, type, S) paints an S×S canvas context.
-// =====================================================================
 export function drawMarbleTexture(x, type, S) {
-  const c = (n) => n * S;                       // fraction -> px helper
+  const c = (n) => n * S;
   const fill = (s) => (x.fillStyle = s);
   const bg = (s) => { fill(s); x.fillRect(0, 0, S, S); };
   const dot = (px, py, r, s) => { fill(s); x.beginPath(); x.arc(px, py, r, 0, 7); x.fill(); };
@@ -21,8 +15,8 @@ export function drawMarbleTexture(x, type, S) {
       bg('#ffd23a'); dot(c(.37), c(.4), c(.07), '#23201a'); dot(c(.63), c(.4), c(.07), '#23201a');
       x.strokeStyle = '#23201a'; x.lineWidth = c(.06); x.lineCap = 'round'; x.beginPath(); x.arc(c(.5), c(.54), c(.22), 0.25, Math.PI - 0.25); x.stroke(); break;
     case 'donut': {
-      bg('#caa07a');                                   // dough
-      fill('#ff8fc8'); x.beginPath(); x.arc(c(.5), c(.42), c(.42), 0, 7); x.fill(); // frosting
+      bg('#caa07a');
+      fill('#ff8fc8'); x.beginPath(); x.arc(c(.5), c(.42), c(.42), 0, 7); x.fill();
       const sp = ['#ffffff', '#ffe14d', '#4dd4ff', '#5be37a', '#ff4d6d'];
       for (let i = 0; i < 22; i++) { x.save(); x.translate(Math.random() * S, Math.random() * c(.7)); x.rotate(Math.random() * 7); fill(sp[i % sp.length]); x.fillRect(0, 0, c(.045), c(.02)); x.restore(); }
       break;
@@ -30,10 +24,9 @@ export function drawMarbleTexture(x, type, S) {
     case 'soccer': {
       bg('#f4f5f7'); const cx = c(.5), cy = c(.5);
       x.strokeStyle = '#20242c'; x.lineWidth = c(.02); x.lineJoin = 'round';
-      // seams from the centre pentagon out to the ring
       for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i / 5 * Math.PI * 2; x.beginPath(); x.moveTo(cx + Math.cos(a) * c(.14), cy + Math.sin(a) * c(.14)); x.lineTo(cx + Math.cos(a) * c(.36), cy + Math.sin(a) * c(.36)); x.stroke(); }
-      x.fillStyle = '#15171c'; pent(x, cx, cy, c(.135), -Math.PI / 2);                  // centre pentagon
-      for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i / 5 * Math.PI * 2; pent(x, cx + Math.cos(a) * c(.4), cy + Math.sin(a) * c(.4), c(.11), a + Math.PI / 2); }  // outer ring (partly clipped = looks wrapped)
+      x.fillStyle = '#15171c'; pent(x, cx, cy, c(.135), -Math.PI / 2);
+      for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i / 5 * Math.PI * 2; pent(x, cx + Math.cos(a) * c(.4), cy + Math.sin(a) * c(.4), c(.11), a + Math.PI / 2); }
       break;
     }
     case 'basket':
@@ -47,8 +40,8 @@ export function drawMarbleTexture(x, type, S) {
     case 'disco':
       for (let yy = 0; yy < 10; yy++) for (let xx = 0; xx < 10; xx++) { fill((xx + yy) % 2 ? '#d2dbea' : '#8b98b0'); x.fillRect(xx * c(.1), yy * c(.1), c(.097), c(.097)); } break;
     case 'panda':
-      bg('#f4f4f6'); dot(c(.28), c(.18), c(.12), '#1c1c1f'); dot(c(.72), c(.18), c(.12), '#1c1c1f'); // ears
-      dot(c(.36), c(.44), c(.13), '#1c1c1f'); dot(c(.64), c(.44), c(.13), '#1c1c1f');               // eye patches
+      bg('#f4f4f6'); dot(c(.28), c(.18), c(.12), '#1c1c1f'); dot(c(.72), c(.18), c(.12), '#1c1c1f');
+      dot(c(.36), c(.44), c(.13), '#1c1c1f'); dot(c(.64), c(.44), c(.13), '#1c1c1f');
       dot(c(.36), c(.46), c(.05), '#fff'); dot(c(.64), c(.46), c(.05), '#fff'); dot(c(.37), c(.47), c(.025), '#000'); dot(c(.63), c(.47), c(.025), '#000');
       dot(c(.5), c(.6), c(.045), '#1c1c1f'); break;
     case 'globe':

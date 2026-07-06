@@ -1,8 +1,3 @@
-// =====================================================================
-//  main.js — bootstrap + adaptive game state machine (Retention v2).
-//  Ties engine + UI + storage + input + audio + ad SDK + the adaptive
-//  Director (ELO skill, churn-risk, interventions) into the play loop.
-// =====================================================================
 import { Game } from './game.js';
 import { UI } from './ui.js';
 import { Input } from './input.js';
@@ -13,7 +8,7 @@ import { generateLevel } from './levels.js';
 import { Director } from './director.js';
 import { SKINS, TRAILS, ECON, LEVELS_PER_WORLD, worldForLevel, newMechanicAt } from './config.js';
 
-const SCRIPTED = [0, 760, 800, 850, 900, 950, 1000, 1050]; // stages 1..7 fixed gentle ramp
+const SCRIPTED = [0, 760, 800, 850, 900, 950, 1000, 1050];
 
 class App {
   constructor() {
@@ -55,8 +50,6 @@ class App {
     this.director.setDifficulty(st.settings.difficulty || 'normal');
     this.ui.refreshMenu(); this.ui.setMenuWorld(worldForLevel(st.maxLevel).name);
     requestAnimationFrame(this._loop);
-    // The first 30-60s matter most: drop the player straight into play. The
-    // menu (shop/daily/settings) is reachable via Pause.
     this.play();
   }
 
@@ -66,8 +59,6 @@ class App {
     requestAnimationFrame(this._loop);
   };
 
-  // Standard keyboard shortcuts: R = restart/replay, Enter/Space = primary
-  // action (Next / Retry / Resume / Play), Esc or P = pause/back.
   _onKey = (e) => {
     const low = e.key.toLowerCase();
     if (!['r', 'escape', 'p', 'enter', ' '].includes(low)) return;
@@ -87,7 +78,7 @@ class App {
       return;
     }
     if (enter) {
-      if (e.key === ' ') e.preventDefault();       // no page scroll
+      if (e.key === ' ') e.preventDefault();
       if (ov === 'win') this._next();
       else if (ov === 'lose') this.startStage(this.stage, { retry: true });
       else if (ov === 'pause') this.resume();
@@ -113,7 +104,6 @@ class App {
     clearTimeout(this._hintT); this._hintT = setTimeout(() => this.ui.fadeControlHint(), 4200);
   }
 
-  // ---- level flow ----
   play() { this.startStage(S.get().maxLevel, {}); }
 
   _planFor(stage, retry) {
@@ -126,7 +116,7 @@ class App {
   }
 
   startStage(stage, { retry = false } = {}) {
-    if (retry) this.director.noteRetryNow();        // retry-speed churn signal
+    if (retry) this.director.noteRetryNow();
     this.stage = stage;
     const plan = this._planFor(stage, retry);
     this.curPlan = plan; this.mission = plan.mission;
@@ -144,13 +134,11 @@ class App {
     Audio.configureMusic(worldScale(world.id), worldRoot(world.id));
     if (S.get().settings.music) Audio.startMusic();
 
-    // Ask for tilt permission BEFORE the enter-game transition (its timer
-    // would otherwise hide the prompt).
     const wantTilt = (this.input.mode === 'auto' || this.input.mode === 'tilt');
     if (this.input.isTouchDevice() && wantTilt && this.input.tiltAvailable && !this.input.tiltPermitted) {
       this.pendingStart = stage; this.pendingPlan = plan; this.ui.showOverlay('tiltPrompt'); return;
     }
-    this.ui.enterGame();                 // cool exit of whatever screen is open
+    this.ui.enterGame();
     this.ui.powerups([]); this.ui.finishArrow({ hide: true }); this.ui.goldRush(false);
     this._updateControlUI();
     this._beginPlay(plan);
@@ -160,15 +148,13 @@ class App {
     if (this.input.activeMode === 'tilt') this.input.calibrate();
     this.input.reset(); this.game.start(); SDK.gameplayStart();
 
-    // first-time "how to move" hint that fades the moment you roll
     if (this.stage === 1) {
       this._showTut = true; const mode = this.input.activeMode;
       this.ui.tutorialHint(true, mode === 'keys' ? 'Hold  D  or  →  to roll!' : mode === 'tilt' ? 'Tilt to roll!' : 'Drag to roll!');
     } else { this._showTut = false; this.ui.tutorialHint(false); }
 
-    this.ui.setPerk(this._skinDef().perk);        // show the equipped skin's perk
+    this.ui.setPerk(this._skinDef().perk);
 
-    // teach the boost around level 3 (once)
     if (this.stage === 3 && !S.hasSeenMechanic('shiftHint')) {
       S.markMechanicSeen('shiftHint'); this._showBoostTut = true;
       const mode = this.input.activeMode;
@@ -184,15 +170,12 @@ class App {
     else { this.ui.banner('LEVEL ' + n, this.levelData.world.name); if (plan && plan.novelty) this.director.noteNovelty(); }
     this.ui.setMenuWorld(this.levelData.world.name);
 
-    // optional objective (goal-chaining)
     if (this.mission) { clearTimeout(this._mT); this._mT = setTimeout(() => this.ui.toast('🎯 ' + this.mission.label, 2200), 1500); }
 
-    // panic-mode surprise gift (feels like luck, not pity)
     if (plan && plan.mods && plan.mods.surpriseReward) {
       const amt = plan.mods.surpriseReward; S.addCoins(amt); this.ui.setCoinBalance(S.get().coins);
       setTimeout(() => this.ui.surprise('🎉 LUCKY DROP', '+' + amt + ' coins'), 700);
     }
-    // rare "before you leave, try this" rescue: flood the maze with gold
     if (plan && plan.churn && plan.churn.zone === 'panic') { clearTimeout(this._gT); this._gT = setTimeout(() => this.game.forceGoldRush(), 1700); }
   }
 
@@ -201,7 +184,6 @@ class App {
   restart() { this.startStage(this.stage, { retry: true }); }
   toMenu() { SDK.gameplayStop(); Audio.stopMusic(); this.game.state = 'idle'; this.ui.showHUD(false); this.ui.goldRush(false); this.ui.showScreen('menu'); this.ui.refreshMenu(); }
 
-  // ---- win ----
   _onWin(data) {
     SDK.gameplayStop(); SDK.happyMoment(); Audio.stopMusic();
     const stage = this.stage;
@@ -248,15 +230,13 @@ class App {
   }
   async _next() {
     const stage = this.stage + 1;
-    // interstitial only at a calm moment (never when the player is at risk)
     if (this.winsSinceAd >= 3 && stage > 5 && this.director.churn().zone === 'green') { this.winsSinceAd = 0; await SDK.commercialBreak(); }
     this.startStage(stage, {});
   }
 
-  // ---- lose ----
   _onDie(reason, info) {
     SDK.gameplayStop(); Audio.stopMusic(); S.bump('deaths'); this.deathsThisStage++;
-    this.director.noteDeathNow();        // start retry-speed clock
+    this.director.noteDeathNow();
     if (info?.nearFinish) this.director.noteNearMiss();
     this.director.recordLoss({ difficulty: this.lastDifficulty, timeMs: this.game.clockMs, deathSpot: info, nearFinish: info?.nearFinish });
     this.ui.showLose(reason, {
@@ -280,7 +260,6 @@ class App {
     S.unlockNextLevel(this.stage); this.ui.toast('Level skipped'); this.startStage(this.stage + 1, {});
   }
 
-  // ---- engine callbacks ----
   _gameCallbacks() {
     return {
       onHud: (h) => {
@@ -311,7 +290,6 @@ class App {
     (map[name] || (() => {}))();
   }
 
-  // ---- UI handlers ----
   _wireHandlers() {
     this.ui.setHandlers({
       sfx: (n, a) => this._sfx(n, a),
