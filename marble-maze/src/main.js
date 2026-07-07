@@ -75,6 +75,7 @@ class App {
     const low = e.key.toLowerCase();
     if (!['r', 'escape', 'p', 'enter', ' '].includes(low)) return;
     const ov = this.ui.visibleOverlay(); const base = this.ui.visibleBase();
+    if (ov === 'adCurtain') return;
     const enter = (e.key === 'Enter' || e.key === ' ');
     if (low === 'r') {
       if (ov === 'win') this.startStage(this.stage, {});
@@ -83,7 +84,8 @@ class App {
       return;
     }
     if (low === 'escape' || low === 'p') {
-      if (ov === 'pause') this.resume();
+      if (ov === 'legal') this.ui.hideOverlay('legal');
+      else if (ov === 'pause') this.resume();
       else if (ov === 'settings' || ov === 'daily' || ov === 'chest') this.ui.hideOverlays();
       else if (base === 'shop') this.ui.showScreen('menu');
       else if (!ov && this.game.state === 'playing') this.pause();

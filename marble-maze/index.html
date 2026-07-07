@@ -6,9 +6,7 @@
 <meta name="theme-color" content="#0b1020">
 <meta name="description" content="Marble Maze — roll, dodge, collect. A fast, addictive 3D marble runner.">
 <title>Marble Maze</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./fonts.css">
 <link rel="stylesheet" href="./styles.css">
 
 <!-- Optional SDKs (enable one):
@@ -169,8 +167,34 @@
           <button data-v="low">Low</button>
         </div>
       </div>
+      <button class="btn ghost" id="legalBtn">📄 Privacy & Terms</button>
       <button class="btn ghost danger" id="resetBtn">Reset Progress</button>
       <button class="btn primary" id="settingsCloseBtn">Done</button>
+    </div>
+  </div>
+
+  <div id="legal" class="screen overlay hidden">
+    <div class="panel legal-panel">
+      <h2>Privacy & Terms</h2>
+      <div class="legal-body">
+        <h3>Privacy Policy</h3>
+        <p><b>What this game collects: nothing personal.</b> Marble Maze does not ask for, collect, store or transmit any personal information. There are no accounts, no chat and no user-generated content.</p>
+        <p><b>Saved data stays on your device.</b> Your progress, coins, unlocked items and settings are stored only in your browser's local storage on your own device. You can delete this data at any time with the "Reset Progress" button in Settings, or by clearing your browser data.</p>
+        <p><b>Tilt controls.</b> If you enable tilt controls, device orientation is read in real time only to steer the marble. It is never recorded, stored or transmitted.</p>
+        <p><b>The hosting platform and ads.</b> This game is distributed through third-party gaming websites. The website hosting the game and its advertising partners may process data (such as cookies or advertising identifiers) and show ads, including optional rewarded ads, under their own privacy policies and consent tools. Please refer to the privacy policy of the website where you are playing.</p>
+        <p><b>Children.</b> The game is suitable for a general audience and does not knowingly collect personal information from anyone, including children.</p>
+        <p><b>Changes.</b> If this policy changes, the updated version will be shown here.</p>
+        <h3>Terms of Use</h3>
+        <p><b>License to play.</b> You may play Marble Maze for personal, non-commercial entertainment. All content of the game (code, graphics, audio, names and design) belongs to its developer and may not be copied, redistributed, modified or re-published without permission.</p>
+        <p><b>Virtual items.</b> Coins, skins, trails and other in-game items are virtual, have no real-world value and cannot be sold, transferred or redeemed.</p>
+        <p><b>No warranty.</b> The game is provided "as is", without warranties of any kind. To the maximum extent permitted by law, the developer is not liable for any damages arising from playing or being unable to play the game.</p>
+        <p><b>Availability.</b> The game may be updated, changed or discontinued at any time. A saved game may not be compatible with future versions.</p>
+        <p><b>Platform terms.</b> The terms and policies of the website where you play also apply.</p>
+        <p><b>Severability.</b> If any part of these terms is found unenforceable, the remaining parts stay in effect.</p>
+        <p><b>Contact.</b> Questions or feedback can be sent through the game's page on the platform where you are playing.</p>
+        <p class="legal-date">Last updated: July 2026</p>
+      </div>
+      <button class="btn primary" id="legalCloseBtn">Close</button>
     </div>
   </div>
 

@@ -300,3 +300,10 @@ body.goldrush #ui::after{content:'';position:fixed;inset:0;pointer-events:none;z
   transition:opacity .3s;z-index:12;pointer-events:none;text-align:center;}
 .tut-hint.show{opacity:1;animation:tutpulse 1.3s ease-in-out infinite;}
 @keyframes tutpulse{0%,100%{box-shadow:0 10px 34px rgba(0,0,0,.45)}50%{box-shadow:0 0 26px rgba(33,243,255,.55)}}
+
+.legal-panel{width:min(560px,94vw);max-height:88dvh;}
+.legal-body{overflow-y:auto;text-align:left;font-size:13px;line-height:1.55;color:var(--muted);
+  padding:4px 10px 4px 2px;display:flex;flex-direction:column;gap:8px;min-height:0;}
+.legal-body h3{font-family:'Baloo 2';font-weight:700;font-size:17px;color:var(--txt);margin-top:6px;}
+.legal-body p b{color:var(--txt);font-weight:600;}
+.legal-date{font-size:11px;opacity:.7;margin-top:4px;}

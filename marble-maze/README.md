@@ -43,6 +43,7 @@ Then open <http://localhost:8080>. The game starts immediately; the menu
 | File | Role |
 |------|------|
 | `index.html` / `styles.css` | Markup and UI styling |
+| `fonts.css` | Self-hosted fonts (embedded, no external requests) |
 | `src/config.js` | Game data: worlds, skins, trails, power-ups, economy |
 | `src/levels.js` | Maze and level generation |
 | `src/director.js` | Difficulty tuning and level selection |
@@ -67,12 +68,14 @@ Run:
 node scripts/build-platforms.mjs
 ```
 
-This writes an upload-ready zip per platform to `dist/` (each with
-`index.html` at the zip root):
+This bundles the whole game into a single `game.js` (via esbuild, fetched on
+demand by `npx`) and writes an upload-ready zip per platform to `dist/`. Each
+zip contains just four files at its root — `index.html`, `styles.css`,
+`fonts.css`, `game.js` — and makes no network requests other than the
+platform's own SDK:
 
 - `marble-maze-poki.zip`
 - `marble-maze-crazygames.zip`
 - `marble-maze-gamedistribution.zip` — replace `PUT-YOUR-GD-GAME-ID-HERE`
   in its `index.html` with your game id from the GameDistribution dashboard
-- `marble-maze-gamepix.zip` — Google Fonts are removed in this build
-  (GamePix disallows external resources), so it uses system fonts
+- `marble-maze-gamepix.zip`

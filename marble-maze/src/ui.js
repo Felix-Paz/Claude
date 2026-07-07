@@ -10,7 +10,7 @@ export class UI {
     this.h = {};
     this.shopTab = 'skins';
     this.base = ['loading', 'menu', 'shop'];
-    this.overlays = ['pause', 'win', 'lose', 'daily', 'settings', 'tiltPrompt', 'adCurtain', 'chest'];
+    this.overlays = ['adCurtain', 'legal', 'chest', 'pause', 'win', 'lose', 'daily', 'settings', 'tiltPrompt'];
     this.screens = [...this.base, ...this.overlays];
     this._bindStatic();
   }
@@ -41,6 +41,8 @@ export class UI {
     click('pauseMenuBtn', () => this.h.toMenu?.());
     click('settingsCloseBtn', () => this.hideOverlays());
     click('dailyCloseBtn', () => this.hideOverlays());
+    click('legalBtn', () => this.showOverlay('legal'));
+    click('legalCloseBtn', () => this.hideOverlay('legal'));
     click('calibrateBtn', () => { this.h.calibrate?.(); this.toast('Tilt calibrated'); });
     click('resetBtn', () => {
       const b = $('resetBtn');
