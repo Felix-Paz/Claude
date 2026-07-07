@@ -58,6 +58,21 @@ Then open <http://localhost:8080>. The game starts immediately; the menu
 
 ## Shipping to a portal
 
-Enable one of the commented SDK `<script>` tags in `index.html` — `src/sdk.js`
-auto-detects whichever is present. Zip the `marble-maze/` folder and upload;
-the build is fully self-contained.
+`src/sdk.js` supports Poki, CrazyGames, GameDistribution and GamePix and
+auto-detects whichever SDK script is present on the page.
+
+Run:
+
+```bash
+node scripts/build-platforms.mjs
+```
+
+This writes an upload-ready zip per platform to `dist/` (each with
+`index.html` at the zip root):
+
+- `marble-maze-poki.zip`
+- `marble-maze-crazygames.zip`
+- `marble-maze-gamedistribution.zip` — replace `PUT-YOUR-GD-GAME-ID-HERE`
+  in its `index.html` with your game id from the GameDistribution dashboard
+- `marble-maze-gamepix.zip` — Google Fonts are removed in this build
+  (GamePix disallows external resources), so it uses system fonts

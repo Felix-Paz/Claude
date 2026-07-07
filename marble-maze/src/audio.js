@@ -1,6 +1,7 @@
 let ctx = null;
 let master, sfxGain, musicGain, noiseBuf;
 let enabled = { sound: true, music: true };
+let hardMuted = false;
 let rolling = null;
 let musicTimer = null;
 let musicScale = [0, 3, 5, 7, 10];
@@ -11,7 +12,7 @@ function ensure() {
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return null;
   ctx = new AC();
-  master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination);
+  master = ctx.createGain(); master.gain.value = hardMuted ? 0 : 0.9; master.connect(ctx.destination);
   sfxGain = ctx.createGain(); sfxGain.gain.value = 0.9; sfxGain.connect(master);
   musicGain = ctx.createGain(); musicGain.gain.value = 0.0; musicGain.connect(master);
   const len = ctx.sampleRate * 1.0;
@@ -30,6 +31,11 @@ export function setEnabled(opts) {
   enabled = { ...enabled, ...opts };
   if (musicGain) musicGain.gain.value = enabled.music ? 0.18 : 0.0;
   if (!enabled.music) stopMusic();
+}
+
+export function setHardMute(v) {
+  hardMuted = !!v;
+  if (master) master.gain.value = hardMuted ? 0 : 0.9;
 }
 
 function tone(freq, t0, dur, type = 'sine', peak = 0.5, glideTo = null) {

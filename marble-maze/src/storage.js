@@ -2,6 +2,11 @@ import { SKINS, TRAILS, ECON } from './config.js';
 
 const KEY = 'marblemaze.save.v1';
 
+function backend() {
+  if (typeof window !== 'undefined' && window.GamePix && window.GamePix.localStorage) return window.GamePix.localStorage;
+  return (typeof localStorage !== 'undefined') ? localStorage : null;
+}
+
 const DEFAULT = () => ({
   coins: 0,
   totalCoinsEver: 0,
@@ -28,7 +33,8 @@ let state = DEFAULT();
 
 export function load() {
   try {
-    const raw = localStorage.getItem(KEY);
+    const ls = backend();
+    const raw = ls && ls.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       state = deepMerge(DEFAULT(), parsed);
@@ -44,7 +50,7 @@ export function load() {
 }
 
 export function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  try { const ls = backend(); if (ls) ls.setItem(KEY, JSON.stringify(state)); }
   catch (e) { }
 }
 

@@ -39,17 +39,29 @@ class App {
     const unlock = () => { Audio.resume(); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); };
     window.addEventListener('pointerdown', unlock); window.addEventListener('keydown', unlock);
     window.addEventListener('keydown', this._onKey);
-    document.addEventListener('visibilitychange', () => { if (document.hidden) this.director.noteTabBlur(); else this.director.noteTabFocus(); });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.director.noteTabBlur();
+        if (SDK.getProvider() === 'gamepix' && this.game.state === 'playing') this.pause();
+      } else this.director.noteTabFocus();
+    });
 
     this._wireHandlers();
     this.game.setCallbacks(this._gameCallbacks());
 
     SDK.setAdStateHandler((on) => this.ui.adCurtain(on));
-    SDK.loadingStart(); const provider = await SDK.init(); this.ui.setProvider(provider); SDK.loadingFinished();
+    SDK.setGameHooks({
+      pause: () => { if (this.game.state === 'playing') { this.pause(); return true; } return false; },
+      resume: () => { if (this.game.state === 'paused') this.resume(); },
+      hardMute: (m) => Audio.setHardMute(m),
+    });
+    const provider = await SDK.init(); this.ui.setProvider(provider);
+    SDK.loadingStart();
 
     this.director.setDifficulty(st.settings.difficulty || 'normal');
     this.ui.refreshMenu(); this.ui.setMenuWorld(worldForLevel(st.maxLevel).name);
     requestAnimationFrame(this._loop);
+    SDK.loadingFinished();
     this.play();
   }
 
@@ -129,6 +141,7 @@ class App {
     this.game.loadLevel(this.levelData, this._skinDef(), this._trailDef());
     this.game.beginResolveReset();
     this.director.noteLevelStart();
+    SDK.reportLevelStart(stage);
 
     const world = this.levelData.world;
     Audio.configureMusic(worldScale(world.id), worldRoot(world.id));
@@ -179,10 +192,10 @@ class App {
     if (plan && plan.churn && plan.churn.zone === 'panic') { clearTimeout(this._gT); this._gT = setTimeout(() => this.game.forceGoldRush(), 1700); }
   }
 
-  pause() { if (this.game.state !== 'playing') return; this.director.notePause(); this.game.pause(); SDK.gameplayStop(); this.ui.showOverlay('pause'); }
-  resume() { this.ui.hideOverlays(); this.ui.showHUD(true); this.game.resume(); SDK.gameplayStart(); }
+  pause() { if (this.game.state !== 'playing') return; this.director.notePause(); this.game.pause(); Audio.stopMusic(); SDK.gameplayStop(); this.ui.showOverlay('pause'); }
+  resume() { this.ui.hideOverlays(); this.ui.showHUD(true); if (S.get().settings.music) Audio.startMusic(); this.game.resume(); SDK.gameplayStart(); }
   restart() { this.startStage(this.stage, { retry: true }); }
-  toMenu() { SDK.gameplayStop(); Audio.stopMusic(); this.game.state = 'idle'; this.ui.showHUD(false); this.ui.goldRush(false); this.ui.showScreen('menu'); this.ui.refreshMenu(); }
+  toMenu() { SDK.gameplayStop(); SDK.clearLevelContext(); Audio.stopMusic(); this.game.state = 'idle'; this.ui.showHUD(false); this.ui.goldRush(false); this.ui.showScreen('menu'); this.ui.refreshMenu(); }
 
   _onWin(data) {
     SDK.gameplayStop(); SDK.happyMoment(); Audio.stopMusic();
@@ -200,6 +213,7 @@ class App {
     S.recordLevelResult(stage, { stars: data.stars, coins: data.coins, timeMs: data.timeMs });
     S.unlockNextLevel(stage); S.addCoins(awarded); S.bump('wins'); this.winsSinceAd++;
     this.lastWin = { awarded, doubled: false };
+    SDK.reportWin({ maxLevel: S.get().maxLevel, score: S.get().totalCoinsEver });
 
     this.ui.setCoinBalance(S.get().coins);
     this.ui.showWin({ ...data, coinsAwarded: awarded, beatPar }, {

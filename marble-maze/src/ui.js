@@ -42,7 +42,17 @@ export class UI {
     click('settingsCloseBtn', () => this.hideOverlays());
     click('dailyCloseBtn', () => this.hideOverlays());
     click('calibrateBtn', () => { this.h.calibrate?.(); this.toast('Tilt calibrated'); });
-    click('resetBtn', () => { if (confirm('Reset all progress, coins and unlocks?')) { S.hardReset(); this.refreshMenu(); this.buildShop(this.shopTab); this.toast('Progress reset'); } });
+    click('resetBtn', () => {
+      const b = $('resetBtn');
+      if (b.dataset.arm === '1') {
+        b.dataset.arm = ''; b.textContent = 'Reset Progress';
+        S.hardReset(); this.refreshMenu(); this.buildShop(this.shopTab); this.toast('Progress reset');
+      } else {
+        b.dataset.arm = '1'; b.textContent = 'Tap again to reset!';
+        clearTimeout(this._rstT);
+        this._rstT = setTimeout(() => { b.dataset.arm = ''; b.textContent = 'Reset Progress'; }, 2600);
+      }
+    });
     click('tiltEnableBtn', () => this.h.enableTilt?.());
     click('tiltTouchBtn', () => this.h.useTouch?.());
 
