@@ -24,6 +24,24 @@
         tagline: 'Before you read a single word, the letters have <em>already spoken.</em>'
       })}
 
+      <!-- Scene · type can act (kinetic / expressive) -->
+      <section class="ty-kin sticky-wrap" style="--len:280">
+        <div class="sticky-pane">
+          <div class="ty-kin-stack" aria-hidden="true">
+            <span class="tk tk-grow">BIGGER</span>
+            <span class="tk tk-shrink">smaller</span>
+            <span class="tk tk-heavy">heavy</span>
+            <span class="tk tk-light">light</span>
+            <span class="tk tk-fast"><i>fast</i></span>
+            <span class="tk tk-spread">s p r e a d</span>
+            <span class="tk tk-fall">fall</span>
+            <span class="tk tk-shake">shake</span>
+          </div>
+          <p class="rm-cap ty-kin-cap">Type doesn't just <em>say</em> the word. It can <em>be</em> the word.</p>
+          ${ROOMS.plaque('05.0', 'Kinetic Specimens', 'eight words, doing as they say · live')}
+        </div>
+      </section>
+
       <!-- Scene A · anatomy of a letter -->
       <section class="ty-anatomy sticky-wrap" style="--len:360">
         <div class="sticky-pane">
@@ -293,6 +311,24 @@
         </div>
       </section>
 
+      <!-- Scene · the morph (tweening between shapes) -->
+      <section class="mo-morph sticky-wrap" style="--len:420">
+        <div class="sticky-pane">
+          <p class="rm-cap mo-morph-cap">Motion is just <em>in-between.</em> Give a start and an end — the machine draws the rest.</p>
+          <svg class="mo-morph-svg" viewBox="-110 -110 220 220" aria-hidden="true"><path d=""/></svg>
+          <p class="mo-morph-read">tweening <b class="mo-morph-name">circle</b> → <b class="mo-morph-next">square</b></p>
+        </div>
+      </section>
+
+      <!-- Scene · the velocity ribbon -->
+      <section class="mo-ribbon">
+        <div class="mo-ribbon-row" aria-hidden="true">
+          <span>Design</span><span>in</span><span>Motion</span><span>Design</span><span>in</span><span>Motion</span>
+          <span>Design</span><span>in</span><span>Motion</span><span>Design</span><span>in</span><span>Motion</span>
+        </div>
+        <p class="rm-cap mo-ribbon-cap">Scroll faster — <em>the ribbon feels it.</em></p>
+      </section>
+
       <!-- Scene B · duration is a flavor -->
       <section class="mo-dur">
         <p class="rm-cap" data-reveal>Duration is a flavor. <em>Taste all three.</em></p>
@@ -416,6 +452,62 @@
         }
         const px = Math.round(vSmooth / 20) * 20;
         if (px !== lastPx) { lastPx = px; veloRead.textContent = px; }
+      });
+
+      /* Scene: the morph — one path tweening between four shapes */
+      const morph = root.querySelector('.mo-morph');
+      const mpath = root.querySelector('.mo-morph-svg path');
+      const mName = root.querySelector('.mo-morph-name');
+      const mNext = root.querySelector('.mo-morph-next');
+      const MN = 64;
+      const shapeDefs = [
+        { name: 'circle', r: () => 100 },
+        { name: 'square', r: a => 80 / Math.max(Math.abs(Math.cos(a)), Math.abs(Math.sin(a))) },
+        { name: 'star',   r: a => 72 + 30 * Math.cos(5 * a) },
+        { name: 'blob',   r: a => 86 + 17 * Math.sin(3 * a + 1) + 9 * Math.cos(5 * a + 0.5) }
+      ];
+      const shapes = shapeDefs.map(s => ({
+        name: s.name,
+        R: Array.from({ length: MN }, (_, i) => s.r(i / MN * Math.PI * 2))
+      }));
+      const crPath = pts => {
+        const n = pts.length;
+        let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+        for (let i = 0; i < n; i++) {
+          const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+          const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+          const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+          d += `C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+        }
+        return d + 'Z';
+      };
+      c.track(morph, p => {
+        const q = clamp(p, 0, 0.9999) * shapes.length;
+        const i = Math.floor(q) % shapes.length, j = (i + 1) % shapes.length;
+        const tt = q - Math.floor(q), e = tt * tt * (3 - 2 * tt);
+        const pts = shapes[i].R.map((r, k) => {
+          const rr = r + (shapes[j].R[k] - r) * e;
+          const a = k / MN * Math.PI * 2;
+          return [Math.cos(a) * rr, Math.sin(a) * rr];
+        });
+        mpath.setAttribute('d', crPath(pts));
+        mName.textContent = shapes[i].name;
+        mNext.textContent = shapes[j].name;
+      });
+
+      /* Scene: the velocity ribbon — drifts, and your scroll shoves it */
+      const ribbon = root.querySelector('.mo-ribbon');
+      const row = root.querySelector('.mo-ribbon-row');
+      let rx = 0, half = 0;
+      c.add(() => { half = row.scrollWidth / 2; });
+      c.frame((t, dt) => {
+        const rect = ribbon.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > innerHeight) return;
+        if (!half) half = row.scrollWidth / 2;
+        rx -= (0.7 + Math.abs(M.scroll.sv) * 0.85) * dt;
+        if (rx < -half) rx += half;
+        const skew = clamp(M.scroll.sv * -0.4, -13, 13);
+        row.style.transform = `translateX(${rx.toFixed(1)}px) skewX(${skew.toFixed(1)}deg)`;
       });
 
       /* Scene C: duration toggles */
@@ -654,7 +746,7 @@
       c.frame((t, dt) => {
         const rect = frame.getBoundingClientRect();
         if (rect.bottom < 0 || rect.top > innerHeight) return;
-        let torque = 0;
+        let torque = 0; /* balance beam torque */
         discs.forEach((d, i) => {
           d.style.left = ((pos[i].x + 0.5) * 100).toFixed(2) + '%';
           d.style.top = ((pos[i].y + 0.5) * 100).toFixed(2) + '%';
@@ -718,6 +810,9 @@
           <h3 class="fn-word fw-0" aria-hidden="true">AS FOUND</h3>
           <div class="fn-stage">
             <div class="resto-poster">
+              <i class="rp-sun" aria-hidden="true"></i>
+              <b class="rp-no" aria-hidden="true">07</b>
+              <span class="rp-vert" aria-hidden="true">The Museum of Design · MMXXVI</span>
               <span class="rp-burst" aria-hidden="true">WOW!!!</span>
               <p class="rp-kick">!!EXCLUSIVE EVENT!!</p>
               <h4 class="rp-title">DESIGN GALA NIGHT!!!</h4>

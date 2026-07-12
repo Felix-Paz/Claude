@@ -122,31 +122,38 @@
       const DECOYS = ['Cancel', 'Back', 'Maybe', 'Later', 'Skip', 'Retry', 'Undo', 'Close',
         'Wait', 'Hmm', 'Nope', 'Okay?', 'Sure?', 'Menu', 'Help', 'About', 'More', 'Less',
         'Reset', 'Pause', 'Idle', 'Shrug', 'Mmkay'];
-      let round = 1, t0 = 0, t1ms = 0;
+      let round = 1, t0 = 0, t1ms = 0, rebuilding = false;
       const build = () => {
-        const labels = [...DECOYS];
-        const target = Math.floor(Math.random() * 24);
+        // 23 decoys + 1 "Continue", shuffled
+        const labels = [...DECOYS, 'Continue'];
+        for (let i = labels.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [labels[i], labels[j]] = [labels[j], labels[i]];
+        }
         grid.innerHTML = '';
-        grid.className = 'ct-find-grid ' + (round === 2 ? 'is-round2' : '');
-        for (let i = 0; i < 24; i++) {
+        grid.className = 'ct-find-grid' + (round === 2 ? ' is-round2' : '');
+        labels.forEach(txt => {
           const b = document.createElement('button');
           b.dataset.cursor = 'link';
-          if (i === target) { b.textContent = 'Continue'; b.className = 'is-it'; }
-          else b.textContent = labels.splice(Math.floor(Math.random() * labels.length), 1)[0];
+          b.type = 'button';
+          b.textContent = txt;
+          if (txt === 'Continue') b.classList.add('is-it');
           grid.appendChild(b);
-        }
+        });
+        grid.animate([{ opacity: 0.25 }, { opacity: 1 }], { duration: 350, easing: 'ease' });
+        rebuilding = false;
         t0 = performance.now();
       };
       c.on(grid, 'click', e => {
         const b = e.target.closest('button');
-        if (!b || grid.classList.contains('is-done')) return;
+        if (!b || rebuilding || grid.classList.contains('is-done')) return;
         if (!b.classList.contains('is-it')) {
           b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
           return;
         }
         const ms = performance.now() - t0;
         if (round === 1) {
-          t1ms = ms; round = 2;
+          t1ms = ms; round = 2; rebuilding = true;
           status.innerHTML = `Found it in <b>${(ms / 1000).toFixed(1)}s</b>. Round 2 — same game, one difference.`;
           setTimeout(build, 900);
         } else {
@@ -245,12 +252,11 @@
       const sheet = extra => `
           <div class="hi-sheet ${extra || ''}">
             <p class="hi-el hi-kick">Exclusive</p>
-            <h2 class="hi-el hi-head">Design quietly runs the world</h2>
-            <p class="hi-el hi-deck">Everything you use today was a series of decisions someone made about order.</p>
+            <h2 class="hi-el hi-head"><b class="hi-rank">1</b>Design quietly runs the world</h2>
+            <p class="hi-el hi-deck"><b class="hi-rank">2</b>Everything you use today was a series of decisions someone made about order.</p>
             <p class="hi-el hi-body">The button you found without looking. The price you missed. The headline you couldn't ignore this morning. None of it was luck — someone decided what would reach your eye first, and everything else got in line behind it.</p>
             <p class="hi-el hi-meta">By A. Visitor · 4 min read</p>
-            <span class="hi-el hi-cta">Read the story</span>
-            <b class="hi-badge hb-1">1</b><b class="hi-badge hb-2">2</b><b class="hi-badge hb-3">3</b>
+            <span class="hi-el hi-cta"><b class="hi-rank">3</b>Read the story</span>
           </div>`;
       return `
       ${ROOMS.hero({
@@ -367,16 +373,21 @@
         ns.forEach((n, i) => n.classList.toggle('is-on', q > [0.1, 0.38, 0.66, 0.93][i]));
       });
 
-      /* Scene C: promote on click */
+      /* Scene C: promote on click — deterministic order, no flip-flop */
       const cards = Array.from(root.querySelectorAll('.hi-card'));
-      cards.forEach(card => c.on(card, 'click', () => {
-        const rest = cards.filter(x => x !== card)
-          .sort((a, b) => a.className.localeCompare(b.className));
-        [card, ...rest].forEach((el, i) => {
-          el.classList.remove('is-1', 'is-2', 'is-3');
-          el.classList.add('is-' + (i + 1));
-        });
+      let rank = cards.slice(); // most-important first
+      const applyRank = () => rank.forEach((el, i) => {
+        el.classList.remove('is-1', 'is-2', 'is-3');
+        el.classList.add('is-' + (i + 1));
+        el.style.order = i + 1;
+      });
+      cards.forEach(card => c.on(card, 'click', e => {
+        e.preventDefault();
+        if (rank[0] === card) return;
+        rank = [card, ...rank.filter(x => x !== card)];
+        applyRank();
       }));
+      applyRank();
     }
   });
 

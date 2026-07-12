@@ -186,7 +186,9 @@
     currentRoom = id;
     setNav(id);
     if (window.FLUID) {
-      FLUID.setAccent(getComputedStyle(roomEl).getPropertyValue('--racc').trim() || '#FF4B14', '#FF4B14');
+      const acc = getComputedStyle(roomEl).getPropertyValue('--racc').trim() || '#FF4B14';
+      FLUID.setAccent(acc, acc);
+      FLUID.rescan();
     }
     document.title = `Room ${def.num} · ${def.name} — Museum of Design`;
     return true;
@@ -206,7 +208,7 @@
     body.dataset.view = 'home';
     delete body.dataset.theme;
     setNav(null);
-    if (window.FLUID) FLUID.setAccent('#FF4B14', '#2C39E8');
+    if (window.FLUID) { FLUID.setAccent('#FF4B14', '#2C39E8'); setTimeout(FLUID.rescan, 60); }
     document.title = 'DESIGN — An Interactive Museum';
     // land back at the gallery when returning from a room, at top otherwise
     if (target === 'gallery') {
