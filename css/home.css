@@ -219,80 +219,109 @@
   position: relative; z-index: 2;
   display: flex;
   align-items: center;
-  gap: clamp(2.5rem, 5vw, 6rem);
-  padding-left: 52vw;
-  padding-right: 12vw;
+  gap: clamp(1.6rem, 3vw, 3.5rem);
+  padding-left: 48vw;
+  padding-right: 10vw;
   will-change: transform;
 }
 
-.door-intro, .door-outro {
+.door-preview { position: absolute; inset: 0; }
+
+/* --- monumental hall frontages --- */
+.hall {
+  position: relative;
   flex-shrink: 0;
-  width: clamp(13rem, 20vw, 20rem);
+  width: min(74rem, 84vw);
+  height: 76vh;
+  border-radius: 28px;
+  overflow: clip;
+  display: flex;
+  align-items: flex-end;
+  padding: clamp(1.6rem, 3.2vw, 3.4rem);
+  background: var(--hbg, var(--paper-2));
+  color: var(--hfg, var(--ink));
+  box-shadow: 0 40px 90px -45px rgb(20 17 11 / 0.45);
+  transform: translateY(var(--dy, 0px));
+  transition: box-shadow 0.6s var(--e-out);
 }
-.door-intro p, .door-outro p {
-  font-size: clamp(2rem, 3.6vw, 3.6rem);
-  font-weight: 720;
-  font-variation-settings: 'wdth' 116;
-  line-height: 0.95;
+.hall:hover, .hall:focus-visible { box-shadow: 0 60px 110px -45px rgb(20 17 11 / 0.55); }
+.h-contrast   { --hbg: #0B0B0B; --hfg: #F7F6F2; }
+.h-hierarchy  { --hbg: #E4E7F9; --hfg: #14110B; }
+.h-whitespace { --hbg: #FBFAF6; --hfg: #1B1A16; outline: 1px solid var(--line); outline-offset: -1px; }
+.h-color      { --hbg: #0E0D12; --hfg: #F5F3EE; }
+.h-typography { --hbg: #F4EBD9; --hfg: #1D1608; }
+.h-motion     { --hbg: #0C0C0F; --hfg: #EFF2E4; }
+.h-balance    { --hbg: #E9E0CF; --hfg: #201D16; }
+
+.hall-num {
+  position: absolute;
+  top: -6vh; right: 1vw;
+  font-size: 42vh;
+  font-weight: 870; font-variation-settings: 'wdth' 122;
+  line-height: 1;
+  opacity: 0.06;
+  pointer-events: none;
+  user-select: none;
+}
+.hall-art {
+  position: absolute;
+  right: clamp(2rem, 6vw, 6rem);
+  top: 46%;
+  width: min(40vh, 26vw);
+  aspect-ratio: 10 / 13;
+  border-radius: 999px 999px 18px 18px;
+  overflow: clip;
+  outline: 1px solid color-mix(in srgb, var(--hfg) 18%, transparent);
+  outline-offset: -1px;
+  box-shadow: 0 34px 60px -28px rgb(0 0 0 / 0.5);
+  transform: translateY(-50%)
+             translate(calc(var(--magx, 0px) + var(--par, 0) * 1px), var(--magy, 0px));
+  transition: transform 0.4s var(--e-out);
+}
+.hall:hover .hall-art { transform: translateY(-52%) translate(calc(var(--magx, 0px) + var(--par, 0) * 1px), var(--magy, 0px)) scale(1.025); }
+.hall-info {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 0.75rem;
+  max-width: min(34rem, 52%);
+}
+.hall-kicker {
+  font-family: var(--f-mono);
+  font-size: 0.62rem; letter-spacing: 0.24em; text-transform: uppercase;
+  opacity: 0.6;
+}
+.hall-name {
+  font-size: clamp(2.8rem, 6.5vw, 6rem);
+  font-weight: 830; font-variation-settings: 'wdth' 118;
   text-transform: uppercase;
+  line-height: 0.9;
   letter-spacing: -0.02em;
 }
-.door-intro span, .door-outro span {
-  display: block;
-  margin-top: 1.2rem;
+.hall-tag {
   font-family: var(--f-serif);
   font-style: italic;
-  font-size: 1.05rem;
-  color: var(--muted);
+  font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+  opacity: 0.72;
+  max-width: 26em;
 }
-.door-outro span em { color: var(--orange); }
-
-/* --- doorway card --- */
-.door {
-  flex-shrink: 0;
-  width: clamp(15rem, 23vw, 21rem);
-  display: block;
-}
-.door-arch {
-  position: relative;
-  aspect-ratio: 10 / 13.5;
-  border-radius: 999px 999px 16px 16px;
-  overflow: clip;
-  border: 1px solid var(--line);
-  background: var(--paper);
-  box-shadow: 0 1px 0 rgba(20, 17, 11, 0.03);
-  transition: transform 0.45s var(--e-out), box-shadow 0.6s var(--e-out);
-  transform: translate(var(--magx, 0px), calc(var(--dy, 0px) + var(--magy, 0px))) rotate(var(--dr, 0deg));
-}
-.door:hover .door-arch, .door:focus-visible .door-arch {
-  transform: translate(var(--magx, 0px), calc(var(--dy, 0px) + var(--magy, 0px) - 14px)) rotate(var(--dr, 0deg)) scale(1.02);
-  box-shadow: 0 30px 60px -18px rgba(20, 17, 11, 0.28);
-}
-.door-preview { position: absolute; inset: 0; }
-.door-meta {
-  margin-top: 1.3rem;
-  padding: 0 0.4rem;
-  display: grid;
-  gap: 0.15rem;
-}
-.door-num {
+.hall-cta {
+  display: inline-flex; align-items: center; gap: 0.8rem;
+  width: fit-content;
+  margin-top: 0.7rem;
   font-family: var(--f-mono);
-  font-size: 0.66rem; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--orange);
+  font-size: 0.66rem; font-weight: 600;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 40%, transparent);
 }
-.door-name {
-  font-size: 1.55rem;
-  font-weight: 700;
-  font-variation-settings: 'wdth' 112;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
+.hall-cta i { font-style: normal; }
+.hall-cta u {
+  text-decoration: none;
+  transition: transform 0.35s var(--e-spring);
 }
-.door-tag {
-  font-family: var(--f-serif);
-  font-style: italic;
-  font-size: 0.95rem;
-  color: var(--muted);
-}
+.hall:hover .hall-cta u { transform: translateX(7px); }
+.hall .stamp { top: 1.9rem; left: 1.9rem; right: auto; z-index: 3; }
 
 /* --- previews: each door demos its principle --- */
 
@@ -305,8 +334,8 @@
 }
 .dp-contrast i { left: 14%; background: #fff; transform: translateY(-50%); }
 .dp-contrast b { right: 14%; background: var(--ink); transform: translateY(-50%); }
-.door:hover .dp-contrast i { transform: translateY(-50%) translateX(230%); }
-.door:hover .dp-contrast b { transform: translateY(-50%) translateX(-230%); }
+.hall:hover .dp-contrast i, .ba-postcard:hover .dp-contrast i { transform: translateY(-50%) translateX(230%); }
+.hall:hover .dp-contrast b, .ba-postcard:hover .dp-contrast b { transform: translateY(-50%) translateX(-230%); }
 
 /* 02 hierarchy: ranked bars reshuffle */
 .dp-hierarchy {
@@ -319,8 +348,8 @@
 .dp-hierarchy i:nth-child(2) { width: 62%; height: 9%; opacity: 0.75; }
 .dp-hierarchy i:nth-child(3) { width: 42%; height: 5.5%; opacity: 0.5; }
 .dp-hierarchy i:nth-child(4) { width: 26%; height: 3.5%; opacity: 0.3; }
-.door:hover .dp-hierarchy i:nth-child(1) { width: 26%; height: 3.5%; }
-.door:hover .dp-hierarchy i:nth-child(4) { width: 88%; height: 15%; }
+.hall:hover .dp-hierarchy i:nth-child(1) { width: 26%; height: 3.5%; }
+.hall:hover .dp-hierarchy i:nth-child(4) { width: 88%; height: 15%; }
 
 /* 03 whitespace: one small thing, lots of nothing */
 .dp-whitespace { background: #FBFAF6; }
@@ -340,7 +369,7 @@
   opacity: 0;
   transition: transform 0.9s var(--e-out), opacity 0.4s;
 }
-.door:hover .dp-whitespace::after { opacity: 0.35; transform: translate(-50%, -50%) scale(3.4); }
+.hall:hover .dp-whitespace::after { opacity: 0.35; transform: translate(-50%, -50%) scale(3.4); }
 
 /* 04 color: rotating wheel */
 .dp-color { background: #17161C; }
@@ -357,7 +386,7 @@
   background: #17161C;
   transition: transform 0.6s var(--e-spring);
 }
-.door:hover .dp-color b { transform: scale(0.55); }
+.hall:hover .dp-color b { transform: scale(0.55); }
 @keyframes dp-spin { to { transform: rotate(360deg); } }
 
 /* 05 typography: breathing glyphs */
@@ -460,6 +489,17 @@
 @media (max-width: 860px) {
   .gallery-head { max-width: 60vw; }
   .gallery-track { padding-left: 78vw; }
+  .hall { width: 88vw; height: 72vh; align-items: flex-end; }
+  .hall-info { max-width: 100%; }
+  .hall-name { font-size: clamp(1.9rem, 8.5vw, 2.7rem); }
+  .hall-art {
+    right: -8%; top: 6%;
+    width: 52vw;
+    transform: none;
+    opacity: 0.55;
+  }
+  .hall:hover .hall-art { transform: none; }
+  .hall-num { font-size: 26vh; top: auto; bottom: 42%; }
 }
 @media (max-width: 720px) {
   .hero-foot { flex-direction: column; align-items: flex-start; }

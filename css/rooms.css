@@ -1384,6 +1384,21 @@ body[data-theme="th-motion"] #nav { --nav-fg: #F2EFE7; }
 .ty-court.is-acquit .ty-crime-stamp { border-color: #2E7D4F; color: #2E7D4F; }
 
 /* ---- 06 · velocity ---- */
+.mo-velo .sticky-pane > .mo-velo-word,
+.mo-velo .sticky-pane > .mo-velo-glow { grid-area: 1 / 1; }
+.mo-velo-glow {
+  font-family: var(--f-disp);
+  font-size: clamp(2.6rem, 14vw, 15rem);
+  font-weight: 900; font-variation-settings: 'wdth' 125;
+  line-height: 1;
+  color: var(--racc);
+  filter: blur(26px);
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  will-change: opacity;
+}
 .mo-velo-word {
   font-size: clamp(2.6rem, 14vw, 15rem);
   line-height: 1;
@@ -1584,3 +1599,163 @@ body[data-theme="th-motion"] #nav { --nav-fg: #F2EFE7; }
   from { opacity: 0; transform: translateX(50%) rotate(9deg) scale(1.8); }
   to   { opacity: 1; transform: translateX(50%) rotate(-5deg) scale(1); }
 }
+
+/* =====================================================================
+   THE GRAND RESTORATION · one poster, seven interventions
+   ===================================================================== */
+.ba-resto .sticky-pane { background: var(--rbg); }
+.resto-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2.5rem, 6vw, 7rem);
+  width: min(78rem, 94vw);
+}
+/* --- the patient, as found --- */
+.resto-poster {
+  position: relative;
+  flex-shrink: 0;
+  width: clamp(19rem, 30vw, 25rem);
+  aspect-ratio: 3 / 4.1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 1.1rem;
+  background: #DCFF2E;
+  border: 6px dashed #FF00AA;
+  transform: rotate(-1.8deg);
+  box-shadow: 0 36px 70px -32px rgb(32 29 22 / 0.5);
+  transition: all 0.6s var(--e-inout);
+}
+.resto-poster > * { transition: all 0.6s var(--e-inout); }
+.rp-burst {
+  position: absolute; top: -1.4rem; right: -1.6rem;
+  background: #FF0000; color: #FFF200;
+  font-weight: 900; font-size: 0.72rem; letter-spacing: 0.04em;
+  padding: 1.7em 1.3em;
+  transform: rotate(13deg);
+  clip-path: polygon(50% 0%, 61% 12%, 75% 6%, 79% 21%, 94% 22%, 89% 36%, 100% 45%, 89% 55%, 96% 69%, 81% 73%, 80% 89%, 65% 84%, 55% 97%, 45% 85%, 29% 92%, 26% 76%, 10% 74%, 16% 60%, 3% 50%, 15% 41%, 8% 26%, 24% 24%, 24% 9%, 39% 13%);
+}
+.rp-kick  { font-family: 'Comic Sans MS', 'Chalkboard SE', cursive; font-size: 0.82rem; font-weight: 800; color: #FF0066; }
+.rp-title { font-family: 'Comic Sans MS', 'Chalkboard SE', cursive; font-size: 1.65rem; line-height: 1.08; color: #0000EE; text-shadow: 2px 2px 0 #FF00AA; }
+.rp-sub   { font-family: 'Comic Sans MS', 'Chalkboard SE', cursive; font-size: 0.9rem; color: #FF6600; }
+.rp-body  { font-family: 'Comic Sans MS', 'Chalkboard SE', cursive; font-size: 0.7rem; line-height: 1.18; color: #7700EE; }
+.rp-meta  { font-family: 'Comic Sans MS', 'Chalkboard SE', cursive; font-size: 0.7rem; font-weight: 800; color: #008800; }
+.rp-cta {
+  display: inline-block;
+  font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+  font-size: 0.8rem; font-weight: 900;
+  color: #FFF200;
+  background: linear-gradient(#FF2222, #990000);
+  border: 3px outset #FF9999;
+  border-radius: 6px;
+  padding: 0.55em 1.1em;
+  animation: rp-blink 0.75s steps(2) infinite;
+}
+@keyframes rp-blink { 50% { filter: invert(1) hue-rotate(90deg); } }
+
+/* s1 · CONTRAST: legibility returns */
+.resto-poster.s1 { background: #F7F5EE; border-color: #191610; }
+.s1 .rp-kick, .s1 .rp-title, .s1 .rp-sub, .s1 .rp-body, .s1 .rp-meta { color: #191610; text-shadow: none; }
+.s1 .rp-cta { background: #191610; color: #F7F5EE; border-color: transparent; animation: none; filter: none; }
+.s1 .rp-burst { background: #191610; color: #F7F5EE; }
+
+/* s2 · HIERARCHY: sizes find their rank */
+.s2 .rp-kick  { font-size: 0.62rem; }
+.s2 .rp-title { font-size: 2.5rem; line-height: 1; }
+.s2 .rp-sub   { font-size: 1rem; }
+.s2 .rp-body  { font-size: 0.76rem; opacity: 0.85; }
+.s2 .rp-meta  { font-size: 0.64rem; opacity: 0.85; }
+
+/* s3 · WHITE SPACE: air, and the burst is escorted out */
+.resto-poster.s3 { padding: 2.5rem 2.2rem; gap: 1.1rem; border-width: 1px; border-style: solid; }
+.s3 .rp-burst { opacity: 0; transform: rotate(13deg) scale(0.2); }
+.s3 .rp-body { line-height: 1.55; max-width: 21em; }
+
+/* s4 · COLOR: the palette calms down */
+.resto-poster.s4 { background: #F5EFE1; }
+.s4 .rp-kick { color: var(--r7-terra); }
+.s4 .rp-meta { color: #6B6355; }
+.s4 .rp-cta  { background: var(--r7-terra); }
+
+/* s5 · TYPOGRAPHY: grown-up clothes (copy is rewritten by the room) */
+.s5 .rp-kick  { font-family: var(--f-mono); font-size: 0.56rem; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; }
+.s5 .rp-title { font-family: var(--f-serif); font-style: italic; font-weight: 480; font-variation-settings: 'opsz' 90; }
+.s5 .rp-sub   { font-family: var(--f-serif); font-style: italic; font-size: 0.95rem; opacity: 0.8; }
+.s5 .rp-body  { font-family: var(--f-disp); font-weight: 460; font-size: 0.82rem; }
+.s5 .rp-meta  { font-family: var(--f-mono); font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; }
+.s5 .rp-cta   { font-family: var(--f-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; border-radius: 999px; padding: 0.9em 1.8em; }
+
+/* s6 · MOTION: alive on hover (the entrance replays via script) */
+.s6 .rp-cta { transition: transform 0.3s var(--e-spring), box-shadow 0.3s; }
+.s6 .rp-cta:hover { transform: translateY(-3px); box-shadow: 0 12px 22px -10px rgb(32 29 22 / 0.5); }
+
+/* s7 · BALANCE: hung straight, composed off-center */
+.resto-poster.s7 {
+  transform: rotate(0deg);
+  text-align: left;
+  align-items: flex-start;
+  border-color: transparent;
+  box-shadow: 0 46px 80px -36px rgb(32 29 22 / 0.4);
+}
+.s7 .rp-body { max-width: 20em; }
+
+/* --- the chart on the wall --- */
+.resto-side { max-width: 24rem; }
+.resto-kicker {
+  font-family: var(--f-mono); font-size: 0.66rem;
+  letter-spacing: 0.28em; text-transform: uppercase; opacity: 0.55;
+}
+.resto-title {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 820; font-variation-settings: 'wdth' 116;
+  text-transform: uppercase; line-height: 0.95;
+  margin-top: 0.7rem;
+}
+.resto-sub {
+  font-family: var(--f-serif); font-style: italic;
+  font-size: 0.98rem; line-height: 1.6; opacity: 0.7;
+  margin-top: 0.9rem;
+}
+.resto-list { list-style: none; margin-top: 2rem; display: grid; gap: 0.7rem; }
+.resto-list li {
+  display: flex; align-items: baseline; gap: 0.8rem;
+  opacity: 0.32;
+  transition: opacity 0.4s;
+}
+.resto-list li.is-done { opacity: 1; }
+.resto-list b {
+  font-family: var(--f-mono); font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  min-width: 8.5rem;
+}
+.resto-list li.is-done b { color: var(--r7-terra); }
+.resto-list li.is-done b::before { content: '✓ '; }
+.resto-list li:not(.is-done) b::before { content: '· '; opacity: 0.5; }
+.resto-list span { font-family: var(--f-serif); font-style: italic; font-size: 0.85rem; opacity: 0.75; }
+.resto-verdict {
+  margin-top: 2.2rem;
+  font-family: var(--f-serif); font-style: italic;
+  font-size: clamp(2.6rem, 5vw, 4rem);
+  color: var(--r7-terra);
+  opacity: 0; transform: scale(0.7) rotate(-4deg);
+  transform-origin: left center;
+  transition: opacity 0.4s, transform 0.55s var(--e-spring);
+}
+.resto-verdict.is-on { opacity: 1; transform: scale(1) rotate(0deg); }
+
+@media (max-width: 900px) {
+  .resto-wrap { flex-direction: column; gap: 2rem; }
+  .resto-poster { width: min(19rem, 78vw); }
+  .resto-side { max-width: 90vw; }
+  .resto-list { gap: 0.4rem; }
+  .resto-sub { display: none; }
+  .resto-verdict { margin-top: 1rem; }
+}
+
+/* ---- round 3 polish ---- */
+.bp-slot .stamp { opacity: 0; }
+.bp-slot.is-stamped .stamp { opacity: 0.62; }
+.ba-postcard.is-taken { transform: rotate(0deg) translateY(-4px); }
+.ba-postcard.is-taken i { color: var(--r7-pine); opacity: 1; }

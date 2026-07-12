@@ -89,7 +89,7 @@
     };
     function paint() {
       $$('.nav-index a').forEach(a => a.classList.toggle('is-stamped', set.has(a.dataset.room)));
-      $$('#home .door').forEach(d => d.classList.toggle('is-stamped', set.has(d.dataset.room)));
+      $$('#home .hall').forEach(h => h.classList.toggle('is-stamped', set.has(h.dataset.room)));
     }
   })();
   window.STAMPS = STAMPS;

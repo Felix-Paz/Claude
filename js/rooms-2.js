@@ -284,6 +284,7 @@
       <!-- Scene B · this word reads your scroll -->
       <section class="mo-velo sticky-wrap" style="--len:300">
         <div class="sticky-pane">
+          <span class="mo-velo-glow" aria-hidden="true">VELOCITY</span>
           <h2 class="mo-velo-word">VELOCITY</h2>
           <p class="mo-velo-read"><b>0</b> px/s</p>
           <p class="rm-cap mo-velo-cap">This word is wired to your scroll wheel. <em>Floor it.</em></p>
@@ -373,13 +374,6 @@
         ], { duration: 900, delay: 220 + i * 80, fill: 'backwards' });
       });
 
-      /* room-wide velocity skew */
-      const skew = root.querySelector('.mo-skew');
-      c.frame(() => {
-        const v = clamp(M.scroll.sv * 0.018, -3.2, 3.2);
-        skew.style.transform = `skewY(${v.toFixed(3)}deg)`;
-      });
-
       /* Scene A: three easings, one scrubber */
       const race = root.querySelector('.mo-race');
       const ra = root.querySelector('.mr-a');
@@ -394,22 +388,34 @@
         rc.style.setProperty('--px', clamp(spring(q), 0, 1.15).toFixed(4));
       });
 
-      /* Scene B: the word wired to scroll velocity */
+      /* Scene B: the word wired to scroll velocity.
+         The glow is a static blurred twin whose opacity changes (composited,
+         cheap); glyph re-raster is quantized so idle frames write nothing. */
       const velo = root.querySelector('.mo-velo');
       const veloWord = root.querySelector('.mo-velo-word');
+      const veloGlow = root.querySelector('.mo-velo-glow');
       const veloRead = root.querySelector('.mo-velo-read b');
-      let veloVis = false, vSmooth = 0;
+      let veloVis = false, vSmooth = 0, lastW = -1, lastSk = -1, lastPx = -1;
       c.track(velo, p => { veloVis = p > 0 && p < 1; });
       c.frame((t, dt) => {
         if (!veloVis) return;
         const v = Math.abs(M.scroll.sv) * 60; // px/s
         vSmooth = M.lerp(vSmooth, v, 0.2 * dt);
         const q = M.clamp(vSmooth / 2600, 0, 1);
-        veloWord.style.fontVariationSettings =
-          `'wght' ${Math.round(M.lerp(300, 900, q))}, 'wdth' ${M.lerp(70, 125, q).toFixed(1)}`;
-        veloWord.style.transform = `skewX(${(M.clamp(M.scroll.sv, -30, 30) * -0.5).toFixed(2)}deg)`;
-        veloWord.style.textShadow = `0 0 ${Math.round(q * 70)}px rgba(200, 242, 63, ${(q * 0.85).toFixed(2)})`;
-        veloRead.textContent = Math.round(vSmooth);
+        const w = Math.round(M.lerp(300, 900, q) / 10) * 10; // quantized raster steps
+        if (w !== lastW) {
+          lastW = w;
+          veloWord.style.fontVariationSettings =
+            `'wght' ${w}, 'wdth' ${M.lerp(70, 125, q).toFixed(0)}`;
+        }
+        const sk = Math.round(M.clamp(M.scroll.sv, -30, 30) * -0.5 * 10) / 10;
+        if (sk !== lastSk) {
+          lastSk = sk;
+          veloWord.style.transform = `skewX(${sk}deg)`;
+          veloGlow.style.opacity = q.toFixed(2);
+        }
+        const px = Math.round(vSmooth / 20) * 20;
+        if (px !== lastPx) { lastPx = px; veloRead.textContent = px; }
       });
 
       /* Scene C: duration toggles */
@@ -508,10 +514,10 @@
       }).join('');
       const cards = ROOMS.order.map((id, i) => {
         const d = ROOMS.get(id);
-        return `<a class="ba-postcard" href="#/room/${id}" data-room="${id}" data-cursor="enter" style="--rot:${(i - 3) * 2.4}deg">
+        return `<a class="ba-postcard" href="#/room/${id}" data-room="${id}" data-cursor="enter" data-cursor-label="Take one" style="--rot:${(i - 3) * 2.4}deg">
           <span class="door-preview dp-${id}">${d ? d.preview : ''}</span>
           <b>${d ? d.name : id}</b>
-          <i>postcard · $0.00</i>
+          <i>field notes · $0.00</i>
         </a>`;
       }).join('');
       return `
@@ -579,6 +585,39 @@
         </div>
       </section>
 
+      <!-- THE GRAND RESTORATION · every principle, one patient -->
+      <section class="ba-resto sticky-wrap" style="--len:900">
+        <div class="sticky-pane">
+          <div class="resto-wrap">
+            <div class="resto-poster">
+              <span class="rp-burst" aria-hidden="true">WOW!!!</span>
+              <p class="rp-kick">!!EXCLUSIVE EVENT!!</p>
+              <h4 class="rp-title">DESIGN GALA NIGHT!!!</h4>
+              <p class="rp-sub">the fanciest evening in town!!</p>
+              <p class="rp-body">Join us for art, live music, tiny sandwiches and BIG IDEAS!!! Everyone welcome!! Dress code: FABULOUS. Doors open EARLY so COME EARLY!!!</p>
+              <p class="rp-meta">SAT JUNE 21 ·· 8PM TILL LATE ·· MAIN HALL</p>
+              <span class="rp-cta">CLICK HERE FOR TICKETS!!!!</span>
+            </div>
+            <aside class="resto-side">
+              <p class="resto-kicker">The final exhibit</p>
+              <h3 class="resto-title">The Restoration</h3>
+              <p class="resto-sub">One poster, recovered from a strip-mall print shop. Scroll, and watch all seven rooms go to work on it.</p>
+              <ol class="resto-list">
+                <li data-step="1"><b>Contrast</b><span>ink returned to ink</span></li>
+                <li data-step="2"><b>Hierarchy</b><span>the title remembers it's a title</span></li>
+                <li data-step="3"><b>White space</b><span>clutter escorted from the building</span></li>
+                <li data-step="4"><b>Color</b><span>the palette enters therapy</span></li>
+                <li data-step="5"><b>Typography</b><span>eight fonts become two</span></li>
+                <li data-step="6"><b>Motion</b><span>given a pulse (hover the button)</span></li>
+                <li data-step="7"><b>Balance</b><span>finally hung straight</span></li>
+              </ol>
+              <p class="resto-verdict" aria-hidden="true">WOW.</p>
+            </aside>
+          </div>
+          ${ROOMS.plaque('07.4', 'The Restoration', 'before &amp; after, performed live', 'Patrons are advised the “before” is on purpose.')}
+        </div>
+      </section>
+
       <!-- FINALE · passport control, then the gift shop -->
       <section class="ba-finale">
         <p class="ba-fin-kicker" data-reveal>End of the permanent collection</p>
@@ -596,7 +635,7 @@
         <div class="ba-shop">
           <p class="ba-shop-kicker" data-reveal>· The gift shop ·</p>
           <div class="ba-postcards" data-reveal style="--d:.1s">${cards}</div>
-          <p class="ba-shop-note" data-reveal style="--d:.2s">Take one. Knowledge ships free.</p>
+          <p class="ba-shop-note" data-reveal style="--d:.2s">Take one — each card is a printable field guide:<br>eight tricks from its room, free, no receipt necessary.</p>
         </div>
 
         <a class="ba-exit" href="#/" data-cursor="enter" data-reveal style="--d:.15s">
@@ -648,6 +687,49 @@
         if (thirdsCap.dataset.txt !== html) { thirdsCap.dataset.txt = html; thirdsCap.innerHTML = html; }
       });
 
+      /* The Grand Restoration: seven principles applied, one per step */
+      const resto = root.querySelector('.ba-resto');
+      const poster = root.querySelector('.resto-poster');
+      const restoItems = root.querySelectorAll('.resto-list li');
+      const verdict = root.querySelector('.resto-verdict');
+      const copyfix = [
+        ['.rp-kick', '!!EXCLUSIVE EVENT!!', 'One night only'],
+        ['.rp-title', 'DESIGN GALA NIGHT!!!', 'The Design Gala'],
+        ['.rp-sub', 'the fanciest evening in town!!', 'An evening for people who notice.'],
+        ['.rp-body', 'Join us for art, live music, tiny sandwiches and BIG IDEAS!!! Everyone welcome!! Dress code: FABULOUS. Doors open EARLY so COME EARLY!!!',
+                     'Art, live music, small sandwiches, large ideas. Dress code: considered.'],
+        ['.rp-meta', 'SAT JUNE 21 ·· 8PM TILL LATE ·· MAIN HALL', 'Sat June 21 · 8 pm · Main Hall'],
+        ['.rp-cta', 'CLICK HERE FOR TICKETS!!!!', 'Reserve a seat']
+      ];
+      let restoStep = -1, typeFixed = false;
+      c.track(resto, p => {
+        const step = M.clamp(Math.floor(M.map(p, 0.04, 0.96, 0, 1) * 9), 0, 8);
+        if (step === restoStep) return;
+        const prev = restoStep;
+        restoStep = step;
+        // cumulative classes: s1..s7
+        for (let s = 1; s <= 7; s++) poster.classList.toggle('s' + s, step >= s);
+        restoItems.forEach(li => li.classList.toggle('is-done', step >= +li.dataset.step));
+        verdict.classList.toggle('is-on', step >= 8);
+        // typography step rewrites the copy (and un-rewrites on the way back up)
+        const wantFixed = step >= 5;
+        if (wantFixed !== typeFixed) {
+          typeFixed = wantFixed;
+          copyfix.forEach(([sel, ugly, fixed]) => {
+            poster.querySelector(sel).textContent = wantFixed ? fixed : ugly;
+          });
+        }
+        // motion step: the poster re-enters with choreography, once, going down
+        if (step === 6 && prev === 5 && !M.reduced) {
+          Array.from(poster.children).forEach((el, i) => {
+            el.animate([
+              { opacity: 0, transform: 'translateY(16px)' },
+              { opacity: 1, transform: 'translateY(0)' }
+            ], { duration: 480, delay: i * 70, easing: 'cubic-bezier(0.16,1,0.3,1)', fill: 'backwards' });
+          });
+        }
+      });
+
       /* Finale: stamp the passport with this visit's earnings */
       const S = window.STAMPS;
       if (S) {
@@ -657,6 +739,16 @@
         root.querySelector('.bp-count').textContent =
           n === 7 ? 'All 7 rooms stamped — a completionist!' : `${n} of 7 rooms stamped`;
       }
+
+      /* Gift shop: postcards hand out printable field notes */
+      root.querySelectorAll('.ba-postcard').forEach(pc => {
+        c.on(pc, 'click', e => {
+          e.preventDefault();
+          GUIDES.download(pc.dataset.room);
+          pc.classList.add('is-taken');
+          pc.querySelector('i').textContent = 'saved to your device ✓';
+        });
+      });
 
       /* Scene D: drag discs, level the frame */
       const frame = root.querySelector('.ba-frame');

@@ -417,7 +417,7 @@
           <div class="ws-heroin">
             <p class="rm-num">Room 03 <i></i> of 07</p>
             <h1 class="rm-title ws-title">WHITE<br>SPACE</h1>
-            <p class="ws-count" aria-hidden="true"><b>37</b> things on this wall</p>
+            <p class="ws-count" aria-hidden="true"><b>36</b> things on this wall</p>
           </div>
           <p class="ws-better">Better.</p>
         </div>
@@ -535,17 +535,19 @@
         para.style.opacity = lerp(0.75, 1, q);
       });
 
-      /* Scene D: dots flee the pointer, revealing the word beneath */
+      /* Scene D: dots flee the pointer, revealing the word beneath.
+         Dot rest positions are known percentages — one rect read per frame, total. */
       const field = root.querySelector('.ws-field');
       const DOTS = 130;
       const dots = [];
       for (let i = 0; i < DOTS; i++) {
         const d = document.createElement('i');
-        const gx = (i % 13) / 12, gy = Math.floor(i / 13) / 9;
-        d.style.left = (4 + gx * 92) + '%';
-        d.style.top = (8 + gy * 84) + '%';
+        const px = (4 + ((i % 13) / 12) * 92) / 100;
+        const py = (8 + (Math.floor(i / 13) / 9) * 84) / 100;
+        d.style.left = (px * 100) + '%';
+        d.style.top = (py * 100) + '%';
         field.appendChild(d);
-        dots.push({ el: d, ox: 0, oy: 0, tx: 0, ty: 0 });
+        dots.push({ el: d, px, py, ox: 0, oy: 0, tx: 0, ty: 0 });
       }
       let fr = null;
       c.on(field, 'pointermove', e => { fr = { x: e.clientX, y: e.clientY }; });
@@ -553,10 +555,11 @@
       c.frame((t, dt) => {
         const rect = field.getBoundingClientRect();
         if (rect.bottom < 0 || rect.top > innerHeight) return;
+        const k = 1 - Math.pow(1 - 0.11, dt);
         dots.forEach(d => {
           if (fr) {
-            const r = d.el.getBoundingClientRect();
-            const cx = r.left + r.width / 2 - d.ox, cy = r.top + r.height / 2 - d.oy;
+            const cx = rect.left + d.px * rect.width;
+            const cy = rect.top + d.py * rect.height;
             const dx = cx - fr.x, dy = cy - fr.y;
             const dist = Math.hypot(dx, dy) || 1;
             const R = 150;
@@ -565,9 +568,11 @@
               d.tx = (dx / dist) * f; d.ty = (dy / dist) * f;
             } else { d.tx = 0; d.ty = 0; }
           } else { d.tx = 0; d.ty = 0; }
-          const k = 1 - Math.pow(1 - 0.11, dt);
-          d.ox = lerp(d.ox, d.tx, k); d.oy = lerp(d.oy, d.ty, k);
-          d.el.style.transform = `translate(${d.ox.toFixed(1)}px, ${d.oy.toFixed(1)}px)`;
+          const nox = lerp(d.ox, d.tx, k), noy = lerp(d.oy, d.ty, k);
+          if (Math.abs(nox - d.ox) > 0.05 || Math.abs(noy - d.oy) > 0.05) {
+            d.ox = nox; d.oy = noy;
+            d.el.style.transform = `translate(${nox.toFixed(1)}px, ${noy.toFixed(1)}px)`;
+          }
         });
       });
     }

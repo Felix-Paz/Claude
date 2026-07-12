@@ -47,8 +47,13 @@ window.HOME = (function () {
         const twd = lerp(84 + idle * 10, 125, prox);
         l.w = lerp(l.w, tw, k);
         l.wd = lerp(l.wd, twd, k);
-        l.el.style.setProperty('--w', l.w.toFixed(1));
-        l.el.style.setProperty('--wd', l.wd.toFixed(2));
+        // quantize so idle frames skip the glyph re-raster
+        const qw = Math.round(l.w / 4) * 4, qwd = Math.round(l.wd);
+        if (qw !== l.qw || qwd !== l.qwd) {
+          l.qw = qw; l.qwd = qwd;
+          l.el.style.setProperty('--w', qw);
+          l.el.style.setProperty('--wd', qwd);
+        }
         // scatter on scroll — each letter departs at its own rate
         const my = -heroP * l.speed * vh * 0.55;
         const mr = heroP * (l.i % 2 ? 6 : -6) * l.speed;
@@ -72,31 +77,31 @@ window.HOME = (function () {
     const gallery = $('#gallery');
     const track = $('.gallery-track');
     const head = $('.gallery-head');
-    const doors = $$('.door', track);
+    const halls = $$('.hall', track);
 
-    // visitor stamp badge on every doorway (shown once the room is visited)
-    doors.forEach(d => {
+    // visitor stamp badge on every hall (shown once the room is visited)
+    halls.forEach(h => {
       const s = document.createElement('span');
       s.className = 'stamp';
       s.setAttribute('aria-hidden', 'true');
       s.textContent = 'Visited';
-      d.querySelector('.door-arch').appendChild(s);
+      h.appendChild(s);
     });
 
-    // doorways lean toward the cursor (fine pointers only)
+    // the centerpiece leans toward the cursor (fine pointers only)
     if (M.fine) {
-      doors.forEach(d => {
-        const arch = d.querySelector('.door-arch');
-        d.addEventListener('pointermove', e => {
-          const r = d.getBoundingClientRect();
-          const mx = ((e.clientX - r.left) / r.width - 0.5) * 14;
-          const myy = ((e.clientY - r.top) / r.height - 0.5) * 10;
-          arch.style.setProperty('--magx', mx.toFixed(1) + 'px');
-          arch.style.setProperty('--magy', myy.toFixed(1) + 'px');
+      halls.forEach(h => {
+        const art = h.querySelector('.hall-art');
+        h.addEventListener('pointermove', e => {
+          const r = h.getBoundingClientRect();
+          const mx = ((e.clientX - r.left) / r.width - 0.5) * 22;
+          const myy = ((e.clientY - r.top) / r.height - 0.5) * 14;
+          art.style.setProperty('--magx', mx.toFixed(1) + 'px');
+          art.style.setProperty('--magy', myy.toFixed(1) + 'px');
         });
-        d.addEventListener('pointerleave', () => {
-          arch.style.setProperty('--magx', '0px');
-          arch.style.setProperty('--magy', '0px');
+        h.addEventListener('pointerleave', () => {
+          art.style.setProperty('--magx', '0px');
+          art.style.setProperty('--magy', '0px');
         });
       });
     }
@@ -114,11 +119,10 @@ window.HOME = (function () {
       track.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`;
       head.style.transform = `translate3d(${(-gx * innerWidth * 0.55).toFixed(1)}px, -50%, 0)`;
       head.style.opacity = clamp(1 - gx * 2.6, 0, 1).toFixed(3);
-      // doors drift & tilt with travel velocity
-      const v = clamp((gtx - gx) * 240, -8, 8);
-      doors.forEach((d, i) => {
-        d.style.setProperty('--dr', (v * (0.35 + (i % 3) * 0.18)).toFixed(2) + 'deg');
-        d.style.setProperty('--dy', (Math.sin(gx * 6 + i * 1.4) * 14).toFixed(1) + 'px');
+      // hall centerpieces counter-drift for depth
+      halls.forEach(h => {
+        const cx = h.offsetLeft + x + h.offsetWidth / 2 - innerWidth / 2;
+        h.querySelector('.hall-art').style.setProperty('--par', clamp(cx * -0.045, -60, 60).toFixed(1));
       });
     });
 
