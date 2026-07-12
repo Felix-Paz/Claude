@@ -45,6 +45,64 @@
     });
   }
 
+  /* ================= TICKET GATE ================= */
+  function runTicketGate() {
+    const gate = $('#ticket-gate');
+    // deep links into a room skip the box office
+    if (location.hash.match(/^#\/room\//) || M.reduced) { gate.remove(); return Promise.resolve(); }
+
+    gate.hidden = false;
+    body.classList.add('is-transitioning'); // hold scroll until the tear
+    $('.tg-date').textContent = new Date().toLocaleDateString('en-US',
+      { year: 'numeric', month: 'short', day: 'numeric' }).toUpperCase();
+    $('.tg-num').textContent = String(Math.floor(Math.random() * 899999) + 100000);
+
+    requestAnimationFrame(() => requestAnimationFrame(() => gate.classList.add('is-in')));
+
+    return new Promise(resolve => {
+      let done = false;
+      const tear = () => {
+        if (done) return;
+        done = true;
+        gate.classList.add('is-torn');
+        body.classList.remove('is-transitioning');
+        setTimeout(() => { gate.remove(); resolve(); }, 950);
+      };
+      gate.addEventListener('click', tear);
+      gate.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') tear(); });
+      setTimeout(() => { $('.tg-ticket').focus({ preventScroll: true }); }, 700);
+    });
+  }
+
+  /* ================= VISITOR STAMPS ================= */
+  const STAMPS = (() => {
+    let set;
+    try { set = new Set(JSON.parse(localStorage.getItem('mod-stamps') || '[]')); }
+    catch (e) { set = new Set(); }
+    const save = () => { try { localStorage.setItem('mod-stamps', JSON.stringify([...set])); } catch (e) {} };
+    return {
+      has: id => set.has(id),
+      all: () => [...set],
+      count: () => set.size,
+      paint,
+      add(id) { if (!set.has(id)) { set.add(id); save(); } paint(); }
+    };
+    function paint() {
+      $$('.nav-index a').forEach(a => a.classList.toggle('is-stamped', set.has(a.dataset.room)));
+      $$('#home .door').forEach(d => d.classList.toggle('is-stamped', set.has(d.dataset.room)));
+    }
+  })();
+  window.STAMPS = STAMPS;
+
+  /* ================= VITRINE SHEEN ================= */
+  let sheenGlasses = [];
+  const refreshSheen = () => { sheenGlasses = $$('.vitrine-glass'); };
+  M.onFrame(() => {
+    if (!M.fine || !sheenGlasses.length) return;
+    const shx = (M.pointer.sx / innerWidth) * 100;
+    sheenGlasses.forEach(g => g.style.setProperty('--shx', shx.toFixed(1)));
+  });
+
   /* ================= CURSOR ================= */
   function initCursor() {
     if (!M.fine) return;
@@ -119,10 +177,12 @@
     body.dataset.view = 'room';
     body.dataset.theme = def.theme || '';
     scrollTo(0, 0);
+    STAMPS.add(id); // stamp first, so the room's own passport shows this visit
     roomCtx = M.ctx();
     def.init(roomEl, roomCtx);
     M.reveal(roomEl);
     M.remeasure();
+    refreshSheen();
     currentRoom = id;
     setNav(id);
     document.title = `Room ${def.num} · ${def.name} — Museum of Design`;
@@ -134,6 +194,7 @@
     roomEl.innerHTML = '';
     roomEl.hidden = true;
     currentRoom = null;
+    refreshSheen();
   }
 
   function mountHome(target) {
@@ -205,8 +266,11 @@
   /* ================= BOOT ================= */
   initCursor();
   HOME.init();
-  runLoader().then(() => {
-    route(true);
-    M.remeasure();
-  });
+  STAMPS.paint(); // show any stamps from a previous visit
+  runLoader()
+    .then(runTicketGate)
+    .then(() => {
+      route(true);
+      M.remeasure();
+    });
 })();

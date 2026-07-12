@@ -25,6 +25,27 @@
   <div class="loader-bar"><i></i></div>
 </div>
 
+<!-- ============ TICKET GATE ============ -->
+<div id="ticket-gate" hidden>
+  <div class="tg-veil"></div>
+  <div class="tg-ticket" role="button" tabindex="0" aria-label="Tear your ticket to enter the museum" data-cursor="link">
+    <div class="tg-main">
+      <span class="tg-kicker">The Museum of</span>
+      <strong class="tg-name">DESIGN</strong>
+      <span class="tg-row"><b>Admit</b><i>One curious person</i></span>
+      <span class="tg-row"><b>Rooms</b><i>01 — 07</i></span>
+      <span class="tg-row"><b>Date</b><i class="tg-date">—</i></span>
+      <span class="tg-note">Please touch <em>everything.</em></span>
+    </div>
+    <div class="tg-stub">
+      <span class="tg-no">№ <b class="tg-num">000000</b></span>
+      <span class="tg-barcode" aria-hidden="true"></span>
+      <span class="tg-tear">tear&nbsp;here&nbsp;⟶</span>
+    </div>
+  </div>
+  <p class="tg-hint" aria-hidden="true">click your ticket to enter</p>
+</div>
+
 <!-- ============ GRAIN / CURSOR / TRANSITION ============ -->
 <div id="grain" aria-hidden="true"></div>
 <div id="cursor" aria-hidden="true">
@@ -67,7 +88,10 @@
       <div class="hero-light"></div>
     </div>
 
-    <p class="hero-over" data-reveal><span class="hero-over-line"></span>The&nbsp;Museum&nbsp;of</p>
+    <div class="hero-over" data-reveal>
+      <p><span class="hero-over-line"></span>The&nbsp;Museum&nbsp;of</p>
+      <p class="hero-hours">Open 24/7 · Admission free · Flash photography encouraged</p>
+    </div>
 
     <h1 class="hero-title" aria-label="Design">
       <span class="ht" aria-hidden="true">D</span><span class="ht" aria-hidden="true">E</span><span class="ht" aria-hidden="true">S</span><span class="ht" aria-hidden="true">I</span><span class="ht" aria-hidden="true">G</span><span class="ht" aria-hidden="true">N</span>

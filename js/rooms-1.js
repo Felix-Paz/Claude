@@ -24,6 +24,17 @@
         tagline: 'This room is black and white about it: <em>difference is information.</em>'
       })}
 
+      <!-- Antechamber · dark adaptation -->
+      <section class="ct-dark sticky-wrap" style="--len:260">
+        <div class="sticky-pane">
+          <p class="ct-dark-line ctd-1">Most galleries ask for silence.</p>
+          <p class="ct-dark-line ctd-2">This one only asks for your eyes.</p>
+          <h2 class="ct-dark-word" aria-hidden="true">LOOK</h2>
+          ${ROOMS.plaque('01.0', 'The Antechamber', 'darkness · floor-to-ceiling',
+            'A retina takes ~25 minutes to fully adapt to the dark. You get one scroll.')}
+        </div>
+      </section>
+
       <!-- Scene A · the dial -->
       <section class="ct-dial sticky-wrap" style="--len:340">
         <div class="sticky-pane">
@@ -36,6 +47,8 @@
             <span class="ct-ratio-note">contrast ratio — keep scrolling</span>
             <div class="ct-meter-bar"><i></i></div>
           </div>
+          ${ROOMS.plaque('01.1', 'The Dial', 'photons, increasingly · live',
+            'The W3C says 4.5:1. Your optometrist says more.')}
         </div>
       </section>
 
@@ -47,13 +60,25 @@
           <div class="ct-phase ct-ph-weight"><span class="ct-thin">feather</span><span class="ct-heavy">ANVIL</span></div>
           <div class="ct-phase ct-ph-form"><i></i><i></i><b></b><i></i><i></i></div>
           <p class="ct-more-label" aria-hidden="true">SIZE</p>
+          ${ROOMS.plaque('01.2', 'Three More Dials', 'size, weight & form · in rotation')}
         </div>
       </section>
 
-      <!-- Scene C · interactive divider -->
+      <!-- Scene C · the needle (find the button) -->
+      <section class="ct-find">
+        <p class="rm-cap" data-reveal>A little game. Find <em>“Continue”.</em></p>
+        <div class="ct-find-grid" data-reveal style="--d:.1s"></div>
+        <p class="ct-find-status" data-reveal style="--d:.15s">Round 1 — every button matters equally, which is to say: not at all.</p>
+        ${ROOMS.plaque('01.3', 'The Needle', '23 haystacks · interactive',
+          'Low contrast hides the way forward. High contrast is the way forward.', 'plaque--center')}
+      </section>
+
+      <!-- Scene D · interactive divider -->
       <section class="ct-split">
-        <p class="rm-cap" data-reveal>Same poster, two moods. <em>Move across it.</em></p>
-        <div class="ct-stage" data-cursor="drag" data-reveal style="--d:.1s">
+        <p class="rm-cap" data-reveal>Same poster, two moods. <em>Move across the glass.</em></p>
+        <div class="vitrine" data-reveal style="--d:.1s">
+        <div class="vitrine-glass">
+        <div class="ct-stage" data-cursor="drag">
           <div class="ct-poster ct-lo-poster">
             <span class="ctp-kick">Tonight only</span>
             <strong class="ctp-title">JAZZ<br>AT THE<br>VOID</strong>
@@ -68,6 +93,9 @@
           </div>
           <div class="ct-split-line"><span>⟷</span></div>
         </div>
+        </div>
+        <div class="vitrine-base"><span>Please touch the exhibit</span></div>
+        </div>
         <p class="ct-split-note" data-reveal>One of these gets designed on purpose.<br>The other one just happens.</p>
       </section>
 
@@ -75,6 +103,59 @@
     },
 
     init(root, c) {
+      /* Antechamber: eyes adjust — the word surfaces out of black */
+      const dark = root.querySelector('.ct-dark');
+      const dWord = root.querySelector('.ct-dark-word');
+      const d1 = root.querySelector('.ctd-1');
+      const d2 = root.querySelector('.ctd-2');
+      c.track(dark, p => {
+        const q = M.map(p, 0.3, 0.92, 0, 1);
+        const v = Math.round(10 + q * 245);
+        dWord.style.color = `rgb(${v} ${v} ${v})`;
+        d1.style.opacity = M.map(p, 0.02, 0.1, 0, 1) - M.map(p, 0.22, 0.32, 0, 1);
+        d2.style.opacity = M.map(p, 0.24, 0.34, 0, 1) - M.map(p, 0.5, 0.62, 0, 1);
+      });
+
+      /* The needle: find the button, twice */
+      const grid = root.querySelector('.ct-find-grid');
+      const status = root.querySelector('.ct-find-status');
+      const DECOYS = ['Cancel', 'Back', 'Maybe', 'Later', 'Skip', 'Retry', 'Undo', 'Close',
+        'Wait', 'Hmm', 'Nope', 'Okay?', 'Sure?', 'Menu', 'Help', 'About', 'More', 'Less',
+        'Reset', 'Pause', 'Idle', 'Shrug', 'Mmkay'];
+      let round = 1, t0 = 0, t1ms = 0;
+      const build = () => {
+        const labels = [...DECOYS];
+        const target = Math.floor(Math.random() * 24);
+        grid.innerHTML = '';
+        grid.className = 'ct-find-grid ' + (round === 2 ? 'is-round2' : '');
+        for (let i = 0; i < 24; i++) {
+          const b = document.createElement('button');
+          b.dataset.cursor = 'link';
+          if (i === target) { b.textContent = 'Continue'; b.className = 'is-it'; }
+          else b.textContent = labels.splice(Math.floor(Math.random() * labels.length), 1)[0];
+          grid.appendChild(b);
+        }
+        t0 = performance.now();
+      };
+      c.on(grid, 'click', e => {
+        const b = e.target.closest('button');
+        if (!b || grid.classList.contains('is-done')) return;
+        if (!b.classList.contains('is-it')) {
+          b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+          return;
+        }
+        const ms = performance.now() - t0;
+        if (round === 1) {
+          t1ms = ms; round = 2;
+          status.innerHTML = `Found it in <b>${(ms / 1000).toFixed(1)}s</b>. Round 2 — same game, one difference.`;
+          setTimeout(build, 900);
+        } else {
+          grid.classList.add('is-done');
+          status.innerHTML = `Round 1: <b>${(t1ms / 1000).toFixed(1)}s</b> · Round 2: <b>${(ms / 1000).toFixed(1)}s</b> — that gap is contrast, doing its job.`;
+        }
+      });
+      build();
+
       /* Scene A: real WCAG ratio while the room fades from mud to ink-on-white */
       const dial = root.querySelector('.ct-dial');
       const pane = dial.querySelector('.sticky-pane');
@@ -161,6 +242,16 @@
     theme: 'th-hierarchy',
 
     html() {
+      const sheet = extra => `
+          <div class="hi-sheet ${extra || ''}">
+            <p class="hi-el hi-kick">Exclusive</p>
+            <h2 class="hi-el hi-head">Design quietly runs the world</h2>
+            <p class="hi-el hi-deck">Everything you use today was a series of decisions someone made about order.</p>
+            <p class="hi-el hi-body">The button you found without looking. The price you missed. The headline you couldn't ignore this morning. None of it was luck — someone decided what would reach your eye first, and everything else got in line behind it.</p>
+            <p class="hi-el hi-meta">By A. Visitor · 4 min read</p>
+            <span class="hi-el hi-cta">Read the story</span>
+            <b class="hi-badge hb-1">1</b><b class="hi-badge hb-2">2</b><b class="hi-badge hb-3">3</b>
+          </div>`;
       return `
       ${ROOMS.hero({
         num: '02', title: 'Hierarchy',
@@ -171,20 +262,26 @@
       <!-- Scene A · the flat front page organizes itself -->
       <section class="hi-page sticky-wrap" style="--len:400">
         <div class="sticky-pane">
-          <div class="hi-sheet">
-            <p class="hi-el hi-kick">Exclusive</p>
-            <h2 class="hi-el hi-head">Design quietly runs the world</h2>
-            <p class="hi-el hi-deck">Everything you use today was a series of decisions someone made about order.</p>
-            <p class="hi-el hi-body">The button you found without looking. The price you missed. The headline you couldn't ignore this morning. None of it was luck — someone decided what would reach your eye first, and everything else got in line behind it.</p>
-            <p class="hi-el hi-meta">By A. Visitor · 4 min read</p>
-            <span class="hi-el hi-cta">Read the story</span>
-            <b class="hi-badge hb-1">1</b><b class="hi-badge hb-2">2</b><b class="hi-badge hb-3">3</b>
-          </div>
+          ${sheet()}
           <p class="rm-cap hi-cap">When every word is equally loud, reading is labor.</p>
+          ${ROOMS.plaque('02.1', 'The Democratic Page', 'equal type, universal suffering · restored mid-scroll')}
         </div>
       </section>
 
-      <!-- Scene B · the eye path -->
+      <!-- Scene B · the squint test -->
+      <section class="hi-squint">
+        <p class="rm-cap" data-reveal>The oldest trick in the studio: <em>the squint test.</em></p>
+        <div class="hi-squint-stage" data-reveal style="--d:.1s">
+          ${sheet('hi-sheet--done')}
+          <button class="hi-squint-btn" data-cursor="link">
+            <i></i>Hold&nbsp;to&nbsp;squint
+          </button>
+        </div>
+        <p class="hi-squint-note" data-reveal>Blur murders detail. Hierarchy survives it.<br>Whatever you can still see is what your layout is really saying.</p>
+        ${ROOMS.plaque('02.2', 'The Squint Test', 'vaseline on lens · press & hold', '', 'plaque--center')}
+      </section>
+
+      <!-- Scene C · the eye path -->
       <section class="hi-eye sticky-wrap" style="--len:300">
         <div class="sticky-pane">
           <div class="hi-wire">
@@ -202,6 +299,8 @@
             <b class="hi-n" style="left:8%;top:87%">4</b>
           </div>
           <p class="rm-cap hi-eye-cap">Western eyes sweep an <em>F.</em> Put your treasure on its shelves.</p>
+          ${ROOMS.plaque('02.3', 'The Reader’s Path', 'eye-tracking ghost · follows scroll',
+            'Nielsen filmed a thousand readers. They all drew this letter.')}
         </div>
       </section>
 
@@ -239,7 +338,18 @@
         if (cap.dataset.txt !== html) { cap.dataset.txt = html; cap.innerHTML = html; }
       });
 
-      /* Scene B: dot rides the F-pattern */
+      /* Scene B: hold to squint */
+      const squintStage = root.querySelector('.hi-squint-stage');
+      const squintBtn = root.querySelector('.hi-squint-btn');
+      const squintOn = e => { e.preventDefault(); squintStage.classList.add('is-blur'); };
+      const squintOff = () => squintStage.classList.remove('is-blur');
+      c.on(squintBtn, 'pointerdown', squintOn);
+      c.on(squintBtn, 'pointerup', squintOff);
+      c.on(squintBtn, 'pointerleave', squintOff);
+      c.on(squintBtn, 'keydown', e => { if (e.key === ' ' || e.key === 'Enter') squintOn(e); });
+      c.on(squintBtn, 'keyup', squintOff);
+
+      /* Scene C: dot rides the F-pattern */
       const eye = root.querySelector('.hi-eye');
       const trace = root.querySelector('.hi-trace');
       const svg = root.querySelector('.hi-svg');
@@ -318,10 +428,39 @@
         <div class="sticky-pane">
           <p class="ws-para">Cramped words make readers work. Give letters room and the same sentence stops shouting, starts speaking, and finally — finally — gets read. Nothing was added. Nothing was removed. Only space.</p>
           <p class="rm-cap ws-breathe-cap">Letters need air. <em>So do eyes.</em></p>
+          ${ROOMS.plaque('03.1', 'The Inhale', 'leading & tracking · expands on approach')}
         </div>
       </section>
 
-      <!-- Scene C · the price of nothing -->
+      <!-- Scene C · the corridor of nothing -->
+      <section class="ws-nothing">
+        <div class="ws-nothing-run" aria-hidden="true">
+          <span class="ws-nothing-dot"></span>
+          <p class="ws-nothing-whisper">( this pause is on purpose )</p>
+        </div>
+        <h2 class="ws-nothing-punch" data-split>You just scrolled through two screens of <em>nothing</em> — and it felt expensive, didn't it?</h2>
+      </section>
+
+      <!-- Scene D · one painting per wall -->
+      <section class="ws-wall sticky-wrap" style="--len:320">
+        <div class="sticky-pane">
+          <div class="ws-wall-room">
+            <figure class="ws-art ws-art-main"><i></i></figure>
+            <figure class="ws-art ws-art-c c1"><i></i></figure>
+            <figure class="ws-art ws-art-c c2"><b></b></figure>
+            <figure class="ws-art ws-art-c c3"><u></u></figure>
+            <figure class="ws-art ws-art-c c4"><i></i></figure>
+            <figure class="ws-art ws-art-c c5"><b></b></figure>
+            <figure class="ws-art ws-art-c c6"><u></u></figure>
+            <figure class="ws-art ws-art-c c7"><i></i></figure>
+            <figure class="ws-art ws-art-c c8"><b></b></figure>
+          </div>
+          <p class="rm-cap ws-wall-cap">Galleries hang one masterpiece per wall. <em>The wall is part of the art.</em></p>
+          ${ROOMS.plaque('03.2', 'Composition No. 1', 'pigment on generous wall · priceless')}
+        </div>
+      </section>
+
+      <!-- Scene E · the price of nothing -->
       <section class="ws-lux">
         <p class="rm-cap" data-reveal>Space is the most expensive material in design.</p>
         <div class="ws-shelves">
@@ -369,6 +508,19 @@
         count.style.opacity = q > 0.94 ? 0 : 1;
         better.classList.toggle('is-on', p > 0.86);
         heroin.style.setProperty('--calm', M.map(p, 0.6, 0.9, 0, 1).toFixed(3));
+      });
+
+      /* Scene D: the museum wall gets a yard sale */
+      const wall = root.querySelector('.ws-wall');
+      const wallRoom = root.querySelector('.ws-wall-room');
+      const wallCap = root.querySelector('.ws-wall-cap');
+      c.track(wall, p => {
+        const crowded = p > 0.52;
+        wallRoom.classList.toggle('is-crowded', crowded);
+        const html = crowded
+          ? 'The same painting at a yard sale. <em>Feel the price drop?</em>'
+          : 'Galleries hang one masterpiece per wall. <em>The wall is part of the art.</em>';
+        if (wallCap.dataset.txt !== html) { wallCap.dataset.txt = html; wallCap.innerHTML = html; }
       });
 
       /* Scene B: typography inhales */
@@ -454,6 +606,7 @@
             <span class="co-hue">H&thinsp;0°</span>
             <span class="co-temp-tag">warm</span>
           </div>
+          ${ROOMS.plaque('04.1', 'The Temperature Corridor', '300 degrees of feeling · walk-through', '', 'plaque--right')}
         </div>
       </section>
 
@@ -469,10 +622,40 @@
             <p class="co-scheme-note">Opposites on the wheel. Maximum tension — use one as the star, one as the cameo.</p>
             <div class="co-chips"></div>
           </div>
+          ${ROOMS.plaque('04.2', 'The Wheel', 'twelve suspects · rearranged by scroll')}
         </div>
       </section>
 
-      <!-- Scene C · the 60·30·10 rule -->
+      <!-- Scene C · your eyes lie -->
+      <section class="co-illusion">
+        <p class="rm-cap" data-reveal>Two chips. <em>Identical grey.</em> Your brain refuses to believe it.</p>
+        <div class="co-illu" data-reveal style="--d:.1s">
+          <div class="co-illu-half cih-dark"><i></i></div>
+          <div class="co-illu-half cih-light"><i></i></div>
+        </div>
+        <button class="co-illu-btn" data-cursor="link" data-reveal style="--d:.15s"><i></i>Hold to remove the neighbors</button>
+        ${ROOMS.plaque('04.3', 'Simultaneous Contrast', 'after M.&thinsp;E. Chevreul, 1839',
+          'No color exists alone. Every hue is a rumor started by its neighbors.', 'plaque--center')}
+      </section>
+
+      <!-- Scene D · the wrong outfit -->
+      <section class="co-outfit sticky-wrap" style="--len:360">
+        <div class="sticky-pane">
+          <div class="co-phone">
+            <span class="co-phone-notch" aria-hidden="true"></span>
+            <div class="co-phone-ui">
+              <b class="cp-app">lumen</b>
+              <h3 class="cp-word">Breathe</h3>
+              <p class="cp-sub">4 minutes · evening wind-down</p>
+              <span class="cp-btn">Begin session</span>
+            </div>
+          </div>
+          <p class="rm-cap co-outfit-cap">This is a meditation app. Feeling calm yet?</p>
+          ${ROOMS.plaque('04.4', 'The Wrong Outfit', 'one app, three wardrobes · rotates on scroll')}
+        </div>
+      </section>
+
+      <!-- Scene E · the 60·30·10 rule -->
       <section class="co-rule sticky-wrap" style="--len:300">
         <div class="sticky-pane">
           <p class="rm-cap co-rule-cap">Palettes aren't split evenly. <em>60 · 30 · 10.</em></p>
@@ -498,6 +681,7 @@
             <span class="co-d-chip cdc-a1"><i></i>neighbor −30°</span>
             <span class="co-d-chip cdc-a2"><i></i>neighbor +30°</span>
           </div>
+          <span class="co-mixer-brass">Please touch · the paint is dry</span>
         </div>
       </section>
 
@@ -575,7 +759,36 @@
         chips.innerHTML = s.idx.map(k => `<i style="background:hsl(${k * 30} 72% 52%)"></i>`).join('');
       });
 
-      /* Scene C: 60-30-10 assembles */
+      /* Scene C: hold to dissolve the illusion */
+      const illu = root.querySelector('.co-illu');
+      const illuBtn = root.querySelector('.co-illu-btn');
+      const illuOn = e => { e.preventDefault(); illu.classList.add('is-flat'); };
+      const illuOff = () => illu.classList.remove('is-flat');
+      c.on(illuBtn, 'pointerdown', illuOn);
+      c.on(illuBtn, 'pointerup', illuOff);
+      c.on(illuBtn, 'pointerleave', illuOff);
+      c.on(illuBtn, 'keydown', e => { if (e.key === ' ' || e.key === 'Enter') illuOn(e); });
+      c.on(illuBtn, 'keyup', illuOff);
+
+      /* Scene D: the app tries on three wardrobes */
+      const outfit = root.querySelector('.co-outfit');
+      const phone = root.querySelector('.co-phone');
+      const outfitCap = root.querySelector('.co-outfit-cap');
+      const fits = [
+        ['is-rave', 'This is a meditation app. Feeling calm yet?'],
+        ['is-diner', 'Now it wants to sell you fries with that.'],
+        ['is-calm', 'There it is. <em>Color is the outfit meaning wears.</em>']
+      ];
+      let curFit = -1;
+      c.track(outfit, p => {
+        const i = Math.min(2, Math.floor(M.map(p, 0.05, 0.95, 0, 1) * 3));
+        if (i === curFit) return;
+        curFit = i;
+        phone.className = 'co-phone ' + fits[i][0];
+        outfitCap.innerHTML = fits[i][1];
+      });
+
+      /* Scene E: 60-30-10 assembles */
       const rule = root.querySelector('.co-rule');
       const ui = root.querySelector('.co-rule-ui');
       c.track(rule, p => {

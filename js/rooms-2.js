@@ -37,6 +37,8 @@
             <span class="ty-marker tm-counter"><i></i><b>the counter — a letter's lungs</b></span>
           </div>
           <p class="rm-cap ty-anatomy-cap">Every letter is a small building with <em>load-bearing walls.</em></p>
+          ${ROOMS.plaque('05.1', 'Anatomy of a g', 'Fraunces, dissected · x-height and all',
+            'The double-story g is the hardest letter to draw. Type designers save it for last.')}
         </div>
       </section>
 
@@ -73,16 +75,33 @@
         </div>
       </section>
 
-      <!-- Scene E · the playground -->
+      <!-- Scene E · the four crimes of typesetting -->
+      <section class="ty-crimes sticky-wrap" style="--len:480">
+        <div class="sticky-pane">
+          <div class="ty-court">
+            <p class="ty-crime-para">Good typesetting is invisible — you only notice it when it goes wrong. And now that you are about to watch it go wrong four times in a row, you will notice it everywhere, forever: on menus, on slides, on wedding invitations, on the sides of vans. We apologize in advance. There are worse curses to carry.</p>
+            <span class="ty-crime-stamp" aria-hidden="true"><b>Crime №1</b><i>lines two feet long</i></span>
+          </div>
+          <p class="rm-cap ty-crimes-cap">The people vs. this paragraph.</p>
+          ${ROOMS.plaque('05.2', 'The Courtroom', 'four misdemeanors · re-enacted hourly')}
+        </div>
+      </section>
+
+      <!-- Scene F · the playground -->
       <section class="ty-play-scene">
         <p class="rm-cap" data-reveal>You are now a type designer. <em>Move. Click to change family.</em></p>
-        <div class="ty-play" data-cursor="drag" data-reveal style="--d:.1s">
-          <span class="ty-play-glyph">Rg</span>
-          <div class="ty-play-hud">
-            <span class="tp-fam">Archivo</span>
-            <span class="tp-wght">wght 400</span>
-            <span class="tp-wdth">wdth 100</span>
+        <div class="vitrine" data-reveal style="--d:.1s">
+          <div class="vitrine-glass">
+            <div class="ty-play" data-cursor="drag">
+              <span class="ty-play-glyph">Rg</span>
+              <div class="ty-play-hud">
+                <span class="tp-fam">Archivo</span>
+                <span class="tp-wght">wght 400</span>
+                <span class="tp-wdth">wdth 100</span>
+              </div>
+            </div>
           </div>
+          <div class="vitrine-base"><span>Please touch the specimens</span></div>
         </div>
       </section>
 
@@ -155,7 +174,34 @@
         kls.forEach((s, i) => { s.style.marginLeft = (gaps[i] * q).toFixed(3) + 'em'; });
       });
 
-      /* Scene E: pointer playground */
+      /* Scene E: the four crimes */
+      const crimes = root.querySelector('.ty-crimes');
+      const court = root.querySelector('.ty-court');
+      const stampEl = root.querySelector('.ty-crime-stamp');
+      const crimesCap = root.querySelector('.ty-crimes-cap');
+      const docket = [
+        ['is-clean',  '', '', 'The people vs. this paragraph.'],
+        ['is-c1', 'Crime №1', 'lines two feet long', 'Past ~75 characters, the eye loses the trail back.'],
+        ['is-c2', 'Crime №2', 'suffocated line-height', 'Leading is the air between floors. This building has none.'],
+        ['is-c3', 'Crime №3', 'all caps, all body', 'CAPITALS HAVE NO SILHOUETTE. READING BECOMES SPELLING.'],
+        ['is-c4', 'Crime №4', 'centered body text', 'Every line starts somewhere new. Your eye pays the fare.'],
+        ['is-acquit', 'Verdict', 'acquitted, with apologies', 'Settings restored. <em>Notice how loud the silence isn’t.</em>']
+      ];
+      let curCrime = -1;
+      c.track(crimes, p => {
+        const i = Math.min(5, Math.floor(M.map(p, 0.03, 0.97, 0, 1) * 6));
+        if (i === curCrime) return;
+        curCrime = i;
+        const [cls, kick, name, cap] = docket[i];
+        court.className = 'ty-court ' + cls;
+        if (kick) {
+          stampEl.innerHTML = `<b>${kick}</b><i>${name}</i>`;
+          stampEl.classList.remove('slam'); void stampEl.offsetWidth; stampEl.classList.add('slam');
+        } else stampEl.classList.remove('slam');
+        crimesCap.innerHTML = cap;
+      });
+
+      /* Scene F: pointer playground */
       const play = root.querySelector('.ty-play');
       const pg = root.querySelector('.ty-play-glyph');
       const fam = root.querySelector('.tp-fam');
@@ -231,6 +277,18 @@
               <svg class="mo-curve" viewBox="0 0 100 100"><path d="M0,100 C20,100 32,-24 52,-8 C66,4 74,2 100,0"/></svg>
             </div>
           </div>
+          ${ROOMS.plaque('06.1', 'The Photo Finish', 'three easings, one distance · looped')}
+        </div>
+      </section>
+
+      <!-- Scene B · this word reads your scroll -->
+      <section class="mo-velo sticky-wrap" style="--len:300">
+        <div class="sticky-pane">
+          <h2 class="mo-velo-word">VELOCITY</h2>
+          <p class="mo-velo-read"><b>0</b> px/s</p>
+          <p class="rm-cap mo-velo-cap">This word is wired to your scroll wheel. <em>Floor it.</em></p>
+          ${ROOMS.plaque('06.2', 'The Speedometer', 'variable font on a live wire',
+            'Width, slant and glow mapped to your scroll velocity. The medium is you.')}
         </div>
       </section>
 
@@ -254,20 +312,49 @@
         <p class="mo-dur-note" data-reveal>Interfaces feel “fast” at ~250–350&thinsp;ms.<br>Below that: nervous. Above: asleep.</p>
       </section>
 
-      <!-- Scene C · choreography -->
+      <!-- Scene D · choreography -->
       <section class="mo-stagger sticky-wrap" style="--len:340">
         <div class="sticky-pane">
           <div class="mo-grid" aria-hidden="true">${dots}</div>
           <p class="rm-cap mo-stagger-cap">One dot moving is a glitch.<br>Eighty in order is a <em>dance.</em></p>
+          ${ROOMS.plaque('06.3', 'The Corps de Ballet', 'eighty dancers · 40ms apart')}
         </div>
       </section>
 
-      <!-- Scene D · the spring toy -->
+      <!-- Scene E · the petting zoo -->
+      <section class="mo-zoo">
+        <p class="rm-cap" data-reveal>The petting zoo. <em>Small motions, big feelings.</em></p>
+        <div class="mo-zoo-row">
+          <div class="mo-pet" data-reveal style="--d:.05s">
+            <button class="mo-like" data-cursor="link" aria-label="Like this exhibit">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.8-10-9.3C.4 8.4 2 4.6 5.6 4.1c2.1-.3 4 .7 5.1 2.3.3.5 1.1.5 1.4 0 1.1-1.6 3-2.6 5.1-2.3 3.6.5 5.2 4.3 3.6 7.6C19.5 16.2 12 21 12 21z"/></svg>
+              <span class="mo-burst" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            </button>
+            <b>Celebration</b><span>click it</span>
+          </div>
+          <div class="mo-pet" data-reveal style="--d:.15s">
+            <button class="mo-jump" data-cursor="link">Jump</button>
+            <b>Anticipation</b><span>it crouches first</span>
+          </div>
+          <div class="mo-pet" data-reveal style="--d:.25s">
+            <button class="mo-mag" data-cursor="link"><span>Magnet</span></button>
+            <b>Magnetism</b><span>circle it slowly</span>
+          </div>
+        </div>
+        ${ROOMS.plaque('06.4', 'Live Specimens', 'three microinteractions · please feed them', '', 'plaque--center')}
+      </section>
+
+      <!-- Scene F · the spring toy -->
       <section class="mo-toy-scene">
         <p class="rm-cap" data-reveal>Springs make pixels feel like things. <em>Grab it. Throw it.</em></p>
-        <div class="mo-toy" data-reveal style="--d:.1s">
-          <i class="mo-ghost g1"></i><i class="mo-ghost g2"></i><i class="mo-ghost g3"></i>
-          <button class="mo-ball" data-cursor="drag" aria-label="Throwable spring ball"></button>
+        <div class="vitrine" data-reveal style="--d:.1s">
+          <div class="vitrine-glass">
+            <div class="mo-toy">
+              <i class="mo-ghost g1"></i><i class="mo-ghost g2"></i><i class="mo-ghost g3"></i>
+              <button class="mo-ball" data-cursor="drag" aria-label="Throwable spring ball"></button>
+            </div>
+          </div>
+          <div class="vitrine-base"><span>Please throw the exhibit</span></div>
         </div>
       </section>
 
@@ -307,9 +394,49 @@
         rc.style.setProperty('--px', clamp(spring(q), 0, 1.15).toFixed(4));
       });
 
-      /* Scene B: duration toggles */
+      /* Scene B: the word wired to scroll velocity */
+      const velo = root.querySelector('.mo-velo');
+      const veloWord = root.querySelector('.mo-velo-word');
+      const veloRead = root.querySelector('.mo-velo-read b');
+      let veloVis = false, vSmooth = 0;
+      c.track(velo, p => { veloVis = p > 0 && p < 1; });
+      c.frame((t, dt) => {
+        if (!veloVis) return;
+        const v = Math.abs(M.scroll.sv) * 60; // px/s
+        vSmooth = M.lerp(vSmooth, v, 0.2 * dt);
+        const q = M.clamp(vSmooth / 2600, 0, 1);
+        veloWord.style.fontVariationSettings =
+          `'wght' ${Math.round(M.lerp(300, 900, q))}, 'wdth' ${M.lerp(70, 125, q).toFixed(1)}`;
+        veloWord.style.transform = `skewX(${(M.clamp(M.scroll.sv, -30, 30) * -0.5).toFixed(2)}deg)`;
+        veloWord.style.textShadow = `0 0 ${Math.round(q * 70)}px rgba(200, 242, 63, ${(q * 0.85).toFixed(2)})`;
+        veloRead.textContent = Math.round(vSmooth);
+      });
+
+      /* Scene C: duration toggles */
       root.querySelectorAll('.mo-toggle').forEach(tg =>
         c.on(tg, 'click', () => tg.classList.toggle('is-on')));
+
+      /* Scene E: the petting zoo */
+      const like = root.querySelector('.mo-like');
+      c.on(like, 'click', () => {
+        like.classList.remove('is-liked'); void like.offsetWidth;
+        like.classList.add('is-liked');
+      });
+      const jump = root.querySelector('.mo-jump');
+      c.on(jump, 'click', () => {
+        jump.classList.remove('is-jumping'); void jump.offsetWidth;
+        jump.classList.add('is-jumping');
+      });
+      const mag = root.querySelector('.mo-mag');
+      if (M.fine) {
+        c.on(mag, 'pointermove', e => {
+          const r = mag.getBoundingClientRect();
+          const dx = (e.clientX - r.left - r.width / 2) * 0.42;
+          const dyy = (e.clientY - r.top - r.height / 2) * 0.42;
+          mag.style.transform = `translate(${dx.toFixed(1)}px, ${dyy.toFixed(1)}px)`;
+        });
+        c.on(mag, 'pointerleave', () => { mag.style.transform = ''; });
+      }
 
       /* Scene C: stagger wave */
       const stag = root.querySelector('.mo-stagger');
@@ -374,10 +501,18 @@
     theme: 'th-balance',
 
     html() {
-      const chips = ROOMS.order.map(id => {
+      const slots = ROOMS.order.map(id => {
         const d = ROOMS.get(id);
-        return `<a class="ba-chip" href="#/room/${id}" data-room="${id}" data-cursor="link">
-          <span class="door-preview dp-${id}">${d ? d.preview : ''}</span><b>${d ? d.name : id}</b></a>`;
+        return `<a class="bp-slot" href="#/room/${id}" data-room="${id}" data-cursor="dot">
+          <span class="stamp">Visited</span><b>${d ? d.num : '··'}</b><i>${d ? d.name : id}</i></a>`;
+      }).join('');
+      const cards = ROOMS.order.map((id, i) => {
+        const d = ROOMS.get(id);
+        return `<a class="ba-postcard" href="#/room/${id}" data-room="${id}" data-cursor="enter" style="--rot:${(i - 3) * 2.4}deg">
+          <span class="door-preview dp-${id}">${d ? d.preview : ''}</span>
+          <b>${d ? d.name : id}</b>
+          <i>postcard · $0.00</i>
+        </a>`;
       }).join('');
       return `
       ${ROOMS.hero({
@@ -410,10 +545,26 @@
             <span class="ba-axis"></span>
           </div>
           <p class="rm-cap ba-sym-cap">Symmetry always balances. <em>It’s also always predictable.</em></p>
+          ${ROOMS.plaque('07.2', 'Mirror, Broken Nicely', 'five shapes, re-hung mid-scroll')}
         </div>
       </section>
 
-      <!-- Scene C · level it yourself -->
+      <!-- Scene C · the rule of thirds -->
+      <section class="ba-thirds sticky-wrap" style="--len:320">
+        <div class="sticky-pane">
+          <div class="ba-photo">
+            <span class="ba-ground"></span>
+            <i class="ba-sun"></i>
+            <span class="ba-gl gl-v1"></span><span class="ba-gl gl-v2"></span>
+            <span class="ba-gl gl-h1"></span><span class="ba-gl gl-h2"></span>
+          </div>
+          <p class="rm-cap ba-thirds-cap">Dead center is stable. Stable is <em>static.</em></p>
+          ${ROOMS.plaque('07.3', 'Sunset, Rehung', 'the rule of thirds · in motion',
+            'Painters knew it, then photographers, then everyone with a phone.')}
+        </div>
+      </section>
+
+      <!-- Scene D · level it yourself -->
       <section class="ba-game-scene">
         <p class="rm-cap" data-reveal>Your turn. <em>Drag the discs until the frame stops tilting.</em></p>
         <div class="ba-game" data-reveal style="--d:.1s">
@@ -428,11 +579,26 @@
         </div>
       </section>
 
-      <!-- FINALE -->
+      <!-- FINALE · passport control, then the gift shop -->
       <section class="ba-finale">
         <p class="ba-fin-kicker" data-reveal>End of the permanent collection</p>
         <h2 class="ba-fin-big" data-split>You’ve walked all seven rooms. Design isn’t decoration — <em>it’s decisions.</em></h2>
-        <div class="ba-chips" data-reveal>${chips}</div>
+
+        <div class="ba-passport" data-reveal>
+          <div class="bp-head">
+            <b>Visitor’s Passport</b>
+            <span class="bp-count">0 of 7 rooms stamped</span>
+          </div>
+          <div class="bp-grid">${slots}</div>
+          <p class="bp-note">Stamps are earned by walking, not by reading about walking.</p>
+        </div>
+
+        <div class="ba-shop">
+          <p class="ba-shop-kicker" data-reveal>· The gift shop ·</p>
+          <div class="ba-postcards" data-reveal style="--d:.1s">${cards}</div>
+          <p class="ba-shop-note" data-reveal style="--d:.2s">Take one. Knowledge ships free.</p>
+        </div>
+
         <a class="ba-exit" href="#/" data-cursor="enter" data-reveal style="--d:.15s">
           <span>Exit through the gift shop</span>
           <b>← Back to the gallery</b>
@@ -467,7 +633,32 @@
           : 'Asymmetry balances by trade: <em>one big near the center, small things far away.</em>';
       });
 
-      /* Scene C: drag discs, level the frame */
+      /* Scene C: the sun finds its third */
+      const thirds = root.querySelector('.ba-thirds');
+      const photo = root.querySelector('.ba-photo');
+      const thirdsCap = root.querySelector('.ba-thirds-cap');
+      c.track(thirds, p => {
+        const grid = M.map(p, 0.3, 0.45, 0, 1);
+        const q = M.map(p, 0.45, 0.85, 0, 1);
+        photo.style.setProperty('--grid', grid.toFixed(3));
+        photo.style.setProperty('--q', q.toFixed(4));
+        const html = q > 0.55
+          ? 'On the thirds, the picture has somewhere to go. <em>Tension is interest.</em>'
+          : 'Dead center is stable. Stable is <em>static.</em>';
+        if (thirdsCap.dataset.txt !== html) { thirdsCap.dataset.txt = html; thirdsCap.innerHTML = html; }
+      });
+
+      /* Finale: stamp the passport with this visit's earnings */
+      const S = window.STAMPS;
+      if (S) {
+        root.querySelectorAll('.bp-slot').forEach(sl =>
+          sl.classList.toggle('is-stamped', S.has(sl.dataset.room)));
+        const n = ROOMS.order.filter(id => S.has(id)).length;
+        root.querySelector('.bp-count').textContent =
+          n === 7 ? 'All 7 rooms stamped — a completionist!' : `${n} of 7 rooms stamped`;
+      }
+
+      /* Scene D: drag discs, level the frame */
       const frame = root.querySelector('.ba-frame');
       const discs = Array.from(root.querySelectorAll('.ba-disc'));
       const gAngle = root.querySelector('.ba-game-angle');

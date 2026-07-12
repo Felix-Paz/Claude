@@ -73,6 +73,33 @@ window.HOME = (function () {
     const track = $('.gallery-track');
     const head = $('.gallery-head');
     const doors = $$('.door', track);
+
+    // visitor stamp badge on every doorway (shown once the room is visited)
+    doors.forEach(d => {
+      const s = document.createElement('span');
+      s.className = 'stamp';
+      s.setAttribute('aria-hidden', 'true');
+      s.textContent = 'Visited';
+      d.querySelector('.door-arch').appendChild(s);
+    });
+
+    // doorways lean toward the cursor (fine pointers only)
+    if (M.fine) {
+      doors.forEach(d => {
+        const arch = d.querySelector('.door-arch');
+        d.addEventListener('pointermove', e => {
+          const r = d.getBoundingClientRect();
+          const mx = ((e.clientX - r.left) / r.width - 0.5) * 14;
+          const myy = ((e.clientY - r.top) / r.height - 0.5) * 10;
+          arch.style.setProperty('--magx', mx.toFixed(1) + 'px');
+          arch.style.setProperty('--magy', myy.toFixed(1) + 'px');
+        });
+        d.addEventListener('pointerleave', () => {
+          arch.style.setProperty('--magx', '0px');
+          arch.style.setProperty('--magy', '0px');
+        });
+      });
+    }
     let gx = 0, gtx = 0;
     galleryTrack = M.track(gallery, p => {
       gtx = p;

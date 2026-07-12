@@ -53,13 +53,16 @@
 
 .hero-over {
   position: relative; z-index: 2;
-  display: flex; align-items: center; gap: 1rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 2rem;
   margin: 0 var(--gutter);
   font-family: var(--f-mono);
   font-size: 0.72rem; letter-spacing: 0.24em; text-transform: uppercase;
   color: var(--ink-2);
 }
+.hero-over p { display: flex; align-items: center; gap: 1rem; }
 .hero-over-line { display: inline-block; width: 3.6rem; height: 1px; background: var(--ink-2); }
+.hero-hours { font-size: 0.6rem; letter-spacing: 0.16em; color: var(--muted); text-align: right; }
+@media (max-width: 720px) { .hero-hours { display: none; } }
 
 .hero-title {
   position: relative; z-index: 2;
@@ -258,11 +261,11 @@
   border: 1px solid var(--line);
   background: var(--paper);
   box-shadow: 0 1px 0 rgba(20, 17, 11, 0.03);
-  transition: transform 0.6s var(--e-spring), box-shadow 0.6s var(--e-out);
-  transform: translateY(var(--dy, 0)) rotate(var(--dr, 0deg));
+  transition: transform 0.45s var(--e-out), box-shadow 0.6s var(--e-out);
+  transform: translate(var(--magx, 0px), calc(var(--dy, 0px) + var(--magy, 0px))) rotate(var(--dr, 0deg));
 }
 .door:hover .door-arch, .door:focus-visible .door-arch {
-  transform: translateY(calc(var(--dy, 0px) - 14px)) rotate(var(--dr, 0deg)) scale(1.02);
+  transform: translate(var(--magx, 0px), calc(var(--dy, 0px) + var(--magy, 0px) - 14px)) rotate(var(--dr, 0deg)) scale(1.02);
   box-shadow: 0 30px 60px -18px rgba(20, 17, 11, 0.28);
 }
 .door-preview { position: absolute; inset: 0; }

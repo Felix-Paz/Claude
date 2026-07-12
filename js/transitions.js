@@ -38,9 +38,14 @@ window.TRANSITIONS = (function () {
         anim(top, { transform: ['translateY(-101%)', 'translateY(0)'] }, { duration: 480 }),
         anim(bot, { transform: ['translateY(101%)', 'translateY(0)'] }, { duration: 480 })
       ]);
-      // the invert flash: swap which half is which
-      top.style.background = '#fff'; bot.style.background = '#000';
-      await wait(180);
+      // a strobing inversion: the halves argue about which is which
+      const flip = on => {
+        top.style.background = on ? '#fff' : '#000';
+        bot.style.background = on ? '#000' : '#fff';
+      };
+      flip(true); await wait(110);
+      flip(false); await wait(90);
+      flip(true); await wait(160);
     },
     async release(ov) {
       const [top, bot] = ov.children;
@@ -60,7 +65,10 @@ window.TRANSITIONS = (function () {
       ];
       let y = 0;
       const ps = rows.map((r, i) => {
-        const b = el(ov, `left:0;right:0;top:${y}%;height:${r.h + 0.5}%;background:${r.c};transform:translateX(-101%)`);
+        const b = el(ov, `left:0;right:0;top:${y}%;height:${r.h + 0.5}%;background:${r.c};transform:translateX(-101%);` +
+                         'display:flex;align-items:center;padding-left:4vw;overflow:hidden');
+        b.innerHTML = `<span style="font-family:Archivo,sans-serif;font-weight:850;color:rgb(255 255 255/.28);` +
+          `font-size:${Math.max(r.h * 0.62, 5)}vh;line-height:1;font-variation-settings:'wdth' 120">${i + 1}</span>`;
         y += r.h;
         return anim(b, { transform: ['translateX(-101%)', 'translateX(0)'] }, { duration: 520, delay: i * 75 });
       });
@@ -82,8 +90,13 @@ window.TRANSITIONS = (function () {
       const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
       const c = el(ov, `left:${x}px;top:${y}px;width:${r * 2}px;height:${r * 2}px;margin:${-r}px 0 0 ${-r}px;` +
                        'border-radius:50%;background:#FBFAF6;transform:scale(0)');
+      const word = el(ov, 'inset:0;display:grid;place-items:center;opacity:0');
+      word.innerHTML = '<span style="font-family:ui-monospace,monospace;font-size:0.72rem;letter-spacing:0.34em;' +
+        'text-transform:uppercase;color:#A99F82">( breathe )</span>';
       await anim(c, { transform: ['scale(0)', 'scale(1.02)'] }, { duration: 900, easing: 'cubic-bezier(0.22,1,0.36,1)' });
-      await wait(150);
+      await anim(word, { opacity: [0, 1] }, { duration: 300, easing: 'ease' });
+      await wait(260);
+      await anim(word, { opacity: [1, 0] }, { duration: 220, easing: 'ease' });
     },
     async release(ov) {
       await anim(ov.firstChild, { opacity: [1, 0] }, { duration: 700, easing: 'ease' });
@@ -93,11 +106,20 @@ window.TRANSITIONS = (function () {
   /* ------- 04 · COLOR: the spectrum sweeps you in ------- */
   const color = {
     async cover(ov) {
-      const hues = ['#FF3D2E', '#FF9A1F', '#F4E22C', '#3FCB6B', '#2C39E8', '#0E0D12'];
-      const ps = hues.map((c, i) =>
-        anim(el(ov, `inset:-1px;background:${c};transform:translateX(-101%)`),
-             { transform: ['translateX(-101%)', 'translateX(0)'] },
-             { duration: 460, delay: i * 90, easing: 'cubic-bezier(0.76,0,0.24,1)' }));
+      const hues = [
+        ['#FF3D2E', 'urgent', '#7A0E05'], ['#FF9A1F', 'hungry', '#7A4302'],
+        ['#F4E22C', 'alert', '#6E6407'], ['#3FCB6B', 'calm', '#0E5427'],
+        ['#2C39E8', 'trusted', '#0A1268'], ['#0E0D12', '', '']
+      ];
+      const ps = hues.map(([c, wordTxt, wc], i) => {
+        const p = el(ov, `inset:-1px;background:${c};transform:translateX(-101%);` +
+                         `display:flex;align-items:center;justify-content:${i % 2 ? 'flex-end' : 'flex-start'};` +
+                         'padding:0 6vw;overflow:hidden');
+        if (wordTxt) p.innerHTML = `<span style="font-family:ui-monospace,monospace;font-size:0.8rem;` +
+          `letter-spacing:0.4em;text-transform:uppercase;color:${wc};opacity:.8">${wordTxt}</span>`;
+        return anim(p, { transform: ['translateX(-101%)', 'translateX(0)'] },
+                    { duration: 460, delay: i * 90, easing: 'cubic-bezier(0.76,0,0.24,1)' });
+      });
       await Promise.all(ps);
     },
     async release(ov) {
@@ -110,19 +132,20 @@ window.TRANSITIONS = (function () {
   const typography = {
     async cover(ov) {
       const panel = el(ov, 'inset:-1px;background:#F4EBD9;transform:translateY(101%)');
-      const glyph = el(ov, 'inset:0;display:grid;place-items:center;opacity:0');
-      glyph.innerHTML = '<span style="font-family:Fraunces,Georgia,serif;font-size:38vmin;line-height:1;' +
-        "font-variation-settings:'opsz' 144,'WONK' 1;font-weight:250;color:#1D1608\">Aa</span>";
-      const span = glyph.firstChild;
+      const glyph = el(ov, 'inset:0;display:flex;align-items:center;justify-content:center;gap:4vmin');
+      glyph.innerHTML =
+        '<span style="font-family:Fraunces,Georgia,serif;font-variation-settings:\'opsz\' 144,\'WONK\' 1;font-size:34vmin;line-height:1;color:#1D1608;opacity:0">A</span>' +
+        '<span style="font-family:Fraunces,Georgia,serif;font-style:italic;font-variation-settings:\'opsz\' 144;font-size:34vmin;line-height:1;color:#C33A1B;opacity:0">a</span>' +
+        '<span style="font-family:Fraunces,Georgia,serif;font-variation-settings:\'opsz\' 144,\'SOFT\' 100;font-size:34vmin;line-height:1;color:#1D1608;opacity:0">&</span>';
+      const spans = Array.from(glyph.children);
       const cover = anim(panel, { transform: ['translateY(101%)', 'translateY(0)'] },
                          { duration: 560, easing: 'cubic-bezier(0.76,0,0.24,1)' });
-      const stamp = anim(glyph, { opacity: [0, 1] }, { duration: 200, delay: 380 });
-      const weight = span.animate(
-        [{ fontVariationSettings: "'opsz' 144, 'WONK' 1, 'wght' 250" },
-         { fontVariationSettings: "'opsz' 144, 'WONK' 1, 'wght' 800" }],
-        { duration: 550, delay: 380, fill: 'forwards', easing: 'cubic-bezier(0.34,1.56,0.64,1)' }).finished;
-      await Promise.all([cover, stamp, weight]);
-      await wait(140);
+      const stamps = spans.map((s, i) => s.animate([
+        { opacity: 0, transform: 'scale(1.7)', fontWeight: 200 },
+        { opacity: 1, transform: 'scale(1)', fontWeight: 700 }
+      ], { duration: 380, delay: 400 + i * 130, fill: 'forwards', easing: 'cubic-bezier(0.34,1.56,0.64,1)' }).finished);
+      await Promise.all([cover, ...stamps]);
+      await wait(160);
     },
     async release(ov) {
       const [panel, glyph] = ov.children;
@@ -138,6 +161,15 @@ window.TRANSITIONS = (function () {
   const motion = {
     async cover(ov) {
       const d = Math.max(innerWidth, innerHeight) * 2.4;
+      // ghost echoes trail the drop
+      [0.10, 0.05].forEach((op, i) => {
+        const g = el(ov, `left:50%;top:100%;width:${d}px;height:${d}px;margin:${-d / 2}px 0 0 ${-d / 2}px;` +
+                         `border-radius:50%;background:#C8F23F;opacity:${op};transform:scale(0.045)`);
+        g.animate([
+          { transform: `translateY(${-innerHeight * 0.9 - d * 0.02}px) scale(0.05)` },
+          { transform: 'translateY(0) scale(0.06)' }
+        ], { duration: 420, delay: 60 + i * 70, fill: 'forwards', easing: 'cubic-bezier(0.5,0,1,1)' });
+      });
       const ball = el(ov, `left:50%;top:100%;width:${d}px;height:${d}px;margin:${-d / 2}px 0 0 ${-d / 2}px;` +
                           'border-radius:50%;background:#C8F23F;transform:translateY(-4%) scale(0.04)');
       // drop in from above, squash at the floor, then inflate over everything

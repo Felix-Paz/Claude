@@ -337,3 +337,217 @@ body[data-view="room"] .nav-room { opacity: 1; }
   html { scroll-behavior: auto !important; }
   #grain { animation: none; }
 }
+
+/* ---------- Ticket gate ---------- */
+#ticket-gate {
+  position: fixed; inset: 0;
+  z-index: 350;
+  display: grid; place-items: center;
+}
+.tg-veil {
+  position: absolute; inset: 0;
+  background: color-mix(in srgb, var(--ink) 46%, transparent);
+  backdrop-filter: blur(12px) saturate(1.05);
+  -webkit-backdrop-filter: blur(12px) saturate(1.05);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+#ticket-gate.is-in .tg-veil { opacity: 1; }
+.tg-ticket {
+  position: relative;
+  display: flex;
+  width: min(36rem, 92vw);
+  transform: rotate(-4deg) translateY(46px) scale(0.96);
+  opacity: 0;
+  filter: drop-shadow(0 36px 44px rgb(10 8 4 / 0.45));
+  transition: transform 0.75s var(--e-spring), opacity 0.5s ease;
+  /* punched notches at the perforation */
+  --seam: calc(100% - 8.8rem);
+  -webkit-mask-image:
+    radial-gradient(circle 12px at var(--seam) 0%, transparent 11px, #000 12px),
+    radial-gradient(circle 12px at var(--seam) 100%, transparent 11px, #000 12px);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(circle 12px at var(--seam) 0%, transparent 11px, #000 12px),
+    radial-gradient(circle 12px at var(--seam) 100%, transparent 11px, #000 12px);
+  mask-composite: intersect;
+}
+#ticket-gate.is-in .tg-ticket { transform: rotate(-4deg); opacity: 1; }
+.tg-main {
+  flex: 1;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 16px 0 0 16px;
+  padding: clamp(1.4rem, 4vw, 2.2rem);
+  display: grid; gap: 0.45rem;
+}
+.tg-kicker { font-family: var(--f-mono); font-size: 0.64rem; letter-spacing: 0.26em; text-transform: uppercase; color: var(--muted); }
+.tg-name {
+  font-size: clamp(2.4rem, 7vw, 3.4rem);
+  font-weight: 850; font-variation-settings: 'wdth' 120;
+  line-height: 1;
+  padding-bottom: 0.35rem;
+  border-bottom: 3px solid var(--orange);
+  margin-bottom: 0.5rem;
+}
+.tg-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--f-mono); font-size: 0.72rem;
+  border-top: 1px solid var(--line);
+  padding-top: 0.45rem;
+}
+.tg-row b { text-transform: uppercase; letter-spacing: 0.16em; font-size: 0.6rem; color: var(--muted); }
+.tg-row i { font-style: normal; font-weight: 600; }
+.tg-note { margin-top: 0.6rem; font-family: var(--f-serif); font-style: italic; font-size: 0.98rem; }
+.tg-note em { color: var(--orange); }
+.tg-stub {
+  width: 8.8rem;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 0 16px 16px 0;
+  border-left: 2px dashed color-mix(in srgb, var(--ink) 32%, transparent);
+  padding: 1.2rem 1rem;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 0.8rem;
+}
+.tg-no { font-family: var(--f-mono); font-size: 0.6rem; letter-spacing: 0.12em; color: var(--muted); }
+.tg-no b { color: var(--ink); }
+.tg-barcode {
+  height: 3.4rem;
+  background: repeating-linear-gradient(90deg,
+    var(--ink) 0 2px, transparent 2px 5px, var(--ink) 5px 8px,
+    transparent 8px 10px, var(--ink) 10px 11px, transparent 11px 15px);
+}
+.tg-tear {
+  font-family: var(--f-mono); font-size: 0.58rem;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--orange);
+  animation: tg-nudge 1.6s var(--e-inout) infinite;
+}
+@keyframes tg-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+.tg-hint {
+  position: absolute; bottom: 8vh; left: 50%; transform: translateX(-50%);
+  font-family: var(--f-mono); font-size: 0.64rem;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--paper) 75%, transparent);
+  opacity: 0; transition: opacity 0.6s 0.5s;
+}
+#ticket-gate.is-in .tg-hint { opacity: 1; }
+/* the tear */
+#ticket-gate.is-torn .tg-main {
+  transform: translate(-36%, -120vh) rotate(-20deg);
+  transition: transform 0.85s cubic-bezier(0.5, 0, 0.9, 0.4);
+}
+#ticket-gate.is-torn .tg-stub {
+  transform-origin: top left;
+  transform: translate(34%, 130vh) rotate(38deg);
+  transition: transform 0.9s cubic-bezier(0.5, 0, 0.9, 0.4) 0.05s;
+}
+#ticket-gate.is-torn .tg-veil, #ticket-gate.is-torn .tg-hint { opacity: 0; transition-delay: 0.15s; }
+
+/* ---------- Exhibit plaque ---------- */
+.plaque {
+  position: relative;
+  width: fit-content;
+  max-width: 22rem;
+  text-align: left;
+  padding: 0.95rem 1.7rem;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  backdrop-filter: blur(5px);
+}
+.plaque::before, .plaque::after {
+  content: '';
+  position: absolute; top: 50%;
+  width: 5px; height: 5px; border-radius: 50%;
+  transform: translateY(-50%);
+  background: radial-gradient(circle at 32% 28%,
+    color-mix(in srgb, currentColor 60%, transparent),
+    color-mix(in srgb, currentColor 15%, transparent));
+}
+.plaque::before { left: 0.55rem; }
+.plaque::after { right: 0.55rem; }
+.plaque b {
+  display: block;
+  font-family: var(--f-mono); font-weight: 600;
+  font-size: 0.56rem; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--racc, var(--orange));
+  margin-bottom: 0.3rem;
+}
+.plaque strong { display: block; font-size: 1.02rem; font-weight: 720; font-variation-settings: 'wdth' 112; }
+.plaque em { display: block; font-family: var(--f-serif); font-style: italic; font-size: 0.82rem; opacity: 0.68; margin-top: 0.2rem; }
+.plaque p { font-size: 0.78rem; font-weight: 460; line-height: 1.55; opacity: 0.78; margin-top: 0.55rem; }
+.sticky-pane .plaque { position: absolute; left: var(--gutter); bottom: 4.5vh; z-index: 6; }
+.plaque--center { margin: 4rem auto 0; }
+@media (max-width: 760px) { .sticky-pane .plaque { display: none; } }
+
+/* ---------- Glass vitrine ---------- */
+.vitrine { position: relative; width: min(76rem, 100%); margin: 0 auto; }
+.vitrine-glass {
+  position: relative;
+  border-radius: 22px 22px 6px 6px;
+  overflow: clip;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset -1px 0 0 rgb(255 255 255 / 0.12),
+    0 44px 80px -36px rgb(0 0 0 / 0.5);
+}
+.vitrine-glass::after {
+  content: '';
+  position: absolute; inset: 0;
+  z-index: 9;
+  pointer-events: none;
+  background: linear-gradient(112deg,
+    transparent calc(var(--shx, 30) * 1% - 14%),
+    rgb(255 255 255 / 0.11) calc(var(--shx, 30) * 1% - 3%),
+    rgb(255 255 255 / 0.16) calc(var(--shx, 30) * 1%),
+    transparent calc(var(--shx, 30) * 1% + 12%));
+}
+.vitrine-glass > * { width: 100%; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
+.vitrine-base {
+  display: flex; justify-content: center;
+  margin: 0 1.8rem;
+  padding: 0.85rem;
+  background: linear-gradient(
+    color-mix(in srgb, var(--rfg, #14110B) 16%, var(--rbg, #DDD8CA)),
+    color-mix(in srgb, var(--rfg, #14110B) 30%, var(--rbg, #DDD8CA)));
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 26px 44px -26px rgb(0 0 0 / 0.55);
+}
+.vitrine-base span {
+  font-family: var(--f-mono); font-size: 0.58rem; font-weight: 700;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: #241D0C;
+  background: linear-gradient(160deg, #E6CD80, #B3924A);
+  border-radius: 3px;
+  padding: 0.5em 1.5em 0.5em 1.8em;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.55), 0 1px 3px rgb(0 0 0 / 0.35);
+}
+
+/* ---------- Visitor stamps ---------- */
+.stamp {
+  position: absolute;
+  width: 4.7rem; aspect-ratio: 1;
+  display: grid; place-items: center;
+  border: 2.5px solid #C0392B;
+  border-radius: 50%;
+  color: #C0392B;
+  font-family: var(--f-mono); font-size: 0.52rem; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  text-align: center; line-height: 1.5;
+  transform: rotate(-16deg) scale(1.7);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s, transform 0.45s var(--e-spring);
+}
+.stamp::before {
+  content: '';
+  position: absolute; inset: 5px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.7;
+}
+.is-stamped .stamp, .stamp.is-on { opacity: 0.9; transform: rotate(-16deg) scale(1); }
+.door .stamp { top: 9%; right: 5%; z-index: 3; }
+.nav-index a.is-stamped i { background: color-mix(in srgb, var(--orange) 55%, transparent); border-color: var(--orange); }
