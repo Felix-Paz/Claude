@@ -551,3 +551,22 @@ body[data-view="room"] .nav-room { opacity: 1; }
 .is-stamped .stamp, .stamp.is-on { opacity: 0.9; transform: rotate(-16deg) scale(1); }
 .door .stamp { top: 9%; right: 5%; z-index: 3; }
 .nav-index a.is-stamped i { background: color-mix(in srgb, var(--orange) 55%, transparent); border-color: var(--orange); }
+
+/* ---------- Fluid ink (gooey layer) ---------- */
+#fluid {
+  position: fixed; inset: 0;
+  z-index: 140;
+  pointer-events: none;
+  opacity: 0.45;
+  mix-blend-mode: soft-light;
+}
+.fluid-field { position: absolute; inset: -60px; filter: url(#goo-f); }
+.fluid-field i {
+  position: absolute; top: 0; left: 0;
+  border-radius: 50%;
+  background: var(--fa, #FF4B14);
+  will-change: transform;
+}
+.fluid-field i:nth-child(2n) { background: var(--fb, #2C39E8); }
+.fluid-field.is-pulse i { animation: fl-pulse 0.7s var(--e-out); }
+@keyframes fl-pulse { 30% { scale: 1.3; } }

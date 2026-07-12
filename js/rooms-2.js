@@ -507,19 +507,6 @@
     theme: 'th-balance',
 
     html() {
-      const slots = ROOMS.order.map(id => {
-        const d = ROOMS.get(id);
-        return `<a class="bp-slot" href="#/room/${id}" data-room="${id}" data-cursor="dot">
-          <span class="stamp">Visited</span><b>${d ? d.num : '··'}</b><i>${d ? d.name : id}</i></a>`;
-      }).join('');
-      const cards = ROOMS.order.map((id, i) => {
-        const d = ROOMS.get(id);
-        return `<a class="ba-postcard" href="#/room/${id}" data-room="${id}" data-cursor="enter" data-cursor-label="Take one" style="--rot:${(i - 3) * 2.4}deg">
-          <span class="door-preview dp-${id}">${d ? d.preview : ''}</span>
-          <b>${d ? d.name : id}</b>
-          <i>field notes · $0.00</i>
-        </a>`;
-      }).join('');
       return `
       ${ROOMS.hero({
         num: '07', title: 'Balance',
@@ -585,63 +572,21 @@
         </div>
       </section>
 
-      <!-- THE GRAND RESTORATION · every principle, one patient -->
-      <section class="ba-resto sticky-wrap" style="--len:900">
-        <div class="sticky-pane">
-          <div class="resto-wrap">
-            <div class="resto-poster">
-              <span class="rp-burst" aria-hidden="true">WOW!!!</span>
-              <p class="rp-kick">!!EXCLUSIVE EVENT!!</p>
-              <h4 class="rp-title">DESIGN GALA NIGHT!!!</h4>
-              <p class="rp-sub">the fanciest evening in town!!</p>
-              <p class="rp-body">Join us for art, live music, tiny sandwiches and BIG IDEAS!!! Everyone welcome!! Dress code: FABULOUS. Doors open EARLY so COME EARLY!!!</p>
-              <p class="rp-meta">SAT JUNE 21 ·· 8PM TILL LATE ·· MAIN HALL</p>
-              <span class="rp-cta">CLICK HERE FOR TICKETS!!!!</span>
-            </div>
-            <aside class="resto-side">
-              <p class="resto-kicker">The final exhibit</p>
-              <h3 class="resto-title">The Restoration</h3>
-              <p class="resto-sub">One poster, recovered from a strip-mall print shop. Scroll, and watch all seven rooms go to work on it.</p>
-              <ol class="resto-list">
-                <li data-step="1"><b>Contrast</b><span>ink returned to ink</span></li>
-                <li data-step="2"><b>Hierarchy</b><span>the title remembers it's a title</span></li>
-                <li data-step="3"><b>White space</b><span>clutter escorted from the building</span></li>
-                <li data-step="4"><b>Color</b><span>the palette enters therapy</span></li>
-                <li data-step="5"><b>Typography</b><span>eight fonts become two</span></li>
-                <li data-step="6"><b>Motion</b><span>given a pulse (hover the button)</span></li>
-                <li data-step="7"><b>Balance</b><span>finally hung straight</span></li>
-              </ol>
-              <p class="resto-verdict" aria-hidden="true">WOW.</p>
-            </aside>
-          </div>
-          ${ROOMS.plaque('07.4', 'The Restoration', 'before &amp; after, performed live', 'Patrons are advised the “before” is on purpose.')}
+      <!-- EXIT · the grand doors -->
+      <section class="rm-outro">
+        <h2 class="rm-statement" data-split>Nothing in this room was crooked. <em>You checked, didn’t you?</em></h2>
+        <div class="rm-next" data-reveal>
+          <p class="rm-next-kicker">End of the permanent collection</p>
+          <a class="rm-next-door" href="#/room/finale" data-room="finale" data-cursor="enter">
+            <span class="rm-next-arch"><span class="door-preview dp-finale"><i></i><b></b></span></span>
+            <span class="rm-next-meta">
+              <b>Through the doors</b>
+              <strong>The Rotunda</strong>
+              <em>every principle, one last time</em>
+            </span>
+          </a>
+          <a class="rm-back" href="#/" data-cursor="link">↩ or return to the gallery</a>
         </div>
-      </section>
-
-      <!-- FINALE · passport control, then the gift shop -->
-      <section class="ba-finale">
-        <p class="ba-fin-kicker" data-reveal>End of the permanent collection</p>
-        <h2 class="ba-fin-big" data-split>You’ve walked all seven rooms. Design isn’t decoration — <em>it’s decisions.</em></h2>
-
-        <div class="ba-passport" data-reveal>
-          <div class="bp-head">
-            <b>Visitor’s Passport</b>
-            <span class="bp-count">0 of 7 rooms stamped</span>
-          </div>
-          <div class="bp-grid">${slots}</div>
-          <p class="bp-note">Stamps are earned by walking, not by reading about walking.</p>
-        </div>
-
-        <div class="ba-shop">
-          <p class="ba-shop-kicker" data-reveal>· The gift shop ·</p>
-          <div class="ba-postcards" data-reveal style="--d:.1s">${cards}</div>
-          <p class="ba-shop-note" data-reveal style="--d:.2s">Take one — each card is a printable field guide:<br>eight tricks from its room, free, no receipt necessary.</p>
-        </div>
-
-        <a class="ba-exit" href="#/" data-cursor="enter" data-reveal style="--d:.15s">
-          <span>Exit through the gift shop</span>
-          <b>← Back to the gallery</b>
-        </a>
       </section>`;
     },
 
@@ -687,69 +632,6 @@
         if (thirdsCap.dataset.txt !== html) { thirdsCap.dataset.txt = html; thirdsCap.innerHTML = html; }
       });
 
-      /* The Grand Restoration: seven principles applied, one per step */
-      const resto = root.querySelector('.ba-resto');
-      const poster = root.querySelector('.resto-poster');
-      const restoItems = root.querySelectorAll('.resto-list li');
-      const verdict = root.querySelector('.resto-verdict');
-      const copyfix = [
-        ['.rp-kick', '!!EXCLUSIVE EVENT!!', 'One night only'],
-        ['.rp-title', 'DESIGN GALA NIGHT!!!', 'The Design Gala'],
-        ['.rp-sub', 'the fanciest evening in town!!', 'An evening for people who notice.'],
-        ['.rp-body', 'Join us for art, live music, tiny sandwiches and BIG IDEAS!!! Everyone welcome!! Dress code: FABULOUS. Doors open EARLY so COME EARLY!!!',
-                     'Art, live music, small sandwiches, large ideas. Dress code: considered.'],
-        ['.rp-meta', 'SAT JUNE 21 ·· 8PM TILL LATE ·· MAIN HALL', 'Sat June 21 · 8 pm · Main Hall'],
-        ['.rp-cta', 'CLICK HERE FOR TICKETS!!!!', 'Reserve a seat']
-      ];
-      let restoStep = -1, typeFixed = false;
-      c.track(resto, p => {
-        const step = M.clamp(Math.floor(M.map(p, 0.04, 0.96, 0, 1) * 9), 0, 8);
-        if (step === restoStep) return;
-        const prev = restoStep;
-        restoStep = step;
-        // cumulative classes: s1..s7
-        for (let s = 1; s <= 7; s++) poster.classList.toggle('s' + s, step >= s);
-        restoItems.forEach(li => li.classList.toggle('is-done', step >= +li.dataset.step));
-        verdict.classList.toggle('is-on', step >= 8);
-        // typography step rewrites the copy (and un-rewrites on the way back up)
-        const wantFixed = step >= 5;
-        if (wantFixed !== typeFixed) {
-          typeFixed = wantFixed;
-          copyfix.forEach(([sel, ugly, fixed]) => {
-            poster.querySelector(sel).textContent = wantFixed ? fixed : ugly;
-          });
-        }
-        // motion step: the poster re-enters with choreography, once, going down
-        if (step === 6 && prev === 5 && !M.reduced) {
-          Array.from(poster.children).forEach((el, i) => {
-            el.animate([
-              { opacity: 0, transform: 'translateY(16px)' },
-              { opacity: 1, transform: 'translateY(0)' }
-            ], { duration: 480, delay: i * 70, easing: 'cubic-bezier(0.16,1,0.3,1)', fill: 'backwards' });
-          });
-        }
-      });
-
-      /* Finale: stamp the passport with this visit's earnings */
-      const S = window.STAMPS;
-      if (S) {
-        root.querySelectorAll('.bp-slot').forEach(sl =>
-          sl.classList.toggle('is-stamped', S.has(sl.dataset.room)));
-        const n = ROOMS.order.filter(id => S.has(id)).length;
-        root.querySelector('.bp-count').textContent =
-          n === 7 ? 'All 7 rooms stamped — a completionist!' : `${n} of 7 rooms stamped`;
-      }
-
-      /* Gift shop: postcards hand out printable field notes */
-      root.querySelectorAll('.ba-postcard').forEach(pc => {
-        c.on(pc, 'click', e => {
-          e.preventDefault();
-          GUIDES.download(pc.dataset.room);
-          pc.classList.add('is-taken');
-          pc.querySelector('i').textContent = 'saved to your device ✓';
-        });
-      });
-
       /* Scene D: drag discs, level the frame */
       const frame = root.querySelector('.ba-frame');
       const discs = Array.from(root.querySelectorAll('.ba-disc'));
@@ -785,6 +667,196 @@
         const level = Math.abs(ang) < 0.6;
         levelSince = level ? levelSince + dt * 16.7 : 0;
         frame.classList.toggle('is-level', levelSince > 700);
+      });
+    }
+  });
+
+  /* ============================================================
+     ROOM ∞ · THE ROTUNDA
+     the grand restoration, passport control, and the gift shop
+     ============================================================ */
+  ROOMS.define('finale', {
+    num: '∞',
+    name: 'The Rotunda',
+    tag: 'Every principle, one last time',
+    preview: '<i></i><b></b>',
+    theme: 'th-finale',
+
+    html() {
+      const SLOTC = {
+        contrast: ['#0B0B0B', '#F7F6F2'], hierarchy: ['#2C39E8', '#FFFFFF'],
+        whitespace: ['#FBFAF6', '#1B1A16'], color: ['#0E0D12', '#F5F3EE'],
+        typography: ['#F4EBD9', '#1D1608'], motion: ['#0C0C0F', '#C8F23F'],
+        balance: ['#C25532', '#FFF6EC']
+      };
+      const slots = ROOMS.order.map((id, i) => {
+        const d = ROOMS.get(id);
+        const [bg, fg] = SLOTC[id];
+        return `<a class="bp-slot" href="#/room/${id}" data-room="${id}" data-cursor="dot"
+          style="--slot:${bg};--slotfg:${fg};--tilt:${(i % 2 ? 1.7 : -1.9)}deg">
+          <b>${d.num}</b><i>${d.name}</i><u aria-hidden="true">✓</u></a>`;
+      }).join('');
+      const cards = ROOMS.order.map((id, i) => {
+        const d = ROOMS.get(id);
+        return `<a class="ba-postcard" href="#/room/${id}" data-room="${id}" data-cursor="enter" data-cursor-label="Take one" style="--rot:${(i - 3) * 2.4}deg">
+          <span class="door-preview dp-${id}">${d.preview}</span>
+          <b>${d.name}</b>
+          <i>field notes · $0.00</i>
+        </a>`;
+      }).join('');
+      return `
+      ${ROOMS.hero({
+        num: '∞', title: 'The Rotunda',
+        titleHTML: 'ROTUNDA',
+        tagline: 'Seven rooms of theory walk into one dome. <em>Watch what they can do together.</em>',
+        hint: 'Scroll — the restoration begins'
+      })}
+
+      <!-- THE GRAND RESTORATION · staged in the conservation lab -->
+      <section class="fn-resto sticky-wrap" style="--len:1000">
+        <div class="sticky-pane fn-lab">
+          <h3 class="fn-word fw-0" aria-hidden="true">AS FOUND</h3>
+          <div class="fn-stage">
+            <div class="resto-poster">
+              <span class="rp-burst" aria-hidden="true">WOW!!!</span>
+              <p class="rp-kick">!!EXCLUSIVE EVENT!!</p>
+              <h4 class="rp-title">DESIGN GALA NIGHT!!!</h4>
+              <p class="rp-sub">the fanciest evening in town!!</p>
+              <p class="rp-body">Join us for art, live music, tiny sandwiches and BIG IDEAS!!! Everyone welcome!! Dress code: FABULOUS. Doors open EARLY so COME EARLY!!!</p>
+              <p class="rp-meta">SAT JUNE 21 ·· 8PM TILL LATE ·· MAIN HALL</p>
+              <span class="rp-cta">CLICK HERE FOR TICKETS!!!!</span>
+            </div>
+          </div>
+          <aside class="fn-side">
+            <p class="fn-side-kick">The Grand Restoration<br><em>one poster · seven interventions</em></p>
+            <ol class="resto-list">
+              <li data-step="1"><b>Contrast</b><span>ink returned to ink</span></li>
+              <li data-step="2"><b>Hierarchy</b><span>the title remembers itself</span></li>
+              <li data-step="3"><b>White space</b><span>clutter escorted out</span></li>
+              <li data-step="4"><b>Color</b><span>the palette enters therapy</span></li>
+              <li data-step="5"><b>Typography</b><span>eight fonts become two</span></li>
+              <li data-step="6"><b>Motion</b><span>given a pulse</span></li>
+              <li data-step="7"><b>Balance</b><span>finally hung straight</span></li>
+            </ol>
+            <p class="resto-verdict" aria-hidden="true">WOW.</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- PASSPORT CONTROL -->
+      <section class="fn-pass">
+        <p class="rm-cap" data-reveal>Passport control. <em>No one is detained — we just like the ink.</em></p>
+        <div class="ba-passport" data-reveal style="--d:.08s">
+          <div class="bp-head">
+            <b>Visitor’s Passport</b>
+            <span class="bp-count">0 of 7 rooms stamped</span>
+          </div>
+          <div class="bp-grid">${slots}</div>
+          <p class="bp-note">Stamps are earned by walking, not by reading about walking. Tap an empty tile to go earn it.</p>
+        </div>
+      </section>
+
+      <!-- THE GIFT SHOP -->
+      <section class="ba-shop fn-shop">
+        <p class="ba-shop-kicker" data-reveal>· The gift shop ·</p>
+        <div class="ba-postcards" data-reveal style="--d:.1s">${cards}</div>
+        <p class="ba-shop-note" data-reveal style="--d:.2s">Take one — each card is a printable field guide:<br>eight tricks from its room, free, no receipt necessary.</p>
+      </section>
+
+      <!-- EXIT -->
+      <section class="fn-exit">
+        <h2 class="ba-fin-big" data-split>Design isn’t decoration. <em>It’s decisions —</em> and now they’re yours to make.</h2>
+        <a class="ba-exit" href="#/" data-cursor="enter" data-reveal>
+          <span>The doors are always open</span>
+          <b>← Back to the gallery</b>
+        </a>
+      </section>`;
+    },
+
+    init(root, c) {
+      /* the restoration, staged: giant principle words + room washes */
+      const resto = root.querySelector('.fn-resto');
+      const lab = root.querySelector('.fn-lab');
+      const word = root.querySelector('.fn-word');
+      const poster = root.querySelector('.resto-poster');
+      const items = root.querySelectorAll('.resto-list li');
+      const verdict = root.querySelector('.resto-verdict');
+      const STEPS = [
+        // [word, wash, light-wash?]
+        ['AS FOUND', '#161209', false],
+        ['CONTRAST', '#050505', false],
+        ['HIERARCHY', '#2C39E8', false],
+        ['WHITE SPACE', '#F6F4EE', true],
+        ['COLOR', '#0E0D12', false],
+        ['Typography', '#F4EBD9', true],
+        ['MOTION', '#0C0C0F', false],
+        ['BALANCE', '#E9E0CF', true],
+        ['', '#161209', false]
+      ];
+      const copyfix = [
+        ['.rp-kick', '!!EXCLUSIVE EVENT!!', 'One night only'],
+        ['.rp-title', 'DESIGN GALA NIGHT!!!', 'The Design Gala'],
+        ['.rp-sub', 'the fanciest evening in town!!', 'An evening for people who notice.'],
+        ['.rp-body', 'Join us for art, live music, tiny sandwiches and BIG IDEAS!!! Everyone welcome!! Dress code: FABULOUS. Doors open EARLY so COME EARLY!!!',
+                     'Art, live music, small sandwiches, large ideas. Dress code: considered.'],
+        ['.rp-meta', 'SAT JUNE 21 ·· 8PM TILL LATE ·· MAIN HALL', 'Sat June 21 · 8 pm · Main Hall'],
+        ['.rp-cta', 'CLICK HERE FOR TICKETS!!!!', 'Reserve a seat']
+      ];
+      let step = -1, typeFixed = false;
+      c.track(resto, p => {
+        const s = M.clamp(Math.floor(M.map(p, 0.03, 0.97, 0, 1) * 9), 0, 8);
+        if (s === step) return;
+        const prev = step;
+        step = s;
+        const [txt, wash, light] = STEPS[s];
+        // the whole lab washes to the principle's world
+        lab.style.background = wash;
+        lab.classList.toggle('on-light', light);
+        // the word arrives, styled as the thing it names
+        word.className = 'fn-word fw-' + s;
+        word.textContent = txt;
+        if (txt && !M.reduced) {
+          word.classList.remove('pop'); void word.offsetWidth; word.classList.add('pop');
+        }
+        // the patient improves, cumulatively
+        for (let k = 1; k <= 7; k++) poster.classList.toggle('s' + k, s >= k);
+        items.forEach(li => li.classList.toggle('is-done', s >= +li.dataset.step));
+        verdict.classList.toggle('is-on', s >= 8);
+        const wantFixed = s >= 5;
+        if (wantFixed !== typeFixed) {
+          typeFixed = wantFixed;
+          copyfix.forEach(([sel, ugly, fixed]) => {
+            poster.querySelector(sel).textContent = wantFixed ? fixed : ugly;
+          });
+        }
+        if (s === 6 && prev === 5 && !M.reduced) {
+          Array.from(poster.children).forEach((el, i) => {
+            el.animate([
+              { opacity: 0, transform: 'translateY(16px)' },
+              { opacity: 1, transform: 'translateY(0)' }
+            ], { duration: 480, delay: i * 70, easing: 'cubic-bezier(0.16,1,0.3,1)', fill: 'backwards' });
+          });
+        }
+      });
+
+      /* passport control */
+      const S = window.STAMPS;
+      if (S) {
+        root.querySelectorAll('.bp-slot').forEach(sl =>
+          sl.classList.toggle('is-stamped', S.has(sl.dataset.room)));
+        const n = ROOMS.order.filter(id => S.has(id)).length;
+        root.querySelector('.bp-count').textContent =
+          n === 7 ? 'All 7 rooms stamped — a completionist!' : `${n} of 7 rooms stamped`;
+      }
+
+      /* the gift shop hands out field notes */
+      root.querySelectorAll('.ba-postcard').forEach(pc => {
+        c.on(pc, 'click', e => {
+          e.preventDefault();
+          GUIDES.download(pc.dataset.room);
+          pc.classList.add('is-taken');
+          pc.querySelector('i').textContent = 'saved to your device ✓';
+        });
       });
     }
   });

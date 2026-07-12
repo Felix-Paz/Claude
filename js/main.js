@@ -177,7 +177,7 @@
     body.dataset.view = 'room';
     body.dataset.theme = def.theme || '';
     scrollTo(0, 0);
-    STAMPS.add(id); // stamp first, so the room's own passport shows this visit
+    if (ROOMS.order.includes(id)) STAMPS.add(id); // the Rotunda issues no stamp
     roomCtx = M.ctx();
     def.init(roomEl, roomCtx);
     M.reveal(roomEl);
@@ -185,6 +185,9 @@
     refreshSheen();
     currentRoom = id;
     setNav(id);
+    if (window.FLUID) {
+      FLUID.setAccent(getComputedStyle(roomEl).getPropertyValue('--racc').trim() || '#FF4B14', '#FF4B14');
+    }
     document.title = `Room ${def.num} · ${def.name} — Museum of Design`;
     return true;
   }
@@ -203,6 +206,7 @@
     body.dataset.view = 'home';
     delete body.dataset.theme;
     setNav(null);
+    if (window.FLUID) FLUID.setAccent('#FF4B14', '#2C39E8');
     document.title = 'DESIGN — An Interactive Museum';
     // land back at the gallery when returning from a room, at top otherwise
     if (target === 'gallery') {

@@ -543,7 +543,7 @@ body[data-theme="th-motion"] #nav { --nav-fg: #F2EFE7; }
   animation: co-spin 26s linear infinite;
 }
 @keyframes co-spin { to { transform: rotate(360deg); } }
-.th-color .rm-hero > * { position: relative; }
+.th-color .rm-hero > :not(.rm-hint) { position: relative; }
 .co-l { color: hsl(var(--h) 82% 62%); }
 
 .co-temp .sticky-pane { background: hsl(6 78% 50%); }
@@ -1759,3 +1759,178 @@ body[data-theme="th-motion"] #nav { --nav-fg: #F2EFE7; }
 .bp-slot.is-stamped .stamp { opacity: 0.62; }
 .ba-postcard.is-taken { transform: rotate(0deg) translateY(-4px); }
 .ba-postcard.is-taken i { color: var(--r7-pine); opacity: 1; }
+
+/* =====================================================================
+   ROOM ∞ · THE ROTUNDA
+   ===================================================================== */
+.th-finale { --rbg: #14110C; --rfg: #F0E9DA; --racc: #E6CD80; }
+body[data-theme="th-finale"] #nav { --nav-fg: #F0E9DA; }
+.th-finale .rm-hero::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 100%;
+  width: 160vmax; height: 160vmax;
+  margin: -80vmax 0 0 -80vmax;
+  background: repeating-conic-gradient(from -90deg at 50% 50%,
+    rgb(230 205 128 / 0.07) 0 3deg, transparent 3deg 12deg);
+  animation: co-spin 90s linear infinite;
+  pointer-events: none;
+}
+.th-finale .rm-hero > :not(.rm-hint) { position: relative; }
+.th-finale .rm-title { color: var(--racc); }
+
+/* --- the conservation lab --- */
+.fn-lab {
+  background: #161209;
+  color: #EFE8D8;
+  transition: background-color 0.8s ease, color 0.5s ease;
+}
+.fn-lab.on-light { color: #201D16; }
+.fn-word {
+  position: absolute; inset: 0;
+  z-index: 1;
+  display: grid; place-items: center;
+  font-size: clamp(3.4rem, 15.5vw, 17rem);
+  font-weight: 870; font-variation-settings: 'wdth' 120;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+}
+.fn-word.pop { animation: fn-pop 0.75s var(--e-out); }
+@keyframes fn-pop {
+  from { opacity: 0; transform: translateY(7vh) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.fw-0 {
+  font-family: var(--f-mono);
+  font-size: clamp(0.9rem, 1.6vw, 1.3rem);
+  font-weight: 600; font-variation-settings: normal;
+  letter-spacing: 0.7em;
+  color: #B3924A;
+}
+.fw-1 { color: #fff; }
+.fw-2 { color: #fff; font-variation-settings: 'wdth' 125; }
+.fw-3 {
+  color: #1B1A16;
+  font-weight: 230; font-variation-settings: 'wdth' 100;
+  letter-spacing: 0.38em;
+  font-size: clamp(2.2rem, 8.5vw, 9rem);
+}
+.fw-4 {
+  background: linear-gradient(95deg, #FF3D2E, #FF9A1F, #F4E22C, #3FCB6B, #29B9E8, #B04CE8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.fw-5 {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-weight: 440; font-variation-settings: 'opsz' 144;
+  text-transform: none;
+  color: #1D1608;
+}
+.fw-6 {
+  color: var(--r6-acid);
+  transform: skewX(-9deg);
+  text-shadow: -18px 0 26px rgb(200 242 63 / 0.35), -34px 0 50px rgb(200 242 63 / 0.18);
+}
+.fw-7 { color: var(--r7-terra); font-variation-settings: 'wdth' 116; }
+.fw-8 { opacity: 0; }
+
+.fn-stage { position: relative; z-index: 2; transform: translateX(-7vw); }
+.fn-side {
+  position: absolute;
+  right: var(--gutter); top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 17.5rem;
+}
+.fn-side-kick {
+  font-family: var(--f-mono); font-size: 0.66rem; font-weight: 600;
+  letter-spacing: 0.26em; text-transform: uppercase;
+  color: #B3924A;
+  line-height: 1.9;
+  margin-bottom: 1.4rem;
+}
+.fn-side-kick em { font-size: 0.9em; letter-spacing: 0.12em; opacity: 0.75; }
+.fn-lab .resto-list b { min-width: 7.6rem; }
+.fn-lab .resto-list li.is-done b { color: #E6CD80; }
+.fn-lab.on-light .resto-list li.is-done b { color: #B3541F; }
+.fn-lab .resto-verdict { color: #E6CD80; }
+.fn-lab.on-light .resto-verdict { color: var(--r7-terra); }
+@media (max-width: 900px) {
+  .fn-side { display: none; }
+  .fn-stage { transform: none; }
+  .fn-word { font-size: clamp(2.6rem, 13vw, 6rem); }
+}
+
+/* --- passport control: ink tiles --- */
+.fn-pass {
+  padding: 20vh var(--gutter);
+  display: grid; justify-items: center; gap: 6vh;
+}
+.fn-pass .ba-passport { margin: 0; color: #201D16; }
+.bp-slot {
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  border: 1.5px dashed rgb(32 29 22 / 0.32);
+  display: grid; place-content: center; gap: 0.3rem;
+  text-align: center;
+  position: relative;
+  overflow: visible;
+  transition: transform 0.4s var(--e-spring), background-color 0.35s,
+              border-color 0.35s, color 0.35s, box-shadow 0.4s;
+}
+.bp-slot b { font-family: var(--f-mono); font-size: 1.05rem; font-weight: 700; }
+.bp-slot i { font-family: var(--f-mono); font-style: normal; font-size: 0.46rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.6; }
+.bp-slot u {
+  position: absolute; top: 0.45rem; right: 0.45rem;
+  width: 1.15rem; height: 1.15rem;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  text-decoration: none;
+  font-size: 0.58rem;
+  opacity: 0; transform: scale(0);
+  transition: opacity 0.3s, transform 0.4s var(--e-spring) 0.1s;
+}
+.bp-slot.is-stamped {
+  background: var(--slot, #333);
+  color: var(--slotfg, #fff);
+  border-color: transparent;
+  outline: 1px solid rgb(32 29 22 / 0.12);
+  outline-offset: -1px;
+  transform: rotate(var(--tilt, 0deg));
+  box-shadow: 0 12px 24px -12px rgb(32 29 22 / 0.4);
+}
+.bp-slot.is-stamped u {
+  opacity: 1; transform: scale(1);
+  background: color-mix(in srgb, var(--slotfg) 24%, transparent);
+}
+.bp-slot.is-stamped i { opacity: 0.85; }
+.bp-slot:hover { transform: rotate(0deg) translateY(-4px); border-color: var(--r7-terra); }
+.bp-slot.is-stamped:hover { border-color: transparent; }
+
+/* --- the shop & the exit, under the dome --- */
+.fn-shop { margin-top: 0; padding: 6vh var(--gutter) 18vh; text-align: center; }
+.fn-shop .ba-shop-kicker { color: #B3924A; opacity: 1; }
+.fn-exit { padding: 16vh var(--gutter) 26vh; text-align: center; }
+.fn-exit .ba-fin-big em { color: var(--racc); }
+.fn-exit .ba-exit { margin-top: 7vh; }
+.fn-exit .ba-exit:hover b { color: var(--racc); }
+
+/* --- the door to the rotunda --- */
+.dp-finale { background: #14110C; overflow: clip; }
+.dp-finale i {
+  position: absolute; inset: -30% -30% 26%;
+  background: repeating-conic-gradient(from -90deg at 50% 100%,
+    rgb(230 205 128 / 0.4) 0 4deg, transparent 4deg 14deg);
+}
+.dp-finale b {
+  position: absolute; bottom: 16%; left: 50%;
+  transform: translateX(-50%);
+  width: 44%; aspect-ratio: 2 / 1;
+  border-radius: 999px 999px 0 0;
+  background: #E6CD80;
+}

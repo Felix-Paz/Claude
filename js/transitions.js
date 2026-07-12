@@ -206,5 +206,32 @@ window.TRANSITIONS = (function () {
     }
   };
 
-  return { fade, contrast, hierarchy, whitespace, color, typography, motion, balance };
+  /* ------- ∞ · THE ROTUNDA: the grand doors swing shut, then open ------- */
+  const finale = {
+    async cover(ov) {
+      const l = el(ov, 'top:-1px;bottom:-1px;left:0;width:50.5%;background:#12100C;transform:translateX(-101%);' +
+                     'box-shadow: inset -2px 0 0 #B3924A');
+      const r = el(ov, 'top:-1px;bottom:-1px;right:0;width:50.5%;background:#12100C;transform:translateX(101%);' +
+                     'box-shadow: inset 2px 0 0 #B3924A');
+      const label = el(ov, 'inset:0;display:grid;place-items:center;opacity:0');
+      label.innerHTML = '<span style="font-family:ui-monospace,monospace;font-size:0.72rem;letter-spacing:0.5em;' +
+        'text-transform:uppercase;color:#E6CD80;padding-left:0.5em">The Rotunda</span>';
+      await Promise.all([
+        anim(l, { transform: ['translateX(-101%)', 'translateX(0)'] }, { duration: 650, easing: 'cubic-bezier(0.22,1,0.36,1)' }),
+        anim(r, { transform: ['translateX(101%)', 'translateX(0)'] }, { duration: 650, easing: 'cubic-bezier(0.22,1,0.36,1)' })
+      ]);
+      await anim(label, { opacity: [0, 1] }, { duration: 300 });
+      await wait(340);
+      await anim(label, { opacity: [1, 0] }, { duration: 200 });
+    },
+    async release(ov) {
+      const [l, r] = ov.children;
+      await Promise.all([
+        anim(l, { transform: ['translateX(0)', 'translateX(-101%)'] }, { duration: 700, easing: 'cubic-bezier(0.65,0,0.35,1)' }),
+        anim(r, { transform: ['translateX(0)', 'translateX(101%)'] }, { duration: 700, easing: 'cubic-bezier(0.65,0,0.35,1)' })
+      ]);
+    }
+  };
+
+  return { fade, contrast, hierarchy, whitespace, color, typography, motion, balance, finale };
 })();
