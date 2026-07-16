@@ -13,7 +13,7 @@ const MODULE_TAG = /<script type="module" src="\.\/src\/main\.js"><\/script>/;
 
 const GD_SNIPPET = `<script>
 window["GD_OPTIONS"] = {
-  "gameId": "PUT-YOUR-GD-GAME-ID-HERE",
+  "gameId": "500476821acf49d89fcdb425cbf48b81",
   "onEvent": function (event) {
     if (window.__gdHandler) { window.__gdHandler(event); }
     else { (window.__gdEvents = window.__gdEvents || []).push(event); }

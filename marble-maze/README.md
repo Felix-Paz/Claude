@@ -76,6 +76,6 @@ platform's own SDK:
 
 - `marble-maze-poki.zip`
 - `marble-maze-crazygames.zip`
-- `marble-maze-gamedistribution.zip` — replace `PUT-YOUR-GD-GAME-ID-HERE`
-  in its `index.html` with your game id from the GameDistribution dashboard
+- `marble-maze-gamedistribution.zip` — the GameDistribution game id is already
+  baked into its `index.html`
 - `marble-maze-gamepix.zip`
