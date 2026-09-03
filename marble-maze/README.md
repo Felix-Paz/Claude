@@ -79,3 +79,18 @@ platform's own SDK:
 - `marble-maze-gamedistribution.zip` — the GameDistribution game id is already
   baked into its `index.html`
 - `marble-maze-gamepix.zip`
+
+### Ad placement
+
+Ad behaviour follows the detected platform, so one source tree satisfies each
+portal's rules:
+
+- **GameDistribution** opens on the menu and shows a **pre-roll** when the
+  player presses PLAY, plus **mid-rolls** on the non-gameplay buttons — Next,
+  Replay, Retry, Restart and Menu. The GD SDK regulates the actual ad
+  interval, so those calls are made on every press. Audio is muted and the
+  game is paused for the duration via the SDK's pause/start events.
+- **Poki, CrazyGames and GamePix** keep the instant-play boot (no pre-roll)
+  and take an interstitial only every few completed levels.
+
+Rewarded ads (revive, double coins, skip level) are unchanged on all four.

@@ -355,7 +355,12 @@ export class UI {
     c.style.fontSize = Math.min(48, 22 + n * 2) + 'px';
     c.classList.remove('hidden', 'show'); void c.offsetWidth; c.classList.add('show');
   }
-  adCurtain(on) { $('adCurtain').classList.toggle('hidden', !on); }
+  adCurtain(on, kind) {
+    const el = $('adCurtain'); if (!el) return;
+    const msg = el.querySelector('.ad-msg');
+    if (msg && on) msg.textContent = kind === 'reward' ? 'Loading reward…' : 'Advertisement';
+    el.classList.toggle('hidden', !on);
+  }
 }
 
 function fmt(n) { return n >= 10000 ? (n / 1000).toFixed(1) + 'k' : '' + n; }

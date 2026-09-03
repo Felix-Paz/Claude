@@ -11,12 +11,39 @@ export function setGameHooks(h) { hooks = { ...hooks, ...h }; }
 
 let gdRewardWatched = noop;
 let gdPausedByAd = false;
+let gdFailed = false;
 
 function gdEvent(event) {
   if (!event || !event.name) return;
-  if (event.name === 'SDK_GAME_PAUSE') { hooks.hardMute(true); gdPausedByAd = !!hooks.pause(); }
+  if (event.name === 'SDK_ERROR') gdFailed = true;
+  else if (event.name === 'SDK_GAME_PAUSE') { hooks.hardMute(true); gdPausedByAd = !!hooks.pause(); }
   else if (event.name === 'SDK_GAME_START') { hooks.hardMute(false); if (gdPausedByAd) { gdPausedByAd = false; hooks.resume(); } }
   else if (event.name === 'SDK_REWARDED_WATCH_COMPLETE') gdRewardWatched();
+}
+
+function gdCanShow() { return !!(window.gdsdk && typeof window.gdsdk.showAd === 'function'); }
+
+function gdWaitReady(ms) {
+  return new Promise((resolve) => {
+    if (gdCanShow()) { resolve(true); return; }
+    const t0 = Date.now();
+    const tick = () => {
+      if (gdCanShow()) { resolve(true); return; }
+      if (gdFailed || Date.now() - t0 >= ms) { resolve(false); return; }
+      setTimeout(tick, 80);
+    };
+    setTimeout(tick, 80);
+  });
+}
+
+async function gdShowAd() {
+  if (!gdCanShow()) return;
+  try {
+    await Promise.race([
+      Promise.resolve(window.gdsdk.showAd()).catch(() => {}),
+      new Promise((res) => setTimeout(res, 60000)),
+    ]);
+  } catch (e) {}
 }
 
 function initCrazyGames() {
@@ -103,9 +130,24 @@ export function clearLevelContext() {
   if (provider === 'crazygames') { try { window.CrazyGames?.SDK?.game?.clearGameContext?.(); } catch (e) {} }
 }
 
+export function requiresPlayGate() { return provider === 'gamedistribution'; }
+export function midrollOnUi() { return provider === 'gamedistribution'; }
+
+export async function preroll() {
+  if (provider !== 'gamedistribution' || adInProgress) return;
+  adInProgress = true; onAdStateChange(true, 'ad');
+  try { if (await gdWaitReady(2500)) await gdShowAd(); } catch (e) { }
+  adInProgress = false; onAdStateChange(false, 'ad');
+}
+
+export async function midroll() {
+  if (provider !== 'gamedistribution') return;
+  await commercialBreak();
+}
+
 export async function commercialBreak() {
   if (adInProgress) return;
-  adInProgress = true; onAdStateChange(true);
+  adInProgress = true; onAdStateChange(true, 'ad');
   try {
     if (provider === 'poki') {
       await window.PokiSDK.commercialBreak();
@@ -116,22 +158,17 @@ export async function commercialBreak() {
         });
       });
     } else if (provider === 'gamedistribution') {
-      if (window.gdsdk && typeof window.gdsdk.showAd === 'function') {
-        await Promise.race([
-          window.gdsdk.showAd().catch(() => {}),
-          new Promise((res) => setTimeout(res, 60000)),
-        ]);
-      }
+      await gdShowAd();
     } else if (provider === 'gamepix') {
       await window.GamePix.interstitialAd().catch(() => {});
     }
   } catch (e) { }
-  adInProgress = false; onAdStateChange(false);
+  adInProgress = false; onAdStateChange(false, 'ad');
 }
 
 export async function rewardedBreak() {
   if (adInProgress) return false;
-  adInProgress = true; onAdStateChange(true);
+  adInProgress = true; onAdStateChange(true, 'reward');
   let success = false;
   try {
     if (provider === 'poki') {
@@ -163,7 +200,7 @@ export async function rewardedBreak() {
       success = true;
     }
   } catch (e) { success = false; }
-  adInProgress = false; onAdStateChange(false);
+  adInProgress = false; onAdStateChange(false, 'reward');
   return success;
 }
 

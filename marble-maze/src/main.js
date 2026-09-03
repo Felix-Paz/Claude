@@ -49,7 +49,7 @@ class App {
     this._wireHandlers();
     this.game.setCallbacks(this._gameCallbacks());
 
-    SDK.setAdStateHandler((on) => this.ui.adCurtain(on));
+    SDK.setAdStateHandler((on, kind) => this.ui.adCurtain(on, kind));
     SDK.setGameHooks({
       pause: () => { if (this.game.state === 'playing') { this.pause(); return true; } return false; },
       resume: () => { if (this.game.state === 'paused') this.resume(); },
@@ -62,7 +62,10 @@ class App {
     this.ui.refreshMenu(); this.ui.setMenuWorld(worldForLevel(st.maxLevel).name);
     requestAnimationFrame(this._loop);
     SDK.loadingFinished();
-    this.play();
+    if (SDK.requiresPlayGate()) {
+      try { this._loadShowcase(); } catch (e) { }
+      this.ui.showScreen('menu');
+    } else this.play();
   }
 
   _loop = (now) => {
@@ -118,7 +121,9 @@ class App {
     clearTimeout(this._hintT); this._hintT = setTimeout(() => this.ui.fadeControlHint(), 4200);
   }
 
-  play() { this.startStage(S.get().maxLevel, {}); }
+  async play() { await SDK.preroll(); this.startStage(S.get().maxLevel, {}); }
+
+  async _adThen(fn) { await SDK.midroll(); fn(); }
 
   _planFor(stage, retry) {
     if (retry) return { stage, difficulty: this.lastDifficulty, sizeBucket: this.lastSizeBucket, mods: { ...this.lastMods, ...this.director.retryMods() }, seedSalt: 0, mission: this.mission, churn: this.director.churn(), novelty: false };
@@ -224,8 +229,8 @@ class App {
       onDouble: () => this._doubleCoins(),
       onChest: () => this._openChest(stage),
       onNext: () => this._next(),
-      onReplay: () => this.startStage(stage, {}),
-      onMenu: () => this.toMenu(),
+      onReplay: () => this._adThen(() => this.startStage(stage, {})),
+      onMenu: () => this._adThen(() => this.toMenu()),
     });
     if (missionDone) this.ui.toast(`🎯 Mission! +${missionReward} coins`, 2000);
     else if (perfect) this.ui.toast('Perfect! All coins ✨', 2000);
@@ -246,7 +251,8 @@ class App {
   }
   async _next() {
     const stage = this.stage + 1;
-    if (this.winsSinceAd >= 3 && stage > 5 && this.director.churn().zone === 'green') { this.winsSinceAd = 0; await SDK.commercialBreak(); }
+    if (SDK.midrollOnUi()) await SDK.midroll();
+    else if (this.winsSinceAd >= 3 && stage > 5 && this.director.churn().zone === 'green') { this.winsSinceAd = 0; await SDK.commercialBreak(); }
     this.startStage(stage, {});
   }
 
@@ -261,8 +267,8 @@ class App {
       canSkip: this.deathsThisStage >= 3,
       onRevive: () => this._revive(),
       onSkip: () => this._skip(),
-      onRetry: () => this.startStage(this.stage, { retry: true }),
-      onMenu: () => this.toMenu(),
+      onRetry: () => this._adThen(() => this.startStage(this.stage, { retry: true })),
+      onMenu: () => this._adThen(() => this.toMenu()),
     });
   }
   async _revive() {
@@ -312,8 +318,8 @@ class App {
       play: () => this.play(),
       pause: () => this.pause(),
       resume: () => this.resume(),
-      restart: () => this.restart(),
-      toMenu: () => this.toMenu(),
+      restart: () => this._adThen(() => this.restart()),
+      toMenu: () => this._adThen(() => this.toMenu()),
       calibrate: () => this.input.calibrate(),
       boost: (on) => this.input.setTouchBoost(on),
       enableTilt: async () => { const ok = await this.input.requestTilt(); S.setSetting('control', ok ? 'tilt' : 'touch'); if (!ok) { this.input.setMode('touch'); this.ui.toast('Using touch controls'); } this._resumePendingStart(); },
