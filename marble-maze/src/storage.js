@@ -3,8 +3,19 @@ import { SKINS, TRAILS, ECON } from './config.js';
 const KEY = 'marblemaze.save.v1';
 
 function backend() {
-  if (typeof window !== 'undefined' && window.GamePix && window.GamePix.localStorage) return window.GamePix.localStorage;
-  return (typeof localStorage !== 'undefined') ? localStorage : null;
+  const native = (typeof localStorage !== 'undefined') ? localStorage : null;
+  const gp = (typeof window !== 'undefined' && window.GamePix && window.GamePix.localStorage) || null;
+  if (!gp) return native;
+  return {
+    getItem(k) {
+      try { const v = gp.getItem(k); if (v != null) return v; } catch (e) { }
+      try { return native ? native.getItem(k) : null; } catch (e) { return null; }
+    },
+    setItem(k, v) {
+      try { gp.setItem(k, v); } catch (e) { }
+      try { if (native) native.setItem(k, v); } catch (e) { }
+    },
+  };
 }
 
 const DEFAULT = () => ({

@@ -30,6 +30,18 @@ class App {
   }
 
   async boot() {
+    this._wireHandlers();
+    this.game.setCallbacks(this._gameCallbacks());
+
+    SDK.setAdStateHandler((on, kind) => this.ui.adCurtain(on, kind));
+    SDK.setGameHooks({
+      pause: () => { if (this.game.state === 'playing') { this.pause(); return true; } return false; },
+      resume: () => { if (this.game.state === 'paused') this.resume(); },
+      hardMute: (m) => Audio.setHardMute(m),
+    });
+    const provider = await SDK.init(); this.ui.setProvider(provider);
+    SDK.loadingStart();
+
     S.load(); const st = S.get();
     Audio.setEnabled({ sound: st.settings.sound, music: st.settings.music });
     this.input.setMode(st.settings.control); this.input.setSensitivity(st.settings.tiltSensitivity);
@@ -45,18 +57,6 @@ class App {
         if (SDK.getProvider() === 'gamepix' && this.game.state === 'playing') this.pause();
       } else this.director.noteTabFocus();
     });
-
-    this._wireHandlers();
-    this.game.setCallbacks(this._gameCallbacks());
-
-    SDK.setAdStateHandler((on, kind) => this.ui.adCurtain(on, kind));
-    SDK.setGameHooks({
-      pause: () => { if (this.game.state === 'playing') { this.pause(); return true; } return false; },
-      resume: () => { if (this.game.state === 'paused') this.resume(); },
-      hardMute: (m) => Audio.setHardMute(m),
-    });
-    const provider = await SDK.init(); this.ui.setProvider(provider);
-    SDK.loadingStart();
 
     this.director.setDifficulty(st.settings.difficulty || 'normal');
     this.ui.refreshMenu(); this.ui.setMenuWorld(worldForLevel(st.maxLevel).name);

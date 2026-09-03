@@ -78,6 +78,8 @@ platform's own SDK:
 - `marble-maze-crazygames.zip`
 - `marble-maze-gamedistribution.zip` — the GameDistribution game id is already
   baked into its `index.html`
+- `marble-maze-gamemonetize.zip` — replace `PUT-YOUR-GAMEMONETIZE-GAME-ID-HERE`
+  in its `index.html` with the game id from your GameMonetize control panel
 - `marble-maze-gamepix.zip`
 
 ### Ad placement
@@ -90,7 +92,20 @@ portal's rules:
   Replay, Retry, Restart and Menu. The GD SDK regulates the actual ad
   interval, so those calls are made on every press. Audio is muted and the
   game is paused for the duration via the SDK's pause/start events.
-- **Poki, CrazyGames and GamePix** keep the instant-play boot (no pre-roll)
-  and take an interstitial only every few completed levels.
+- **Poki, CrazyGames, GameMonetize and GamePix** keep the instant-play boot
+  (no pre-roll) and take an interstitial only every few completed levels.
 
-Rewarded ads (revive, double coins, skip level) are unchanged on all four.
+Rewarded ads (revive, double coins, skip level) use each platform's rewarded
+call where one exists. GameMonetize exposes only `sdk.showBanner()`, so its
+rewarded moments play a regular interstitial and then grant the reward.
+
+Platform-specific handling:
+
+- **GameMonetize** pauses and mutes on `SDK_GAME_PAUSE` and resumes on
+  `SDK_GAME_START`. Because `showBanner()` is fire-and-forget, the ad is
+  treated as finished on `SDK_GAME_START`, with a short fallback so an
+  unsold slot never leaves the player waiting.
+- **GamePix** pauses and mutes around `interstitialAd()` and `rewardAd()`,
+  pauses on tab switch, blocks page scrolling from the arrow keys, space and
+  the wheel (scrollable panels keep their own scrolling), and saves through
+  `GamePix.localStorage` with a plain-localStorage fallback.

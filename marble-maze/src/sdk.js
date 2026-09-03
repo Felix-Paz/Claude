@@ -10,15 +10,42 @@ let hooks = { pause: () => false, resume: noop, hardMute: noop };
 export function setGameHooks(h) { hooks = { ...hooks, ...h }; }
 
 let gdRewardWatched = noop;
-let gdPausedByAd = false;
+let pausedByAd = false;
 let gdFailed = false;
+let adPauseSeen = false;
+let adResumed = noop;
 
-function gdEvent(event) {
+function portalEvent(event) {
   if (!event || !event.name) return;
   if (event.name === 'SDK_ERROR') gdFailed = true;
-  else if (event.name === 'SDK_GAME_PAUSE') { hooks.hardMute(true); gdPausedByAd = !!hooks.pause(); }
-  else if (event.name === 'SDK_GAME_START') { hooks.hardMute(false); if (gdPausedByAd) { gdPausedByAd = false; hooks.resume(); } }
-  else if (event.name === 'SDK_REWARDED_WATCH_COMPLETE') gdRewardWatched();
+  else if (event.name === 'SDK_GAME_PAUSE') { adPauseSeen = true; hooks.hardMute(true); pausedByAd = !!hooks.pause(); }
+  else if (event.name === 'SDK_GAME_START') {
+    hooks.hardMute(false);
+    if (pausedByAd) { pausedByAd = false; hooks.resume(); }
+    adResumed();
+  } else if (event.name === 'SDK_REWARDED_WATCH_COMPLETE') gdRewardWatched();
+}
+
+async function gmShowBanner() {
+  if (!(window.sdk && typeof window.sdk.showBanner === 'function')) return;
+  await new Promise((resolve) => {
+    let done = false;
+    const finish = () => { if (done) return; done = true; adResumed = noop; resolve(); };
+    adPauseSeen = false; adResumed = finish;
+    try { window.sdk.showBanner(); } catch (e) { finish(); return; }
+    setTimeout(() => { if (!adPauseSeen) finish(); }, 3000);
+    setTimeout(finish, 60000);
+  });
+}
+
+async function gamePixAd(request) {
+  const wasPlaying = !!hooks.pause();
+  hooks.hardMute(true);
+  let res = null;
+  try { res = await request(); } catch (e) { res = null; }
+  hooks.hardMute(false);
+  if (wasPlaying) hooks.resume();
+  return res;
 }
 
 function gdCanShow() { return !!(window.gdsdk && typeof window.gdsdk.showAd === 'function'); }
@@ -52,10 +79,32 @@ function initCrazyGames() {
   try { apply(g?.settings); g?.addSettingsChangeListener?.(apply); } catch (e) {}
 }
 
+function inScrollable(target) {
+  let n = (target && target.nodeType === 1) ? target : null;
+  for (; n && n !== document.body; n = n.parentElement) {
+    if (n.scrollHeight > n.clientHeight + 1) {
+      const oy = getComputedStyle(n).overflowY;
+      if (oy === 'auto' || oy === 'scroll') return true;
+    }
+  }
+  return false;
+}
+
+let gpLoaded = false;
+function gamePixLoaded() {
+  if (gpLoaded) return;
+  gpLoaded = true;
+  try { window.GamePix.loaded?.(); } catch (e) { }
+}
+
 function initGamePix() {
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === ' ') e.preventDefault();
+  });
   window.addEventListener('wheel', (e) => {
-    if (!(e.target && e.target.closest && e.target.closest('.shop-grid'))) e.preventDefault();
+    if (!inScrollable(e.target)) e.preventDefault();
   }, { passive: false });
+  gamePixLoaded();
 }
 
 export async function init() {
@@ -71,9 +120,15 @@ export async function init() {
       ready = true;
     } else if (window.GD_OPTIONS || window.gdsdk) {
       provider = 'gamedistribution';
-      window.__gdHandler = gdEvent;
-      (window.__gdEvents || []).forEach(gdEvent);
+      window.__gdHandler = portalEvent;
+      (window.__gdEvents || []).forEach(portalEvent);
       window.__gdEvents = [];
+      ready = true;
+    } else if (window.SDK_OPTIONS || (window.sdk && typeof window.sdk.showBanner === 'function')) {
+      provider = 'gamemonetize';
+      window.__gmHandler = portalEvent;
+      (window.__gmEvents || []).forEach(portalEvent);
+      window.__gmEvents = [];
       ready = true;
     } else if (window.PokiSDK) {
       provider = 'poki';
@@ -98,7 +153,7 @@ export function loadingStart() {
 export function loadingFinished() {
   if (provider === 'poki') window.PokiSDK?.gameLoadingFinished?.();
   if (provider === 'crazygames') window.CrazyGames?.SDK?.game?.loadingStop?.();
-  if (provider === 'gamepix') { try { window.GamePix.loaded?.(); } catch (e) {} }
+  if (provider === 'gamepix') gamePixLoaded();
 }
 
 export function gameplayStart() {
@@ -159,8 +214,10 @@ export async function commercialBreak() {
       });
     } else if (provider === 'gamedistribution') {
       await gdShowAd();
+    } else if (provider === 'gamemonetize') {
+      await gmShowBanner();
     } else if (provider === 'gamepix') {
-      await window.GamePix.interstitialAd().catch(() => {});
+      await gamePixAd(() => window.GamePix.interstitialAd());
     }
   } catch (e) { }
   adInProgress = false; onAdStateChange(false, 'ad');
@@ -194,8 +251,11 @@ export async function rewardedBreak() {
         });
       }
     } else if (provider === 'gamepix') {
-      const res = await window.GamePix.rewardAd();
+      const res = await gamePixAd(() => window.GamePix.rewardAd());
       success = !!(res && res.success);
+    } else if (provider === 'gamemonetize') {
+      await gmShowBanner();
+      success = true;
     } else {
       success = true;
     }

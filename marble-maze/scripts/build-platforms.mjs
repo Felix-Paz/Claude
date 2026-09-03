@@ -30,10 +30,26 @@ window["GD_OPTIONS"] = {
 </script>
 `;
 
+const GM_SNIPPET = `<script type="text/javascript">
+window["SDK_OPTIONS"] = {
+  "gameId": "PUT-YOUR-GAMEMONETIZE-GAME-ID-HERE",
+  "onEvent": function (event) {
+    if (window.__gmHandler) { window.__gmHandler(event); }
+    else { (window.__gmEvents = window.__gmEvents || []).push(event); }
+  }
+};
+(function (a, b, c) {
+  var d = a.getElementsByTagName(b)[0];
+  a.getElementById(c) || (a = a.createElement(b), a.id = c, a.src = "https://api.gamemonetize.com/sdk.js", d.parentNode.insertBefore(a, d));
+})(document, "script", "gamemonetize-sdk");
+</script>
+`;
+
 const PLATFORMS = {
   poki: (html) => html.replace(SDK_BLOCK, '<script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>\n'),
   crazygames: (html) => html.replace(SDK_BLOCK, '<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>\n'),
   gamedistribution: (html) => html.replace(SDK_BLOCK, GD_SNIPPET),
+  gamemonetize: (html) => html.replace(SDK_BLOCK, GM_SNIPPET),
   gamepix: (html) => html
     .replace(SDK_BLOCK, '')
     .replace('<head>', '<head>\n<script src="https://integration.gamepix.com/sdk/v3/gamepix.sdk.js"></script>'),
