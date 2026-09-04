@@ -13,45 +13,44 @@
 /* ============================================================================
    OVERSTACK — design system
    ----------------------------------------------------------------------------
-   PALETTE: two primaries + one accent, nothing else picks its own hue.
-     INK   — the table. Solid, never a gradient. Every ground and panel is a
-             step on this one ramp.
-     BONE  — everything you read, and the cool end of the piece ramp.
-     BRASS — the single accent: money, the BANK key, the live edge.
-     One CRIMSON is reserved exclusively for loss.
-   FORM:   pieces are hard-edged polygons, so the instrument panel is hard-edged
-           too (2px). Buttons are 10px. Modal cards are 20px. Three steps, by
-           hierarchy — nothing is rounded by default.
-   DEPTH:  crisp offset edges, not soft blur. Things have a lit top edge and a
-           dark bottom edge because they are solid objects sitting on a table.
+   COLOUR: the world colour is not fixed. The canvas paints a deep cousin of the
+           most valuable shape on the dock, so the room changes as you climb.
+           The interface stays out of the way: dark glass, white type, and three
+           fixed accents — GOLD is money, MINT is go, ROSE is loss.
+   SHAPES: one vivid colour per tier, spread right around the wheel so no two
+           are confusable, all at the same saturation so they read as a family.
+   FORM:   soft, generous curvature scaled by hierarchy — chips 14, buttons 18,
+           cards 28. Nothing is a hard-edged box.
+   DEPTH:  glass and soft light. Blur, inner highlights and coloured glow —
+           no bevels, no hard offset edges, no metal.
    ========================================================================== */
 :root {
-  --ink-900: #080D0B;   /* page ground */
-  --ink-850: #0C1512;   /* world ground */
-  --ink-800: #101B17;   /* table plane */
-  --ink-700: #16241E;   /* panel */
-  --ink-600: #1F332B;   /* raised panel */
-  --ink-500: #2B4438;   /* hairline-lit surface */
+  --ink:     #0A0B12;
+  --ink-2:   #12141F;
+  --glass:       rgba(16, 18, 30, 0.55);
+  --glass-solid: rgba(16, 18, 30, 0.92);
+  --glass-hi:    rgba(255, 255, 255, 0.10);
+  --glass-line:  rgba(255, 255, 255, 0.14);
 
-  --bone:     #EDE6D8;
-  --bone-dim: #92A297;
-  --bone-mute:#5E7167;
+  --text:      #FFFFFF;
+  --text-dim:  rgba(255, 255, 255, 0.66);
+  --text-mute: rgba(255, 255, 255, 0.40);
 
-  --brass:    #D9A441;
-  --brass-hi: #F2C673;
-  --brass-lo: #8A6620;
-  --brass-dk: #5A4315;
+  --gold:    #FFD24A;
+  --gold-hi: #FFE79A;
+  --gold-lo: #E9A81E;
+  --mint:    #2DE58F;
+  --mint-hi: #7BFFC0;
+  --mint-lo: #12A866;
+  --rose:    #FF4D6D;
+  --rose-lo: #C41F43;
+  /* legacy aliases so older rules keep resolving */
+  --hot: var(--rose);
+  --accent: var(--mint);
 
-  --crimson:    #C4382F;
-  --crimson-lo: #7C2119;
-
-  --line:   rgba(237, 230, 216, 0.13);
-  --line-2: rgba(237, 230, 216, 0.26);
-
-  /* radius scale — used by hierarchy, never by default */
-  --r-chip: 2px;
-  --r-btn: 10px;
-  --r-card: 20px;
+  --r-chip: 14px;
+  --r-btn: 18px;
+  --r-card: 28px;
 
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   font-size: 16px;
@@ -60,94 +59,74 @@
 html, body { height: 100%; overflow: hidden; }
 body {
   font-family: 'Sora', -apple-system, 'Segoe UI', system-ui, sans-serif;
-  background: var(--ink-900);
-  color: var(--bone);
+  background: var(--ink);
+  color: var(--text);
   user-select: none; -webkit-user-select: none;
   touch-action: none; overscroll-behavior: none;
 }
 #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
-
-/* fine grain over the whole world — the tactile layer that keeps flat
-   colour from reading as flat vector */
-#grain {
-  position: fixed; inset: 0; z-index: 14; pointer-events: none; opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-.reduce-motion #grain, .low-fx #grain { display: none; }
 
 /* ---------- wordmark: drawn letterforms, not a font with a shadow ----------
    Monolinear geometric caps built from the game's own vocabulary — the O is
    the octagon piece, the A is the triangle piece. One weight, one colour. */
 #wm-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 .wordmark {
-  display: block; color: var(--bone);
+  display: block; color: var(--text);
   fill: none; stroke: currentColor; stroke-width: 15;
-  stroke-linejoin: miter; stroke-linecap: butt;
+  stroke-linejoin: round; stroke-linecap: round;
   overflow: visible;
 }
-.wordmark .wm-dot { fill: var(--brass); stroke: none; }
 
-/* ---------- surfaces ---------- */
-.glass {                     /* solid panel — the name is historical */
-  background: var(--ink-700);
-  border: 1px solid var(--line);
-  border-radius: var(--r-card);
-  box-shadow: inset 0 1px 0 rgba(237,230,216,0.07), 0 18px 40px -20px #000;
+/* ---------- surfaces: dark glass, generous curvature ---------- */
+.glass, .chip {
+  background: var(--glass);
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  border: 1px solid var(--glass-line);
+  box-shadow: 0 24px 60px -24px rgba(0,0,0,0.9), inset 0 1px 0 var(--glass-hi);
 }
-.low-fx .glass { box-shadow: none; }
+.glass { border-radius: var(--r-card); }
+.chip  { border-radius: var(--r-chip); position: relative; }
+.low-fx .glass, .low-fx .chip { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--glass-solid); }
 
-/* HUD instrument chips: hard corners, hairline, lit top edge, brass corner tab */
-.chip {
-  position: relative;
-  background: var(--ink-700);
-  border: 1px solid var(--line);
-  border-radius: var(--r-chip);
-  box-shadow: inset 0 1px 0 rgba(237,230,216,0.08);
-}
-.chip::before {
-  content: ''; position: absolute; top: -1px; left: -1px;
-  width: 12px; height: 2px; background: var(--brass); opacity: 0.85;
-}
-
-/* ---------- buttons: solid keys with a real bottom edge ---------- */
+/* ---------- buttons ---------- */
 .btn {
-  font-family: inherit; font-weight: 700; color: var(--bone);
-  background: var(--ink-600);
-  border: 1px solid var(--line-2);
+  font-family: inherit; font-weight: 700; color: var(--text);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid var(--glass-line);
   border-radius: var(--r-btn);
   padding: 13px 22px; font-size: 0.95rem; cursor: pointer;
   letter-spacing: 0.06em;
-  box-shadow: 0 2px 0 #060A08, inset 0 1px 0 rgba(237,230,216,0.06);
-  transition: background 0.14s ease, transform 0.06s ease, box-shadow 0.06s ease, color 0.14s ease;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+  transition: background 0.16s ease, transform 0.1s cubic-bezier(0.2,1.4,0.4,1), box-shadow 0.2s ease, color 0.16s ease;
 }
-.btn:hover { background: var(--ink-500); }
-.btn:active { transform: translateY(2px); box-shadow: 0 0 0 #060A08, inset 0 1px 0 rgba(237,230,216,0.06); }
+.btn:hover { background: rgba(255,255,255,0.14); }
+.btn:active { transform: scale(0.95); }
 .btn-primary {
-  background: var(--brass); color: #241905;
-  border-color: var(--brass-hi);
-  box-shadow: 0 3px 0 var(--brass-dk), inset 0 1px 0 rgba(255,255,255,0.35);
-  font-size: 1.15rem; padding: 16px 42px; letter-spacing: 0.12em;
+  background: linear-gradient(165deg, var(--mint-hi), var(--mint-lo));
+  color: #04210F; border-color: rgba(160,255,215,0.55);
+  box-shadow: 0 10px 34px -8px rgba(45,229,143,0.55), inset 0 1px 0 rgba(255,255,255,0.5);
+  font-size: 1.15rem; padding: 17px 44px; letter-spacing: 0.12em;
 }
-.btn-primary:hover { background: var(--brass-hi); }
-.btn-primary:active { transform: translateY(3px); box-shadow: 0 0 0 var(--brass-dk), inset 0 1px 0 rgba(255,255,255,0.35); }
+.btn-primary:hover { box-shadow: 0 12px 44px -8px rgba(45,229,143,0.8), inset 0 1px 0 rgba(255,255,255,0.5); }
 .btn-danger {
-  background: var(--crimson); color: #fff;
-  border-color: #E0574C;
-  box-shadow: 0 3px 0 var(--crimson-lo), inset 0 1px 0 rgba(255,255,255,0.22);
+  background: linear-gradient(165deg, #FF6B84, var(--rose-lo));
+  color: #fff; border-color: rgba(255,150,170,0.5);
+  box-shadow: 0 10px 30px -10px rgba(255,77,109,0.7), inset 0 1px 0 rgba(255,255,255,0.32);
 }
-.btn-danger:hover { background: #D6473D; }
-.btn-danger:active { transform: translateY(3px); box-shadow: 0 0 0 var(--crimson-lo), inset 0 1px 0 rgba(255,255,255,0.22); }
-.btn-ghost { background: transparent; border-color: var(--line); color: var(--bone-dim); box-shadow: none; }
-.btn-ghost:hover { background: var(--ink-700); color: var(--bone); }
-.btn-icon { width: 46px; height: 46px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.btn-ghost { background: transparent; border-color: var(--glass-line); color: var(--text-dim); box-shadow: none; }
+.btn-ghost:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+.btn-icon { width: 48px; height: 48px; padding: 0; border-radius: var(--r-chip); display: inline-flex; align-items: center; justify-content: center; }
 
 /* drawn marks — no glyph fonts, no emoji */
 .ico-menu {
   width: 18px; height: 12px; display: block;
   background:
-    linear-gradient(var(--bone), var(--bone)) 0 0 / 100% 2px no-repeat,
-    linear-gradient(var(--bone), var(--bone)) 0 5px / 100% 2px no-repeat,
-    linear-gradient(var(--bone), var(--bone)) 0 10px / 100% 2px no-repeat;
+    linear-gradient(#fff, #fff) 0 0 / 100% 2px no-repeat,
+    linear-gradient(#fff, #fff) 0 5px / 100% 2px no-repeat,
+    linear-gradient(#fff, #fff) 0 10px / 100% 2px no-repeat;
+  border-radius: 2px;
 }
 .play-ico {
   width: 0; height: 0; margin-right: 9px; flex-shrink: 0;
@@ -159,44 +138,45 @@ body {
 .screen {
   position: fixed; inset: 0; z-index: 40;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  opacity: 1; transition: opacity 0.2s ease; pointer-events: auto;
+  opacity: 1; transition: opacity 0.22s ease; pointer-events: auto;
 }
 .screen.hidden { opacity: 0; pointer-events: none; }
 
-/* loading */
-#loading { background: var(--ink-900); z-index: 100; }
+#loading { background: var(--ink); z-index: 100; }
 #loading .wordmark { width: min(300px, 70vw); }
-#loading .sub { color: var(--bone-mute); font-size: 0.62rem; letter-spacing: 0.42em; margin-top: 20px; }
-#loadbar { width: 190px; height: 2px; background: var(--ink-600); margin-top: 26px; overflow: hidden; }
-#loadbar > div { height: 100%; width: 0%; background: var(--brass); transition: width 0.3s ease; }
+#loading .sub { color: var(--text-mute); font-size: 0.62rem; letter-spacing: 0.42em; margin-top: 20px; }
+#loadbar { width: 190px; height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; margin-top: 26px; overflow: hidden; }
+#loadbar > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--mint), var(--gold)); border-radius: 2px; transition: width 0.3s ease; }
 
-/* menu */
-#menu { background: rgba(8, 13, 11, 0.95); }
-#menu .wordmark { width: min(330px, 76vw); }
-#menu .tagline {
-  color: var(--bone-mute); font-size: 0.64rem; letter-spacing: 0.44em;
-  margin-top: 18px; text-transform: uppercase;
+#menu { background: rgba(10, 11, 18, 0.62); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+#menu .wordmark { width: min(330px, 76vw); filter: drop-shadow(0 8px 40px rgba(255,210,74,0.18)); }
+#menu .tagline { color: var(--text-mute); font-size: 0.64rem; letter-spacing: 0.44em; margin-top: 18px; text-transform: uppercase; }
+#style-tag { font-size: 0.62rem; color: var(--gold); letter-spacing: 0.24em; margin: 14px 0 26px; min-height: 1em; }
+#btn-play { min-width: 240px; font-size: 1.4rem; padding: 20px 52px; animation: breathe 2.8s ease-in-out infinite; }
+@keyframes breathe {
+  0%,100% { box-shadow: 0 10px 34px -8px rgba(45,229,143,0.55), inset 0 1px 0 rgba(255,255,255,0.5); }
+  50% { box-shadow: 0 14px 52px -8px rgba(45,229,143,0.95), inset 0 1px 0 rgba(255,255,255,0.5); }
 }
-#style-tag { font-size: 0.62rem; color: var(--brass); letter-spacing: 0.24em; margin: 14px 0 26px; min-height: 1em; }
-#btn-play { min-width: 240px; font-size: 1.4rem; padding: 19px 52px; }
 #menu-stats {
-  display: flex; margin-top: 30px; color: var(--bone-mute);
-  font-size: 0.6rem; letter-spacing: 0.18em; align-items: stretch;
-  border: 1px solid var(--line); border-radius: var(--r-chip);
+  display: flex; margin-top: 30px; color: var(--text-mute);
+  font-size: 0.56rem; letter-spacing: 0.2em; align-items: stretch;
+  border: 1px solid var(--glass-line); border-radius: var(--r-chip);
+  background: var(--glass); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  overflow: hidden;
 }
 #menu-stats > span {
-  display: flex; flex-direction: column; gap: 5px; align-items: center;
-  padding: 11px 20px; border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 6px; align-items: center;
+  padding: 12px 22px; border-right: 1px solid rgba(255,255,255,0.08);
 }
 #menu-stats > span:last-child { border-right: none; }
-#menu-stats b { color: var(--bone); font-weight: 800; font-size: 0.95rem; letter-spacing: 0.02em; }
-#menu-stats .vault-stat b { color: var(--brass); }
-#menu-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 22px; max-width: 96vw; }
-#menu-nav .btn { font-size: 0.58rem; letter-spacing: 0.16em; padding: 12px 13px; }
+#menu-stats b { color: var(--text); font-weight: 800; font-size: 0.98rem; letter-spacing: 0.02em; }
+#menu-stats .vault-stat b { color: var(--gold); }
+#menu-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 22px; max-width: 96vw; }
+#menu-nav .btn { font-size: 0.6rem; letter-spacing: 0.18em; padding: 13px 15px; }
 #banner {
   position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
-  padding: 10px 20px; font-size: 0.78rem; letter-spacing: 0.08em; color: var(--brass);
-  z-index: 60; max-width: 92vw; text-align: center; border-radius: var(--r-chip);
+  padding: 11px 20px; font-size: 0.78rem; letter-spacing: 0.06em; color: var(--gold);
+  z-index: 60; max-width: 92vw; text-align: center;
   transition: opacity 0.4s ease; opacity: 1;
 }
 #banner.hidden { opacity: 0; pointer-events: none; }
@@ -206,157 +186,150 @@ body {
 #hud.hidden { display: none; }
 #hud-brand {
   position: absolute; bottom: calc(26px + var(--safe-bottom)); left: 50%; transform: translateX(-50%);
-  width: 116px; opacity: 0.28; pointer-events: none; color: var(--bone);
+  width: 116px; opacity: 0.3; pointer-events: none; color: #fff;
 }
-#hud-brand.wordmark { stroke-width: 18; }
-
 #hud-score-wrap { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); text-align: center; }
-.metric-label { font-size: 0.52rem; letter-spacing: 0.36em; color: var(--bone-mute); display: block; }
+.metric-label { font-size: 0.5rem; letter-spacing: 0.34em; color: var(--text-mute); display: block; }
 #run-score {
   font-size: clamp(1.75rem, 6.6vw, 2.5rem); font-weight: 800; line-height: 1;
-  font-variant-numeric: tabular-nums; letter-spacing: -0.01em; margin-top: 3px;
+  font-variant-numeric: tabular-nums; margin-top: 4px;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.6);
 }
-body.chase #run-score { color: var(--brass); }
+body.chase #run-score { color: var(--gold); text-shadow: 0 0 30px rgba(255,210,74,0.7); }
 #greed-pill {
-  display: inline-block; margin-top: 7px;
-  font-size: 0.62rem; font-weight: 800; letter-spacing: 0.2em;
-  padding: 4px 11px; border-radius: var(--r-chip);
-  border: 1px solid var(--line-2); background: var(--ink-700); color: var(--bone-dim);
+  display: inline-block; margin-top: 8px;
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 0.18em;
+  padding: 5px 13px; border-radius: 999px;
+  border: 1px solid var(--glass-line); background: var(--glass); color: var(--mint);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
-#greed-pill.g2 { color: var(--brass); border-color: var(--brass-lo); }
-#greed-pill.g3 { color: var(--crimson); border-color: var(--crimson-lo); animation: greedpulse 0.8s ease-in-out infinite; }
-@keyframes greedpulse { 0%,100% { opacity: 0.75; } 50% { opacity: 1; } }
-#greed-pill.pop { animation: multpop 0.32s ease; }
-@keyframes multpop { 0% { transform: scale(1);} 35% { transform: scale(1.24);} 100% { transform: scale(1);} }
+#greed-pill.g2 { color: var(--gold); border-color: rgba(255,210,74,0.45); }
+#greed-pill.g3 { color: var(--rose); border-color: rgba(255,77,109,0.55); animation: greedpulse 0.75s ease-in-out infinite; }
+@keyframes greedpulse { 0%,100% { box-shadow: 0 0 4px rgba(255,77,109,0.3);} 50% { box-shadow: 0 0 20px rgba(255,77,109,0.8);} }
+#greed-pill.pop { animation: multpop 0.34s ease; }
+@keyframes multpop { 0% { transform: scale(1);} 35% { transform: scale(1.26);} 100% { transform: scale(1);} }
 
-#vault { position: absolute; top: 14px; right: 14px; padding: 7px 11px 8px; text-align: right; }
-#vault::before { left: auto; right: -1px; }
-#vault .vault-num {
-  font-size: 1.05rem; font-weight: 800; color: var(--brass);
-  font-variant-numeric: tabular-nums; display: block; margin-top: 3px;
-}
-#vault.gain { animation: vaultgain 0.7s ease; }
-@keyframes vaultgain { 0% { transform: scale(1);} 26% { transform: scale(1.12);} 100% { transform: scale(1);} }
+#vault { position: absolute; top: 14px; right: 14px; padding: 9px 15px 10px; text-align: right; }
+#vault .vault-num { font-size: 1.08rem; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; display: block; margin-top: 3px; }
+#vault.gain { animation: vaultgain 0.75s ease; }
+@keyframes vaultgain { 0% { transform: scale(1);} 26% { transform: scale(1.15); box-shadow: 0 0 34px rgba(255,210,74,0.75);} 100% { transform: scale(1);} }
 
-#next-piece { position: absolute; top: 14px; left: 14px; padding: 8px 9px 6px; text-align: center; }
-#next-piece canvas { display: block; margin: 4px auto 0; }
+#next-piece { position: absolute; top: 14px; left: 14px; padding: 10px 11px 8px; text-align: center; }
+#next-piece canvas { display: block; margin: 5px auto 0; }
 #hud-home { position: absolute; bottom: calc(18px + var(--safe-bottom)); left: 14px; pointer-events: auto; z-index: 25; }
 
-/* THE BANK KEY — a solid brass key you press, with a real edge under it */
+/* THE BANK BUTTON — a warm gold pill, still practically a character */
 #btn-bank {
   position: fixed; bottom: calc(16px + var(--safe-bottom)); right: 14px;
-  min-width: 138px; padding: 15px 24px 14px;
-  font-family: inherit; font-size: 1.2rem; font-weight: 800; letter-spacing: 0.14em;
-  color: #241905; cursor: pointer; text-align: center;
-  background: var(--brass);
-  border: 1px solid var(--brass-hi);
-  border-radius: var(--r-btn);
-  box-shadow: 0 4px 0 var(--brass-dk), inset 0 1px 0 rgba(255,255,255,0.4);
+  min-width: 138px; padding: 16px 26px 15px;
+  font-family: inherit; font-size: 1.2rem; font-weight: 800; letter-spacing: 0.12em;
+  color: #2A1B00; cursor: pointer; text-align: center;
+  background: linear-gradient(165deg, var(--gold-hi), var(--gold-lo));
+  border: 1px solid rgba(255,235,170,0.75);
+  border-radius: 22px;
+  box-shadow: 0 12px 34px -10px rgba(255,180,40,0.75), inset 0 1px 0 rgba(255,255,255,0.55);
   pointer-events: auto; z-index: 25;
-  transition: transform 0.09s ease, box-shadow 0.09s ease, background 0.2s ease;
+  transition: transform 0.14s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
-#btn-bank .bank-amt {
-  display: block; margin-top: 3px; font-size: 0.72rem; font-weight: 800;
-  letter-spacing: 0.06em; opacity: 0.72; font-variant-numeric: tabular-nums;
-}
-#btn-bank:active { transform: translateY(4px); box-shadow: 0 0 0 var(--brass-dk), inset 0 1px 0 rgba(255,255,255,0.4); }
+#btn-bank .bank-amt { display: block; margin-top: 3px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; opacity: 0.75; font-variant-numeric: tabular-nums; }
+#btn-bank:active { transform: scale(0.95); }
 #btn-bank:disabled {
-  background: var(--ink-600); color: var(--bone-mute); border-color: var(--line);
-  box-shadow: 0 2px 0 #060A08; cursor: default;
+  background: rgba(255,255,255,0.07); color: var(--text-mute);
+  border-color: var(--glass-line); box-shadow: none; cursor: default;
   animation: none !important; transform: none !important;
 }
-#btn-bank.doomed { background: var(--ink-600); color: var(--bone-mute); border-color: var(--line); }
-/* escalation: the key grows and brightens as the pile grows. Scale only. */
-#btn-bank.u1 { animation: bank-u1 1.8s ease-in-out infinite; }
-@keyframes bank-u1 { 0%,100% { background: var(--brass); } 50% { background: var(--brass-hi); } }
-#btn-bank.u2 { animation: bank-u2 1.3s ease-in-out infinite; }
+#btn-bank.doomed { background: linear-gradient(165deg, #5B5B6E, #3A3A4A); color: #9A9AB0; box-shadow: none; }
+#btn-bank.u1 { animation: bank-u1 1.7s ease-in-out infinite; }
+@keyframes bank-u1 {
+  0%,100% { box-shadow: 0 12px 34px -10px rgba(255,180,40,0.7), inset 0 1px 0 rgba(255,255,255,0.55); }
+  50% { box-shadow: 0 14px 50px -8px rgba(255,210,74,1), inset 0 1px 0 rgba(255,255,255,0.55); }
+}
+#btn-bank.u2 { animation: bank-u2 1.25s ease-in-out infinite; }
 @keyframes bank-u2 {
-  0%,100% { transform: scale(1.03); background: var(--brass); }
-  50% { transform: scale(1.08); background: var(--brass-hi); }
+  0%,100% { transform: scale(1.03); box-shadow: 0 12px 38px -8px rgba(255,190,60,0.8), inset 0 1px 0 rgba(255,255,255,0.55); }
+  50% { transform: scale(1.09); box-shadow: 0 16px 60px -6px rgba(255,215,90,1), inset 0 1px 0 rgba(255,255,255,0.55); }
 }
-#btn-bank.u3 { animation: bank-u3 0.8s ease-in-out infinite; }
+#btn-bank.u3 { animation: bank-u3 0.75s ease-in-out infinite; }
 @keyframes bank-u3 {
-  0%,100% { transform: scale(1.05); background: var(--brass); }
-  50% { transform: scale(1.14); background: #FFDB94; }
+  0%,100% { transform: scale(1.05); box-shadow: 0 0 40px rgba(255,210,74,0.9); }
+  50% { transform: scale(1.16); box-shadow: 0 0 76px rgba(255,225,120,1); background: linear-gradient(165deg, #FFF3C4, #FFBE30); }
 }
-#btn-bank.u4 { animation: bank-u4 0.5s ease-in-out infinite; }
+#btn-bank.u4 { animation: bank-u4 0.48s ease-in-out infinite; }
 @keyframes bank-u4 {
-  0%,100% { transform: scale(1.08); background: var(--brass-hi); }
-  50% { transform: scale(1.2); background: var(--bone); }
+  0%,100% { transform: scale(1.08); box-shadow: 0 0 50px rgba(255,225,130,0.95); }
+  50% { transform: scale(1.22); box-shadow: 0 0 100px rgba(255,235,160,1), 0 0 140px rgba(255,140,60,0.5); background: linear-gradient(165deg, #FFFFFF, var(--gold)); }
 }
 .reduce-motion #btn-bank.u2, .reduce-motion #btn-bank.u3, .reduce-motion #btn-bank.u4 { animation: bank-u1 1.4s ease-in-out infinite; transform: none; }
 
-/* danger siren — a brass edge-burn, only while the tower is genuinely at risk */
+/* danger siren */
 #risk-vignette {
   position: fixed; inset: 0; pointer-events: none; z-index: 16; opacity: 0;
-  box-shadow: inset 0 0 130px 30px rgba(217, 164, 65, 0.5);
+  background: radial-gradient(78% 68% at 50% 52%, transparent 46%, rgba(255, 200, 70, 0.5) 100%);
 }
 body.risk1 #risk-vignette { animation: riskpulse 1.5s ease-in-out infinite; }
 body.risk2 #risk-vignette { animation: riskpulse 0.9s ease-in-out infinite; }
 body.risk3 #risk-vignette { animation: riskpulse 0.45s ease-in-out infinite; }
-@keyframes riskpulse { 0%,100% { filter: brightness(0.75); } 50% { filter: brightness(1.4); } }
+@keyframes riskpulse { 0%,100% { filter: brightness(0.78); } 50% { filter: brightness(1.45); } }
 .reduce-motion #risk-vignette { animation: none !important; }
-body.cursed #risk-vignette { box-shadow: inset 0 0 130px 30px rgba(196, 56, 47, 0.55); opacity: 0.55 !important; }
+body.cursed #risk-vignette { background: radial-gradient(78% 68% at 50% 52%, transparent 46%, rgba(255, 40, 70, 0.42) 100%); opacity: 0.5 !important; }
 
 #curse-banner {
-  position: fixed; top: 74px; left: 50%; transform: translateX(-50%);
-  padding: 7px 16px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.22em;
-  color: var(--bone); background: var(--crimson-lo);
-  border: 1px solid var(--crimson); border-radius: var(--r-chip);
-  z-index: 33; white-space: nowrap;
-  animation: cursepulse 1s ease-in-out infinite;
+  position: fixed; top: 78px; left: 50%; transform: translateX(-50%);
+  padding: 8px 18px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.2em;
+  color: #fff; background: rgba(180, 26, 58, 0.85);
+  border: 1px solid rgba(255,120,145,0.65); border-radius: 999px;
+  z-index: 33; white-space: nowrap; box-shadow: 0 0 28px rgba(255,60,90,0.5);
+  animation: cursepulse 0.9s ease-in-out infinite;
 }
 #curse-banner.hidden { display: none; }
-@keyframes cursepulse { 0%,100% { opacity: 0.8; } 50% { opacity: 1; } }
+@keyframes cursepulse { 0%,100% { box-shadow: 0 0 20px rgba(255,60,90,0.45);} 50% { box-shadow: 0 0 38px rgba(255,60,90,0.95);} }
 
 #chase-vignette {
   position: fixed; inset: 0; pointer-events: none; z-index: 17; opacity: 0;
-  box-shadow: inset 0 0 100px 12px rgba(217, 164, 65, 0.28);
+  background: radial-gradient(80% 70% at 50% 50%, transparent 55%, rgba(255, 200, 70, 0.24) 100%);
   transition: opacity 0.6s ease;
 }
-body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.6s ease-in-out infinite; }
-@keyframes chasepulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out infinite; }
+@keyframes chasepulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
 
-/* big reaction words — over the table plane, never over live blocks */
 #reaction {
   position: fixed; left: 50%; top: 74%; transform: translate(-50%, -50%) scale(0.4);
   z-index: 32; pointer-events: none; opacity: 0;
-  font-size: clamp(1.9rem, 8vw, 3.2rem); font-weight: 800; letter-spacing: 0.1em;
+  font-size: clamp(1.9rem, 8.4vw, 3.3rem); font-weight: 800; letter-spacing: 0.06em;
+  text-shadow: 0 4px 32px rgba(0,0,0,0.75);
 }
 #reaction.go { animation: reactpop 0.9s cubic-bezier(0.18, 1.6, 0.4, 1) forwards; }
 @keyframes reactpop {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.45); }
-  22% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-  38% { transform: translate(-50%, -50%) scale(1); }
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.45) rotate(-4deg); }
+  22% { opacity: 1; transform: translate(-50%, -50%) scale(1.12) rotate(2deg); }
+  38% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
   78% { opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%, -58%) scale(1.04); }
+  100% { opacity: 0; transform: translate(-50%, -58%) scale(1.05); }
 }
 
 #hint, #toast {
   position: fixed; left: 50%; transform: translateX(-50%);
-  padding: 9px 18px; font-size: 0.8rem; letter-spacing: 0.04em;
+  padding: 11px 20px; font-size: 0.82rem; letter-spacing: 0.02em;
   z-index: 30; pointer-events: none; opacity: 0; transition: opacity 0.32s ease;
-  text-align: center; max-width: 88vw; border-radius: var(--r-chip);
+  text-align: center; max-width: 88vw;
 }
-#hint { bottom: calc(76px + var(--safe-bottom)); color: var(--bone); }
+#hint { bottom: calc(76px + var(--safe-bottom)); color: var(--text); }
 #toast { bottom: calc(112px + var(--safe-bottom)); }
 #hint.show, #toast.show { opacity: 1; }
 
-/* desktop side panels */
 .side-panel {
   position: fixed; top: 50%; transform: translateY(-50%);
-  width: 196px; padding: 16px; z-index: 15; display: none;
-  font-size: 0.72rem; color: var(--bone-mute); pointer-events: none;
-  border-radius: var(--r-chip);
+  width: 200px; padding: 18px; z-index: 15; display: none;
+  font-size: 0.74rem; color: var(--text-mute); pointer-events: none;
 }
-.side-panel h3 { font-size: 0.56rem; letter-spacing: 0.32em; margin-bottom: 13px; font-weight: 700; color: var(--bone-dim); }
-.side-panel .stat { display: flex; justify-content: space-between; margin-bottom: 9px; }
-.side-panel .stat b { color: var(--bone); font-weight: 700; font-variant-numeric: tabular-nums; }
+.side-panel h3 { font-size: 0.54rem; letter-spacing: 0.3em; margin-bottom: 14px; font-weight: 700; color: var(--text-dim); }
+.side-panel .stat { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.side-panel .stat b { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
 #panel-left { left: 22px; }
 #panel-right { right: 22px; }
 #panel-right ol { list-style: none; }
 #panel-right li { display: flex; justify-content: space-between; margin-bottom: 7px; }
-#panel-right li b { color: var(--bone); font-variant-numeric: tabular-nums; }
+#panel-right li b { color: var(--text); font-variant-numeric: tabular-nums; }
 @media (min-width: 1000px) and (min-aspect-ratio: 5/4) { .side-panel { display: block; } }
 @media (min-width: 760px) {
   #btn-bank { right: 30px; bottom: 30px; }
@@ -364,182 +337,182 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.6s ease-in-out 
 }
 
 /* ---------- results ---------- */
-#results { background: rgba(8, 13, 11, 0.82); }
-#results-card { padding: 28px 30px; text-align: center; max-width: 420px; width: 92vw; }
-#results-verdict { font-size: 0.62rem; letter-spacing: 0.36em; font-weight: 800; margin-bottom: 12px; }
-#results-verdict.banked { color: var(--brass); }
-#results-verdict.collapsed { color: var(--crimson); }
+#results { background: rgba(10, 11, 18, 0.6); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+#results-card { padding: 30px 32px; text-align: center; max-width: 420px; width: 92vw; }
+#results-verdict { font-size: 0.62rem; letter-spacing: 0.34em; font-weight: 800; margin-bottom: 12px; }
+#results-verdict.banked { color: var(--gold); }
+#results-verdict.collapsed { color: var(--rose); }
 #big-amount {
   font-size: clamp(2.6rem, 12vw, 3.9rem); font-weight: 800; line-height: 1;
-  margin-bottom: 6px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+  margin-bottom: 6px; font-variant-numeric: tabular-nums;
 }
-#big-amount.gain { color: var(--brass); }
-#big-amount.loss { color: var(--crimson); animation: lossslam 0.55s cubic-bezier(0.2, 1.6, 0.4, 1); }
+#big-amount.gain { color: var(--gold); text-shadow: 0 0 40px rgba(255,210,74,0.5); }
+#big-amount.loss { color: var(--rose); text-shadow: 0 0 40px rgba(255,77,109,0.5); animation: lossslam 0.55s cubic-bezier(0.2, 1.6, 0.4, 1); }
 @keyframes lossslam { 0% { transform: scale(2.1); opacity: 0; } 55% { transform: scale(0.95); opacity: 1; } 100% { transform: scale(1); } }
-#big-label { font-size: 0.62rem; letter-spacing: 0.26em; color: var(--bone-mute); text-transform: uppercase; margin-bottom: 14px; }
-#vault-line { font-size: 0.68rem; letter-spacing: 0.22em; color: var(--bone-mute); margin-bottom: 8px; }
-#vault-line b { color: var(--brass); font-weight: 800; letter-spacing: 0.02em; font-size: 0.95rem; }
-#openloop { font-size: 0.92rem; font-weight: 700; line-height: 1.35; margin-bottom: 20px; color: var(--bone); }
-#btn-again { width: 100%; font-size: 1.2rem; padding: 17px; margin-bottom: 10px; }
+#big-label { font-size: 0.62rem; letter-spacing: 0.24em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 16px; }
+#vault-line { font-size: 0.64rem; letter-spacing: 0.22em; color: var(--text-mute); margin-bottom: 10px; }
+#vault-line b { color: var(--gold); font-weight: 800; letter-spacing: 0.02em; font-size: 1rem; }
+#openloop { font-size: 0.92rem; font-weight: 700; line-height: 1.35; margin-bottom: 20px; color: var(--text); }
+#btn-again { width: 100%; font-size: 1.2rem; padding: 18px; margin-bottom: 10px; }
 .ad-offer-row { display: flex; gap: 9px; width: 100%; margin-bottom: 10px; }
-.ad-offer-row .btn { flex: 1; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.12em; padding: 14px 6px; display: flex; align-items: center; justify-content: center; }
-#unlock-msg { font-size: 0.74rem; color: var(--bone-mute); min-height: 1.2em; line-height: 1.5; }
-#unlock-msg b { color: var(--brass); }
-#unlock-msg button { background: none; border: none; color: var(--bone); font: inherit; text-decoration: underline; cursor: pointer; }
+.ad-offer-row .btn { flex: 1; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.1em; padding: 15px 6px; display: flex; align-items: center; justify-content: center; }
+#unlock-msg { font-size: 0.74rem; color: var(--text-mute); min-height: 1.2em; line-height: 1.5; }
+#unlock-msg b { color: var(--gold); }
+#unlock-msg button { background: none; border: none; color: var(--text); font: inherit; text-decoration: underline; cursor: pointer; }
 
 /* ---------- cards ---------- */
 #shop-card, #settings-card, #board-card {
-  position: relative; padding: 26px; max-width: 540px; width: 94vw;
+  position: relative; padding: 28px; max-width: 540px; width: 94vw;
   max-height: 86vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;
 }
 #shop-card::-webkit-scrollbar, #board-card::-webkit-scrollbar, #settings-card::-webkit-scrollbar { width: 0; height: 0; display: none; }
-#shop-card h2, #settings-card h2, #board-card h2, #daily-card h2 {
-  font-size: 0.95rem; letter-spacing: 0.3em; margin-bottom: 6px; font-weight: 800;
-}
-.card-sub { font-size: 0.72rem; color: var(--bone-mute); margin-bottom: 18px; letter-spacing: 0.04em; }
-.card-sub b { color: var(--brass); font-weight: 800; }
-.shop-section {
-  font-size: 0.54rem; letter-spacing: 0.34em; color: var(--bone-mute);
-  margin: 22px 0 11px; padding-bottom: 7px; border-bottom: 1px solid var(--line);
-}
+#shop-card h2, #settings-card h2, #board-card h2, #daily-card h2 { font-size: 0.95rem; letter-spacing: 0.28em; margin-bottom: 6px; font-weight: 800; }
+.card-sub { font-size: 0.74rem; color: var(--text-mute); margin-bottom: 20px; }
+.card-sub b { color: var(--gold); font-weight: 800; }
+.shop-section { font-size: 0.54rem; letter-spacing: 0.3em; color: var(--text-mute); margin: 24px 0 12px; }
 .shop-section:first-of-type { margin-top: 6px; }
-#shop-grid-docks, #shop-grid-themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(146px, 1fr)); gap: 10px; }
+#shop-grid-docks, #shop-grid-themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(146px, 1fr)); gap: 11px; }
 .shop-item {
-  padding: 11px; border-radius: var(--r-btn); border: 1px solid var(--line);
-  background: var(--ink-600); cursor: pointer; text-align: left;
-  font-family: inherit; color: var(--bone); position: relative;
-  box-shadow: 0 2px 0 #060A08;
-  transition: transform 0.06s ease, box-shadow 0.06s ease, border-color 0.16s ease;
+  padding: 12px; border-radius: var(--r-btn); border: 1px solid var(--glass-line);
+  background: rgba(255,255,255,0.05); cursor: pointer; text-align: left;
+  font-family: inherit; color: var(--text); position: relative;
+  transition: transform 0.1s cubic-bezier(0.2,1.4,0.4,1), border-color 0.16s ease, background 0.16s ease;
 }
-.shop-item:active { transform: translateY(2px); box-shadow: 0 0 0 #060A08; }
-.shop-item .swatch { height: 38px; border-radius: var(--r-chip); margin-bottom: 9px; }
-.shop-item .name { font-size: 0.76rem; font-weight: 800; letter-spacing: 0.06em; margin-bottom: 3px; }
-.shop-item .kind { font-size: 0.56rem; color: var(--bone-mute); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 7px; min-height: 2.2em; line-height: 1.5; }
-.shop-item .kind .power { color: var(--bone-dim); font-weight: 700; }
-.shop-item .price { font-size: 0.74rem; color: var(--brass); font-weight: 800; font-variant-numeric: tabular-nums; }
-.shop-item .bar { height: 2px; background: var(--ink-800); margin-top: 7px; overflow: hidden; }
-.shop-item .bar > div { height: 100%; background: var(--brass-lo); }
-.shop-item.locked { opacity: 0.72; }
-.shop-item.owned { border-color: var(--line-2); }
-.shop-item.equipped { border-color: var(--brass); }
-.shop-item .tag {
-  position: absolute; top: 9px; right: 9px;
-  width: 7px; height: 7px; background: var(--brass); border-radius: 50%;
-}
-/* superpowers */
+.shop-item:hover { background: rgba(255,255,255,0.09); }
+.shop-item:active { transform: scale(0.96); }
+.shop-item .swatch { height: 40px; border-radius: 10px; margin-bottom: 10px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
+.shop-item .name { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em; margin-bottom: 3px; }
+.shop-item .kind { font-size: 0.56rem; color: var(--text-mute); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 7px; min-height: 2.2em; line-height: 1.5; }
+.shop-item .kind .power { color: var(--mint); font-weight: 700; }
+.shop-item .price { font-size: 0.76rem; color: var(--gold); font-weight: 800; font-variant-numeric: tabular-nums; }
+.shop-item .bar { height: 3px; border-radius: 2px; background: rgba(255,255,255,0.1); margin-top: 8px; overflow: hidden; }
+.shop-item .bar > div { height: 100%; background: linear-gradient(90deg, var(--gold), var(--rose)); border-radius: 2px; }
+.shop-item.locked { opacity: 0.75; }
+.shop-item.owned { border-color: rgba(255,255,255,0.28); }
+.shop-item.equipped { border-color: var(--gold); box-shadow: 0 0 20px -4px rgba(255,210,74,0.55); }
+.shop-item .tag { position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 10px rgba(255,210,74,0.9); }
 .power-row {
   display: flex; align-items: center; gap: 13px;
-  padding: 12px 13px; border-radius: var(--r-btn); border: 1px solid var(--line);
-  background: var(--ink-600); margin-bottom: 9px;
+  padding: 13px; border-radius: var(--r-btn); border: 1px solid var(--glass-line);
+  background: rgba(255,255,255,0.05); margin-bottom: 10px;
 }
 .power-row .icon {
-  width: 38px; height: 38px; flex-shrink: 0;
+  width: 40px; height: 40px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.66rem; font-weight: 800; letter-spacing: 0.06em;
-  border: 1px solid var(--line-2); border-radius: var(--r-chip);
-  color: var(--bone-mute);
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.04em;
+  border: 1px solid var(--glass-line); border-radius: 12px; color: var(--text-mute);
 }
-.power-row.unlocked .icon { color: var(--brass); border-color: var(--brass-lo); background: rgba(217,164,65,0.09); }
+.power-row.unlocked .icon { color: var(--mint); border-color: rgba(45,229,143,0.5); background: rgba(45,229,143,0.1); }
 .power-row .info { flex: 1; }
-.power-row .info .name { font-size: 0.76rem; font-weight: 800; letter-spacing: 0.14em; }
-.power-row.unlocked .info .name { color: var(--brass); }
-.power-row .info .desc { font-size: 0.66rem; color: var(--bone-mute); margin-top: 3px; line-height: 1.45; }
-.power-row .info .bar { height: 2px; background: var(--ink-800); margin-top: 8px; overflow: hidden; }
-.power-row .info .bar > div { height: 100%; background: var(--brass-lo); }
-.power-row .req { font-size: 0.58rem; color: var(--bone-mute); text-align: right; white-space: nowrap; line-height: 1.5; }
-.power-row.unlocked .req { color: var(--brass); font-weight: 800; }
+.power-row .info .name { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.12em; }
+.power-row.unlocked .info .name { color: var(--mint); }
+.power-row .info .desc { font-size: 0.66rem; color: var(--text-mute); margin-top: 3px; line-height: 1.45; }
+.power-row .info .bar { height: 3px; border-radius: 2px; background: rgba(255,255,255,0.1); margin-top: 8px; overflow: hidden; }
+.power-row .info .bar > div { height: 100%; background: linear-gradient(90deg, var(--mint), var(--gold)); border-radius: 2px; }
+.power-row .req { font-size: 0.58rem; color: var(--text-mute); text-align: right; white-space: nowrap; line-height: 1.5; }
+.power-row.unlocked .req { color: var(--mint); font-weight: 800; }
 .close-row { display: none; }
 
-/* corner close — drawn, not a glyph */
 .card-x {
-  position: absolute; top: 14px; right: 14px; z-index: 2;
-  width: 32px; height: 32px; border-radius: var(--r-chip);
-  border: 1px solid var(--line); background: var(--ink-600);
+  position: absolute; top: 15px; right: 15px; z-index: 2;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--glass-line); background: rgba(255,255,255,0.08);
   cursor: pointer; font-size: 0; padding: 0;
 }
 .card-x::before, .card-x::after {
   content: ''; position: absolute; left: 50%; top: 50%;
-  width: 13px; height: 1.5px; background: var(--bone-dim); margin: -1px 0 0 -6.5px;
+  width: 13px; height: 2px; border-radius: 1px; background: var(--text-dim); margin: -1px 0 0 -6.5px;
 }
 .card-x::before { transform: rotate(45deg); }
 .card-x::after { transform: rotate(-45deg); }
-.card-x:hover { background: var(--ink-500); }
-.card-x:hover::before, .card-x:hover::after { background: var(--bone); }
+.card-x:hover { background: rgba(255,255,255,0.18); }
+.card-x:hover::before, .card-x:hover::after { background: #fff; }
 
-/* buy confirm */
-#confirm-dialog { z-index: 95; background: rgba(4, 8, 6, 0.8); }
-#confirm-card { padding: 26px 28px; text-align: center; max-width: 320px; width: 84vw; }
-#confirm-card .ttl { font-size: 0.54rem; letter-spacing: 0.34em; color: var(--bone-mute); margin-bottom: 12px; }
-#confirm-name { font-size: 1.3rem; font-weight: 800; letter-spacing: 0.08em; margin-bottom: 5px; }
-#confirm-detail { font-size: 0.72rem; color: var(--bone-mute); margin-bottom: 16px; line-height: 1.5; }
-#confirm-price { font-size: 0.72rem; color: var(--bone-mute); letter-spacing: 0.1em; margin-bottom: 20px; }
-#confirm-price b { color: var(--brass); font-weight: 800; font-size: 1.05rem; letter-spacing: 0; }
+#confirm-dialog { z-index: 95; background: rgba(6, 7, 12, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#confirm-card { padding: 28px 30px; text-align: center; max-width: 320px; width: 84vw; }
+#confirm-card .ttl { font-size: 0.54rem; letter-spacing: 0.32em; color: var(--text-mute); margin-bottom: 12px; }
+#confirm-name { font-size: 1.35rem; font-weight: 800; letter-spacing: 0.04em; margin-bottom: 5px; }
+#confirm-detail { font-size: 0.72rem; color: var(--text-mute); margin-bottom: 16px; line-height: 1.5; }
+#confirm-price { font-size: 0.7rem; color: var(--text-mute); letter-spacing: 0.1em; margin-bottom: 20px; }
+#confirm-price b { color: var(--gold); font-weight: 800; font-size: 1.05rem; letter-spacing: 0; }
 .confirm-row { display: flex; gap: 9px; }
 .confirm-row .btn { flex: 1; }
-#btn-confirm-ok { font-size: 0.9rem; padding: 13px 20px; }
+#btn-confirm-ok { font-size: 0.9rem; padding: 14px 20px; }
 #btn-confirm-ok:disabled { opacity: 0.4; cursor: default; }
 
 /* ---------- daily reward ---------- */
-#btn-daily.ready { border-color: var(--brass-lo); color: var(--brass); }
-#daily-card { position: relative; width: min(430px, 92vw); padding: 28px 24px 22px; text-align: center; }
-#daily-mark { display: block; margin: 0 auto 14px; }
+#btn-daily.ready {
+  border-color: rgba(255,210,74,0.6); color: var(--gold);
+  box-shadow: 0 0 22px -4px rgba(255,210,74,0.6), inset 0 1px 0 var(--glass-hi);
+  animation: dailyready 1.8s ease-in-out infinite;
+}
+@keyframes dailyready {
+  0%,100% { box-shadow: 0 0 16px -6px rgba(255,210,74,0.5), inset 0 1px 0 var(--glass-hi); }
+  50% { box-shadow: 0 0 32px -2px rgba(255,210,74,0.95), inset 0 1px 0 var(--glass-hi); }
+}
+#daily-card { position: relative; width: min(430px, 92vw); padding: 30px 26px 24px; text-align: center; }
+#daily-mark { display: block; margin: 0 auto 16px; filter: drop-shadow(0 6px 22px rgba(255,210,74,0.5)); }
 #daily-card .card-sub { margin-bottom: 20px; line-height: 1.5; }
 #daily-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 4px 0 20px; }
 .day-chip {
-  position: relative; padding: 9px 2px 8px; border-radius: var(--r-chip);
-  background: var(--ink-800); border: 1px solid var(--line);
+  position: relative; padding: 10px 2px 9px; border-radius: 12px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10);
   display: flex; flex-direction: column; align-items: center; gap: 5px;
 }
-.day-chip .d-lab { font-size: 0.46rem; letter-spacing: 0.1em; color: var(--bone-mute); }
-.day-chip b { font-size: 0.66rem; color: var(--bone); font-variant-numeric: tabular-nums; }
-.day-chip.today { background: rgba(217,164,65,0.12); border-color: var(--brass); }
-.day-chip.today b { color: var(--brass); }
-.day-chip.today .d-lab { color: var(--brass); }
-.day-chip.claimed { border-color: var(--brass-lo); }
+.day-chip .d-lab { font-size: 0.46rem; letter-spacing: 0.1em; color: var(--text-mute); }
+.day-chip b { font-size: 0.66rem; color: var(--text); font-variant-numeric: tabular-nums; }
+.day-chip.today {
+  background: linear-gradient(160deg, rgba(255,210,74,0.3), rgba(255,170,40,0.12));
+  border-color: rgba(255,210,74,0.8); box-shadow: 0 0 22px -6px rgba(255,210,74,0.8);
+}
+.day-chip.today b, .day-chip.today .d-lab { color: var(--gold-hi); }
+.day-chip.claimed { border-color: rgba(45,229,143,0.5); background: rgba(45,229,143,0.08); }
 .day-chip .d-check {
   position: absolute; top: -6px; right: -4px;
-  width: 9px; height: 5px; border-left: 2px solid var(--brass); border-bottom: 2px solid var(--brass);
+  width: 9px; height: 5px; border-left: 2px solid var(--mint); border-bottom: 2px solid var(--mint);
   transform: rotate(-45deg);
 }
-.day-chip .d-max { font-size: 0.4rem; letter-spacing: 0.14em; color: var(--brass-lo); }
-#btn-claim { width: 100%; font-size: 0.95rem; letter-spacing: 0.16em; padding: 16px; }
+.day-chip .d-max { font-size: 0.4rem; letter-spacing: 0.12em; color: var(--gold); }
+#btn-claim { width: 100%; font-size: 0.98rem; letter-spacing: 0.14em; padding: 17px; }
 #btn-claim:disabled { opacity: 0.5; cursor: default; }
-#daily-foot { margin-top: 16px; font-size: 0.62rem; color: var(--bone-mute); letter-spacing: 0.04em; line-height: 1.6; }
-#daily-foot b { color: var(--brass); }
-#daily-card.claimpop { animation: claimpop 0.6s cubic-bezier(0.18, 1.5, 0.4, 1); }
-@keyframes claimpop { 0% { transform: scale(1); } 30% { transform: scale(1.04); } 100% { transform: scale(1); } }
+#daily-foot { margin-top: 16px; font-size: 0.62rem; color: var(--text-mute); line-height: 1.6; }
+#daily-foot b { color: var(--gold); }
+#daily-card.claimpop { animation: claimpop 0.65s cubic-bezier(0.18, 1.5, 0.4, 1); }
+@keyframes claimpop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.05); box-shadow: 0 0 70px rgba(255,210,74,0.6); }
+  100% { transform: scale(1); }
+}
 
 /* settings */
-.setting-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--line); font-size: 0.82rem; }
-.toggle { width: 48px; height: 26px; border-radius: var(--r-chip); background: var(--ink-800); border: 1px solid var(--line-2); position: relative; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease; }
-.toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 1px; background: var(--bone-mute); transition: left 0.16s ease, background 0.16s ease; }
-.toggle.on { background: rgba(217,164,65,0.16); border-color: var(--brass); }
-.toggle.on::after { left: 25px; background: var(--brass); }
+.setting-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.85rem; }
+.toggle { width: 52px; height: 28px; border-radius: 14px; background: rgba(255,255,255,0.12); border: none; position: relative; cursor: pointer; transition: background 0.2s ease; }
+.toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: left 0.18s cubic-bezier(0.2,1.4,0.4,1); }
+.toggle.on { background: var(--mint); }
+.toggle.on::after { left: 27px; }
 
 /* leaderboard */
 #board-list { list-style: none; }
-#board-list li { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 2px; border-bottom: 1px solid var(--line); font-size: 0.82rem; }
-#board-list li b { color: var(--brass); font-variant-numeric: tabular-nums; }
-#board-list li .rank { color: var(--bone-mute); width: 32px; font-size: 0.68rem; }
-#board-list li .date { color: var(--bone-mute); font-size: 0.64rem; }
+#board-list li { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 2px; border-bottom: 1px solid rgba(255,255,255,0.07); font-size: 0.85rem; }
+#board-list li b { color: var(--gold); font-variant-numeric: tabular-nums; }
+#board-list li .rank { color: var(--text-mute); width: 32px; font-size: 0.7rem; }
+#board-list li .date { color: var(--text-mute); font-size: 0.66rem; }
 
 /* mock ad overlay */
-#ad-overlay { background: rgba(4, 8, 6, 0.95); z-index: 90; }
-#ad-box { padding: 32px 38px; text-align: center; }
-#ad-box .ad-label { font-size: 0.54rem; letter-spacing: 0.3em; color: var(--bone-mute); margin-bottom: 12px; }
-#ad-title { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.14em; margin-bottom: 6px; }
-#ad-count { font-size: 2.2rem; font-weight: 800; color: var(--brass); margin: 16px 0; font-variant-numeric: tabular-nums; }
-#btn-ad-skip { margin-top: 8px; font-size: 0.72rem; }
+#ad-overlay { background: rgba(6, 7, 12, 0.94); z-index: 90; }
+#ad-box { padding: 34px 40px; text-align: center; }
+#ad-box .ad-label { font-size: 0.54rem; letter-spacing: 0.28em; color: var(--text-mute); margin-bottom: 12px; }
+#ad-title { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.12em; margin-bottom: 6px; }
+#ad-count { font-size: 2.3rem; font-weight: 800; color: var(--gold); margin: 16px 0; font-variant-numeric: tabular-nums; }
+#btn-ad-skip { margin-top: 8px; font-size: 0.74rem; }
 
-#flash {
-  position: fixed; inset: 0; pointer-events: none; z-index: 18; opacity: 0;
-  background: rgba(237, 230, 216, 0.16);
-}
+#flash { position: fixed; inset: 0; pointer-events: none; z-index: 18; opacity: 0;
+  background: radial-gradient(60% 60% at 50% 45%, rgba(255,255,255,0.3), transparent 70%); }
 .reduce-motion #flash, .reduce-motion #chase-vignette { display: none; }
 
 @media (max-width: 480px) {
-  #btn-bank { min-width: 124px; padding: 13px 18px 12px; font-size: 1.05rem; }
-  #menu-stats > span { padding: 10px 14px; }
+  #btn-bank { min-width: 124px; padding: 14px 19px 13px; font-size: 1.06rem; }
+  #menu-stats > span { padding: 11px 16px; }
 }
 </style>
 </head>
@@ -548,7 +521,6 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.6s ease-in-out 
 <div id="flash"></div>
 <div id="chase-vignette"></div>
 <div id="risk-vignette"></div>
-<div id="grain"></div>
 <div id="reaction"></div>
 <div id="curse-banner" class="hidden"></div>
 
@@ -677,9 +649,9 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.6s ease-in-out 
     <button class="card-x" id="daily-x"></button>
     <!-- three stacked chips, drawn in the piece vocabulary -->
     <svg id="daily-mark" width="46" height="40" viewBox="0 0 46 40" aria-hidden="true">
-      <path d="M6 30 h34 v6 H6 Z" fill="#8A6620"/>
-      <path d="M9 19 h28 v6 H9 Z" fill="#D9A441"/>
-      <path d="M14 8 h18 v6 H14 Z" fill="#EDE6D8"/>
+      <path d="M5 29 h36 v7 a3 3 0 0 1 -3 3 H8 a3 3 0 0 1 -3 -3 Z" fill="#E9A81E"/>
+      <path d="M8 18 h30 v7 a3 3 0 0 1 -3 3 H11 a3 3 0 0 1 -3 -3 Z" fill="#FFD24A"/>
+      <path d="M13 7 h20 v7 a3 3 0 0 1 -3 3 H16 a3 3 0 0 1 -3 -3 Z" fill="#FFE79A"/>
     </svg>
     <h2>DAILY REWARD</h2>
     <div class="card-sub" id="daily-sub"></div>
@@ -764,31 +736,31 @@ const TIERS = {
    recolor): monochrome noir, all-fire inferno, jewel-tone royal, arcade retro…
    Adjacent tiers stay unmistakable inside every pack. Perks scale with price. */
 const THEMES = {
-  /* Every pack is ONE ramp with a story, never a bag of hues. Signal — the
-     default — reads value as heat: cool slate at the bottom of the ladder,
-     bone through the middle, brass and ember at the top, white-hot at the
-     apex. It shares its palette with the interface, so nothing on screen
-     picks a colour of its own. */
+  /* One colour per shape, and every one of them a long way from its
+     neighbours — the hues are spread right around the wheel so no two tiers
+     can ever be confused. What holds them together is that they are all the
+     same KIND of colour: fully saturated, equally bright, no pastels and no
+     muds. Distinct family members, not a gradient. */
   default: { name: 'Signal',  bonus: {},
-    colors: ['', '#7E9298', '#E4EAE6', '#B5763A', '#F5DCA8', '#C88A22', '#8C3B22', '#E8703C', '#FFF8E4'] },
-  noir:    { name: 'Noir',    bonus: { coinMult: 1.04 },   // graphite ramp, one blood note, bone apex
-    colors: ['', '#3A4048', '#575E68', '#767E89', '#9AA2AC', '#BEC5CD', '#8E2230', '#C4382F', '#F2EEE6'] },
+    colors: ['', '#FF2D55', '#FF8A00', '#C8F53C', '#25D366', '#00C2FF', '#4361FF', '#B026FF', '#FFFAE8'] },
+  noir:    { name: 'Noir',    bonus: { coinMult: 1.04 },   // greyscale ladder, one blood note, gold apex
+    colors: ['', '#FFFFFF', '#C8CCD4', '#949AA6', '#646B7A', '#3C4250', '#20242E', '#FF2B4E', '#FFD028'] },
   oceanic: { name: 'Oceanic', bonus: { greedStart: 1.2 },  // foam down to the abyss
-    colors: ['', '#CFEFF2', '#8DD3DC', '#4FB2C4', '#2A88A8', '#1C6188', '#173F68', '#122748', '#7FE3D8'] },
-  toxic:   { name: 'Toxic',   bonus: { coinMult: 1.08 },   // acid ramp under UV
-    colors: ['', '#E8F58A', '#C4E839', '#8ED41C', '#4FB81E', '#1E9448', '#106B4E', '#0A4444', '#EFFF6B'] },
-  candy:   { name: 'Candy',   bonus: { goldenBias: 2.0 },  // cream to raspberry
-    colors: ['', '#FFE9D6', '#FFC7B2', '#FF9DA8', '#FF6F95', '#EE4A82', '#C42C6E', '#8E1C58', '#FFF3DC'] },
-  retro:   { name: 'Retro',   bonus: { coinMult: 1.08, greedStart: 1.15 }, // amber CRT
-    colors: ['', '#6B4A16', '#966820', '#C08A28', '#E0A93A', '#F5C558', '#FFDC8C', '#FF9A3C', '#FFF6DE'] },
+    colors: ['', '#D6FEFF', '#6FE9F2', '#16C8E4', '#0A93DC', '#1B5FD4', '#2E2FBE', '#6A1FC8', '#FFE066'] },
+  toxic:   { name: 'Toxic',   bonus: { coinMult: 1.08 },   // acid lab under UV
+    colors: ['', '#F2FF00', '#A8F000', '#3CE81E', '#00E88C', '#00DCD4', '#00A8FF', '#9B4DFF', '#FF3CE0'] },
+  candy:   { name: 'Candy',   bonus: { goldenBias: 2.0 },  // sugar shop
+    colors: ['', '#FF4FA3', '#FF8A4C', '#FFDE3C', '#5BEE86', '#4CD8FF', '#8C82FF', '#E262FF', '#FFF2C8'] },
+  retro:   { name: 'Retro',   bonus: { coinMult: 1.08, greedStart: 1.15 }, // arcade cabinet
+    colors: ['', '#FF3355', '#FF9722', '#FFEE33', '#33EE66', '#22DDEE', '#4477FF', '#EE44EE', '#F8F0D8'] },
   inferno: { name: 'Inferno', bonus: { coinMult: 1.12 },   // everything burns
-    colors: ['', '#FFEDB0', '#FFCF62', '#FBA232', '#F06E1E', '#DC4220', '#B32436', '#7C1140', '#FFFFFF'] },
-  royal:   { name: 'Royal',   bonus: { greedStart: 1.25, coinMult: 1.06 }, // wine and gilt
-    colors: ['', '#E4D6E8', '#B79BC8', '#8A6BA8', '#5F4288', '#3E2A66', '#7A1E44', '#A8213C', '#E8C158'] },
+    colors: ['', '#FFF3A8', '#FFD02E', '#FF9A16', '#FF5E10', '#F02A22', '#C4106A', '#8A0EA8', '#FFFFFF'] },
+  royal:   { name: 'Royal',   bonus: { greedStart: 1.25, coinMult: 1.06 }, // jewels on velvet
+    colors: ['', '#F5D6DC', '#E0395F', '#B4123C', '#12A868', '#1080A8', '#2A44C8', '#7A1FC0', '#F5C61E'] },
   cyber:   { name: 'Cyber',   bonus: { coinMult: 1.10, goldenBias: 1.5 },  // neon over gunmetal
-    colors: ['', '#2A3742', '#3F6272', '#3E9AA8', '#2FC8C0', '#25E0A0', '#4CC9F0', '#7A5BFF', '#E8FBFF'] },
-  prism:   { name: 'Prism',   bonus: { coinMult: 1.15, greedStart: 1.35 }, // the loud one, in spectral order
-    colors: ['', '#F02D4B', '#F97316', '#FACC15', '#3BD65E', '#22C9D9', '#3B6BF0', '#9333EA', '#FFFFFF'] },
+    colors: ['', '#00FFD4', '#00C2FF', '#3C7CFF', '#8A3CFF', '#D416FF', '#FF16C0', '#FF2E5E', '#EAFBFF'] },
+  prism:   { name: 'Prism',   bonus: { coinMult: 1.15, greedStart: 1.35 }, // max saturation
+    colors: ['', '#FF0044', '#FF7A00', '#FFE800', '#00FF66', '#00E5FF', '#3366FF', '#C400FF', '#FFFFFF'] },
 };
 
 /* Docks — the shop's anchor purchase. Design rule learned the hard way:
@@ -798,25 +770,22 @@ const THEMES = {
      lengthBonus / grip / forgiveness / slowFall / greedRate / salvageMult /
      comboBonusMs / walls                                                    */
 const DOCKS = {
-  /* Materials, not effects. Each dock is a solid slab with one quiet signature
-     detail, and every colour is drawn from the same ink / bone / brass palette
-     as the rest of the game — a dock never introduces a new hue. */
-  slab:      { style: 'slab',      c1: '#4A5A55', c2: '#25322D', edge: '#8FA39A' },
-  oak:       { style: 'wood',      c1: '#9A6B37', c2: '#5C3D1E', edge: '#C79A63' },
-  steel:     { style: 'steel',     c1: '#AEB8BC', c2: '#5E686E', edge: '#DDE4E6' },
-  marble:    { style: 'marble',    c1: '#EDEAE2', c2: '#ADA79C', edge: '#FFFFFF' },
-  porcelain: { style: 'porcelain', c1: '#F4EFE4', c2: '#CFC5B4', edge: '#FFFFFF', forgiveness: 0.02 },
-  glass:     { style: 'glass',     c1: '#BFDDE4', c2: '#6E96A2', edge: '#E8F7FA', lengthBonus: 0.05, slowFall: 0.014 },
-  basalt:    { style: 'lava',      c1: '#3A3237', c2: '#171215', edge: '#C2622A',  forgiveness: 0.02, salvageMult: 1.6 },
-  circuit:   { style: 'circuit',   c1: '#1D3A33', c2: '#0A1815', edge: '#4FCFA0',  lengthBonus: 0.06, greedRate: 0.5 },
-  gold:      { style: 'gold',      c1: '#D9A441', c2: '#8A6620', edge: '#F7DFA4',  greedRate: 0.25, salvageMult: 1.3 },
-  bumper:    { style: 'bumper',    c1: '#C98F2E', c2: '#6E4A12', edge: '#F0C673',  grip: 0.3, forgiveness: 0.05, walls: true },
-  aurora:    { style: 'aurora',    c1: '#7FBFAE', c2: '#2E5570', edge: '#CFF2E4',  lengthBonus: 0.10, forgiveness: 0.04, comboBonusMs: 900 },
-  nebula:    { style: 'nebula',    c1: '#2A2542', c2: '#100D20', edge: '#8F7FD8',  lengthBonus: 0.08, slowFall: 0.010, greedRate: 0.25 },
-  velvet:    { style: 'velvet',    c1: '#6E1C36', c2: '#320C1A', edge: '#C4728C',  lengthBonus: 0.10, grip: 0.25, comboBonusMs: 700, salvageMult: 1.4 },
-  vortex:    { style: 'vortex',    c1: '#8E7AC4', c2: '#2E1E54', edge: '#D6C8F2',  lengthBonus: 0.16, grip: 0.3, forgiveness: 0.08, greedRate: 0.3 },
-  obsidian:  { style: 'obsidian',  c1: '#252530', c2: '#0A0A10', edge: '#8890A8',  lengthBonus: 0.14, forgiveness: 0.08, slowFall: 0.012, salvageMult: 1.5 },
-  crown:     { style: 'crown',     c1: '#14141C', c2: '#040406', edge: '#D9A441',  lengthBonus: 0.22, grip: 0.3, forgiveness: 0.10, greedRate: 0.4, salvageMult: 1.8, comboBonusMs: 1000, walls: true },
+  slab:      { style: 'slab',      c1: '#525f78', c2: '#272e40', glow: 'rgba(170,190,230,0.30)' },
+  oak:       { style: 'wood',      c1: '#a8763e', c2: '#6b4423', glow: 'rgba(220,170,100,0.25)' },
+  steel:     { style: 'steel',     c1: '#b8c2d0', c2: '#68727f', glow: 'rgba(200,215,235,0.28)' },
+  marble:    { style: 'marble',    c1: '#f2f0ec', c2: '#b8b4ac', glow: 'rgba(255,252,244,0.30)' },
+  porcelain: { style: 'porcelain', c1: '#faf6ee', c2: '#d8cfc0', glow: 'rgba(255,244,220,0.30)', forgiveness: 0.02 },
+  glass:     { style: 'glass',     c1: '#d4f2fa', c2: '#7fb8cc', glow: 'rgba(180,235,255,0.35)', lengthBonus: 0.05, slowFall: 0.014 },
+  basalt:    { style: 'lava',      c1: '#3c3038', c2: '#1a1216', glow: 'rgba(255,110,40,0.35)',  forgiveness: 0.02, salvageMult: 1.6 },
+  circuit:   { style: 'circuit',   c1: '#12403a', c2: '#071a16', glow: 'rgba(60,230,170,0.35)',  lengthBonus: 0.06, greedRate: 0.5 },
+  gold:      { style: 'gold',      c1: '#f5d36b', c2: '#a87818', glow: 'rgba(255,210,110,0.40)', greedRate: 0.25, salvageMult: 1.3 },
+  bumper:    { style: 'bumper',    c1: '#f2b93c', c2: '#9a6a14', glow: 'rgba(255,190,70,0.35)',  grip: 0.3, forgiveness: 0.05, walls: true },
+  aurora:    { style: 'aurora',    c1: '#8fe8c8', c2: '#3a6fb8', glow: 'rgba(140,240,205,0.35)', lengthBonus: 0.10, forgiveness: 0.04, comboBonusMs: 900 },
+  nebula:    { style: 'nebula',    c1: '#2c2450', c2: '#120e28', glow: 'rgba(150,130,255,0.40)', lengthBonus: 0.08, slowFall: 0.010, greedRate: 0.25 },
+  velvet:    { style: 'velvet',    c1: '#7a1e3c', c2: '#3c0e1e', glow: 'rgba(220,80,120,0.35)',  lengthBonus: 0.10, grip: 0.25, comboBonusMs: 700, salvageMult: 1.4 },
+  vortex:    { style: 'vortex',    c1: '#b393e8', c2: '#3a2468', glow: 'rgba(185,150,240,0.40)', lengthBonus: 0.16, grip: 0.3, forgiveness: 0.08, greedRate: 0.3 },
+  obsidian:  { style: 'obsidian',  c1: '#2a2a34', c2: '#0c0c12', glow: 'rgba(140,150,180,0.35)', lengthBonus: 0.14, forgiveness: 0.08, slowFall: 0.012, salvageMult: 1.5 },
+  crown:     { style: 'crown',     c1: '#14141c', c2: '#040408', glow: 'rgba(255,214,110,0.45)', lengthBonus: 0.22, grip: 0.3, forgiveness: 0.10, greedRate: 0.4, salvageMult: 1.8, comboBonusMs: 1000, walls: true },
 };
 
 /* Special blocks — each with its own unmistakable skin (drawn in §21) and its
@@ -1274,11 +1243,11 @@ const Particles = {
       this.spawn({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - speed * 0.3, life: rand(life * 0.5, life), maxLife: life, size: rand(2, 5.5), color, gravity: 240, drag: 0.96, glow });
     }
   },
-  goldRain(x, y) { // jackpot / chase moments — a throw of brass chips
+  goldRain(x, y) { // jackpot / chase moments — gold everywhere
     const n = perf.tier === 'low' ? 40 : 110;
     for (let i = 0; i < n; i++) {
       const a = rand(-Math.PI * 0.9, -Math.PI * 0.1), s = rand(220, 560);
-      this.spawn({ x: x + rand(-60, 60), y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(1, 2), maxLife: 2, size: rand(2.5, 6), color: pick(['#D9A441', '#F2C673', '#EDE6D8', '#8A6620']), gravity: 380, drag: 0.985, glow: false });
+      this.spawn({ x: x + rand(-60, 60), y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(1, 2), maxLife: 2, size: rand(2.5, 6), color: pick(['#FFD24A', '#FFE79A', '#FFF6D0', '#FFB930']), gravity: 380, drag: 0.985, glow: true });
     }
   },
   confetti(x, y, colors) {
@@ -2062,16 +2031,6 @@ const Stack = {
     }
     return Math.min(m, 6);
   },
-  /* The highest surface under the aim column — where the next piece will
-     come to rest. Used to place the landing mark. */
-  columnTopY(x, r) {
-    let top = WORLD.platformY;
-    for (const b of this.pieces()) {
-      if (Math.abs(b.position.x - x) > r + b.plugin.r * 0.9) continue;
-      top = Math.min(top, b.bounds.min.y);
-    }
-    return top;
-  },
   // Wake every piece — call after ANY body removal so blocks resting on a
   // consumed/shrunk piece fall instead of freezing mid-air (floating-block fix).
   wakeAll() {
@@ -2427,7 +2386,7 @@ const Game = {
       const amt = Math.round(TIERS.values[3] * Greed.value * 2 * Economy.coinMult);
       this.runCoins += amt;
       UI.react('TREASURE!', '#ffd700');
-      spawnPopup(x, y - 40, `+${fmt(amt)}`, PAL.brass, true);
+      spawnPopup(x, y - 40, `+${fmt(amt)}`, PAL.gold, true);
     } else if (outcome === 'curse') {
       UI.react('CURSED!', 'var(--hot)');
       EventDirector.startCurse();
@@ -2488,11 +2447,11 @@ const Game = {
       SlowMo.trigger(0.45, 600);
       Shake.impulse(0.55);
       flashScreen();
-      spawnPopup(merged.position.x, merged.position.y - 80, `JACKPOT +${fmt(bonus)}`, PAL.brass, true);
+      spawnPopup(merged.position.x, merged.position.y - 80, `JACKPOT +${fmt(bonus)}`, PAL.gold, true);
       FeedbackBus.emit('jackpot', { tier });
       trackEvent('jackpot', { tier, bonus });
     } else if (specials && specials.includes('jackpot')) {
-      UI.react('JACKPOT', PAL.brassHi);
+      UI.react('JACKPOT', PAL.goldHi);
       Particles.goldRain(merged.position.x, merged.position.y);
       SlowMo.trigger(0.4, 800); Shake.impulse(0.7); flashScreen();
       FeedbackBus.emit('jackpot', { tier });
@@ -2560,7 +2519,7 @@ const Game = {
         Shake.impulse(0.6);
         flashScreen();
         UI.react('BOOM!', 'var(--hot)');
-        if (res.salvage > 0) spawnPopup(res.x, res.y - 60, `+${fmt(res.salvage)} salvage`, PAL.brass, true);
+        if (res.salvage > 0) spawnPopup(res.x, res.y - 60, `+${fmt(res.salvage)} salvage`, PAL.gold, true);
         FeedbackBus.emit('explosion', res);
         Profile.onChaos();
         trackEvent('bomb_exploded', { destroyed: res.destroyed, salvage: res.salvage });
@@ -2943,7 +2902,7 @@ const EventDirector = {
       if (now() - this.curse.lastLeakFx > 1000) {
         const lost = Math.max(1, Math.round(before * 0.0004 * 60));
         this.curse.lastLeakFx = now();
-        spawnPopup(WORLD.width / 2 + rand(-40, 40), Stack.stackTopY() - 30, `-${fmt(lost)}`, PAL.crimson);
+        spawnPopup(WORLD.width / 2 + rand(-40, 40), Stack.stackTopY() - 30, `-${fmt(lost)}`, PAL.rose);
       }
     }
   },
@@ -2987,7 +2946,7 @@ const EventDirector = {
         bh.eaten++;
         const payout = Math.round(TIERS.values[b.plugin.tier] * 0.6 * Greed.value * Economy.coinMult);
         Game.runCoins += payout;
-        spawnPopup(bh.x, bh.y - 40, `+${fmt(payout)}`, PAL.boneDim, true);
+        spawnPopup(bh.x, bh.y - 40, `+${fmt(payout)}`, PAL.ice, true);
         Particles.burst(b.position.x, b.position.y, '#cfd8ff', 16, 180, 0.6);
         Composite.remove(engine.world, b);
         Stack.wakeAll();
@@ -3001,7 +2960,7 @@ const EventDirector = {
   // hard-clamped over the dock, so wind alone can never cause a death.
   startWind() {
     this.wind = { until: now() + CONFIG.events.windMs, dir: Math.random() < 0.5 ? 1 : -1 };
-    UI.react('WIND', PAL.boneDim);
+    UI.react('WIND', PAL.ice);
     UI.toast(this.wind.dir > 0 ? 'Wind gusting east — drops will drift' : 'Wind gusting west — drops will drift');
     trackEvent('wind_start', { dir: this.wind.dir });
   },
@@ -3038,7 +2997,7 @@ const EventDirector = {
   startMeteor() {
     const tx = clamp(WORLD.width / 2 + rand(-90, 90), 60, WORLD.width - 60);
     this.meteor = { x: tx - 260, y: -240, vx: 6.0, vy: 6.4, warnUntil: now() + CONFIG.events.meteorWarnMs, fired: false, tx };
-    UI.react('METEOR', PAL.crimson);
+    UI.react('METEOR', PAL.rose);
     UI.toast('Incoming meteor');
     Shake.impulse(0.2);
     trackEvent('meteor_start', {});
@@ -3111,7 +3070,24 @@ const RiskFX = {
 const canvas = $('game');
 const ctx = canvas.getContext('2d');
 let cw = 0, ch = 0, dpr = 1;
-let bgHeat = 0; // wealth warms the table toward brass (0 = the resting ink)
+let bgH = 340, bgS = 45;   // world hue/sat, eased toward the best piece on the dock
+function hexToHsl(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  const l = (mx + mn) / 2;
+  if (!d) return [0, 0, l * 100];
+  const sat = d / (1 - Math.abs(2 * l - 1));
+  let h;
+  if (mx === r) h = ((g - b) / d) % 6;
+  else if (mx === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  return [(h * 60 + 360) % 360, sat * 100, l * 100];
+}
+function angleLerp(a, b, k) {
+  const d = ((b - a + 540) % 360) - 180;
+  return (a + d * k + 360) % 360;
+}
 
 /* The camera holds a STABLE frame during normal play. The old version tracked
    Game.spawnY, which jumps up by a fixed clearance on every drop — that was the
@@ -3182,11 +3158,9 @@ function themeColor(tier) { return themePalette()[tier] || '#EDE6D8'; }
 /* The canvas half of the design system — the same tokens the stylesheet uses,
    so nothing drawn here can drift away from the interface. */
 const PAL = {
-  ink900: '#080D0B', ink850: '#0C1512', ink800: '#101B17', ink700: '#16241E',
-  ink600: '#1F332B', ink500: '#2B4438',
-  bone: '#EDE6D8', boneDim: '#92A297', boneMute: '#5E7167',
-  brass: '#D9A441', brassHi: '#F2C673', brassLo: '#8A6620',
-  crimson: '#C4382F',
+  text: '#FFFFFF', dim: 'rgba(255,255,255,0.7)',
+  gold: '#FFD24A', goldHi: '#FFE79A',
+  mint: '#2DE58F', rose: '#FF4D6D', ice: '#8BE0FF',
 };
 function lighten(hex, amt) {
   const n = parseInt(hex.slice(1), 16);
@@ -3383,15 +3357,6 @@ function roundRect2(x, y, w, h, r) {
 function drawBody(b, glowStrength, t) {
   const sp = b.plugin.special;
   const r = b.plugin.r;
-  // every piece casts one hard offset shadow — no blur, no halo
-  if (perf.tier !== 'low' && !b.plugin.consumed) {
-    ctx.save();
-    ctx.translate(1.5, 4);
-    bodyPath(b);
-    ctx.fillStyle = 'rgba(0,0,0,0.30)';
-    ctx.fill();
-    ctx.restore();
-  }
   if (sp === 'bomb') { drawBomb(b, t); return; }
   if (sp === 'magnet') { drawMagnet(b, t); return; }
   if (sp === 'heavy') { drawHeavy(b, glowStrength); return; }
@@ -3429,35 +3394,29 @@ function drawBody(b, glowStrength, t) {
     for (let i = 0; i <= 6; i++) rg.addColorStop(i / 6, `hsl(${(off + i * 60) % 360} 95% 62%)`);
     ctx.fillStyle = rg;
   } else {
-    // a shallow top-lit ramp, not a bloom — the piece stays one solid colour
-    const g = ctx.createLinearGradient(0, b.position.y - r, 0, b.position.y + r);
-    g.addColorStop(0, lighten(color, sp === 'ice' ? 0.34 : 0.20));
+    const g = ctx.createRadialGradient(
+      b.position.x - r * 0.3, b.position.y - r * 0.4, r * 0.1,
+      b.position.x, b.position.y, r * 1.5);
+    g.addColorStop(0, lighten(color, sp === 'ice' ? 0.5 : 0.35));
     g.addColorStop(1, color);
     ctx.fillStyle = g;
   }
-  if (sp === 'unstable') ctx.globalAlpha = 0.78 + 0.22 * Math.sin(t * 0.02);
+  if (perf.tier !== 'low') {
+    ctx.shadowColor = (sp === 'golden' || sp === 'star') ? '#ffd700' : sp === 'rainbow' ? '#ff5ad0' : color;
+    ctx.shadowBlur = (sp === 'golden' || sp === 'star') ? glowStrength + 16 : glowStrength;
+  }
+  if (sp === 'unstable') ctx.globalAlpha = 0.7 + 0.3 * Math.sin(t * 0.02);
   ctx.fill();
   ctx.globalAlpha = 1;
-  // A solid piece has a dark cut edge and one lit top facet — that reads as
-  // a real object under one light, where an even glow reads as a sticker.
-  ctx.lineJoin = 'miter';
+  ctx.shadowBlur = 0;
+  ctx.lineJoin = 'round';
   ctx.lineWidth = 2;
-  if (sp === 'rainbow') { ctx.strokeStyle = `hsl(${(t * 0.28) % 360} 92% 64%)`; ctx.lineWidth = 3; }
-  else if (sp === 'unstable') { ctx.strokeStyle = `rgba(242,198,115,${0.6 + 0.4 * Math.sin(t * 0.03)})`; ctx.lineWidth = 3; }
-  else if (sp === 'ice') { ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 2; }
-  else if (sp === 'star') { ctx.strokeStyle = PAL.brassHi; ctx.lineWidth = 2; }
-  else { ctx.strokeStyle = 'rgba(6,10,8,0.55)'; ctx.lineWidth = 2; }
+  if (sp === 'rainbow') { ctx.strokeStyle = `hsl(${(t * 0.28) % 360} 95% 62%)`; ctx.lineWidth = 4; }
+  else if (sp === 'unstable') { ctx.strokeStyle = `rgba(255,235,120,${0.6 + 0.4 * Math.sin(t * 0.03)})`; ctx.lineWidth = 3; }
+  else if (sp === 'ice') { ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 2.5; }
+  else if (sp === 'star') { ctx.strokeStyle = '#fff3b0'; ctx.lineWidth = 2.5; }
+  else ctx.strokeStyle = 'rgba(255,255,255,0.35)';
   ctx.stroke();
-  if (!isStar && sp !== 'rainbow' && perf.tier !== 'low') {
-    ctx.save(); bodyPath(b); ctx.clip();
-    ctx.strokeStyle = 'rgba(255,255,255,0.30)'; ctx.lineWidth = 2.5;
-    const vs = b.vertices;
-    let hi = 0;
-    for (let i = 1; i < vs.length; i++) if (vs[i].y < vs[hi].y) hi = i;
-    const nx = vs[(hi + 1) % vs.length];
-    ctx.beginPath(); ctx.moveTo(vs[hi].x, vs[hi].y); ctx.lineTo(nx.x, nx.y); ctx.stroke();
-    ctx.restore();
-  }
 
   // ---- per-special overlays ----
   if (sp === 'ice') { // crystalline facets + frost
@@ -3512,17 +3471,15 @@ function drawDock(hw) {
   const x0 = WORLD.width / 2 - hw, w = hw * 2, y0 = WORLD.platformY, h = WORLD.platformH + 26;
   const cx = WORLD.width / 2;
   ctx.save();
-  const CUT = 9;
-  // the slab sits ON the table: one hard offset shadow, no blur
-  ctx.fillStyle = 'rgba(0,0,0,0.45)';
-  cutRect(x0 + 2, y0 + 6, w, h, CUT); ctx.fill();
-  // body
+  // soft ambient glow — the dock is a lit object, not a machined part
+  if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 18; }
   const bg = ctx.createLinearGradient(0, y0, 0, y0 + h);
   bg.addColorStop(0, skin.c1); bg.addColorStop(1, skin.c2);
   ctx.fillStyle = bg;
-  cutRect(x0, y0, w, h, CUT); ctx.fill();
+  roundRect(x0, y0, w, h, 14); ctx.fill();
+  ctx.shadowBlur = 0;
   // signature details, clipped to the body
-  ctx.save(); cutRect(x0, y0, w, h, CUT); ctx.clip();
+  ctx.save(); roundRect(x0, y0, w, h, 14); ctx.clip();
   switch (skin.style) {
     case 'wood': { // three quiet grain lines
       ctx.strokeStyle = 'rgba(60,32,12,0.30)'; ctx.lineWidth = 1;
@@ -3649,21 +3606,12 @@ function drawDock(hw) {
     }
   }
   ctx.restore();
-  // the milled playing surface — the brightest line in the world, and the
-  // thing every piece actually lands on
-  ctx.fillStyle = skin.edge || lighten(skin.c1, 0.3);
-  ctx.fillRect(x0 + CUT - 3, y0, w - CUT * 2 + 6, 4);
-  ctx.globalAlpha = 0.45;
-  ctx.fillRect(x0 + 4, y0 + 5, w - 8, 1);
-  ctx.globalAlpha = 1;
-  // machined end stops at both lips
-  ctx.fillRect(x0 + CUT - 3, y0, 3, 9);
-  ctx.fillRect(x0 + w - CUT, y0, 3, 9);
-  // machined end caps, so the deck reads as a cut object
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.fillRect(x0, y0 + h - 3, w, 3);
-  ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1;
-  cutRect(x0 + 0.5, y0 + 0.5, w - 1, h - 1, CUT); ctx.stroke();
+  // crisp top light — the one detail every dock shares
+  ctx.fillStyle = ['marble', 'porcelain', 'glass', 'steel'].includes(skin.style) ? 'rgba(255,255,255,0.9)' : lighten(skin.c1, 0.3);
+  roundRect(x0 + 2, y0, w - 4, 5, 3); ctx.fill();
+  // thin inner rim for definition
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1;
+  roundRect(x0 + 1, y0 + 1, w - 2, h - 2, 13); ctx.stroke();
   ctx.restore();
   // bumper walls
   if (Stack.walls) {
@@ -3671,9 +3619,11 @@ function drawDock(hw) {
     for (const wl of Stack.walls) {
       const wx = wl.position.x;
       ctx.fillStyle = lighten(skin.c1, 0.1);
-      cutRect(wx - 6, WORLD.platformY - wallH + 6, 12, wallH, 4); ctx.fill();
-      ctx.fillStyle = skin.edge || 'rgba(255,255,255,0.5)';
-      ctx.fillRect(wx - 6, WORLD.platformY - wallH + 6, 12, 3);
+      if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 10; }
+      roundRect(wx - 6, WORLD.platformY - wallH + 6, 12, wallH, 6); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      roundRect(wx - 6, WORLD.platformY - wallH + 6, 12, 5, 3); ctx.fill();
     }
   }
 }
@@ -3689,59 +3639,35 @@ function render(t) {
     (cw * dpr) / 2 - Camera.x * Camera.zoom * dpr + sh.x * dpr,
     (ch * dpr) / 2 - Camera.y * Camera.zoom * dpr + sh.y * dpr);
 
-  /* ---- the table ----------------------------------------------------------
-     A solid ground, not a gradient wash. Two flat planes meet at the dock
-     line: the air above, the table below. The only geometry in the air is a
-     height ruler the tower is actually measured against — it reads the run,
-     so it earns its place. Wealth warms the table toward brass rather than
-     wandering off through the spectrum: the palette holds. */
-  // Deliberately lazy at the start and steep at the top: an ordinary run barely
-  // warms the room, a monstrous unbanked pile turns the whole table.
-  const heat = Game.inPlay()
-    ? Math.pow(clamp(Math.log10(1 + Game.runCoins / 2000) / 3.4, 0, 1), 1.8) : 0;
-  bgHeat += (heat - bgHeat) * 0.02;
+  /* ---- the world takes its colour from the tower ------------------------
+     The background is a deep, saturated cousin of the most valuable shape
+     currently on the dock — hue-shifted a little so it never matches exactly.
+     Fuse your way up a tier and the whole room changes colour with you. The
+     shift is eased, so it reads as a mood swing rather than a flash. */
+  let bestTier = 0;
+  for (const b of Stack.pieces()) if (b.plugin.tier > bestTier) bestTier = b.plugin.tier;
+  const srcCol = themeColor(bestTier || 1);
+  const hsl = hexToHsl(srcCol);
+  bgH = angleLerp(bgH, (hsl[0] + 340) % 360, 0.035);   // a shade back around the wheel, never a match
+  // a near-white or near-black source has no useful hue to borrow, so the room
+  // goes neutral instead of muddy — the AUREX apex drains all colour from the
+  // world, which is exactly the right feeling for the top of the ladder
+  const purity = 1 - Math.abs(hsl[2] - 50) / 50;
+  bgS = lerp(bgS, clamp(hsl[1] * 0.7 * purity, 6, 62), 0.035);
   const viewH = ch / Camera.zoom;
   const topY = Camera.y - viewH, botY = WORLD.platformY + 400;
-  const wash = bgHeat * 0.85;
-  const mixInk = (a, b, k) => {
-    const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
-    const r = Math.round(((pa >> 16) & 255) * (1 - k) + ((pb >> 16) & 255) * k);
-    const g = Math.round(((pa >> 8) & 255) * (1 - k) + ((pb >> 8) & 255) * k);
-    const bl = Math.round((pa & 255) * (1 - k) + (pb & 255) * k);
-    return `rgb(${r},${g},${bl})`;
-  };
-  const airCol = mixInk(PAL.ink850, '#2A2114', wash);
-  const tableCol = mixInk(PAL.ink800, '#3A2C16', wash);
-  ctx.fillStyle = airCol;
+  ctx.fillStyle = `hsl(${bgH.toFixed(1)}, ${bgS.toFixed(1)}%, 10%)`;
   ctx.fillRect(-600, topY - 200, WORLD.width + 1200, (WORLD.platformY - topY) + 400);
-  ctx.fillStyle = tableCol;
+  ctx.fillStyle = `hsl(${bgH.toFixed(1)}, ${(bgS * 0.92).toFixed(1)}%, 14.5%)`;
   ctx.fillRect(-600, WORLD.platformY, WORLD.width + 1200, botY - WORLD.platformY + 200);
-
-  // height ruler — hairlines every 100 units above the dock, ticked and
-  // labelled, brightening as the tower actually reaches them
-  const towerTop = Stack.pieces().length ? Stack.stackTopY() : WORLD.platformY;
-  const reached = WORLD.platformY - towerTop;
-  ctx.lineWidth = 1;
-  ctx.font = '600 9px Sora, sans-serif';
-  ctx.textAlign = 'left';
-  for (let hgt = 100; hgt <= 900; hgt += 100) {
-    const ly = WORLD.platformY - hgt;
-    if (ly > botY || ly < topY - 40) continue;
-    const live = reached >= hgt - 12;
-    ctx.strokeStyle = live ? 'rgba(217,164,65,0.26)' : 'rgba(237,230,216,0.055)';
-    ctx.beginPath(); ctx.moveTo(10, ly); ctx.lineTo(WORLD.width - 10, ly); ctx.stroke();
-    ctx.fillStyle = live ? 'rgba(217,164,65,0.75)' : 'rgba(237,230,216,0.20)';
-    ctx.fillRect(10, ly - 4, 2, 9);
-    ctx.fillRect(WORLD.width - 12, ly - 4, 2, 9);
-    ctx.fillText(String(hgt), 18, ly - 5);
+  // a soft pool of the tower's own colour behind the stack
+  if (perf.tier !== 'low') {
+    const pool = ctx.createRadialGradient(WORLD.width / 2, WORLD.platformY - 60, 20, WORLD.width / 2, WORLD.platformY - 60, 430);
+    pool.addColorStop(0, `hsla(${bgH.toFixed(1)}, ${Math.min(bgS * 1.8, 92).toFixed(1)}%, 54%, 0.17)`);
+    pool.addColorStop(1, 'hsla(0,0%,0%,0)');
+    ctx.fillStyle = pool;
+    ctx.fillRect(-600, WORLD.platformY - 540, WORLD.width + 1200, 720);
   }
-  // dock centre line — the aim reference, the only vertical in the world
-  ctx.strokeStyle = 'rgba(237,230,216,0.06)';
-  ctx.beginPath();
-  ctx.moveTo(WORLD.width / 2, WORLD.platformY - 900);
-  ctx.lineTo(WORLD.width / 2, WORLD.platformY);
-  ctx.stroke();
-  ctx.textAlign = 'center';
 
   // dock (per-style render)
   if (Stack.platform) drawDock(Stack.platform.plugin.halfW);
@@ -3814,25 +3740,16 @@ function render(t) {
   if ((Game.state === 'DECISION' || Game.state === 'AIMING') && Director.current()) {
     const def = Director.current();
     const r = TIERS.radii[def.tier] * def.rScale * ((SPECIALS[def.special] && SPECIALS[def.special].sizeMult) || 1);
-    /* The corridor the piece will fall down, and the mark it will land on:
-       a soft brass column that fades upward plus a machined tick on the deck
-       surface. Reads as intent, where a dashed line reads as a placeholder. */
-    const landY = Stack.columnTopY ? Stack.columnTopY(Game.aimX, r) : WORLD.platformY;
-    const corridor = ctx.createLinearGradient(0, Game.spawnY, 0, landY);
-    corridor.addColorStop(0, 'rgba(217,164,65,0.015)');
-    corridor.addColorStop(1, 'rgba(217,164,65,0.09)');
-    ctx.fillStyle = corridor;
-    ctx.fillRect(Game.aimX - r * 0.6, Game.spawnY, r * 1.2, Math.max(landY - Game.spawnY, 0));
-    // landing mark: bracket ticks the width of the piece
-    ctx.strokeStyle = 'rgba(217,164,65,0.85)';
-    ctx.lineWidth = 2;
+    // one clean dashed line from the piece down to the deck
+    ctx.globalAlpha = 0.45;
+    ctx.setLineDash([6, 8]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(Game.aimX - r, landY - 7); ctx.lineTo(Game.aimX - r, landY);
-    ctx.lineTo(Game.aimX - r * 0.45, landY);
-    ctx.moveTo(Game.aimX + r, landY - 7); ctx.lineTo(Game.aimX + r, landY);
-    ctx.lineTo(Game.aimX + r * 0.45, landY);
+    ctx.moveTo(Game.aimX, Game.spawnY + r);
+    ctx.lineTo(Game.aimX, WORLD.platformY);
     ctx.stroke();
-    ctx.globalAlpha = 0.5;
+    ctx.setLineDash([]);
     drawGhost(def, Game.aimX, Game.spawnY, r);
     ctx.globalAlpha = 1;
   }
@@ -3877,16 +3794,6 @@ function render(t) {
 function easeOutBack(t) {
   const c1 = 1.70158, c3 = c1 + 1;
   return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-}
-/* A machined slab: corners cut flat, never filleted. This is the shape
-   language the pieces already speak, so the furniture speaks it too. */
-function cutRect(x, y, w, h, c) {
-  ctx.beginPath();
-  ctx.moveTo(x + c, y);
-  ctx.lineTo(x + w - c, y); ctx.lineTo(x + w, y + c);
-  ctx.lineTo(x + w, y + h - c); ctx.lineTo(x + w - c, y + h);
-  ctx.lineTo(x + c, y + h); ctx.lineTo(x, y + h - c);
-  ctx.lineTo(x, y + c); ctx.closePath();
 }
 function roundRect(x, y, w, h, r) {
   ctx.beginPath();
@@ -4604,8 +4511,9 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, save, engine, Composite, Body };
+window.__overstack = { WORLD, Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, save, engine, Composite, Body };
 window.__overstackCam = Camera;
+window.__tierColors = themePalette();
 
 })();
 </script>

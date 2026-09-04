@@ -45,52 +45,48 @@ game, and no emoji anywhere in the interface — every mark on screen is drawn.
 
 Everything on screen answers to one system rather than picking its own look.
 
-**Palette — two primaries and one accent.** `INK` is the table: a single solid
-ramp (`#080D0B` → `#2B4438`) used for every ground and panel, never a gradient.
-`BONE` (`#EDE6D8`) is everything you read. `BRASS` (`#D9A441`) is the only accent
-— money, the BANK key, the live edge of the deck, the ruler line your tower has
-passed. One `CRIMSON` is reserved exclusively for loss. Nothing else introduces a
-hue: docks, shape packs, particles and vignettes are all drawn from this set.
+**The world takes its colour from your tower.** The background is a deep,
+saturated cousin of the most valuable shape currently on the dock, shifted a
+little around the wheel so it never matches exactly. Fuse your way up a tier and
+the whole room changes colour with you — the shift is eased, so it reads as a
+mood swing rather than a flash. A near-white piece has no useful hue to lend, so
+the AUREX apex drains the colour out of the world entirely, which is the right
+feeling for the top of the ladder. The decoration *is* the run: there is nothing
+floating in the background for its own sake.
 
-**Form — one shape language.** The pieces are hard-edged polygons, so the
-instrument panel is hard-edged too. Corner radius is a three-step scale applied
-strictly by hierarchy: **2px** for HUD chips, **10px** for buttons, **20px** for
-modal cards. The dock is a machined slab with cut corners, not a filleted
-rectangle — the same cut the pieces have.
+**Three fixed accents on top of that.** The interface stays out of the way — dark
+glass and white type — with **GOLD** for money, **MINT** for go, and **ROSE**
+reserved for loss. Those three never change, so the meaning of a colour is stable
+even while the room is not.
 
-**Depth — crisp, not blurry.** Objects sit on a table: one hard offset shadow, a
-lit top facet, a dark cut edge. No glow blooms, no backdrop blur. A fine grain
-layer sits over the world so flat colour never reads as flat vector.
+**Curvature by hierarchy.** Chips 14px, buttons 18px, cards 28px. Nothing is a
+hard-edged box, and nothing is rounded by default — the scale is applied by rank.
 
-**The wordmark is drawn, not typeset.** Nine monolinear geometric caps on a
+**Depth is glass and light, not bevel.** Blur, inner highlights and coloured glow.
+No hard offset edges, no machined trim, no metal.
+
+**The wordmark is drawn, not typeset.** Nine monolinear geometric caps as SVG on a
 100-unit cap height, built from the game's own vocabulary — the **O** is the
-octagon piece, the **A** is the triangle piece — in one weight, one colour, with
-no drop shadow. It lives in `<symbol id="wm">` and is instanced three times.
+octagon piece, the **A** is the triangle piece — one weight, one colour, no drop
+shadow. It lives in `<symbol id="wm">` and is instanced three times.
 
-**The background is the run.** A solid ground with two planes meeting at the dock
-line: air above, table below. The only geometry in the air is a **height ruler**
-the tower is actually measured against — hairlines every 100 units, ticked and
-labelled, turning brass as the tower passes them — plus the dock centre line you
-aim against. Nothing floats for decoration. Wealth still shows: a big unbanked
-pile warms the table toward brass on a deliberately lazy curve, so an ordinary
-run barely moves it and a monstrous one turns the whole room. The palette holds
-either way.
-
-**The drop reads as intent.** The piece hangs close above the stack, falls down a
-soft brass corridor, and the deck shows a machined bracket exactly the width of
-the piece at the point it will land. A fast drop leaves a short motion trail.
+**No emoji, no currency glyph.** Every mark in the interface is drawn — the menu
+bars, the close crosses, the play triangles, the daily chip-stack, the superpower
+plates. Coins are plain numbers.
 
 ## Shapes
 
-One shape per tier, each with its own colour *and* side-count *and* size — three
-redundant cues so value is never a subtle read. The default **Signal** ramp reads
-value as heat — slate, frost, copper, sand, brass, rust, ember, white-hot — with
-the lightness deliberately alternating so neighbouring tiers always separate at a
-glance. Every shape pack is one ramp with a story, never a bag of hues.
+One shape per tier, and **one colour per shape** — the hues are spread right
+around the wheel so no two tiers can ever be confused: rose triangle, orange
+square, lime pentagon, green hexagon, azure heptagon, blue octagon, violet
+nonagon, and a radiant near-white 12-sided **AUREX**. What holds them together is
+that they are all the same *kind* of colour — fully saturated, equally bright, no
+pastels and no muds — so they read as one family of distinct members rather than
+a gradient. Size and side-count carry the same information a third and fourth
+time, so value is never a subtle read.
 
-The historical rainbow ladder was: red triangle → orange square →
-yellow pentagon → green hexagon → cyan heptagon → blue octagon → violet nonagon →
-gold 12-sided **AUREX**. Every hue is spaced far from its neighbors.
+Pieces are glossy solids: a soft radial fall-off, a bright rim, a coloured glow
+that grows with the tier, and chamfered corners on the physics body itself.
 
 **Shape packs** (the Collection's `theme` items) are radical departures from the
 default Signal palette — monochrome Noir, all-fire Inferno, jewel-tone Royal,
