@@ -76,8 +76,14 @@ STACK holds for a beat, then slides across in one clean move and drops straight
 down into its own slot. While
 the word is unfinished its letters are **gold** — not placed yet — and the moment
 it is whole the brand colour sweeps across them one at a time, O through K. It
-plays on the loading screen, when the menu opens, and quietly on the in-game mark
-as a run starts.
+plays when the menu opens and quietly on the in-game mark as a run starts.
+
+On the loading screen it holds still, because the splash is normally gone inside
+a few hundred milliseconds and a 1.6s animation cut off a quarter of the way
+through reads as a flicker, not a logo. If the wait actually runs long — past
+650ms — the splash mark starts a **looping** variant instead: the same
+choreography, then a hold, a fade and a clean restart, so a slow connection gets
+something worth watching and a fast one gets nothing at all.
 
 **No emoji, no currency glyph.** Every mark in the interface is drawn; coins are
 plain numbers.
@@ -85,6 +91,23 @@ plain numbers.
 **In-play messages never cover the deck.** Toasts, hints and the big reaction
 words all sit in the empty band directly under the GREED pill, well above the
 blocks and the landing.
+
+## The first run
+
+A brand-new player gets a three-beat tour, once, ever. Each beat is a gold ring
+drawn around the thing you are meant to touch and one short line above it:
+
+1. the drop point — *"Tap anywhere to drop. It lands where you tap."*
+2. the piece on the deck — *"Two of the same shape fuse into a bigger one."*
+3. the BANK button — *"Towers fall. BANK to keep what you earned."*
+
+Nothing is dimmed, nothing is modal, and there is no Next button: the overlay is
+`pointer-events: none` and each beat is dismissed by **doing the thing** it
+describes. Beats 2 and 3 also time out on their own, so a player who ignores the
+tour entirely is still finished with it inside half a minute. The bubble is
+placed above its ring by preference — below would land it on the deck — and the
+whole thing is remembered in `save.tutorialDone`, so it never appears twice.
+Ordinary onboarding hints stand down while it is on screen.
 
 ## Shapes
 

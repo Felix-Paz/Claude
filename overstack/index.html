@@ -127,6 +127,50 @@ body {
   95%     { transform: translateY(4%); }
   100%    { transform: translateY(0); }
 }
+/* Looping variant, used only when the game is slow enough to load that the
+   splash is actually on screen for a while: the same choreography, then a hold,
+   a fade, and a clean restart — never a jump cut. */
+.wordmark.loop { animation: wm-cycle 3.4s linear infinite; }
+.wordmark.loop .wm-stack { animation: wm-drop-loop 3.4s linear infinite; }
+.wordmark.loop .wm-over  { animation: wm-take-loop 3.4s linear infinite; }
+.wordmark.loop i { color: var(--gold); animation: wm-light-loop 3.4s linear infinite; animation-delay: calc(var(--i) * 0.075s); }
+@keyframes wm-cycle {
+  0%   { opacity: 0; }
+  4%   { opacity: 1; }
+  82%  { opacity: 1; }
+  90%, 100% { opacity: 0; }
+}
+@keyframes wm-drop-loop {
+  0%   { transform: translate(-90%, -430%); opacity: 0; animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.5); }
+  3%   { opacity: 1; }
+  12%  { transform: translate(-90%, -106%); animation-timing-function: cubic-bezier(0.3, 0, 0.35, 1); }
+  14%  { transform: translate(-90%, -96%); }
+  17%  { transform: translate(-90%, -106%); }
+  18%  { transform: translate(-90%, -102%); }
+  20%  { transform: translate(-90%, -106%); animation-timing-function: cubic-bezier(0.62, 0, 0.3, 1); }
+  27%  { transform: translate(-90%, -106%); animation-timing-function: cubic-bezier(0.62, 0, 0.3, 1); }
+  37%  { transform: translate(0%, -106%); animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.45); }
+  44%  { transform: translate(0%, 4%); animation-timing-function: cubic-bezier(0.25, 0, 0.3, 1); }
+  47%, 100% { transform: translate(0, 0); }
+}
+@keyframes wm-take-loop {
+  0%, 11%   { transform: translateY(0); }
+  13%       { transform: translateY(6%); }
+  17%       { transform: translateY(0); }
+  43%       { transform: translateY(0); }
+  45%       { transform: translateY(4%); }
+  48%, 100% { transform: translateY(0); }
+}
+@keyframes wm-light-loop {
+  0%, 49%   { color: var(--gold); }
+  55%, 84%  { color: #FFFFFF; }
+  88%, 100% { color: var(--gold); }
+}
+.reduce-motion .wordmark.loop,
+.reduce-motion .wordmark.loop .wm-stack,
+.reduce-motion .wordmark.loop .wm-over,
+.reduce-motion .wordmark.loop i { animation: none; opacity: 1; transform: none; color: inherit; }
+
 @keyframes wm-light {
   0%   { color: var(--gold); }
   45%  { color: #FFFFFF; }
@@ -375,6 +419,35 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 #hint  { top: 152px; color: var(--text); }
 #hint.show, #toast.show { opacity: 1; }
 
+/* ---------- first-run tutorial --------------------------------------------
+   Three beats, each anchored to the thing you actually touch, each dismissed by
+   doing the thing rather than by tapping a button. It never blocks input and it
+   never appears again. */
+#tutor { position: fixed; inset: 0; z-index: 34; pointer-events: none; opacity: 0; transition: opacity 0.3s ease; }
+#tutor.show { opacity: 1; }
+#tutor-ring {
+  position: absolute; border: 2px solid var(--gold); border-radius: 999px;
+  box-shadow: 0 0 0 3px rgba(255,210,74,0.16), 0 0 34px rgba(255,210,74,0.4);
+  animation: tutor-pulse 1.6s ease-in-out infinite;
+}
+@keyframes tutor-pulse {
+  0%,100% { transform: scale(1);    opacity: 0.8; }
+  50%     { transform: scale(1.07); opacity: 1; }
+}
+#tutor-tip {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  /* max-content escapes the shrink-to-fit box a left:50% anchor would give it */
+  width: max-content; max-width: min(78vw, 318px);
+  padding: 11px 18px 13px; text-align: center;
+  font-size: 0.84rem; font-weight: 700; line-height: 1.35;
+  border-radius: var(--r-chip);
+  background: rgba(12,14,20,0.74); border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 20px 46px -22px rgba(0,0,0,0.75);
+}
+#tutor-tip b { color: var(--gold); }
+#tutor-step { display: block; font-size: 0.46rem; letter-spacing: 0.3em; color: rgba(255,255,255,0.5); margin-bottom: 7px; }
+.reduce-motion #tutor-ring { animation: none; }
+
 .side-panel {
   position: fixed; top: 50%; transform: translateY(-50%);
   width: 200px; padding: 18px; z-index: 15; display: none;
@@ -615,6 +688,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   <ol id="p-board"></ol>
 </div>
 
+<div id="tutor"><div id="tutor-ring"></div><div id="tutor-tip"><span id="tutor-step"></span><span id="tutor-text"></span></div></div>
 <div id="hint" class="chip"></div>
 <div id="toast" class="chip"></div>
 <div id="banner" class="chip hidden"></div>
@@ -888,6 +962,7 @@ const CONFIG = {
   onboarding: { seededQueue: [1, 1, 2], hintFadeMs: 1900 },
   snapshotMinStability: 0.5,
   reviveGraceMs: 3_500,       // after a revive, a settling topple costs a piece, never the run
+  loadingLoopDelayMs: 650,    // splash mark only animates if the wait is long enough to see
   chainWindowMs: 1400,        // fusions inside this window chain: NICE! → UNREAL!!
   jackpotTier: 7,             // fusing into Titan or AUREX = jackpot moment
   fuseGapPx: 4,               // resting same-tier pieces this close still merge (adjacency fix)
@@ -1052,6 +1127,7 @@ const SaveStore = {
       streakDays: 0, lastPlayDate: '',
       daily: { last: '', streak: 0 },   // daily login reward: date last claimed + consecutive claims
       hints: { fusion: false, bank: false, safe: false },
+      tutorialDone: false,              // the three-beat first-run tour, shown once ever
       settings: { sound: true, haptics: true, reduceMotion: false },
       baselines: { decisionLatency: 0, decisionLatencySamples: [], sessionPace: 0, sessionMinutes: 0, sessions: 0 },
       profile: { // persisted play-style stats — surfaced as a style title
@@ -2336,6 +2412,7 @@ const Game = {
       UI.react('HERE.', 'var(--gold)');
     }
     UI.renderNextPreview();
+    Tutor.maybeStart();
   },
 
   beginAim(x) {
@@ -2387,6 +2464,7 @@ const Game = {
     UI.renderNextPreview();
     this.set('DROPPING');
     FeedbackBus.emit('drop', { x: this.aimX, y: this.spawnY });
+    Tutor.advance('drop');
     trackEvent('drop', { tier: def.tier, special: def.special || 'none', band: Director.flowBand });
     // The only per-drop camera move left: a deliberate, rare zoom-out to
     // make room for a GIANT / heavy / jackpot piece.
@@ -2498,6 +2576,7 @@ const Game = {
     if (this.chainCount >= 2) Profile.onChain(1); else Profile.onSoloFusion();
 
     FeedbackBus.emit('fusion', { tier, x: merged.position.x, y: merged.position.y, combo: this.comboIdx, points: coins, specialMult });
+    Tutor.advance('fusion');
     trackEvent('fusion', { tier, coins, chain: this.chainCount, specialMult, flowScore: Director.flowScore, band: Director.flowBand, arcPhase: SessionArc.phase });
 
     // ---- the game overreacts (chains, jackpots, records) ----
@@ -2705,6 +2784,7 @@ const Game = {
     Profile.onBank(Greed.value);
     if (save.best - coins < save.best * 0.15) Profile.onPBChase();
     document.body.classList.remove('chase');
+    Tutor.advance('bank');
     FeedbackBus.emit('bank', { x: WORLD.width / 2, y: Stack.stackTopY(), coins });
     flashScreen();
     trackEvent('bank', { coins, greed: +Greed.value.toFixed(2), flowScore: Director.flowScore, band: Director.flowBand, arcPhase: SessionArc.phase, profile: Profile.snapshot() });
@@ -2721,6 +2801,7 @@ const Game = {
 
   collapse(culprit) {
     if (this.state === 'COLLAPSING' || this.state === 'RESULTS') return;
+    Tutor.stop();       // the tour resumes next run if it never finished
     this.set('COLLAPSING');
     document.body.classList.remove('chase');
     const nm = NearMiss.detect(this.runCoins, Director.current() && Director.current().tier);
@@ -2863,6 +2944,7 @@ const Game = {
   },
 
   async toMenu() {
+    Tutor.stop();
     // Exit-banking follows the BANK button exactly: bank() applies the same
     // guards that light the button (piece in preview, coins, no curse, not
     // doomed). If the button is grayed out, leaving banks nothing.
@@ -4108,6 +4190,88 @@ const Daily = {
   },
 };
 
+/* ==================== §21d FIRST-RUN TOUR ================================
+   Three beats, in the order a new player meets them. Each one points at the
+   thing you actually touch and is dismissed by doing it — no buttons, no
+   dimming, no blocked input — and the whole thing is over inside one run. */
+const Tutor = {
+  steps: [
+    { id: 'drop',   anchor: 'aim',   text: 'Tap anywhere to drop. It lands where you tap.' },
+    { id: 'fusion', anchor: 'stack', text: 'Two of the same shape fuse into a bigger one. That is your coins.', ttl: 14000 },
+    { id: 'bank',   anchor: 'bank',  text: 'Towers fall. <b>BANK</b> to keep what you earned.', ttl: 9000 },
+  ],
+  active: false,
+  idx: -1,
+  _ttl: 0,
+
+  maybeStart() {
+    if (save.tutorialDone || !CONFIG.onboarding) return;
+    clearTimeout(this._startT);
+    this._startT = setTimeout(() => { if (Game.inPlay()) this.show(0); }, 700);
+  },
+  show(i) {
+    const step = this.steps[i];
+    if (!step) { this.finish(); return; }
+    this.idx = i;
+    this.active = true;
+    this._ttl = step.ttl ? now() + step.ttl : 0;
+    $('tutor-step').textContent = `STEP ${i + 1} OF ${this.steps.length}`;
+    $('tutor-text').innerHTML = step.text;
+    this.place();
+    $('tutor').classList.add('show');
+  },
+  advance(id) {
+    if (!this.active || this.steps[this.idx].id !== id) return;
+    if (this.idx + 1 >= this.steps.length) this.finish();
+    else setTimeout(() => { if (this.active) this.show(this.idx + 1); }, 520);
+  },
+  finish() {                    // seen it once, never again
+    if (save.tutorialDone) { this.stop(); return; }
+    save.tutorialDone = true;
+    SaveStore.save();
+    this.stop();
+  },
+  stop() {
+    clearTimeout(this._startT);
+    this.active = false;
+    this.idx = -1;
+    $('tutor').classList.remove('show');
+  },
+  place() {
+    if (!this.active) return;
+    if (!Game.inPlay()) { $('tutor').classList.remove('show'); return; }
+    $('tutor').classList.add('show');
+    if (this._ttl && now() > this._ttl) { this.advance(this.steps[this.idx].id); return; }
+    const step = this.steps[this.idx];
+    const ring = $('tutor-ring'), tip = $('tutor-tip');
+    let cx, cy, r;
+    if (step.anchor === 'bank') {
+      const b = $('btn-bank').getBoundingClientRect();
+      cx = b.left + b.width / 2; cy = b.top + b.height / 2;
+      r = Math.max(b.width, b.height) / 2 + 14;
+    } else {
+      let wx = Game.aimX, wy = Game.spawnY;
+      if (step.anchor === 'stack') {                 // ring the piece on top
+        let top = null;
+        for (const b of Stack.pieces()) if (!top || b.position.y < top.position.y) top = b;
+        wx = top ? top.position.x : WORLD.width / 2;
+        wy = top ? top.position.y : Stack.stackTopY();
+      }
+      cx = cw / 2 + (wx - Camera.x) * Camera.zoom;
+      cy = ch / 2 + (wy - Camera.y) * Camera.zoom;
+      r = (step.anchor === 'aim' ? 44 : 54) * Camera.zoom;
+    }
+    ring.style.left = (cx - r) + 'px';
+    ring.style.top = (cy - r) + 'px';
+    ring.style.width = ring.style.height = (r * 2) + 'px';
+    // The bubble goes above the ring by preference — below would land it on the
+    // deck, and the deck is the one thing the player needs to keep watching.
+    const tipH = tip.offsetHeight || 64;
+    const above = cy - r - 16 - tipH;
+    tip.style.top = (above > 76 ? above : Math.min(cy + r + 16, ch - tipH - 14)) + 'px';
+  },
+};
+
 /* ==================== §22 UI ============================================== */
 const UI = {
   playWordmark(el) {          // restart the stacking animation on a wordmark
@@ -4144,6 +4308,7 @@ const UI = {
     }
   },
   hint(text) {
+    if (Tutor.active) return;   // the tour is already saying its piece
     const el = $('hint');
     el.textContent = text;
     el.classList.add('show');
@@ -4591,12 +4756,20 @@ function frame(t) {
   Shake.update(rawDt / 1000);
   Camera.update(rawDt / 1000);
   UI.hudTick(rawDt / 1000);
+  Tutor.place();
   render(t);
 }
 
 function boot() {
   AdManager.notifyLoadingStart();
-  UI.playWordmark(document.querySelector('#loading .wordmark'));
+  // The splash is normally gone in a blink, and a 1.6s stack animation cut off
+  // after 400ms just reads as a flicker before the menu plays it properly. So
+  // the splash mark holds still, and only starts a seamless loop if the wait
+  // turns out to be long enough to actually watch.
+  const loadMark = document.querySelector('#loading .wordmark');
+  const loadLoopT = setTimeout(() => {
+    if (!$('loading').classList.contains('hidden')) loadMark.classList.add('loop');
+  }, CONFIG.loadingLoopDelayMs);
   resize();
   Stack.buildPlatform();
   Streak.onSessionStart();
@@ -4620,6 +4793,8 @@ function boot() {
   AdManager.init().then(() => {
     AdManager.notifyLoadingFinished();
     setTimeout(() => {
+      clearTimeout(loadLoopT);
+      loadMark.classList.remove('loop');
       $('loading').classList.add('hidden');
       if (save.runsTotal === 0) Game.startRun();
       else { Game.set('MENU'); UI.showMenu(); }
@@ -4647,7 +4822,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { WORLD, Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, save, engine, Composite, Body };
+window.__overstack = { WORLD, Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, save, engine, Composite, Body };
 window.__overstackCam = Camera;
 window.__tierColors = themePalette();
 
