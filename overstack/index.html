@@ -104,26 +104,27 @@ body {
   animation-delay: calc(1.66s + var(--i) * 0.075s);
 }
 @keyframes wm-drop {
-  0%   { transform: translate(-90%, -430%); opacity: 0; }
+  /* falls in and lands on OVER */
+  0%   { transform: translate(-90%, -430%); opacity: 0; animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.5); }
   7%   { opacity: 1; }
-  /* lands squarely on top of OVER, and settles */
-  25%  { transform: translate(-90%, -106%); }
+  25%  { transform: translate(-90%, -106%); animation-timing-function: cubic-bezier(0.3, 0, 0.35, 1); }
   30%  { transform: translate(-90%, -96%); }
   35%  { transform: translate(-90%, -106%); }
   39%  { transform: translate(-90%, -102%); }
   43%  { transform: translate(-90%, -106%); }
-  57%  { transform: translate(-90%, -106%); }
-  /* then topples down into its own slot */
-  79%  { transform: translate(-26%, -66%); }
-  92%  { transform: translate(0%, 7%); }
+  /* holds, then slides ALL the way across at a constant height — one move */
+  58%  { transform: translate(-90%, -106%); animation-timing-function: cubic-bezier(0.62, 0, 0.3, 1); }
+  78%  { transform: translate(0%, -106%); animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.45); }
+  /* and only then drops straight down into its slot */
+  94%  { transform: translate(0%, 4%); animation-timing-function: cubic-bezier(0.25, 0, 0.3, 1); }
   100% { transform: translate(0, 0); }
 }
 @keyframes wm-take {           /* OVER takes the weight */
   0%, 23% { transform: translateY(0); }
   28%     { transform: translateY(6%); }
   35%     { transform: translateY(0); }
-  90%     { transform: translateY(0); }
-  94%     { transform: translateY(4%); }
+  92%     { transform: translateY(0); }
+  95%     { transform: translateY(4%); }
   100%    { transform: translateY(0); }
 }
 @keyframes wm-light {
@@ -886,6 +887,7 @@ const CONFIG = {
   },
   onboarding: { seededQueue: [1, 1, 2], hintFadeMs: 1900 },
   snapshotMinStability: 0.5,
+  reviveGraceMs: 3_500,       // after a revive, a settling topple costs a piece, never the run
   chainWindowMs: 1400,        // fusions inside this window chain: NICE! → UNREAL!!
   jackpotTier: 7,             // fusing into Titan or AUREX = jackpot moment
   fuseGapPx: 4,               // resting same-tier pieces this close still merge (adjacency fix)
@@ -2216,24 +2218,45 @@ const Stack = {
     }));
   },
   restoreSnapshot() {
+    /* A revive has to hand back a tower you can actually keep playing on.
+       Restoring the snapshot verbatim was not enough: a piece centred a hair
+       inside the edge still has most of its mass over open air, so physics
+       would tip it the instant the run resumed and the player would pay for an
+       ad only to die again. So the rebuild is deliberate — pieces that were
+       hanging are dropped, everything else is pulled fully back over the deck,
+       and all momentum is cleared. */
     if (!this.snapshot) return false;
     this.pieces().forEach((b) => Composite.remove(engine.world, b));
     this.fusionQueue.length = 0;
     const hw = this.platform.plugin.halfW, cx = WORLD.width / 2;
     let restored = 0;
-    for (const s of this.snapshot) {
-      // Anything the snapshot caught hanging past the dock edge or below the
-      // surface would just fall and kill the player again the moment physics
-      // resumes — the piece that killed you (and its accomplices) disappear.
-      if (Math.abs(s.x - cx) > hw + 4) continue;
-      if (s.y > WORLD.platformY + 4) continue;
-      const body = this.makeBody(s.x, s.y, s);
-      Body.setAngle(body, s.angle);
+    // bottom-up, so anything we keep is rebuilt onto solid ground
+    const ordered = this.snapshot.slice().sort((a, b) => b.y - a.y);
+    for (const s of ordered) {
+      const r = TIERS.radii[s.tier] * (s.rScale || 1) * ((SPECIALS[s.special] && SPECIALS[s.special].sizeMult) || 1);
+      // it was already hanging off the deck, or already below the surface
+      if (Math.abs(s.x - cx) > hw - r * 0.15) continue;
+      if (s.y > WORLD.platformY - r * 0.35) continue;
+      // seat it fully over the deck and take the lean out of it
+      const x = clamp(s.x, cx - hw + r * 0.9, cx + hw - r * 0.9);
+      const body = this.makeBody(x, s.y, s);
+      Body.setAngle(body, s.angle * 0.5);          // half the lean it had
       Body.setVelocity(body, { x: 0, y: 0 });
+      Body.setAngularVelocity(body, 0);
       Composite.add(engine.world, body);
       restored++;
     }
-    return restored > 0;
+    // if what came back is still hopeless, take the top pieces off until it isn't
+    for (let guard = 0; guard < 4 && this.isDoomed(); guard++) {
+      const ps = this.pieces();
+      if (!ps.length) break;
+      let top = ps[0];
+      for (const b of ps) if (b.position.y < top.position.y) top = b;
+      Composite.remove(engine.world, top);
+      restored--;
+    }
+    this.wakeAll();
+    return restored > 0 || this.pieces().length > 0;
   },
 };
 
@@ -2786,14 +2809,34 @@ const Game = {
     if (!ok) return;
     if (!Stack.restoreSnapshot()) { this.startRun(); return; }
     this.revivesUsedThisRun++;
+
+    /* Clear the board of everything that could take the run away again while
+       the player is still getting their bearings: every live world event, any
+       special block that was queued up, and the piece that was mid-flight. */
     EventDirector.clearCurse();
+    EventDirector.wind = null;
+    EventDirector.meteor = null;
+    EventDirector.blackhole = null;
+    EventDirector.hugeCharges = 0;
+    EventDirector.schedule();                         // no event for another 45s+
+    EventDirector.graceUntil = now() + CONFIG.reviveGraceMs;   // a settling topple costs a piece, not the run
+    Surprise.forced = null;
+    this.dropBody = null;
+
+    // Hand back two small, grippy, easy-to-place pieces — never a giant or a
+    // bomb on the drop you just paid for.
+    Director.refill([1, 2]);
+
     Greed.reset(CONFIG.greed.reviveBaseline);
+    this.aimX = WORLD.width / 2;
+    this.spawnY = Math.min(Stack.stackTopY(), WORLD.platformY) - WORLD.spawnClearance;
     this.set('DECISION');
     this.decisionStartT = now();
     UI.showGame();
     AdManager.notifyGameplayStart();
     UI.renderNextPreview();
     UI.react('REVIVED!', 'var(--mint)');
+    UI.toast('Board steadied — the next two are easy ones');
   },
 
   async doubleReward() {

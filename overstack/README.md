@@ -72,7 +72,8 @@ very heavy, squared-off bowls, in the same family of forms as the pieces.
 
 **It animates itself, and the animation is the game.** OVER is already standing;
 STACK falls in from above and lands **on top** of it; OVER takes the impact;
-STACK holds for a beat, then topples down into its own slot to the right. While
+STACK holds for a beat, then slides across in one clean move and drops straight
+down into its own slot. While
 the word is unfinished its letters are **gold** — not placed yet — and the moment
 it is whole the brand colour sweeps across them one at a time, O through K. It
 plays on the loading screen, when the menu opens, and quietly on the in-game mark
@@ -221,8 +222,14 @@ title like THE GAMBLER / THE BANKER / THE COLLECTOR) drives:
 - Every run nets some coins (collapse pays a small salvage) — no zero-progress outcomes.
 - Adjacent same-tier pieces fuse even when they come to rest a hair apart (a
   proximity + active-contact scan, not just first-contact events).
-- Reviving rolls back to the tower state from *before* the fatal drop (snapshot is
-  taken pre-drop), so the killer piece is gone — you don't instantly die again.
+- Reviving rolls back to the tower from *before* the fatal drop, and then makes
+  that tower survivable rather than merely restoring it: pieces that were already
+  hanging over the edge are dropped, everything kept is seated fully back over the
+  deck with half its lean and no momentum, and the top is trimmed until the board
+  is no longer doomed. Every live world event is cleared, the event timer is
+  pushed out, the queue is reset to two small grippy pieces, and a grace window
+  covers the settle — so an ad-paid revive cannot hand you an instant second
+  death, or a block that is impossible to place.
 - Any piece resting on a fused/removed/shrunk support is woken so it falls (no
   frozen floating blocks).
 
