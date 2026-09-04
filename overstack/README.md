@@ -65,28 +65,18 @@ which is what made an earlier pass look uniformly dim.)
 **Curvature by hierarchy.** Chips 14px, buttons 18px, cards 28px. Nothing is a
 hard-edged box, and nothing is rounded by default.
 
-**The wordmark is drawn, not typeset, and it animates itself.** Nine monolinear
-geometric caps on a 120-unit cap height with a 28-unit stroke — a true Black
-weight — built from the game's own vocabulary: the **O** is the octagon piece,
-the **A** is the triangle piece. The animation is the game: OVER is already
-standing, STACK falls in from above and lands **on top** of it, OVER takes the
-impact, STACK holds for a beat and then topples down into its own slot to the
-right. While the word is still in motion its letters are gold — not placed yet —
-and once it is whole the brand colour sweeps across it letter by letter, O
-through K. It plays on the loading screen, when the menu opens, and quietly on
-the in-game mark as a run starts.
+**The wordmark is set in Unbounded ExtraBold** (SIL Open Font License), subset to
+the nine letters it needs and embedded as a 1.4 KB woff2 — so the file stays
+self-contained and renders identically offline. A geometric display face: wide,
+very heavy, squared-off bowls, in the same family of forms as the pieces.
 
-**Pieces are flat and solid.** One honest fill per shape, a bright rim, and a
-restrained glow. No radial highlight — that reads as plastic or brushed metal.
-
-**Docks are real materials.** Each deck is a body, a distinctly lit landing
-surface across the top (the band the pieces actually rest on), a bright front
-lip, a soft contact shadow, and exactly one signature detail: honed speckle on
-Slab, grain on Heartwood, brushing and rivets on Steel, veins on Carrara, an
-ember seam on Basalt Forge, a travelling pulse on Reactor, a struck band on
-Bullion, safety hatching on Bumper, a still starfield on Nebula, nap sheen and
-filigree on Crimson Velvet, a conchoidal highlight on Obsidian, and double gold
-trim on the Crown.
+**It animates itself, and the animation is the game.** OVER is already standing;
+STACK falls in from above and lands **on top** of it; OVER takes the impact;
+STACK holds for a beat, then topples down into its own slot to the right. While
+the word is unfinished its letters are **gold** — not placed yet — and the moment
+it is whole the brand colour sweeps across them one at a time, O through K. It
+plays on the loading screen, when the menu opens, and quietly on the in-game mark
+as a run starts.
 
 **No emoji, no currency glyph.** Every mark in the interface is drawn; coins are
 plain numbers.
@@ -123,7 +113,9 @@ normal shape) and its own behavior:
 - JACKPOT DIAMOND (rare, ~every 5 min, absurd 8× payout)
 
 **World events** fire live (not blocks): BLACK HOLE (opens ON the tower and
-devours up to 3 pieces, paying coins for each), METEOR (warns, then crashes —
+devours up to 3 pieces, paying coins for each — drawn as a true black disc
+with two tilted orbit rings and a gravity well that darkens the world rather
+than painting over it), METEOR (warns, then crashes —
 it can knock pieces clean off the dock, but knocked-off pieces just *vanish in a
 poof* during its grace window: a meteor can cost you blocks, never the run),
 WIND (gusts on the block that is FALLING — the drop drifts sideways to a spot
@@ -134,7 +126,10 @@ pieces already in the queue (the aim ghost and NEXT box grow instantly), the
 leak drips visible `-coin` losses off the tower, and the director only picks a
 curse that can bite right now. ANGRY's jump and HEAVY's slam run under
 the same no-direct-death rule — chaos blocks knocked off the edge disappear
-instead of ending the run. When any special block is announced as *incoming*,
+instead of ending the run. WIND and BLACK HOLE carry the same promise, and it
+extends past the event itself: each opens a grace window covering the whole
+effect plus a settling tail, so a piece nudged by a gust that slides off its
+neighbour two seconds later still vanishes rather than collapsing the tower. When any special block is announced as *incoming*,
 it IS the next drop — never hidden behind another queued piece.
 
 ### Event Director
