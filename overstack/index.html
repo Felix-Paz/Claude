@@ -25,16 +25,18 @@
            no bevels, no hard offset edges, no metal.
    ========================================================================== */
 :root {
-  --ink:     #0A0B12;
-  --ink-2:   #12141F;
-  --glass:       rgba(16, 18, 30, 0.55);
-  --glass-solid: rgba(16, 18, 30, 0.92);
-  --glass-hi:    rgba(255, 255, 255, 0.10);
-  --glass-line:  rgba(255, 255, 255, 0.14);
+  --ink:     #16352A;
+  --ink-2:   #222636;
+  /* the panels are LIGHT glass sitting on the coloured world, not dark holes
+     punched into it — that is what keeps the screen from reading as dim */
+  --glass:       rgba(255, 255, 255, 0.15);
+  --glass-solid: rgba(255, 255, 255, 0.15);
+  --glass-hi:    rgba(255, 255, 255, 0.28);
+  --glass-line:  rgba(255, 255, 255, 0.28);
 
   --text:      #FFFFFF;
-  --text-dim:  rgba(255, 255, 255, 0.66);
-  --text-mute: rgba(255, 255, 255, 0.40);
+  --text-dim:  rgba(255, 255, 255, 0.80);
+  --text-mute: rgba(255, 255, 255, 0.62);
 
   --gold:    #FFD24A;
   --gold-hi: #FFE79A;
@@ -79,29 +81,27 @@ body {
 
 /* ---------- surfaces: dark glass, generous curvature ---------- */
 .glass, .chip {
-  background: var(--glass);
-  backdrop-filter: blur(22px) saturate(1.5);
-  -webkit-backdrop-filter: blur(22px) saturate(1.5);
   border: 1px solid var(--glass-line);
-  box-shadow: 0 24px 60px -24px rgba(0,0,0,0.9), inset 0 1px 0 var(--glass-hi);
+  box-shadow: 0 18px 44px -20px rgba(0,0,0,0.55), inset 0 1px 0 var(--glass-hi);
 }
-.glass { border-radius: var(--r-card); }
-.chip  { border-radius: var(--r-chip); position: relative; }
-.low-fx .glass, .low-fx .chip { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--glass-solid); }
+/* Cards are near-opaque: they carry a lot of small type, and the tower behind
+   them must not read through as clutter. HUD chips stay true translucent
+   glass — they sit on a flat field, so the world tints them cleanly. */
+.glass { border-radius: var(--r-card); background: rgba(58, 63, 82, 0.94); }
+.chip  { border-radius: var(--r-chip); position: relative; background: var(--glass); }
+.low-fx .glass, .low-fx .chip { background: var(--glass-solid); }
 
 /* ---------- buttons ---------- */
 .btn {
   font-family: inherit; font-weight: 700; color: var(--text);
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.18);
   border: 1px solid var(--glass-line);
   border-radius: var(--r-btn);
   padding: 13px 22px; font-size: 0.95rem; cursor: pointer;
-  letter-spacing: 0.06em;
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  box-shadow: inset 0 1px 0 var(--glass-hi);
+  letter-spacing: 0.06em;  box-shadow: inset 0 1px 0 var(--glass-hi);
   transition: background 0.16s ease, transform 0.1s cubic-bezier(0.2,1.4,0.4,1), box-shadow 0.2s ease, color 0.16s ease;
 }
-.btn:hover { background: rgba(255,255,255,0.14); }
+.btn:hover { background: rgba(255,255,255,0.26); }
 .btn:active { transform: scale(0.95); }
 .btn-primary {
   background: linear-gradient(165deg, var(--mint-hi), var(--mint-lo));
@@ -148,10 +148,11 @@ body {
 #loadbar { width: 190px; height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; margin-top: 26px; overflow: hidden; }
 #loadbar > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--mint), var(--gold)); border-radius: 2px; transition: width 0.3s ease; }
 
-#menu { background: rgba(10, 11, 18, 0.62); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+#menu { background: rgba(12, 14, 22, 0.82); }
+/* every card screen dims the world a little so the panel reads cleanly */
+#shop, #settings, #board, #daily { background: rgba(12, 14, 22, 0.78); }
 #menu .wordmark { width: min(330px, 76vw); filter: drop-shadow(0 8px 40px rgba(255,210,74,0.18)); }
-#menu .tagline { color: var(--text-mute); font-size: 0.64rem; letter-spacing: 0.44em; margin-top: 18px; text-transform: uppercase; }
-#style-tag { font-size: 0.62rem; color: var(--gold); letter-spacing: 0.24em; margin: 14px 0 26px; min-height: 1em; }
+#menu .tagline { color: var(--text-mute); font-size: 0.64rem; letter-spacing: 0.44em; margin: 18px 0 30px; text-transform: uppercase; }
 #btn-play { min-width: 240px; font-size: 1.4rem; padding: 20px 52px; animation: breathe 2.8s ease-in-out infinite; }
 @keyframes breathe {
   0%,100% { box-shadow: 0 10px 34px -8px rgba(45,229,143,0.55), inset 0 1px 0 rgba(255,255,255,0.5); }
@@ -161,8 +162,7 @@ body {
   display: flex; margin-top: 30px; color: var(--text-mute);
   font-size: 0.56rem; letter-spacing: 0.2em; align-items: stretch;
   border: 1px solid var(--glass-line); border-radius: var(--r-chip);
-  background: var(--glass); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-  overflow: hidden;
+  background: var(--glass);  overflow: hidden;
 }
 #menu-stats > span {
   display: flex; flex-direction: column; gap: 6px; align-items: center;
@@ -189,7 +189,7 @@ body {
   width: 116px; opacity: 0.3; pointer-events: none; color: #fff;
 }
 #hud-score-wrap { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); text-align: center; }
-.metric-label { font-size: 0.5rem; letter-spacing: 0.34em; color: var(--text-mute); display: block; }
+.metric-label { font-size: 0.5rem; letter-spacing: 0.34em; color: var(--text-dim); display: block; text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
 #run-score {
   font-size: clamp(1.75rem, 6.6vw, 2.5rem); font-weight: 800; line-height: 1;
   font-variant-numeric: tabular-nums; margin-top: 4px;
@@ -200,9 +200,7 @@ body.chase #run-score { color: var(--gold); text-shadow: 0 0 30px rgba(255,210,7
   display: inline-block; margin-top: 8px;
   font-size: 0.62rem; font-weight: 800; letter-spacing: 0.18em;
   padding: 5px 13px; border-radius: 999px;
-  border: 1px solid var(--glass-line); background: var(--glass); color: var(--mint);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-}
+  border: 1px solid var(--glass-line); background: var(--glass); color: var(--mint);}
 #greed-pill.g2 { color: var(--gold); border-color: rgba(255,210,74,0.45); }
 #greed-pill.g3 { color: var(--rose); border-color: rgba(255,77,109,0.55); animation: greedpulse 0.75s ease-in-out infinite; }
 @keyframes greedpulse { 0%,100% { box-shadow: 0 0 4px rgba(255,77,109,0.3);} 50% { box-shadow: 0 0 20px rgba(255,77,109,0.8);} }
@@ -293,7 +291,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 @keyframes chasepulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
 
 #reaction {
-  position: fixed; left: 50%; top: 74%; transform: translate(-50%, -50%) scale(0.4);
+  position: fixed; left: 50%; top: 30%; transform: translate(-50%, -50%) scale(0.4);
   z-index: 32; pointer-events: none; opacity: 0;
   font-size: clamp(1.9rem, 8.4vw, 3.3rem); font-weight: 800; letter-spacing: 0.06em;
   text-shadow: 0 4px 32px rgba(0,0,0,0.75);
@@ -307,14 +305,17 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   100% { opacity: 0; transform: translate(-50%, -58%) scale(1.05); }
 }
 
+/* Both live in the empty band directly under the GREED pill — well above the
+   deck, so nothing ever covers the blocks or the landing. */
 #hint, #toast {
   position: fixed; left: 50%; transform: translateX(-50%);
+  text-shadow: 0 1px 8px rgba(0,0,0,0.45);
   padding: 11px 20px; font-size: 0.82rem; letter-spacing: 0.02em;
   z-index: 30; pointer-events: none; opacity: 0; transition: opacity 0.32s ease;
-  text-align: center; max-width: 88vw;
+  text-align: center; max-width: 84vw;
 }
-#hint { bottom: calc(76px + var(--safe-bottom)); color: var(--text); }
-#toast { bottom: calc(112px + var(--safe-bottom)); }
+#toast { top: 152px; }
+#hint  { top: 152px; color: var(--text); }
 #hint.show, #toast.show { opacity: 1; }
 
 .side-panel {
@@ -337,7 +338,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 }
 
 /* ---------- results ---------- */
-#results { background: rgba(10, 11, 18, 0.6); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+#results { background: rgba(12, 14, 22, 0.8); }
 #results-card { padding: 30px 32px; text-align: center; max-width: 420px; width: 92vw; }
 #results-verdict { font-size: 0.62rem; letter-spacing: 0.34em; font-weight: 800; margin-bottom: 12px; }
 #results-verdict.banked { color: var(--gold); }
@@ -374,11 +375,11 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 #shop-grid-docks, #shop-grid-themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(146px, 1fr)); gap: 11px; }
 .shop-item {
   padding: 12px; border-radius: var(--r-btn); border: 1px solid var(--glass-line);
-  background: rgba(255,255,255,0.05); cursor: pointer; text-align: left;
+  background: rgba(255,255,255,0.12); cursor: pointer; text-align: left;
   font-family: inherit; color: var(--text); position: relative;
   transition: transform 0.1s cubic-bezier(0.2,1.4,0.4,1), border-color 0.16s ease, background 0.16s ease;
 }
-.shop-item:hover { background: rgba(255,255,255,0.09); }
+.shop-item:hover { background: rgba(255,255,255,0.2); }
 .shop-item:active { transform: scale(0.96); }
 .shop-item .swatch { height: 40px; border-radius: 10px; margin-bottom: 10px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
 .shop-item .name { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em; margin-bottom: 3px; }
@@ -393,16 +394,9 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 .shop-item .tag { position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 10px rgba(255,210,74,0.9); }
 .power-row {
   display: flex; align-items: center; gap: 13px;
-  padding: 13px; border-radius: var(--r-btn); border: 1px solid var(--glass-line);
-  background: rgba(255,255,255,0.05); margin-bottom: 10px;
+  padding: 14px 16px; border-radius: var(--r-btn); border: 1px solid var(--glass-line);
+  background: rgba(255,255,255,0.12); margin-bottom: 10px;
 }
-.power-row .icon {
-  width: 40px; height: 40px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.04em;
-  border: 1px solid var(--glass-line); border-radius: 12px; color: var(--text-mute);
-}
-.power-row.unlocked .icon { color: var(--mint); border-color: rgba(45,229,143,0.5); background: rgba(45,229,143,0.1); }
 .power-row .info { flex: 1; }
 .power-row .info .name { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.12em; }
 .power-row.unlocked .info .name { color: var(--mint); }
@@ -428,7 +422,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 .card-x:hover { background: rgba(255,255,255,0.18); }
 .card-x:hover::before, .card-x:hover::after { background: #fff; }
 
-#confirm-dialog { z-index: 95; background: rgba(6, 7, 12, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#confirm-dialog { z-index: 95; background: rgba(6, 7, 12, 0.75); }
 #confirm-card { padding: 28px 30px; text-align: center; max-width: 320px; width: 84vw; }
 #confirm-card .ttl { font-size: 0.54rem; letter-spacing: 0.32em; color: var(--text-mute); margin-bottom: 12px; }
 #confirm-name { font-size: 1.35rem; font-weight: 800; letter-spacing: 0.04em; margin-bottom: 5px; }
@@ -450,32 +444,45 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   0%,100% { box-shadow: 0 0 16px -6px rgba(255,210,74,0.5), inset 0 1px 0 var(--glass-hi); }
   50% { box-shadow: 0 0 32px -2px rgba(255,210,74,0.95), inset 0 1px 0 var(--glass-hi); }
 }
-#daily-card { position: relative; width: min(430px, 92vw); padding: 30px 26px 24px; text-align: center; }
-#daily-mark { display: block; margin: 0 auto 16px; filter: drop-shadow(0 6px 22px rgba(255,210,74,0.5)); }
-#daily-card .card-sub { margin-bottom: 20px; line-height: 1.5; }
-#daily-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 4px 0 20px; }
+#daily-card { position: relative; width: min(520px, 94vw); padding: 40px 36px 30px; text-align: center; }
+#daily-mark { display: block; margin: 0 auto 18px; filter: drop-shadow(0 6px 26px rgba(255,210,74,0.55)); }
+#daily-card h2 { font-size: 1.05rem; }
+#daily-card .card-sub { margin-bottom: 26px; line-height: 1.55; font-size: 0.8rem; }
+
+/* today's reward is the hero — one big number, not one of seven small ones */
+#daily-hero {
+  border-radius: 22px; padding: 26px 20px 22px; margin-bottom: 22px;
+  background: linear-gradient(165deg, rgba(255,210,74,0.26), rgba(255,170,40,0.08));
+  border: 1px solid rgba(255,210,74,0.6);
+  box-shadow: 0 0 40px -10px rgba(255,210,74,0.55), inset 0 1px 0 rgba(255,255,255,0.25);
+  display: flex; flex-direction: column; gap: 8px; align-items: center;
+}
+#daily-hero.claimed { background: rgba(45,229,143,0.14); border-color: rgba(45,229,143,0.55); box-shadow: none; }
+#daily-day { font-size: 0.58rem; letter-spacing: 0.36em; color: var(--gold-hi); }
+#daily-hero.claimed #daily-day { color: var(--mint); }
+#daily-amount {
+  font-size: clamp(2.6rem, 13vw, 3.6rem); font-weight: 800; line-height: 1;
+  color: var(--gold-hi); font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 44px rgba(255,210,74,0.55);
+}
+#daily-hero.claimed #daily-amount { color: var(--mint-hi); text-shadow: none; }
+#daily-hero .dh-note { font-size: 0.6rem; letter-spacing: 0.22em; color: var(--text-mute); }
+
+#btn-claim { width: 100%; font-size: 1.05rem; letter-spacing: 0.14em; padding: 20px; }
+#btn-claim:disabled { opacity: 0.45; cursor: default; }
+
+.week-label { margin: 26px 0 12px; font-size: 0.54rem; letter-spacing: 0.34em; color: var(--text-mute); }
+#daily-days { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
 .day-chip {
-  position: relative; padding: 10px 2px 9px; border-radius: 12px;
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10);
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  position: relative; padding: 14px 4px 12px; border-radius: 14px;
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.16);
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
 }
-.day-chip .d-lab { font-size: 0.46rem; letter-spacing: 0.1em; color: var(--text-mute); }
-.day-chip b { font-size: 0.66rem; color: var(--text); font-variant-numeric: tabular-nums; }
-.day-chip.today {
-  background: linear-gradient(160deg, rgba(255,210,74,0.3), rgba(255,170,40,0.12));
-  border-color: rgba(255,210,74,0.8); box-shadow: 0 0 22px -6px rgba(255,210,74,0.8);
-}
-.day-chip.today b, .day-chip.today .d-lab { color: var(--gold-hi); }
-.day-chip.claimed { border-color: rgba(45,229,143,0.5); background: rgba(45,229,143,0.08); }
-.day-chip .d-check {
-  position: absolute; top: -6px; right: -4px;
-  width: 9px; height: 5px; border-left: 2px solid var(--mint); border-bottom: 2px solid var(--mint);
-  transform: rotate(-45deg);
-}
-.day-chip .d-max { font-size: 0.4rem; letter-spacing: 0.12em; color: var(--gold); }
-#btn-claim { width: 100%; font-size: 0.98rem; letter-spacing: 0.14em; padding: 17px; }
-#btn-claim:disabled { opacity: 0.5; cursor: default; }
-#daily-foot { margin-top: 16px; font-size: 0.62rem; color: var(--text-mute); line-height: 1.6; }
+.day-chip .d-lab { font-size: 0.5rem; letter-spacing: 0.14em; color: var(--text-mute); }
+.day-chip b { font-size: 0.78rem; color: var(--text); font-variant-numeric: tabular-nums; }
+.day-chip.maxed { border-color: rgba(255,210,74,0.45); }
+.day-chip.maxed b { color: var(--gold); }
+#daily-foot { margin-top: 24px; font-size: 0.66rem; color: var(--text-mute); line-height: 1.6; }
 #daily-foot b { color: var(--gold); }
 #daily-card.claimpop { animation: claimpop 0.65s cubic-bezier(0.18, 1.5, 0.4, 1); }
 @keyframes claimpop {
@@ -578,7 +585,6 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 <div id="menu" class="screen hidden">
   <svg class="wordmark" viewBox="-10 -10 808 120"><use href="#wm"/></svg>
   <div class="tagline">stack · fuse · get greedy</div>
-  <div id="style-tag"></div>
   <button id="btn-play" class="btn btn-primary">PLAY</button>
   <div id="menu-stats">
     <span>STREAK<b id="ms-streak">0</b></span>
@@ -655,8 +661,14 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
     </svg>
     <h2>DAILY REWARD</h2>
     <div class="card-sub" id="daily-sub"></div>
-    <div id="daily-days"></div>
+    <div id="daily-hero">
+      <span id="daily-day">DAY 1</span>
+      <span id="daily-amount">0</span>
+      <span class="dh-note">INTO YOUR VAULT</span>
+    </div>
     <button id="btn-claim" class="btn btn-primary"></button>
+    <div class="week-label">THE WEEK AHEAD</div>
+    <div id="daily-days"></div>
     <div id="daily-foot">Miss a day and the ladder restarts at 50,000 · Vault <b id="daily-vault">0</b></div>
   </div>
 </div>
@@ -736,30 +748,25 @@ const TIERS = {
    recolor): monochrome noir, all-fire inferno, jewel-tone royal, arcade retro…
    Adjacent tiers stay unmistakable inside every pack. Perks scale with price. */
 const THEMES = {
-  /* One colour per shape, and every one of them a long way from its
-     neighbours — the hues are spread right around the wheel so no two tiers
-     can ever be confused. What holds them together is that they are all the
-     same KIND of colour: fully saturated, equally bright, no pastels and no
-     muds. Distinct family members, not a gradient. */
   default: { name: 'Signal',  bonus: {},
-    colors: ['', '#FF2D55', '#FF8A00', '#C8F53C', '#25D366', '#00C2FF', '#4361FF', '#B026FF', '#FFFAE8'] },
-  noir:    { name: 'Noir',    bonus: { coinMult: 1.04 },   // greyscale ladder, one blood note, gold apex
-    colors: ['', '#FFFFFF', '#C8CCD4', '#949AA6', '#646B7A', '#3C4250', '#20242E', '#FF2B4E', '#FFD028'] },
-  oceanic: { name: 'Oceanic', bonus: { greedStart: 1.2 },  // foam down to the abyss
-    colors: ['', '#D6FEFF', '#6FE9F2', '#16C8E4', '#0A93DC', '#1B5FD4', '#2E2FBE', '#6A1FC8', '#FFE066'] },
-  toxic:   { name: 'Toxic',   bonus: { coinMult: 1.08 },   // acid lab under UV
-    colors: ['', '#F2FF00', '#A8F000', '#3CE81E', '#00E88C', '#00DCD4', '#00A8FF', '#9B4DFF', '#FF3CE0'] },
-  candy:   { name: 'Candy',   bonus: { goldenBias: 2.0 },  // sugar shop
-    colors: ['', '#FF4FA3', '#FF8A4C', '#FFDE3C', '#5BEE86', '#4CD8FF', '#8C82FF', '#E262FF', '#FFF2C8'] },
-  retro:   { name: 'Retro',   bonus: { coinMult: 1.08, greedStart: 1.15 }, // arcade cabinet
+    colors: ['', '#FF2E2E', '#FF7A00', '#FFE500', '#22DD4B', '#00D4D4', '#2E6BFF', '#B23BFF', '#FFC21E'] },
+  noir:    { name: 'Noir',    bonus: { coinMult: 1.04 }, // monochrome ladder, one blood accent, gold apex
+    colors: ['', '#F8F8F8', '#C4C4CC', '#8E8E9A', '#5E5E6C', '#3B3B47', '#1F1F28', '#E01E3C', '#FFD700'] },
+  oceanic: { name: 'Oceanic', bonus: { greedStart: 1.2 }, // deep-sea ladder: foam → abyss
+    colors: ['', '#D8FBFF', '#7CE8F0', '#2EC4E0', '#0E8FD0', '#1F5FC0', '#2E3AA8', '#521E98', '#FFE08A'] },
+  toxic:   { name: 'Toxic',   bonus: { coinMult: 1.08 }, // acid / uv-lab
+    colors: ['', '#EEFF00', '#A8F000', '#4CE800', '#00E070', '#00D8C8', '#8A5BFF', '#E82EFF', '#F4FF9E'] },
+  candy:   { name: 'Candy',   bonus: { goldenBias: 2.0 }, // saturated sugar shop
+    colors: ['', '#FF4D9E', '#FF8A3C', '#FFE03C', '#4CE87A', '#3CD4FF', '#8A7AFF', '#E060FF', '#FFF6C8'] },
+  retro:   { name: 'Retro',   bonus: { coinMult: 1.08, greedStart: 1.15 }, // 80s arcade cabinet
     colors: ['', '#FF3355', '#FF9722', '#FFEE33', '#33EE66', '#22DDEE', '#4477FF', '#EE44EE', '#F8F0D8'] },
-  inferno: { name: 'Inferno', bonus: { coinMult: 1.12 },   // everything burns
-    colors: ['', '#FFF3A8', '#FFD02E', '#FF9A16', '#FF5E10', '#F02A22', '#C4106A', '#8A0EA8', '#FFFFFF'] },
-  royal:   { name: 'Royal',   bonus: { greedStart: 1.25, coinMult: 1.06 }, // jewels on velvet
-    colors: ['', '#F5D6DC', '#E0395F', '#B4123C', '#12A868', '#1080A8', '#2A44C8', '#7A1FC0', '#F5C61E'] },
-  cyber:   { name: 'Cyber',   bonus: { coinMult: 1.10, goldenBias: 1.5 },  // neon over gunmetal
-    colors: ['', '#00FFD4', '#00C2FF', '#3C7CFF', '#8A3CFF', '#D416FF', '#FF16C0', '#FF2E5E', '#EAFBFF'] },
-  prism:   { name: 'Prism',   bonus: { coinMult: 1.15, greedStart: 1.35 }, // max saturation
+  inferno: { name: 'Inferno', bonus: { coinMult: 1.12 }, // everything burns — heat ladder
+    colors: ['', '#FFF1A8', '#FFD24C', '#FFA02E', '#FF6B1A', '#F53D2E', '#C81E50', '#8E1060', '#FFFFFF'] },
+  royal:   { name: 'Royal',   bonus: { greedStart: 1.25, coinMult: 1.06 }, // jewel tones on velvet
+    colors: ['', '#E8B4B8', '#D4485F', '#B01E48', '#20A46E', '#1E7898', '#2E4EA8', '#6E2EA0', '#F0C420'] },
+  cyber:   { name: 'Cyber',   bonus: { coinMult: 1.10, goldenBias: 1.5 }, // neon on gunmetal
+    colors: ['', '#00FFD4', '#00C8FF', '#4C8AFF', '#8A5BFF', '#C43CFF', '#FF2ED4', '#FF3C6B', '#EAFBFF'] },
+  prism:   { name: 'Prism',   bonus: { coinMult: 1.15, greedStart: 1.35 }, // max saturation, white apex
     colors: ['', '#FF0044', '#FF7A00', '#FFE800', '#00FF66', '#00E5FF', '#3366FF', '#C400FF', '#FFFFFF'] },
 };
 
@@ -3633,41 +3640,35 @@ function render(t) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  /* ---- the world IS the colour of your best piece -----------------------
+     Not a cousin of it, not a shade off it: the exact hue and saturation of
+     the most valuable shape on the dock, simply darkened enough that the
+     pieces still read against it. Merge into a higher tier and the whole room
+     becomes that colour. It is painted in SCREEN space, before the camera
+     transform, so one flat plane always covers the viewport edge to edge —
+     no horizon, no seam at the dock, nothing showing through at any zoom. */
+  let bestTier = 0;
+  for (const b of Stack.pieces()) if (b.plugin.tier > bestTier) bestTier = b.plugin.tier;
+  const hsl = hexToHsl(themeColor(bestTier || 1));
+  bgH = angleLerp(bgH, hsl[0], 0.04);
+  bgS = lerp(bgS, hsl[1], 0.04);
+  ctx.fillStyle = `hsl(${bgH.toFixed(1)}, ${(bgS * 0.6).toFixed(1)}%, 27%)`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // one soft pool of the same colour, a little brighter, behind the tower
+  if (perf.tier !== 'low') {
+    const px = canvas.width / 2, py = canvas.height * 0.56, pr = Math.max(canvas.width, canvas.height) * 0.62;
+    const pool = ctx.createRadialGradient(px, py, 10, px, py, pr);
+    pool.addColorStop(0, `hsla(${bgH.toFixed(1)}, ${(bgS * 0.68).toFixed(1)}%, 35%, 0.5)`);
+    pool.addColorStop(1, `hsla(${bgH.toFixed(1)}, ${(bgS * 0.68).toFixed(1)}%, 35%, 0)`);
+    ctx.fillStyle = pool;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
   const sh = Shake.offset(t);
   ctx.setTransform(
     Camera.zoom * dpr, 0, 0, Camera.zoom * dpr,
     (cw * dpr) / 2 - Camera.x * Camera.zoom * dpr + sh.x * dpr,
     (ch * dpr) / 2 - Camera.y * Camera.zoom * dpr + sh.y * dpr);
-
-  /* ---- the world takes its colour from the tower ------------------------
-     The background is a deep, saturated cousin of the most valuable shape
-     currently on the dock — hue-shifted a little so it never matches exactly.
-     Fuse your way up a tier and the whole room changes colour with you. The
-     shift is eased, so it reads as a mood swing rather than a flash. */
-  let bestTier = 0;
-  for (const b of Stack.pieces()) if (b.plugin.tier > bestTier) bestTier = b.plugin.tier;
-  const srcCol = themeColor(bestTier || 1);
-  const hsl = hexToHsl(srcCol);
-  bgH = angleLerp(bgH, (hsl[0] + 340) % 360, 0.035);   // a shade back around the wheel, never a match
-  // a near-white or near-black source has no useful hue to borrow, so the room
-  // goes neutral instead of muddy — the AUREX apex drains all colour from the
-  // world, which is exactly the right feeling for the top of the ladder
-  const purity = 1 - Math.abs(hsl[2] - 50) / 50;
-  bgS = lerp(bgS, clamp(hsl[1] * 0.7 * purity, 6, 62), 0.035);
-  const viewH = ch / Camera.zoom;
-  const topY = Camera.y - viewH, botY = WORLD.platformY + 400;
-  ctx.fillStyle = `hsl(${bgH.toFixed(1)}, ${bgS.toFixed(1)}%, 10%)`;
-  ctx.fillRect(-600, topY - 200, WORLD.width + 1200, (WORLD.platformY - topY) + 400);
-  ctx.fillStyle = `hsl(${bgH.toFixed(1)}, ${(bgS * 0.92).toFixed(1)}%, 14.5%)`;
-  ctx.fillRect(-600, WORLD.platformY, WORLD.width + 1200, botY - WORLD.platformY + 200);
-  // a soft pool of the tower's own colour behind the stack
-  if (perf.tier !== 'low') {
-    const pool = ctx.createRadialGradient(WORLD.width / 2, WORLD.platformY - 60, 20, WORLD.width / 2, WORLD.platformY - 60, 430);
-    pool.addColorStop(0, `hsla(${bgH.toFixed(1)}, ${Math.min(bgS * 1.8, 92).toFixed(1)}%, 54%, 0.17)`);
-    pool.addColorStop(1, 'hsla(0,0%,0%,0)');
-    ctx.fillStyle = pool;
-    ctx.fillRect(-600, WORLD.platformY - 540, WORLD.width + 1200, 720);
-  }
 
   // dock (per-style render)
   if (Stack.platform) drawDock(Stack.platform.plugin.halfW);
@@ -3704,20 +3705,6 @@ function render(t) {
 
   // pieces — rim glow rises with greed
   const glow = clamp((Greed.value - 1) * 4, 3, 22);
-  // motion trail on the live drop — three fading echoes, so a fast piece
-  // leaves a streak instead of teleporting
-  const drop = Game.dropBody;
-  if (drop && !drop.plugin.contacted && Math.abs(drop.velocity.y) > 3 && perf.tier !== 'low') {
-    for (let i = 3; i >= 1; i--) {
-      ctx.save();
-      ctx.globalAlpha = 0.07 * i;
-      ctx.translate(0, -drop.velocity.y * i * 1.6);
-      bodyPath(drop);
-      ctx.fillStyle = themeColor(drop.plugin.tier);
-      ctx.fill();
-      ctx.restore();
-    }
-  }
   for (const b of Stack.pieces()) drawBody(b, glow, t);
 
   // meteor (in front of pieces)
@@ -4003,7 +3990,6 @@ const UI = {
     $('ms-best').textContent = fmt(save.best);
     $('ms-coins').textContent = fmt(save.coins);
     $('ms-streak').textContent = String(Streak.days || 0);
-    $('style-tag').textContent = Profile.styleTitle ? `STYLE · ${Profile.styleTitle}` : '';
     this.syncStats();
     const daily = Daily.state();
     $('btn-daily').classList.toggle('ready', daily.claimable);
@@ -4090,36 +4076,41 @@ const UI = {
     const st = Daily.state();
     const baseIdx = st.claimable ? st.idx : Math.max((save.daily.streak || 1) - 1, 0);
     const short = (n) => n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0).replace(/\.0$/, '') + 'M' : (n / 1000) + 'K';
+    const todayAmt = Daily.amountFor(baseIdx);
+
+    $('daily-amount').textContent = fmt(todayAmt);
+    $('daily-day').textContent = `DAY ${baseIdx + 1}`;
+    $('daily-hero').classList.toggle('claimed', !st.claimable);
+
+    // the week ahead starts at TOMORROW — today already has the hero
     const days = $('daily-days');
     days.innerHTML = '';
-    for (let j = 0; j < 7; j++) {
+    for (let j = 1; j <= 6; j++) {
       const amt = Daily.amountFor(baseIdx + j);
       const el = document.createElement('div');
-      el.className = 'day-chip' + (j === 0 ? (st.claimable ? ' today' : ' claimed') : '');
-      el.innerHTML = `<span class="d-lab">${j === 0 ? 'TODAY' : j === 1 ? 'TMRW' : `+${j} DAYS`}</span>` +
-        `<b>${short(amt)}</b>` +
-        (j === 0 && !st.claimable ? '<span class="d-check"></span>' : '') +
-        (baseIdx + j >= Daily.CAP_STEP ? '<span class="d-max">MAX</span>' : '');
+      el.className = 'day-chip' + (baseIdx + j >= Daily.CAP_STEP ? ' maxed' : '');
+      el.innerHTML = `<span class="d-lab">${j === 1 ? 'TMRW' : `+${j}`}</span><b>${short(amt)}</b>`;
       days.appendChild(el);
     }
+
     const btn = $('btn-claim');
     if (st.claimable) {
       btn.disabled = false;
-      btn.textContent = `CLAIM ${fmt(Daily.amountFor(st.idx))}`;
+      btn.textContent = `CLAIM ${fmt(todayAmt)}`;
       $('daily-sub').textContent = st.idx > 0
-        ? `Day ${st.idx + 1} of your streak — it keeps doubling`
-        : 'Claim today — the reward DOUBLES every day in a row';
+        ? 'Your streak is alive — every day in a row doubles the reward.'
+        : 'Claim today. Every day in a row doubles the next one.';
     } else {
       btn.disabled = true;
-      btn.textContent = 'CLAIMED';
+      btn.textContent = 'CLAIMED TODAY';
       const nextAmt = Daily.amountFor(save.daily.streak || 0);
-      const todayAmt = Daily.amountFor(Math.max((save.daily.streak || 1) - 1, 0));
       $('daily-sub').textContent = nextAmt > todayAmt
-        ? `Come back tomorrow to win ${fmt(nextAmt)} — 2× today's!`
-        : `Come back tomorrow for another ${fmt(nextAmt)}!`;
+        ? `Come back tomorrow for ${fmt(nextAmt)} — double today's.`
+        : `Come back tomorrow for another ${fmt(nextAmt)}.`;
     }
     $('daily-vault').textContent = fmt(save.coins);
   },
+
   openLoop(kind, score) {
     const goal = Profile.goal;
     const candidates = [];
@@ -4226,7 +4217,6 @@ const UI = {
       const row = document.createElement('div');
       row.className = 'power-row' + (unlocked ? ' unlocked' : '');
       row.innerHTML =
-        `<div class="icon">${m.icon}</div>` +
         `<div class="info"><div class="name">${m.name}</div><div class="desc">${m.desc}</div>` +
         (unlocked ? '' : `<div class="bar"><div style="width:${(progress * 100).toFixed(0)}%"></div></div>`) +
         `</div>` +

@@ -43,50 +43,48 @@ game, and no emoji anywhere in the interface — every mark on screen is drawn.
 
 ## The design system
 
-Everything on screen answers to one system rather than picking its own look.
+**The world is the colour of your best piece.** Not a cousin of it, not a shade
+off it — the exact hue and saturation of the most valuable shape currently on the
+dock, simply darkened enough that the pieces still read against it. Merge into a
+higher tier and the whole room becomes that colour, eased in so it feels like a
+mood swing rather than a flash. It is painted in screen space as one flat plane,
+edge to edge: no horizon, no seam at the dock, nothing showing through at any
+zoom. A single soft pool of the same colour sits behind the tower so the middle
+breathes — present, but never dramatic.
 
-**The world takes its colour from your tower.** The background is a deep,
-saturated cousin of the most valuable shape currently on the dock, shifted a
-little around the wheel so it never matches exactly. Fuse your way up a tier and
-the whole room changes colour with you — the shift is eased, so it reads as a
-mood swing rather than a flash. A near-white piece has no useful hue to lend, so
-the AUREX apex drains the colour out of the world entirely, which is the right
-feeling for the top of the ladder. The decoration *is* the run: there is nothing
-floating in the background for its own sake.
+**Three fixed accents on top of that.** The world moves; the meaning of a colour
+does not. **GOLD** is money, **MINT** is go, **ROSE** is loss.
 
-**Three fixed accents on top of that.** The interface stays out of the way — dark
-glass and white type — with **GOLD** for money, **MINT** for go, and **ROSE**
-reserved for loss. Those three never change, so the meaning of a colour is stable
-even while the room is not.
+**Light glass, not dark holes.** HUD chips are true translucency — the world
+tints them, so the interface belongs to whatever colour the room is. Cards are
+near-opaque instead, because they carry a lot of small type and the tower behind
+them must not read through as clutter. (`backdrop-filter` is deliberately unused:
+inside a fixed subtree Chromium samples a black backdrop rather than the canvas,
+which is what made an earlier pass look uniformly dim.)
 
 **Curvature by hierarchy.** Chips 14px, buttons 18px, cards 28px. Nothing is a
-hard-edged box, and nothing is rounded by default — the scale is applied by rank.
-
-**Depth is glass and light, not bevel.** Blur, inner highlights and coloured glow.
-No hard offset edges, no machined trim, no metal.
+hard-edged box, and nothing is rounded by default.
 
 **The wordmark is drawn, not typeset.** Nine monolinear geometric caps as SVG on a
 100-unit cap height, built from the game's own vocabulary — the **O** is the
 octagon piece, the **A** is the triangle piece — one weight, one colour, no drop
-shadow. It lives in `<symbol id="wm">` and is instanced three times.
+shadow.
 
-**No emoji, no currency glyph.** Every mark in the interface is drawn — the menu
-bars, the close crosses, the play triangles, the daily chip-stack, the superpower
-plates. Coins are plain numbers.
+**No emoji, no currency glyph.** Every mark in the interface is drawn; coins are
+plain numbers.
+
+**In-play messages never cover the deck.** Toasts, hints and the big reaction
+words all sit in the empty band directly under the GREED pill, well above the
+blocks and the landing.
 
 ## Shapes
 
-One shape per tier, and **one colour per shape** — the hues are spread right
-around the wheel so no two tiers can ever be confused: rose triangle, orange
-square, lime pentagon, green hexagon, azure heptagon, blue octagon, violet
-nonagon, and a radiant near-white 12-sided **AUREX**. What holds them together is
-that they are all the same *kind* of colour — fully saturated, equally bright, no
-pastels and no muds — so they read as one family of distinct members rather than
-a gradient. Size and side-count carry the same information a third and fourth
-time, so value is never a subtle read.
-
-Pieces are glossy solids: a soft radial fall-off, a bright rim, a coloured glow
-that grows with the tier, and chamfered corners on the physics body itself.
+One shape per tier, each with its own hue *and* side-count *and* size — three
+redundant cues so value is never a subtle read: red triangle, orange square,
+yellow pentagon, green hexagon, cyan heptagon, blue octagon, violet nonagon, gold
+12-sided **AUREX**. Pieces are glossy solids: a radial fall-off, a bright rim, a
+coloured glow that grows with the tier, and chamfered corners on the physics body
+itself.
 
 **Shape packs** (the Collection's `theme` items) are radical departures from the
 default Signal palette — monochrome Noir, all-fire Inferno, jewel-tone Royal,
