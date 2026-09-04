@@ -68,16 +68,59 @@ body {
 }
 #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
 
-/* ---------- wordmark: drawn letterforms, not a font with a shadow ----------
-   Monolinear geometric caps built from the game's own vocabulary — the O is
-   the octagon piece, the A is the triangle piece. One weight, one colour. */
-#wm-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+/* ---------- wordmark ------------------------------------------------------
+   Drawn letterforms, not a font: monolinear geometric caps on a 120-unit cap
+   height with a 28-unit stroke — a true Black weight — built from the game's
+   own vocabulary (the O is the octagon piece, the A is the triangle piece).
+
+   The animation is the game itself: OVER is already standing, STACK falls in
+   from above and lands ON TOP of it, holds, then topples down into its slot to
+   the right. While it is in motion the letters are gold — "not placed yet" —
+   and once the word is whole the brand colour sweeps across it letter by
+   letter, O through K. */
 .wordmark {
   display: block; color: var(--text);
-  fill: none; stroke: currentColor; stroke-width: 15;
+  fill: none; stroke: currentColor; stroke-width: 28;
   stroke-linejoin: round; stroke-linecap: round;
   overflow: visible;
 }
+.wordmark .wm-over, .wordmark .wm-stack { transform-box: view-box; transform-origin: 0 0; }
+
+.wordmark.play .wl { stroke: var(--gold); animation: wm-light 0.4s ease forwards; animation-delay: calc(1.62s + var(--i) * 0.075s); }
+.wordmark.play .wm-stack { animation: wm-drop 1.55s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.wordmark.play .wm-over  { animation: wm-take 1.55s ease both; }
+
+@keyframes wm-drop {
+  0%   { transform: translate(-541px, -560px); opacity: 0; }
+  6%   { opacity: 1; }
+  /* falls onto OVER and settles */
+  24%  { transform: translate(-541px, -150px); }
+  29%  { transform: translate(-541px, -132px); }
+  34%  { transform: translate(-541px, -150px); }
+  37%  { transform: translate(-541px, -142px); }
+  41%  { transform: translate(-541px, -150px); }
+  56%  { transform: translate(-541px, -150px); }
+  /* then topples down into its own slot */
+  78%  { transform: translate(-150px, -104px); }
+  92%  { transform: translate(0px, 12px); }
+  100% { transform: translate(0px, 0px); }
+}
+@keyframes wm-take {          /* OVER takes the impact */
+  0%, 22%  { transform: translateY(0); }
+  27%      { transform: translateY(7px); }
+  33%      { transform: translateY(0); }
+  90%      { transform: translateY(0); }
+  94%      { transform: translateY(4px); }
+  100%     { transform: translateY(0); }
+}
+@keyframes wm-light {
+  0%   { stroke: var(--gold); }
+  40%  { stroke: #FFFFFF; }
+  100% { stroke: #FFFFFF; }
+}
+.reduce-motion .wordmark.play .wl,
+.reduce-motion .wordmark.play .wm-stack,
+.reduce-motion .wordmark.play .wm-over { animation: none; stroke: currentColor; }
 
 /* ---------- surfaces: dark glass, generous curvature ---------- */
 .glass, .chip {
@@ -143,7 +186,7 @@ body {
 .screen.hidden { opacity: 0; pointer-events: none; }
 
 #loading { background: var(--ink); z-index: 100; }
-#loading .wordmark { width: min(300px, 70vw); }
+#loading .wordmark { width: min(320px, 76vw); }
 #loading .sub { color: var(--text-mute); font-size: 0.62rem; letter-spacing: 0.42em; margin-top: 20px; }
 #loadbar { width: 190px; height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; margin-top: 26px; overflow: hidden; }
 #loadbar > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--mint), var(--gold)); border-radius: 2px; transition: width 0.3s ease; }
@@ -151,7 +194,7 @@ body {
 #menu { background: rgba(12, 14, 22, 0.82); }
 /* every card screen dims the world a little so the panel reads cleanly */
 #shop, #settings, #board, #daily { background: rgba(12, 14, 22, 0.78); }
-#menu .wordmark { width: min(330px, 76vw); filter: drop-shadow(0 8px 40px rgba(255,210,74,0.18)); }
+#menu .wordmark { width: min(350px, 82vw); filter: drop-shadow(0 10px 44px rgba(0,0,0,0.5)); }
 #menu .tagline { color: var(--text-mute); font-size: 0.64rem; letter-spacing: 0.44em; margin: 18px 0 30px; text-transform: uppercase; }
 #btn-play { min-width: 240px; font-size: 1.4rem; padding: 20px 52px; animation: breathe 2.8s ease-in-out infinite; }
 @keyframes breathe {
@@ -185,8 +228,8 @@ body {
 #hud { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
 #hud.hidden { display: none; }
 #hud-brand {
-  position: absolute; bottom: calc(26px + var(--safe-bottom)); left: 50%; transform: translateX(-50%);
-  width: 116px; opacity: 0.3; pointer-events: none; color: #fff;
+  position: absolute; bottom: calc(24px + var(--safe-bottom)); left: 50%; transform: translateX(-50%);
+  width: 132px; opacity: 0.26; pointer-events: none; color: #fff;
 }
 #hud-score-wrap { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); text-align: center; }
 .metric-label { font-size: 0.5rem; letter-spacing: 0.34em; color: var(--text-dim); display: block; text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
@@ -531,23 +574,24 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 <div id="reaction"></div>
 <div id="curse-banner" class="hidden"></div>
 
-<!-- The wordmark: monolinear geometric caps drawn on a 100-unit cap height.
-     The O is the octagon piece; the A is the triangle piece. -->
-<svg id="wm-defs" aria-hidden="true"><symbol id="wm" viewBox="-10 -10 808 120">
-  <path d="M0 30 L20 0 L48 0 L68 30 L68 70 L48 100 L20 100 L0 70 Z"/>
-  <path d="M90 0 L124 100 L158 0"/>
-  <path d="M180 0 L180 100 M180 0 L238 0 M180 50 L224 50 M180 100 L238 100"/>
-  <path d="M270 100 L270 0 L316 0 L332 16 L332 38 L316 54 L270 54 M308 54 L338 100"/>
-  <path d="M424 0 L374 0 L360 14 L360 36 L374 50 L410 50 L424 64 L424 86 L410 100 L360 100"/>
-  <path d="M450 0 L518 0 M484 0 L484 100"/>
-  <path d="M540 100 L574 0 L608 100 M554 62 L594 62"/>
-  <path d="M698 20 L680 0 L648 0 L630 22 L630 78 L648 100 L680 100 L698 80"/>
-  <path d="M720 0 L720 100 M778 0 L724 52 M742 38 L786 100"/>
-</symbol></svg>
 
 <!-- HUD -->
 <div id="hud" class="hidden">
-  <svg id="hud-brand" class="wordmark" viewBox="-10 -10 808 120"><use href="#wm"/></svg>
+  <svg id="hud-brand" class="wordmark" viewBox="-20 -22 1092 164" aria-label="OVERSTACK">
+    <g class="wm-over">
+      <path class="wl" style="--i:0" d="M0 36 L24 0 L52 0 L76 36 L76 84 L52 120 L24 120 L0 84 Z"/>
+      <path class="wl" style="--i:1" d="M120 0 L158 120 L196 0"/>
+      <path class="wl" style="--i:2" d="M240 0 L240 120 M240 0 L304 0 M240 60 L290 60 M240 120 L304 120"/>
+      <path class="wl" style="--i:3" d="M360 120 L360 0 L404 0 L428 22 L428 42 L404 64 L360 64 M400 64 L432 120"/>
+    </g>
+    <g class="wm-stack">
+      <path class="wl" style="--i:4" d="M552 14 L500 14 L482 32 L482 46 L500 60 L536 60 L554 76 L554 92 L536 108 L482 108"/>
+      <path class="wl" style="--i:5" d="M600 0 L676 0 M638 0 L638 120"/>
+      <path class="wl" style="--i:6" d="M720 120 L758 0 L796 120 M734 78 L782 78"/>
+      <path class="wl" style="--i:7" d="M916 24 L892 0 L864 0 L840 24 L840 96 L864 120 L892 120 L916 96"/>
+      <path class="wl" style="--i:8" d="M960 0 L960 120 M1026 0 L968 60 M986 46 L1034 120"/>
+    </g>
+  </svg>
   <div id="hud-score-wrap">
     <span class="metric-label">COINS THIS RUN</span>
     <div id="run-score"><span id="run-score-num">0</span></div>
@@ -577,13 +621,41 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 
 <!-- Screens -->
 <div id="loading" class="screen">
-  <svg class="wordmark" viewBox="-10 -10 808 120"><use href="#wm"/></svg>
+  <svg class="wordmark" viewBox="-20 -22 1092 164" aria-label="OVERSTACK">
+    <g class="wm-over">
+      <path class="wl" style="--i:0" d="M0 36 L24 0 L52 0 L76 36 L76 84 L52 120 L24 120 L0 84 Z"/>
+      <path class="wl" style="--i:1" d="M120 0 L158 120 L196 0"/>
+      <path class="wl" style="--i:2" d="M240 0 L240 120 M240 0 L304 0 M240 60 L290 60 M240 120 L304 120"/>
+      <path class="wl" style="--i:3" d="M360 120 L360 0 L404 0 L428 22 L428 42 L404 64 L360 64 M400 64 L432 120"/>
+    </g>
+    <g class="wm-stack">
+      <path class="wl" style="--i:4" d="M552 14 L500 14 L482 32 L482 46 L500 60 L536 60 L554 76 L554 92 L536 108 L482 108"/>
+      <path class="wl" style="--i:5" d="M600 0 L676 0 M638 0 L638 120"/>
+      <path class="wl" style="--i:6" d="M720 120 L758 0 L796 120 M734 78 L782 78"/>
+      <path class="wl" style="--i:7" d="M916 24 L892 0 L864 0 L840 24 L840 96 L864 120 L892 120 L916 96"/>
+      <path class="wl" style="--i:8" d="M960 0 L960 120 M1026 0 L968 60 M986 46 L1034 120"/>
+    </g>
+  </svg>
   <div class="sub">STACK · FUSE · GET GREEDY</div>
   <div id="loadbar"><div></div></div>
 </div>
 
 <div id="menu" class="screen hidden">
-  <svg class="wordmark" viewBox="-10 -10 808 120"><use href="#wm"/></svg>
+  <svg class="wordmark" viewBox="-20 -22 1092 164" aria-label="OVERSTACK">
+    <g class="wm-over">
+      <path class="wl" style="--i:0" d="M0 36 L24 0 L52 0 L76 36 L76 84 L52 120 L24 120 L0 84 Z"/>
+      <path class="wl" style="--i:1" d="M120 0 L158 120 L196 0"/>
+      <path class="wl" style="--i:2" d="M240 0 L240 120 M240 0 L304 0 M240 60 L290 60 M240 120 L304 120"/>
+      <path class="wl" style="--i:3" d="M360 120 L360 0 L404 0 L428 22 L428 42 L404 64 L360 64 M400 64 L432 120"/>
+    </g>
+    <g class="wm-stack">
+      <path class="wl" style="--i:4" d="M552 14 L500 14 L482 32 L482 46 L500 60 L536 60 L554 76 L554 92 L536 108 L482 108"/>
+      <path class="wl" style="--i:5" d="M600 0 L676 0 M638 0 L638 120"/>
+      <path class="wl" style="--i:6" d="M720 120 L758 0 L796 120 M734 78 L782 78"/>
+      <path class="wl" style="--i:7" d="M916 24 L892 0 L864 0 L840 24 L840 96 L864 120 L892 120 L916 96"/>
+      <path class="wl" style="--i:8" d="M960 0 L960 120 M1026 0 L968 60 M986 46 L1034 120"/>
+    </g>
+  </svg>
   <div class="tagline">stack · fuse · get greedy</div>
   <button id="btn-play" class="btn btn-primary">PLAY</button>
   <div id="menu-stats">
@@ -749,7 +821,7 @@ const TIERS = {
    Adjacent tiers stay unmistakable inside every pack. Perks scale with price. */
 const THEMES = {
   default: { name: 'Signal',  bonus: {},
-    colors: ['', '#FF2E2E', '#FF7A00', '#FFE500', '#22DD4B', '#00D4D4', '#2E6BFF', '#B23BFF', '#FFC21E'] },
+    colors: ['', '#FF2E2E', '#FF7A00', '#FFE500', '#22DD4B', '#00D4D4', '#2E6BFF', '#B23BFF', '#FFFFFF'] },
   noir:    { name: 'Noir',    bonus: { coinMult: 1.04 }, // monochrome ladder, one blood accent, gold apex
     colors: ['', '#F8F8F8', '#C4C4CC', '#8E8E9A', '#5E5E6C', '#3B3B47', '#1F1F28', '#E01E3C', '#FFD700'] },
   oceanic: { name: 'Oceanic', bonus: { greedStart: 1.2 }, // deep-sea ladder: foam → abyss
@@ -777,22 +849,26 @@ const THEMES = {
      lengthBonus / grip / forgiveness / slowFall / greedRate / salvageMult /
      comboBonusMs / walls                                                    */
 const DOCKS = {
-  slab:      { style: 'slab',      c1: '#525f78', c2: '#272e40', glow: 'rgba(170,190,230,0.30)' },
-  oak:       { style: 'wood',      c1: '#a8763e', c2: '#6b4423', glow: 'rgba(220,170,100,0.25)' },
-  steel:     { style: 'steel',     c1: '#b8c2d0', c2: '#68727f', glow: 'rgba(200,215,235,0.28)' },
-  marble:    { style: 'marble',    c1: '#f2f0ec', c2: '#b8b4ac', glow: 'rgba(255,252,244,0.30)' },
-  porcelain: { style: 'porcelain', c1: '#faf6ee', c2: '#d8cfc0', glow: 'rgba(255,244,220,0.30)', forgiveness: 0.02 },
-  glass:     { style: 'glass',     c1: '#d4f2fa', c2: '#7fb8cc', glow: 'rgba(180,235,255,0.35)', lengthBonus: 0.05, slowFall: 0.014 },
-  basalt:    { style: 'lava',      c1: '#3c3038', c2: '#1a1216', glow: 'rgba(255,110,40,0.35)',  forgiveness: 0.02, salvageMult: 1.6 },
-  circuit:   { style: 'circuit',   c1: '#12403a', c2: '#071a16', glow: 'rgba(60,230,170,0.35)',  lengthBonus: 0.06, greedRate: 0.5 },
-  gold:      { style: 'gold',      c1: '#f5d36b', c2: '#a87818', glow: 'rgba(255,210,110,0.40)', greedRate: 0.25, salvageMult: 1.3 },
-  bumper:    { style: 'bumper',    c1: '#f2b93c', c2: '#9a6a14', glow: 'rgba(255,190,70,0.35)',  grip: 0.3, forgiveness: 0.05, walls: true },
-  aurora:    { style: 'aurora',    c1: '#8fe8c8', c2: '#3a6fb8', glow: 'rgba(140,240,205,0.35)', lengthBonus: 0.10, forgiveness: 0.04, comboBonusMs: 900 },
-  nebula:    { style: 'nebula',    c1: '#2c2450', c2: '#120e28', glow: 'rgba(150,130,255,0.40)', lengthBonus: 0.08, slowFall: 0.010, greedRate: 0.25 },
-  velvet:    { style: 'velvet',    c1: '#7a1e3c', c2: '#3c0e1e', glow: 'rgba(220,80,120,0.35)',  lengthBonus: 0.10, grip: 0.25, comboBonusMs: 700, salvageMult: 1.4 },
-  vortex:    { style: 'vortex',    c1: '#b393e8', c2: '#3a2468', glow: 'rgba(185,150,240,0.40)', lengthBonus: 0.16, grip: 0.3, forgiveness: 0.08, greedRate: 0.3 },
-  obsidian:  { style: 'obsidian',  c1: '#2a2a34', c2: '#0c0c12', glow: 'rgba(140,150,180,0.35)', lengthBonus: 0.14, forgiveness: 0.08, slowFall: 0.012, salvageMult: 1.5 },
-  crown:     { style: 'crown',     c1: '#14141c', c2: '#040408', glow: 'rgba(255,214,110,0.45)', lengthBonus: 0.22, grip: 0.3, forgiveness: 0.10, greedRate: 0.4, salvageMult: 1.8, comboBonusMs: 1000, walls: true },
+  /* Every dock is a real material: a deep body, a lit landing surface, and one
+     quiet signature. Colours are rich rather than grey — a washed-out mid-tone
+     is what makes a deck look cheap. `top` is the landing surface, `edge` the
+     highlight along its front lip. */
+  slab:      { style: 'slab',      c1: '#39404F', c2: '#161A22', top: '#4C5568', edge: 'rgba(255,255,255,0.55)', glow: 'rgba(120,140,180,0.30)' },
+  oak:       { style: 'wood',      c1: '#9A6428', c2: '#4E2F12', top: '#B37733', edge: 'rgba(255,220,170,0.6)',  glow: 'rgba(220,160,80,0.28)' },
+  steel:     { style: 'steel',     c1: '#98A4B4', c2: '#4C5563', top: '#B6C2D0', edge: 'rgba(255,255,255,0.9)',  glow: 'rgba(200,220,245,0.30)' },
+  marble:    { style: 'marble',    c1: '#EDEAE3', c2: '#A9A499', top: '#F7F5F0', edge: 'rgba(255,255,255,0.95)', glow: 'rgba(255,252,244,0.30)' },
+  porcelain: { style: 'porcelain', c1: '#F3EDE1', c2: '#C4B9A5', top: '#FBF7EE', edge: 'rgba(255,240,200,0.95)', glow: 'rgba(255,240,205,0.30)', forgiveness: 0.02 },
+  glass:     { style: 'glass',     c1: '#8FD3E8', c2: '#2E6B88', top: '#B8E9F7', edge: 'rgba(235,252,255,0.95)', glow: 'rgba(150,225,255,0.40)', lengthBonus: 0.05, slowFall: 0.014 },
+  basalt:    { style: 'lava',      c1: '#3A2C2C', c2: '#140E0E', top: '#4E3A36', edge: 'rgba(255,140,70,0.75)',  glow: 'rgba(255,110,40,0.38)',  forgiveness: 0.02, salvageMult: 1.6 },
+  circuit:   { style: 'circuit',   c1: '#10453C', c2: '#04160F', top: '#17604F', edge: 'rgba(90,255,200,0.8)',   glow: 'rgba(60,230,170,0.38)',  lengthBonus: 0.06, greedRate: 0.5 },
+  gold:      { style: 'gold',      c1: '#E8B53C', c2: '#8A5E10', top: '#FFD873', edge: 'rgba(255,245,200,0.95)', glow: 'rgba(255,205,90,0.45)',  greedRate: 0.25, salvageMult: 1.3 },
+  bumper:    { style: 'bumper',    c1: '#E09B22', c2: '#7A4A08', top: '#FFBE4A', edge: 'rgba(255,230,170,0.9)',  glow: 'rgba(255,180,60,0.38)',  grip: 0.3, forgiveness: 0.05, walls: true },
+  aurora:    { style: 'aurora',    c1: '#3E8F86', c2: '#1B3560', top: '#63C4AE', edge: 'rgba(190,255,235,0.9)',  glow: 'rgba(120,240,205,0.40)', lengthBonus: 0.10, forgiveness: 0.04, comboBonusMs: 900 },
+  nebula:    { style: 'nebula',    c1: '#2C2166', c2: '#0C0722', top: '#4433A0', edge: 'rgba(200,170,255,0.85)', glow: 'rgba(150,120,255,0.45)', lengthBonus: 0.08, slowFall: 0.010, greedRate: 0.25 },
+  velvet:    { style: 'velvet',    c1: '#78173C', c2: '#2C0716', top: '#9E2050', edge: 'rgba(255,180,205,0.85)', glow: 'rgba(230,80,130,0.40)',  lengthBonus: 0.10, grip: 0.25, comboBonusMs: 700, salvageMult: 1.4 },
+  vortex:    { style: 'vortex',    c1: '#7B4FD8', c2: '#26124F', top: '#9C74F0', edge: 'rgba(226,208,255,0.9)',  glow: 'rgba(170,130,255,0.48)', lengthBonus: 0.16, grip: 0.3, forgiveness: 0.08, greedRate: 0.3 },
+  obsidian:  { style: 'obsidian',  c1: '#23242E', c2: '#08080C', top: '#33354360', edge: 'rgba(190,205,235,0.8)', glow: 'rgba(140,160,200,0.35)', lengthBonus: 0.14, forgiveness: 0.08, slowFall: 0.012, salvageMult: 1.5 },
+  crown:     { style: 'crown',     c1: '#14141B', c2: '#040406', top: '#22222E', edge: 'rgba(255,214,110,0.95)', glow: 'rgba(255,205,90,0.5)',   lengthBonus: 0.22, grip: 0.3, forgiveness: 0.10, greedRate: 0.4, salvageMult: 1.8, comboBonusMs: 1000, walls: true },
 };
 
 /* Special blocks — each with its own unmistakable skin (drawn in §21) and its
@@ -3401,16 +3477,13 @@ function drawBody(b, glowStrength, t) {
     for (let i = 0; i <= 6; i++) rg.addColorStop(i / 6, `hsl(${(off + i * 60) % 360} 95% 62%)`);
     ctx.fillStyle = rg;
   } else {
-    const g = ctx.createRadialGradient(
-      b.position.x - r * 0.3, b.position.y - r * 0.4, r * 0.1,
-      b.position.x, b.position.y, r * 1.5);
-    g.addColorStop(0, lighten(color, sp === 'ice' ? 0.5 : 0.35));
-    g.addColorStop(1, color);
-    ctx.fillStyle = g;
+    // Flat, solid colour. A radial highlight reads as plastic or brushed
+    // metal; a single honest fill reads as a real coloured block.
+    ctx.fillStyle = color;
   }
   if (perf.tier !== 'low') {
     ctx.shadowColor = (sp === 'golden' || sp === 'star') ? '#ffd700' : sp === 'rainbow' ? '#ff5ad0' : color;
-    ctx.shadowBlur = (sp === 'golden' || sp === 'star') ? glowStrength + 16 : glowStrength;
+    ctx.shadowBlur = (sp === 'golden' || sp === 'star') ? glowStrength * 0.5 + 10 : glowStrength * 0.45;
   }
   if (sp === 'unstable') ctx.globalAlpha = 0.7 + 0.3 * Math.sin(t * 0.02);
   ctx.fill();
@@ -3474,163 +3547,222 @@ function drawBody(b, glowStrength, t) {
    Every dock = clean material gradient + crisp top light + soft ground
    shadow + ONE quiet signature detail. No effect spam. */
 function drawDock(hw) {
+  /* The deck is the one object every run is built on, so it is drawn as a real
+     piece of furniture: a soft contact shadow on the ground, a deep body, a
+     distinctly lit LANDING SURFACE across the top (that band is what the pieces
+     actually rest on), a front lip, and exactly one signature detail per
+     material. Nothing here strobes or sparkles. */
   const skin = Economy.dock, t = now();
   const x0 = WORLD.width / 2 - hw, w = hw * 2, y0 = WORLD.platformY, h = WORLD.platformH + 26;
   const cx = WORLD.width / 2;
+  const R = 15, TOP = 9;                       // corner radius, landing-surface depth
+
   ctx.save();
-  // soft ambient glow — the dock is a lit object, not a machined part
-  if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 18; }
+
+  // contact shadow — the deck sits on something
+  if (perf.tier !== 'low') {
+    const sh = ctx.createLinearGradient(0, y0 + h - 4, 0, y0 + h + 26);
+    sh.addColorStop(0, 'rgba(0,0,0,0.38)');
+    sh.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = sh;
+    roundRect(x0 + 8, y0 + h - 6, w - 16, 30, 14); ctx.fill();
+  }
+
+  // ---- body ----
   const bg = ctx.createLinearGradient(0, y0, 0, y0 + h);
-  bg.addColorStop(0, skin.c1); bg.addColorStop(1, skin.c2);
+  bg.addColorStop(0, skin.c1);
+  bg.addColorStop(1, skin.c2);
   ctx.fillStyle = bg;
-  roundRect(x0, y0, w, h, 14); ctx.fill();
-  ctx.shadowBlur = 0;
-  // signature details, clipped to the body
-  ctx.save(); roundRect(x0, y0, w, h, 14); ctx.clip();
+  roundRect(x0, y0, w, h, R); ctx.fill();
+
+  // ---- landing surface: a lighter band across the top of the body ----
+  ctx.save();
+  roundRect(x0, y0, w, h, R); ctx.clip();
+  const topGrad = ctx.createLinearGradient(0, y0, 0, y0 + TOP + 6);
+  topGrad.addColorStop(0, skin.top || lighten(skin.c1, 0.2));
+  topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = topGrad;
+  ctx.fillRect(x0, y0, w, TOP + 6);
+
+  // signature detail, clipped inside the body
   switch (skin.style) {
+    case 'slab': { // honed graphite: a fine speckle and one chamfer line
+      ctx.fillStyle = 'rgba(255,255,255,0.05)';
+      for (let i = 0; i < 46; i++) {
+        const sx = x0 + ((i * 613) % (w - 8)) + 4;
+        const sy = y0 + TOP + 4 + ((i * 271) % (h - TOP - 10));
+        ctx.fillRect(sx, sy, 1.3, 1.3);
+      }
+      ctx.strokeStyle = 'rgba(0,0,0,0.22)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x0 + 6, y0 + TOP + 5); ctx.lineTo(x0 + w - 6, y0 + TOP + 5); ctx.stroke();
+      break;
+    }
     case 'wood': { // three quiet grain lines
-      ctx.strokeStyle = 'rgba(60,32,12,0.30)'; ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(50,26,8,0.32)'; ctx.lineWidth = 1;
       for (let i = 1; i <= 3; i++) {
-        const gy = y0 + (h * i) / 4;
+        const gy = y0 + TOP + ((h - TOP) * i) / 4;
         ctx.beginPath(); ctx.moveTo(x0, gy);
         ctx.bezierCurveTo(x0 + w * 0.3, gy - 3, x0 + w * 0.6, gy + 3, x0 + w, gy - 1);
         ctx.stroke();
       }
       break;
     }
-    case 'steel': { // fine horizontal brushing + end rivets
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
-      for (let gy = y0 + 3; gy < y0 + h; gy += 3) { ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(x0 + w, gy); ctx.stroke(); }
-      ctx.fillStyle = 'rgba(40,46,58,0.8)';
-      for (const rx of [x0 + 14, x0 + w - 14]) { ctx.beginPath(); ctx.arc(rx, y0 + h / 2, 3, 0, Math.PI * 2); ctx.fill(); }
+    case 'steel': { // fine brushing + two end rivets
+      ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1;
+      for (let gy = y0 + TOP + 3; gy < y0 + h; gy += 3) { ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(x0 + w, gy); ctx.stroke(); }
+      ctx.fillStyle = 'rgba(30,36,46,0.75)';
+      for (const rx of [x0 + 15, x0 + w - 15]) { ctx.beginPath(); ctx.arc(rx, y0 + h * 0.66, 3, 0, Math.PI * 2); ctx.fill(); }
       break;
     }
-    case 'marble': { // two faint diagonal veins
-      ctx.strokeStyle = 'rgba(120,116,108,0.35)'; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.moveTo(x0 + w * 0.2, y0);
-      ctx.bezierCurveTo(x0 + w * 0.3, y0 + h * 0.6, x0 + w * 0.42, y0 + h * 0.4, x0 + w * 0.5, y0 + h);
+    case 'marble': { // two faint veins
+      ctx.strokeStyle = 'rgba(110,106,98,0.35)'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(x0 + w * 0.2, y0 + TOP);
+      ctx.bezierCurveTo(x0 + w * 0.3, y0 + h * 0.7, x0 + w * 0.42, y0 + h * 0.5, x0 + w * 0.5, y0 + h);
       ctx.stroke();
-      ctx.strokeStyle = 'rgba(120,116,108,0.22)';
-      ctx.beginPath(); ctx.moveTo(x0 + w * 0.68, y0);
-      ctx.bezierCurveTo(x0 + w * 0.74, y0 + h * 0.5, x0 + w * 0.8, y0 + h * 0.3, x0 + w * 0.86, y0 + h);
+      ctx.strokeStyle = 'rgba(110,106,98,0.22)';
+      ctx.beginPath(); ctx.moveTo(x0 + w * 0.68, y0 + TOP);
+      ctx.bezierCurveTo(x0 + w * 0.74, y0 + h * 0.6, x0 + w * 0.8, y0 + h * 0.4, x0 + w * 0.86, y0 + h);
       ctx.stroke();
       break;
     }
-    case 'porcelain': { // single gold trim line
-      ctx.strokeStyle = 'rgba(220,168,58,0.85)'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(x0 + 6, y0 + 10); ctx.lineTo(x0 + w - 6, y0 + 10); ctx.stroke();
+    case 'porcelain': { // one gold trim line under the lip
+      ctx.strokeStyle = 'rgba(214,160,50,0.9)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x0 + 10, y0 + TOP + 7); ctx.lineTo(x0 + w - 10, y0 + TOP + 7); ctx.stroke();
       break;
     }
-    case 'glass': { // one slow, narrow sheen — nothing else
+    case 'glass': { // one slow narrow sheen
       const sweep = (Math.sin(t * 0.0006) * 0.5 + 0.5) * w;
-      const gl = ctx.createLinearGradient(x0 + sweep - 30, 0, x0 + sweep + 30, 0);
-      gl.addColorStop(0, 'rgba(255,255,255,0)'); gl.addColorStop(0.5, 'rgba(255,255,255,0.35)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = gl; ctx.fillRect(x0, y0, w, h);
+      const gl = ctx.createLinearGradient(x0 + sweep - 34, 0, x0 + sweep + 34, 0);
+      gl.addColorStop(0, 'rgba(255,255,255,0)'); gl.addColorStop(0.5, 'rgba(255,255,255,0.3)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = gl; ctx.fillRect(x0, y0 + TOP, w, h);
       break;
     }
-    case 'lava': { // one thin ember seam, breathing slowly
+    case 'lava': { // one ember seam, breathing
       const glow = 0.55 + 0.35 * Math.sin(t * 0.002);
       ctx.strokeStyle = `rgba(255,110,30,${glow})`; ctx.lineWidth = 2;
-      if (perf.tier !== 'low') { ctx.shadowColor = '#ff6b1e'; ctx.shadowBlur = 8; }
-      ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + h * 0.55);
-      ctx.lineTo(x0 + w * 0.3, y0 + h * 0.45); ctx.lineTo(x0 + w * 0.55, y0 + h * 0.6);
-      ctx.lineTo(x0 + w * 0.8, y0 + h * 0.5); ctx.lineTo(x0 + w - 8, y0 + h * 0.58);
+      if (perf.tier !== 'low') { ctx.shadowColor = '#ff6b1e'; ctx.shadowBlur = 9; }
+      ctx.beginPath(); ctx.moveTo(x0 + 10, y0 + h * 0.66);
+      ctx.lineTo(x0 + w * 0.32, y0 + h * 0.56); ctx.lineTo(x0 + w * 0.56, y0 + h * 0.72);
+      ctx.lineTo(x0 + w * 0.8, y0 + h * 0.6); ctx.lineTo(x0 + w - 10, y0 + h * 0.68);
       ctx.stroke(); ctx.shadowBlur = 0;
       break;
     }
-    case 'circuit': { // static traces + one slow light pulse
-      ctx.strokeStyle = 'rgba(60,230,170,0.25)'; ctx.lineWidth = 1;
-      const midY = y0 + h / 2;
+    case 'circuit': { // a trace with one travelling pulse
+      const midY = y0 + h * 0.68;
+      ctx.strokeStyle = 'rgba(70,240,180,0.28)'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(x0, midY); ctx.lineTo(x0 + w, midY); ctx.stroke();
-      ctx.fillStyle = 'rgba(60,230,170,0.35)';
+      ctx.fillStyle = 'rgba(70,240,180,0.4)';
       for (let i = 1; i <= 4; i++) { ctx.beginPath(); ctx.arc(x0 + (w * i) / 5, midY, 2, 0, Math.PI * 2); ctx.fill(); }
       const px = x0 + ((t * 0.045) % w);
-      if (perf.tier !== 'low') { ctx.shadowColor = '#3ce6aa'; ctx.shadowBlur = 8; }
-      ctx.fillStyle = '#8affd4'; ctx.beginPath(); ctx.arc(px, midY, 2.6, 0, Math.PI * 2); ctx.fill();
+      if (perf.tier !== 'low') { ctx.shadowColor = '#5affc8'; ctx.shadowBlur = 9; }
+      ctx.fillStyle = '#9dffe0'; ctx.beginPath(); ctx.arc(px, midY, 2.6, 0, Math.PI * 2); ctx.fill();
       ctx.shadowBlur = 0;
       break;
     }
-    case 'gold': { // polished bullion: one bright band + bevel edges
-      const band = ctx.createLinearGradient(0, y0, 0, y0 + h);
-      band.addColorStop(0.25, 'rgba(255,255,255,0)'); band.addColorStop(0.4, 'rgba(255,250,220,0.5)'); band.addColorStop(0.55, 'rgba(255,255,255,0)');
-      ctx.fillStyle = band; ctx.fillRect(x0, y0, w, h);
-      ctx.strokeStyle = 'rgba(120,80,10,0.5)'; ctx.lineWidth = 1.2;
-      ctx.strokeRect(x0 + 5, y0 + 5, w - 10, h - 10);
+    case 'gold': { // bullion: one bright band, one engraved border
+      const band = ctx.createLinearGradient(0, y0 + TOP, 0, y0 + h);
+      band.addColorStop(0.2, 'rgba(255,255,255,0)'); band.addColorStop(0.42, 'rgba(255,250,215,0.45)'); band.addColorStop(0.65, 'rgba(255,255,255,0)');
+      ctx.fillStyle = band; ctx.fillRect(x0, y0 + TOP, w, h);
+      ctx.strokeStyle = 'rgba(110,72,8,0.5)'; ctx.lineWidth = 1.2;
+      roundRect(x0 + 7, y0 + TOP + 4, w - 14, h - TOP - 11, 6); ctx.stroke();
+      break;
+    }
+    case 'bumper': { // safety hatching along the front lip
+      ctx.strokeStyle = 'rgba(30,18,0,0.32)'; ctx.lineWidth = 6;
+      for (let hx = x0 - h; hx < x0 + w + h; hx += 20) {
+        ctx.beginPath(); ctx.moveTo(hx, y0 + h); ctx.lineTo(hx + h, y0 + TOP + 3); ctx.stroke();
+      }
       break;
     }
     case 'aurora': { // one soft, very slow hue band
       const hue = (t * 0.01) % 360;
       const ag = ctx.createLinearGradient(x0, 0, x0 + w, 0);
-      ag.addColorStop(0, `hsla(${hue},70%,65%,0.20)`);
-      ag.addColorStop(1, `hsla(${(hue + 80) % 360},70%,65%,0.20)`);
-      ctx.fillStyle = ag; ctx.fillRect(x0, y0, w, h);
+      ag.addColorStop(0, `hsla(${hue},72%,66%,0.22)`);
+      ag.addColorStop(1, `hsla(${(hue + 80) % 360},72%,66%,0.22)`);
+      ctx.fillStyle = ag; ctx.fillRect(x0, y0 + TOP, w, h);
       break;
     }
-    case 'nebula': { // static starfield + one faint magenta wisp
-      const wisp = ctx.createRadialGradient(x0 + w * 0.65, y0 + h * 0.5, 4, x0 + w * 0.65, y0 + h * 0.5, w * 0.4);
-      wisp.addColorStop(0, 'rgba(200,120,255,0.16)'); wisp.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = wisp; ctx.fillRect(x0, y0, w, h);
-      ctx.fillStyle = 'rgba(255,255,255,0.75)';
-      for (let i = 0; i < 7; i++) { const sx = x0 + ((i * 977) % w), sy = y0 + ((i * 397) % h); ctx.fillRect(sx, sy, 1.4, 1.4); }
+    case 'nebula': { // a wisp and a still starfield
+      const wisp = ctx.createRadialGradient(x0 + w * 0.65, y0 + h * 0.6, 4, x0 + w * 0.65, y0 + h * 0.6, w * 0.42);
+      wisp.addColorStop(0, 'rgba(190,120,255,0.2)'); wisp.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = wisp; ctx.fillRect(x0, y0 + TOP, w, h);
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      for (let i = 0; i < 8; i++) { const sx = x0 + ((i * 977) % w), sy = y0 + TOP + ((i * 397) % (h - TOP)); ctx.fillRect(sx, sy, 1.4, 1.4); }
       break;
     }
-    case 'velvet': { // fabric sheen arc + a thin gold filigree line
-      const sheen = ctx.createLinearGradient(0, y0, 0, y0 + h * 0.6);
-      sheen.addColorStop(0, 'rgba(255,180,200,0.14)'); sheen.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = sheen; ctx.fillRect(x0, y0, w, h);
-      ctx.strokeStyle = 'rgba(240,196,32,0.6)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(x0 + 10, y0 + h - 8);
-      ctx.bezierCurveTo(x0 + w * 0.35, y0 + h - 14, x0 + w * 0.65, y0 + h - 2, x0 + w - 10, y0 + h - 8);
+    case 'velvet': { // nap sheen and a gold filigree
+      const sheen = ctx.createLinearGradient(0, y0 + TOP, 0, y0 + h * 0.75);
+      sheen.addColorStop(0, 'rgba(255,180,205,0.16)'); sheen.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = sheen; ctx.fillRect(x0, y0 + TOP, w, h);
+      ctx.strokeStyle = 'rgba(240,196,60,0.65)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x0 + 12, y0 + h - 8);
+      ctx.bezierCurveTo(x0 + w * 0.35, y0 + h - 14, x0 + w * 0.65, y0 + h - 2, x0 + w - 12, y0 + h - 8);
       ctx.stroke();
       break;
     }
-    case 'vortex': { // gentle center glow, slow ring — no strobing
-      const vg = ctx.createRadialGradient(cx, y0 + h / 2, 4, cx, y0 + h / 2, hw * 0.8);
-      vg.addColorStop(0, 'rgba(200,170,255,0.28)'); vg.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = vg; ctx.fillRect(x0, y0, w, h);
-      ctx.strokeStyle = 'rgba(220,200,255,0.4)'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(cx, y0 + h / 2, 12, t * 0.001, t * 0.001 + Math.PI * 1.4); ctx.stroke();
+    case 'vortex': { // a calm centre well
+      const vg = ctx.createRadialGradient(cx, y0 + h * 0.66, 4, cx, y0 + h * 0.66, hw * 0.85);
+      vg.addColorStop(0, 'rgba(214,190,255,0.3)'); vg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = vg; ctx.fillRect(x0, y0 + TOP, w, h);
+      ctx.strokeStyle = 'rgba(226,208,255,0.42)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(cx, y0 + h * 0.66, 12, t * 0.001, t * 0.001 + Math.PI * 1.4); ctx.stroke();
       break;
     }
-    case 'obsidian': { // volcanic glass: one sharp static diagonal highlight
-      ctx.strokeStyle = 'rgba(255,255,255,0.28)'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(x0 + w * 0.16, y0 + h); ctx.lineTo(x0 + w * 0.3, y0); ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 5;
-      ctx.beginPath(); ctx.moveTo(x0 + w * 0.2, y0 + h); ctx.lineTo(x0 + w * 0.34, y0); ctx.stroke();
+    case 'obsidian': { // one sharp conchoidal highlight
+      ctx.strokeStyle = 'rgba(255,255,255,0.26)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x0 + w * 0.16, y0 + h); ctx.lineTo(x0 + w * 0.3, y0 + TOP); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(x0 + w * 0.21, y0 + h); ctx.lineTo(x0 + w * 0.35, y0 + TOP); ctx.stroke();
       break;
     }
-    case 'crown': { // the flagship: black glass, double gold trim, diamond emblem
-      ctx.strokeStyle = 'rgba(255,214,110,0.9)'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + 8); ctx.lineTo(x0 + w - 8, y0 + 8); ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,214,110,0.45)';
-      ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + h - 8); ctx.lineTo(x0 + w - 8, y0 + h - 8); ctx.stroke();
-      const pulse = 0.7 + 0.3 * Math.sin(t * 0.0015);
-      if (perf.tier !== 'low') { ctx.shadowColor = '#ffd66e'; ctx.shadowBlur = 10 * pulse; }
+    case 'crown': { // black glass, double gold trim, a still diamond
+      ctx.strokeStyle = 'rgba(255,214,110,0.9)'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(x0 + 12, y0 + TOP + 5); ctx.lineTo(x0 + w - 12, y0 + TOP + 5); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,214,110,0.4)';
+      ctx.beginPath(); ctx.moveTo(x0 + 12, y0 + h - 7); ctx.lineTo(x0 + w - 12, y0 + h - 7); ctx.stroke();
+      const pulse = 0.75 + 0.25 * Math.sin(t * 0.0015);
+      if (perf.tier !== 'low') { ctx.shadowColor = '#ffd66e'; ctx.shadowBlur = 11 * pulse; }
       ctx.fillStyle = '#ffd66e';
-      polyPath(ctx, cx, y0 + h / 2, 4, 7, Math.PI / 4); ctx.fill();
+      polyPath(ctx, cx, y0 + h * 0.62, 4, 7, Math.PI / 4); ctx.fill();
       ctx.shadowBlur = 0;
       break;
     }
   }
   ctx.restore();
-  // crisp top light — the one detail every dock shares
-  ctx.fillStyle = ['marble', 'porcelain', 'glass', 'steel'].includes(skin.style) ? 'rgba(255,255,255,0.9)' : lighten(skin.c1, 0.3);
-  roundRect(x0 + 2, y0, w - 4, 5, 3); ctx.fill();
-  // thin inner rim for definition
-  ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1;
-  roundRect(x0 + 1, y0 + 1, w - 2, h - 2, 13); ctx.stroke();
+
+  // ---- the lip: one bright hairline where the surface meets the front face ----
+  ctx.strokeStyle = skin.edge || 'rgba(255,255,255,0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x0 + R * 0.6, y0 + 1);
+  ctx.lineTo(x0 + w - R * 0.6, y0 + 1);
+  ctx.stroke();
+  // and a soft inner shadow just under it, so the surface has thickness
+  ctx.save();
+  roundRect(x0, y0, w, h, R); ctx.clip();
+  const lip = ctx.createLinearGradient(0, y0 + TOP, 0, y0 + TOP + 10);
+  lip.addColorStop(0, 'rgba(0,0,0,0.3)');
+  lip.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = lip;
+  ctx.fillRect(x0, y0 + TOP, w, 10);
   ctx.restore();
-  // bumper walls
+
+  // outline, to keep the silhouette crisp against any world colour
+  ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1;
+  roundRect(x0 + 0.5, y0 + 0.5, w - 1, h - 1, R); ctx.stroke();
+  ctx.restore();
+
+  // ---- bumper walls ----
   if (Stack.walls) {
     const wallH = Stack.wallH || 96;
     for (const wl of Stack.walls) {
       const wx = wl.position.x;
-      ctx.fillStyle = lighten(skin.c1, 0.1);
-      if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 10; }
+      const wg = ctx.createLinearGradient(wx - 6, 0, wx + 6, 0);
+      wg.addColorStop(0, skin.c2); wg.addColorStop(0.5, skin.c1); wg.addColorStop(1, skin.c2);
+      ctx.fillStyle = wg;
       roundRect(wx - 6, WORLD.platformY - wallH + 6, 12, wallH, 6); ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = 'rgba(255,255,255,0.5)';
-      roundRect(wx - 6, WORLD.platformY - wallH + 6, 12, 5, 3); ctx.fill();
+      ctx.fillStyle = skin.edge || 'rgba(255,255,255,0.6)';
+      roundRect(wx - 5, WORLD.platformY - wallH + 7, 10, 3, 1.5); ctx.fill();
     }
   }
 }
@@ -3652,14 +3784,16 @@ function render(t) {
   const hsl = hexToHsl(themeColor(bestTier || 1));
   bgH = angleLerp(bgH, hsl[0], 0.04);
   bgS = lerp(bgS, hsl[1], 0.04);
-  ctx.fillStyle = `hsl(${bgH.toFixed(1)}, ${(bgS * 0.6).toFixed(1)}%, 27%)`;
+  // Deep and SATURATED, never a washed mid-tone — a desaturated mid grey-green
+  // is exactly what reads as cheap metal. Keeping the chroma high keeps it
+  // reading as a brand colour instead.
+  ctx.fillStyle = `hsl(${bgH.toFixed(1)}, ${(bgS * 0.9).toFixed(1)}%, 21%)`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  // one soft pool of the same colour, a little brighter, behind the tower
   if (perf.tier !== 'low') {
-    const px = canvas.width / 2, py = canvas.height * 0.56, pr = Math.max(canvas.width, canvas.height) * 0.62;
+    const px = canvas.width / 2, py = canvas.height * 0.55, pr = Math.max(canvas.width, canvas.height) * 0.72;
     const pool = ctx.createRadialGradient(px, py, 10, px, py, pr);
-    pool.addColorStop(0, `hsla(${bgH.toFixed(1)}, ${(bgS * 0.68).toFixed(1)}%, 35%, 0.5)`);
-    pool.addColorStop(1, `hsla(${bgH.toFixed(1)}, ${(bgS * 0.68).toFixed(1)}%, 35%, 0)`);
+    pool.addColorStop(0, `hsla(${bgH.toFixed(1)}, ${(bgS * 0.95).toFixed(1)}%, 29%, 0.32)`);
+    pool.addColorStop(1, `hsla(${bgH.toFixed(1)}, ${(bgS * 0.95).toFixed(1)}%, 29%, 0)`);
     ctx.fillStyle = pool;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
@@ -3975,16 +4109,25 @@ const Daily = {
 
 /* ==================== §22 UI ============================================== */
 const UI = {
+  // restart the wordmark's stacking animation on an element
+  playWordmark(el) {
+    if (!el) return;
+    el.classList.remove('play');
+    void el.getBoundingClientRect();
+    el.classList.add('play');
+  },
   screens: ['loading', 'menu', 'results', 'shop', 'settings', 'board', 'daily'],
   hideScreens() { this.screens.forEach((s) => $(s).classList.add('hidden')); },
   show(id) { this.hideScreens(); $(id).classList.remove('hidden'); },
   showGame() {
     this.hideScreens();
     $('hud').classList.remove('hidden');
+    this.playWordmark($('hud-brand'));   // the mark stacks itself as the run opens
     this.syncStats();
   },
   showMenu() {
     $('hud').classList.add('hidden');
+    this.playWordmark(document.querySelector('#menu .wordmark'));
     document.body.classList.remove('chase');
     this.show('menu');
     $('ms-best').textContent = fmt(save.best);
@@ -4402,6 +4545,8 @@ const Input = {
       const card = $('daily-card');
       card.classList.remove('claimpop'); void card.offsetWidth; card.classList.add('claimpop');
       Audio2.bank && Audio2.bank();
+      // the reward has landed — get out of the way
+      setTimeout(() => { if (!$('daily').classList.contains('hidden')) UI.showMenu(); }, 850);
     });
     $('daily').addEventListener('click', (e) => { if (e.target === $('daily')) { Audio2.ui(); UI.showMenu(); } });
     $('shop').addEventListener('click', (e) => { if (e.target === $('shop')) { Audio2.ui(); closeShop(); } });
@@ -4451,6 +4596,7 @@ function frame(t) {
 
 function boot() {
   AdManager.notifyLoadingStart();
+  UI.playWordmark(document.querySelector('#loading .wordmark'));
   resize();
   Stack.buildPlatform();
   Streak.onSessionStart();
