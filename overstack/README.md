@@ -33,21 +33,62 @@ no install, no login, no network required.
   (Midas Touch, Gold Rush, Steady Aim, Encore, Chroma Rush, Titan Line). Superpowers
   are earned, never bought — see `MILESTONES` in §1.
 - **Daily reward** — log in every day and claim a vault gift that **doubles**
-  each consecutive day: ◆50k → 100k → 200k → 400k → 800k → 1.6M → **3.2M (max)**.
-  Miss a day and the ladder restarts at ◆50k. The 🎁 DAILY card auto-greets you
-  once per session when a claim is waiting, and its 7-day calendar shows exactly
-  what the coming week pays.
+  each consecutive day: 50k → 100k → 200k → 400k → 800k → 1.6M → **3.2M (max)**.
+  Miss a day and the ladder restarts at 50k. The DAILY card auto-greets you once
+  per session when a claim is waiting, and its 7-day calendar shows exactly what
+  the coming week pays.
 
-Brand identity is **fresh spring green + gold** — a bright, airy green world (no
-more cave-dark), green→gold wordmark, in-game logo at the bottom-center. The
-backdrop itself keeps score: every run starts spring green, then the world's hue
-drifts with the unbanked pile (log-scale — the greedier the pile, the further it
-goes): green → teal → blue → violet → magenta. Bank, and it eases back to green.
+Coins are written as plain numbers. There is no currency glyph anywhere in the
+game, and no emoji anywhere in the interface — every mark on screen is drawn.
+
+## The design system
+
+Everything on screen answers to one system rather than picking its own look.
+
+**Palette — two primaries and one accent.** `INK` is the table: a single solid
+ramp (`#080D0B` → `#2B4438`) used for every ground and panel, never a gradient.
+`BONE` (`#EDE6D8`) is everything you read. `BRASS` (`#D9A441`) is the only accent
+— money, the BANK key, the live edge of the deck, the ruler line your tower has
+passed. One `CRIMSON` is reserved exclusively for loss. Nothing else introduces a
+hue: docks, shape packs, particles and vignettes are all drawn from this set.
+
+**Form — one shape language.** The pieces are hard-edged polygons, so the
+instrument panel is hard-edged too. Corner radius is a three-step scale applied
+strictly by hierarchy: **2px** for HUD chips, **10px** for buttons, **20px** for
+modal cards. The dock is a machined slab with cut corners, not a filleted
+rectangle — the same cut the pieces have.
+
+**Depth — crisp, not blurry.** Objects sit on a table: one hard offset shadow, a
+lit top facet, a dark cut edge. No glow blooms, no backdrop blur. A fine grain
+layer sits over the world so flat colour never reads as flat vector.
+
+**The wordmark is drawn, not typeset.** Nine monolinear geometric caps on a
+100-unit cap height, built from the game's own vocabulary — the **O** is the
+octagon piece, the **A** is the triangle piece — in one weight, one colour, with
+no drop shadow. It lives in `<symbol id="wm">` and is instanced three times.
+
+**The background is the run.** A solid ground with two planes meeting at the dock
+line: air above, table below. The only geometry in the air is a **height ruler**
+the tower is actually measured against — hairlines every 100 units, ticked and
+labelled, turning brass as the tower passes them — plus the dock centre line you
+aim against. Nothing floats for decoration. Wealth still shows: a big unbanked
+pile warms the table toward brass on a deliberately lazy curve, so an ordinary
+run barely moves it and a monstrous one turns the whole room. The palette holds
+either way.
+
+**The drop reads as intent.** The piece hangs close above the stack, falls down a
+soft brass corridor, and the deck shows a machined bracket exactly the width of
+the piece at the point it will land. A fast drop leaves a short motion trail.
 
 ## Shapes
 
-One shape per tier, each with its own hue *and* side-count *and* size — three
-redundant cues so value is never a subtle read: red triangle → orange square →
+One shape per tier, each with its own colour *and* side-count *and* size — three
+redundant cues so value is never a subtle read. The default **Signal** ramp reads
+value as heat — slate, frost, copper, sand, brass, rust, ember, white-hot — with
+the lightness deliberately alternating so neighbouring tiers always separate at a
+glance. Every shape pack is one ramp with a story, never a bag of hues.
+
+The historical rainbow ladder was: red triangle → orange square →
 yellow pentagon → green hexagon → cyan heptagon → blue octagon → violet nonagon →
 gold 12-sided **AUREX**. Every hue is spaced far from its neighbors.
 
@@ -58,28 +99,28 @@ max-saturation Prism — and each grants a perk (pricier = better).
 
 **Special blocks** each have their own unmistakable skin (never disguised as a
 normal shape) and its own behavior:
-- ✨ GOLDEN (3× coins) · 🗿 GIANT (huge, 3×, deliberate camera zoom-out on drop)
-- 💣 BOMB (dark sphere, lit fuse + countdown ring; explodes for salvage)
-- ⚡ UNSTABLE (glitchy hazard skin, shudders constantly, 2×) · 🧊 ICE (slippery, 2×)
-- ⭐ LUCKY STAR (2× + greed surge) · 🌈 RAINBOW (animated rainbow, fuses with anything)
-- 🧲 MAGNET (horseshoe skin, physically pulls same-tier pieces together to fuse)
-- 🏋️ HEAVY (dense iron block, slams + compresses the tower on landing)
-- 🧩 SPLIT (shatters into 4 mini blocks on impact) · 😠 ANGRY (has eyes, jumps once after landing)
-- 🎲 DICE (pip-count = live tier, re-rolls each bounce, locks at rest)
-- 🎁 LUCKY CHEST (opens on land: coins / giant / rainbow / magnet / bomb / curse)
-- 💎 JACKPOT DIAMOND (rare, ~every 5 min, absurd 8× payout)
+- GOLDEN (3× coins) · GIANT (huge, 3×, deliberate camera zoom-out on drop)
+- BOMB (dark sphere, lit fuse + countdown ring; explodes for salvage)
+- UNSTABLE (glitchy hazard skin, shudders constantly, 2×) · ICE (slippery, 2×)
+- LUCKY STAR (2× + greed surge) · RAINBOW (animated rainbow, fuses with anything)
+- MAGNET (horseshoe skin, physically pulls same-tier pieces together to fuse)
+- HEAVY (dense iron block, slams + compresses the tower on landing)
+- SPLIT (shatters into 4 mini blocks on impact) · ANGRY (has eyes, jumps once after landing)
+- DICE (pip-count = live tier, re-rolls each bounce, locks at rest)
+- LUCKY CHEST (opens on land: coins / giant / rainbow / magnet / bomb / curse)
+- JACKPOT DIAMOND (rare, ~every 5 min, absurd 8× payout)
 
-**World events** fire live (not blocks): 🕳️ BLACK HOLE (opens ON the tower and
-devours up to 3 pieces, paying coins for each), ☄️ METEOR (warns, then crashes —
+**World events** fire live (not blocks): BLACK HOLE (opens ON the tower and
+devours up to 3 pieces, paying coins for each), METEOR (warns, then crashes —
 it can knock pieces clean off the dock, but knocked-off pieces just *vanish in a
 poof* during its grace window: a meteor can cost you blocks, never the run),
-💨 WIND (gusts on the block that is FALLING — the drop drifts sideways to a spot
+WIND (gusts on the block that is FALLING — the drop drifts sideways to a spot
 you didn't pick, its landing x hard-clamped over the dock so wind alone can never
-kill; the settled stack is untouched), and 🔒 CURSE (no-banking / coin-leak /
+kill; the settled stack is untouched), and CURSE (no-banking / coin-leak /
 slippery / next-3-huge). Curses are always felt: the HUGE curse balloons the
 pieces already in the queue (the aim ghost and NEXT box grow instantly), the
-leak drips visible `-◆` losses off the tower, and the director only picks a
-curse that can bite right now. 😠 ANGRY's jump and 🏋️ HEAVY's slam run under
+leak drips visible `-coin` losses off the tower, and the director only picks a
+curse that can bite right now. ANGRY's jump and HEAVY's slam run under
 the same no-direct-death rule — chaos blocks knocked off the edge disappear
 instead of ending the run. When any special block is announced as *incoming*,
 it IS the next drop — never hidden behind another queued piece.
@@ -95,21 +136,21 @@ The gold vignette is a **danger siren**, not a wealth meter: it appears only
 while the tower is genuinely at risk of dying, pulses while the danger lasts,
 and fades the moment it steadies. Separately, the BANK button escalates through
 four smooth "character" tiers (glow → grow → big pulses → BANK ME) driven by
-unbanked coins, staying calm until ~◆150,000 is on the line. All scale pulses —
+unbanked coins, staying calm until ~150,000 is on the line. All scale pulses —
 no jitter, no particles.
 
-## Collection (◆30,000 → ◆10,000,000)
+## Collection (30,000 → 10,000,000)
 
-Prices climb in honest bands: pure looks ◆30–70k, entry perks ◆100–150k, solid
-powers ◆200–500k, legends ◆750k–3M, and ONE crown jewel at ◆10,000,000.
+Prices climb in honest bands: pure looks 30–70k, entry perks 100–150k, solid
+powers 200–500k, legends 750k–3M, and ONE crown jewel at 10,000,000.
 16 docks, each a clean material with one quiet signature detail (restraint reads
 expensive): Slab (the free default — a cool charcoal-slate that pops against the
 green world), Heartwood, Brushed Steel, Carrara, Porcelain, Liquid Glass,
 Basalt Forge, Reactor, Bullion, Bumper Deck, Aurora Deck, Nebula, Crimson Velvet,
-Vortex Core, Obsidian, and the ◆10,000,000 OBSIDIAN CROWN. Power dimensions:
+Vortex Core, Obsidian, and the 10,000,000 OBSIDIAN CROWN. Power dimensions:
 `lengthBonus`, `grip`, `forgiveness`, `slowFall`, `greedRate`, `salvageMult`,
 `comboBonusMs`, `walls`. Difficulty also leans harder as your vault grows past
-◆100k (bigger/odder pieces — honest pressure, never rigged RNG), and spam-clicking
+100k (bigger/odder pieces — honest pressure, never rigged RNG), and spam-clicking
 sub-second drops triggers punish heat plus an "AIM!" warning.
 
 ## The adaptation engine
@@ -122,7 +163,7 @@ title like THE GAMBLER / THE BANKER / THE COLLECTOR) drives:
 2. **Skill** — flow-banded `DifficultyDirector` also adapts *physics*: strugglers get
    grippier, deader pieces; hot players get bouncier, odder, bigger-variance ones.
 3. **Frustration** — churn model detects collapse-streak trends and answers with
-   "Here. 🎁": a golden guaranteed-fusable opener next run.
+   "Here — take this one": a golden guaranteed-fusable opener next run.
 4. **Boredom** — detected separately (opposite signature); answered with novelty
    (unstable block, never-equipped cosmetics), never with an easier game.
 5. **Goals** — collector / competitive / chaos affinities re-weight which open-loop
