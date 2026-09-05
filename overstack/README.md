@@ -87,6 +87,48 @@ through reads as a flicker, not a logo. If the wait actually runs long — past
 choreography, then a hold, a fade and a clean restart, so a slow connection gets
 something worth watching and a fast one gets nothing at all.
 
+**The mark in the HUD is a character, not a watermark.** It sits at the bottom
+of the play screen at 30% opacity and, once in a while, it earns its keep: a
+three-second piece of theatre built out of the game's own vocabulary. There are
+eleven acts and they are dealt from a shuffled bag, so all eleven are seen
+before any repeats.
+
+- **FUSE** — OVER and STACK each get the same shape; STACK lifts, lands on
+  OVER, they flash and merge into one wide shape holding the whole word.
+- **SLIDE** — the same setup with two shapes that *don't* match, so STACK lands
+  on a corner, tips, and slides off into place.
+- **LETTERS** — every letter is its own shape; they launch in a wave and stack
+  back down one at a time, two of them fusing on the way.
+- **FLOAT** — gravity goes out for a second: the word drifts up and turns, then
+  gravity comes back and it settles.
+- **METEOR** — the word scatters, a meteor comes in from the top right, and the
+  impact knocks it back into line.
+- **HOLE** — a black hole opens, swallows the scattered letters, and pops,
+  spitting them back exactly where they belong.
+- **WIND** — a gust sweeps through and carries the letters into place.
+- **BOMB** — the mark is buried in loose letters until a bomb clears everything
+  that isn't the name.
+- **ANGRY** — an angry block hops along the baseline, knocking each pair of
+  letters home as it lands.
+- **TUMBLE** — the whole word leans like a tower about to go, then rights
+  itself.
+- **MAGNET** — scattered, held, then snapped home in a single beat.
+
+Three rules hold across all of them. Every act **opens and closes on the plain
+resting wordmark**, with a real entrance and exit rather than a fade, so any two
+could be chained without a seam. The 0.3 wash is never touched — nothing in the
+choreography writes to `#hud-brand` itself, which also keeps it centred. And
+motion stays inside a small envelope: vertical travel never exceeds about two
+and a half letter-heights, because vertical movement is what pulls the eye off
+the tower.
+
+Acts only begin from DECISION, the one moment nothing is falling; never during
+the first-run tour, on a low-tier device, or under reduced motion; and never in
+the opening 45 seconds of a run. The gap is 70–120s normally, 42–72s once the
+adaptation engine reads the player as bored, and a player who has sat on one
+decision for eight seconds can pull the next one forward — but never closer
+than 30 seconds apart.
+
 **No emoji, no currency glyph.** Every mark in the interface is drawn; coins are
 plain numbers.
 

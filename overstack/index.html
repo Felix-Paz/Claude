@@ -184,6 +184,461 @@ body {
 .reduce-motion .wordmark.play .wm-over,
 .reduce-motion .wordmark.play i { animation: none; color: inherit; transform: none; }
 
+/* ---------- the in-game mark's idle acts ----------------------------------
+   The HUD wordmark is the one thing on screen that never changes, so once a
+   minute or so it earns its keep: a short, self-contained piece of theatre
+   built out of the game's own vocabulary — shapes that fuse, a meteor, a black
+   hole, a gust, a bomb, an angry block. Every act begins and ends on the plain
+   resting wordmark with a real entrance and exit, never a fade, so they could
+   be chained without a seam.
+
+   Two rules hold across all of them. The mark keeps its 0.3 wash throughout —
+   nothing here touches #hud-brand's own opacity or transform, which is what
+   keeps it out of the player's way and keeps the element centred. And motion
+   stays inside a small envelope: a letter never travels more than about twice
+   its own height, so the eye reads it as the logo doing something rather than
+   as something happening in the game. */
+#hud-brand i { position: relative; }   /* #hud-brand is already the positioned box */
+/* Every letter carries a shape behind it — the same silhouettes as the pieces,
+   filled rather than outlined because at 13px an outline is just a smudge. */
+#hud-brand i::before {
+  content: ''; position: absolute; z-index: -1;
+  left: 50%; top: 52%; width: 1.46em; height: 1.46em; margin: -0.73em 0 0 -0.73em;
+  background: rgba(255,255,255,0.20);
+  opacity: 0; transform: scale(0.55);
+  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+}
+#hud-brand .wm-over i:nth-child(1)::before { clip-path: polygon(50% 0%, 100% 100%, 0% 100%); }
+#hud-brand .wm-over i:nth-child(2)::before { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+#hud-brand .wm-over i:nth-child(3)::before { clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+#hud-brand .wm-over i:nth-child(4)::before { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
+#hud-brand .wm-stack i:nth-child(1)::before { clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+#hud-brand .wm-stack i:nth-child(2)::before { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
+#hud-brand .wm-stack i:nth-child(3)::before { clip-path: polygon(50% 0%, 100% 100%, 0% 100%); }
+#hud-brand .wm-stack i:nth-child(4)::before { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+#hud-brand .wm-stack i:nth-child(5)::before { clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); }
+
+/* Where each letter goes when an act scatters the word. Hand-placed rather
+   than random: the scatter is a composition, and it has to look deliberate
+   every single time it plays. */
+#hud-brand .wm-over  i:nth-child(1) { --bx: -0.62em; --by: -1.42em; --br: -15deg; }
+#hud-brand .wm-over  i:nth-child(2) { --bx:  0.30em; --by: -0.42em; --br:  11deg; }
+#hud-brand .wm-over  i:nth-child(3) { --bx: -0.34em; --by: -1.86em; --br:  17deg; }
+#hud-brand .wm-over  i:nth-child(4) { --bx:  0.48em; --by: -0.92em; --br: -12deg; }
+#hud-brand .wm-stack i:nth-child(1) { --bx: -0.44em; --by: -1.62em; --br:  14deg; }
+#hud-brand .wm-stack i:nth-child(2) { --bx:  0.52em; --by: -0.34em; --br: -16deg; }
+#hud-brand .wm-stack i:nth-child(3) { --bx: -0.28em; --by: -1.10em; --br:  -9deg; }
+#hud-brand .wm-stack i:nth-child(4) { --bx:  0.40em; --by: -1.74em; --br:  13deg; }
+#hud-brand .wm-stack i:nth-child(5) { --bx:  0.66em; --by: -0.66em; --br: -14deg; }
+/* Six acts scatter the word, and six identical scatters would give the set one
+   face. Each act bends the same base placement its own way instead. */
+#hud-brand i          { --sx: var(--bx); --sy: var(--by); --sr: var(--br); }
+#hud-brand.act-hole i   { --sx: calc(var(--bx) *  1.30); --sy: calc(var(--by) * 0.72); }
+#hud-brand.act-wind i   { --sx: calc(var(--bx) *  0.75 - 0.55em); --sy: calc(var(--by) * 0.55); }
+#hud-brand.act-bomb i   { --sx: calc(var(--bx) *  1.45); --sy: calc(var(--by) * 1.15); }
+#hud-brand.act-angry i  { --sx: calc(var(--bx) * -1.05); --sy: calc(var(--by) * 0.70); --sr: calc(var(--br) * -1); }
+#hud-brand.act-magnet i { --sx: calc(var(--bx) * -1.15); --sy: calc(var(--by) * 1.22); --sr: calc(var(--br) * -1.2); }
+
+/* the props layer: half-frames, the merge ring, and one prop per act */
+#hud-brand .wm-fx { position: absolute; inset: 0; pointer-events: none; }
+#hud-brand .wm-fx > b { position: absolute; display: block; opacity: 0; }
+#hud-brand .wm-fa, #hud-brand .wm-fb, #hud-brand .wm-fm {
+  top: -36%; height: 172%;
+  background: rgba(255,255,255,0.18);
+  clip-path: polygon(9% 0%, 91% 0%, 100% 50%, 91% 100%, 9% 100%, 0% 50%);
+}
+#hud-brand .wm-fa { left: -7%;  width: 51%; }
+#hud-brand .wm-fb { left: 45%;  width: 62%; }
+#hud-brand .wm-fm { left: -7%;  width: 114%; }
+#hud-brand .wm-ring {
+  left: 50%; top: 50%; width: 2.2em; height: 2.2em; margin: -1.1em 0 0 -1.1em;
+  border: 2px solid rgba(255,255,255,0.95); border-radius: 50%;
+}
+#hud-brand .wm-prop { left: 50%; top: 50%; }
+.wordmark .wm-junk {
+  position: absolute; display: block; opacity: 0;
+  font-family: inherit; font-weight: 800; font-size: 0.9em; color: #fff;
+}
+
+/* ============ act 1 — two of a kind, fused ============================== */
+#hud-brand.act-fuse .wm-stack { animation: a1-stack 3s both; }
+#hud-brand.act-fuse .wm-over  { animation: a1-over 3s ease both; }
+#hud-brand.act-fuse .wm-fa    { animation: a1-fa 3s ease both; }
+#hud-brand.act-fuse .wm-fb    { animation: a1-fb 3s both; }
+#hud-brand.act-fuse .wm-fm    { animation: a1-fm 3s ease both; }
+#hud-brand.act-fuse .wm-ring  { animation: a1-ring 3s ease both; }
+@keyframes a1-stack {
+  0%, 10%  { transform: translate(0, 0); animation-timing-function: cubic-bezier(.34,0,.2,1); }
+  18%      { transform: translate(0, 14%); }
+  34%      { transform: translate(-88%, -196%); animation-timing-function: cubic-bezier(.5,0,.75,.4); }
+  46%      { transform: translate(-88%, -106%); animation-timing-function: cubic-bezier(.2,0,.2,1); }
+  50%      { transform: translate(-88%, -98%) scaleY(0.9); }
+  55%      { transform: translate(-88%, -106%) scaleY(1); animation-timing-function: cubic-bezier(.6,0,.2,1); }
+  76%      { transform: translate(0, 0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+  82%      { transform: translate(0, 5%); }
+  90%, 100%{ transform: translate(0, 0); }
+}
+@keyframes a1-over {
+  0%, 44% { transform: translateY(0); }
+  50%     { transform: translateY(9%); }
+  60%     { transform: translateY(0); }
+  76%     { transform: translateY(0); }
+  81%     { transform: translateY(5%); }
+  90%, 100% { transform: translateY(0); }
+}
+@keyframes a1-fa {
+  0%   { opacity: 0; transform: scale(0.86); }
+  12%  { opacity: 1; transform: scale(1); }
+  46%  { opacity: 1; }
+  52%  { opacity: 0; transform: scale(1.16); }
+  100% { opacity: 0; }
+}
+@keyframes a1-fb {
+  0%   { opacity: 0; transform: translate(0,0) scale(0.86); animation-timing-function: ease; }
+  12%  { opacity: 1; transform: translate(0,0) scale(1); animation-timing-function: cubic-bezier(.34,0,.2,1); }
+  18%  { opacity: 1; transform: translate(0, 14%); }
+  34%  { opacity: 1; transform: translate(-70%, -196%); animation-timing-function: cubic-bezier(.5,0,.75,.4); }
+  46%  { opacity: 1; transform: translate(-70%, -106%); }
+  52%  { opacity: 0; transform: translate(-70%, -106%) scale(1.16); }
+  100% { opacity: 0; }
+}
+@keyframes a1-fm {
+  0%, 50% { opacity: 0; transform: scale(0.58); }
+  58%     { opacity: 1; transform: scale(1.05); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+  64%     { opacity: 1; transform: scale(1); }
+  84%     { opacity: 1; transform: scale(1); }
+  100%    { opacity: 0; transform: scale(1.14); }
+}
+@keyframes a1-ring {
+  0%, 46% { opacity: 0; transform: scale(0.3); }
+  50%     { opacity: 0.8; }
+  66%     { opacity: 0; transform: scale(2.6); }
+  100%    { opacity: 0; transform: scale(2.6); }
+}
+
+/* ============ act 2 — two that do not match, so it topples ============== */
+#hud-brand.act-slide .wm-stack { animation: a2-stack 3s both; }
+#hud-brand.act-slide .wm-over  { animation: a2-over 3s ease both; }
+#hud-brand.act-slide .wm-fa    { animation: a2-fa 3s ease both; }
+#hud-brand.act-slide .wm-fb    { animation: a2-fb 3s both; }
+#hud-brand.act-slide .wm-fa    { clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+#hud-brand.act-slide .wm-fb    { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+@keyframes a2-stack {
+  0%, 10% { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.34,0,.2,1); }
+  17%     { transform: translate(0, 14%) rotate(0); }
+  33%     { transform: translate(-52%, -198%) rotate(-7deg); animation-timing-function: cubic-bezier(.5,0,.8,.45); }
+  45%     { transform: translate(-46%, -112%) rotate(-4deg); animation-timing-function: cubic-bezier(.35,0,.25,1); }
+  53%     { transform: translate(-38%, -104%) rotate(9deg); animation-timing-function: cubic-bezier(.5,0,.4,1); }
+  68%     { transform: translate(-6%, -30%) rotate(15deg); animation-timing-function: cubic-bezier(.5,0,.25,1); }
+  80%     { transform: translate(0, 0) rotate(-4deg); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+  88%     { transform: translate(0, 0) rotate(2deg); }
+  95%,100%{ transform: translate(0, 0) rotate(0); }
+}
+@keyframes a2-over {
+  0%, 45% { transform: translate(0,0) rotate(0); }
+  52%     { transform: translate(-2%, 7%) rotate(-2deg); }
+  64%     { transform: translate(0,0) rotate(0); }
+  80%     { transform: translate(0,0) rotate(0); }
+  85%     { transform: translate(0, 4%) rotate(0); }
+  93%,100%{ transform: translate(0,0) rotate(0); }
+}
+@keyframes a2-fa {
+  0%   { opacity: 0; transform: scale(0.86); }
+  12%  { opacity: 1; transform: scale(1); }
+  80%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+@keyframes a2-fb {
+  0%   { opacity: 0; transform: translate(0,0) rotate(0) scale(0.86); animation-timing-function: ease; }
+  12%  { opacity: 1; transform: translate(0,0) rotate(0) scale(1); animation-timing-function: cubic-bezier(.34,0,.2,1); }
+  17%  { transform: translate(0, 14%) rotate(0); }
+  33%  { transform: translate(-42%, -198%) rotate(-7deg); animation-timing-function: cubic-bezier(.5,0,.8,.45); }
+  45%  { transform: translate(-37%, -112%) rotate(-4deg); animation-timing-function: cubic-bezier(.35,0,.25,1); }
+  53%  { transform: translate(-31%, -104%) rotate(9deg); animation-timing-function: cubic-bezier(.5,0,.4,1); }
+  68%  { transform: translate(-5%, -30%) rotate(15deg); animation-timing-function: cubic-bezier(.5,0,.25,1); }
+  80%  { opacity: 1; transform: translate(0,0) rotate(-4deg); }
+  100% { opacity: 0; transform: translate(0,0) rotate(0) scale(1.1); }
+}
+
+/* ============ act 3 — nine shapes, stacked, two of them fusing ========== */
+#hud-brand.act-letters i { animation: a3-letter 3.2s both; animation-delay: calc(var(--i) * 0.055s); }
+#hud-brand.act-letters i::before { animation: a3-shape 3.2s both; animation-delay: calc(var(--i) * 0.055s); }
+#hud-brand.act-letters .wm-over i:nth-child(3)::before,
+#hud-brand.act-letters .wm-stack i:nth-child(2)::before { animation-name: a3-shape-fuse; }
+@keyframes a3-letter {
+  0%   { transform: translateY(0) rotate(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+  14%  { transform: translateY(-210%) rotate(-8deg); animation-timing-function: cubic-bezier(.5,0,.85,.4); }
+  30%  { transform: translateY(-210%) rotate(-8deg); animation-timing-function: cubic-bezier(.5,0,.8,.45); }
+  46%  { transform: translateY(0) rotate(3deg); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+  53%  { transform: translateY(-24%) rotate(-2deg); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+  62%  { transform: translateY(0) rotate(0); }
+  100% { transform: translateY(0) rotate(0); }
+}
+@keyframes a3-shape {
+  0%   { opacity: 0; transform: scale(0.55); }
+  10%  { opacity: 1; transform: scale(1); }
+  74%  { opacity: 1; transform: scale(1); }
+  92%, 100% { opacity: 0; transform: scale(1.22); }
+}
+@keyframes a3-shape-fuse {
+  0%   { opacity: 0; transform: scale(0.55); }
+  10%  { opacity: 1; transform: scale(1); }
+  46%  { opacity: 1; transform: scale(1); }
+  52%  { opacity: 1; transform: scale(1.5); background: rgba(255,255,255,0.7); }
+  60%  { opacity: 1; transform: scale(1.14); }
+  74%  { opacity: 1; transform: scale(1.14); }
+  92%, 100% { opacity: 0; transform: scale(1.34); }
+}
+
+/* ============ act 4 — the gravity goes out for a second ================= */
+#hud-brand.act-float i { animation: a4-letter 3s cubic-bezier(.4,0,.3,1) both; animation-delay: calc(var(--i) * 0.038s); }
+@keyframes a4-letter {
+  0%   { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.2,.6,.3,1); }
+  26%  { transform: translate(calc(var(--sx) * 0.42), -150%) rotate(calc(var(--sr) * 0.55)); animation-timing-function: ease-in-out; }
+  46%  { transform: translate(calc(var(--sx) * 0.58), -168%) rotate(calc(var(--sr) * 0.8)); animation-timing-function: cubic-bezier(.55,0,.85,.4); }
+  70%  { transform: translate(0, 0) rotate(0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+  77%  { transform: translate(0, -18%) rotate(0); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+  86%, 100% { transform: translate(0,0) rotate(0); }
+}
+
+/* ============ act 5 — a meteor puts it back together =================== */
+#hud-brand.act-meteor i { animation: a5-letter 3s both; animation-delay: calc(var(--i) * 0.022s); }
+#hud-brand.act-meteor .wm-prop { animation: a5-meteor 3s cubic-bezier(.45,0,.75,.5) both; }
+#hud-brand.act-meteor .wm-ring { animation: a5-shock 3s ease both; }
+#hud-brand.act-meteor .wm-prop {
+  width: 0.62em; height: 0.62em; margin: -0.31em 0 0 -0.31em; border-radius: 50%;
+  background: #fff;
+  /* core glow, then a trail of shrinking embers back up the flight path */
+  box-shadow:
+    0 0 0.6em 0.16em rgba(255,226,166,0.95),
+    0.55em -0.38em 0 -0.04em rgba(255,214,140,0.75),
+    1.05em -0.72em 0 -0.10em rgba(255,196,110,0.5),
+    1.55em -1.06em 0 -0.16em rgba(255,180,90,0.3),
+    2.05em -1.40em 0 -0.22em rgba(255,170,80,0.16);
+}
+@keyframes a5-letter {
+  0%   { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.3,0,.35,1); }
+  20%  { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); }
+  44%  { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+  50%  { transform: translate(calc(var(--sx) * 1.5), calc(var(--sy) * 1.25)) rotate(calc(var(--sr) * 1.4)); animation-timing-function: cubic-bezier(.2,0,.2,1); }
+  70%  { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.35,0,.3,1); }
+  77%  { transform: translate(0,-14%) rotate(0); }
+  86%, 100% { transform: translate(0,0) rotate(0); }
+}
+@keyframes a5-meteor {
+  0%, 28% { opacity: 0; transform: translate(5.6em, -4.4em) scale(0.7); }
+  32%     { opacity: 1; transform: translate(4.4em, -3.4em) scale(0.9); }
+  47%     { opacity: 1; transform: translate(0, 0) scale(1.1); }
+  50%     { opacity: 0; transform: translate(0, 0) scale(0.4); }
+  100%    { opacity: 0; }
+}
+@keyframes a5-shock {
+  0%, 47% { opacity: 0; transform: scale(0.25); }
+  51%     { opacity: 0.85; }
+  70%     { opacity: 0; transform: scale(3.1); }
+  100%    { opacity: 0; transform: scale(3.1); }
+}
+
+/* ============ act 6 — a black hole tidies up =========================== */
+#hud-brand.act-hole i { animation: a6-letter 3.2s both; animation-delay: calc(var(--i) * 0.018s); }
+#hud-brand.act-hole .wm-prop { animation: a6-hole 3.2s ease both; }
+#hud-brand.act-hole .wm-prop {
+  width: 1.5em; height: 1.5em; margin: -0.75em 0 0 -0.75em; border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #05050c 52%, rgba(190,210,255,0.85) 62%, rgba(120,150,255,0) 78%);
+}
+@keyframes a6-letter {
+  0%   { transform: translate(0,0) rotate(0) scale(1); animation-timing-function: cubic-bezier(.3,0,.35,1); }
+  18%  { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)) scale(1); }
+  30%  { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)) scale(1); animation-timing-function: cubic-bezier(.5,0,.6,1); }
+  52%  { transform: translate(calc(var(--sx) * -0.28), calc(var(--sy) * -0.12)) rotate(calc(var(--sr) * -1.8)) scale(0.72); animation-timing-function: cubic-bezier(.4,0,.7,.6); }
+  60%  { transform: translate(0, -8%) rotate(calc(var(--sr) * -2.6)) scale(0.5); animation-timing-function: cubic-bezier(.15,.8,.3,1); }
+  78%  { transform: translate(0,0) rotate(0) scale(1.1); animation-timing-function: cubic-bezier(.35,0,.3,1); }
+  87%, 100% { transform: translate(0,0) rotate(0) scale(1); }
+}
+@keyframes a6-hole {
+  0%, 18% { opacity: 0; transform: rotate(0) scale(0.1); }
+  30%     { opacity: 1; transform: rotate(180deg) scale(1); }
+  56%     { opacity: 1; transform: rotate(560deg) scale(1.1); }
+  62%     { opacity: 0.9; transform: rotate(640deg) scale(0.18); }
+  67%     { opacity: 0; transform: rotate(660deg) scale(0.02); }
+  100%    { opacity: 0; }
+}
+
+/* ============ act 7 — a gust blows it back into line =================== */
+#hud-brand.act-wind i { animation: a7-letter 3.1s both; animation-delay: calc(var(--i) * 0.03s); }
+#hud-brand.act-wind .wm-prop { animation: a7-gust 3.1s cubic-bezier(.35,0,.4,1) both; }
+#hud-brand.act-wind .wm-prop {
+  left: 0; top: -14%; width: 4.6em; height: 0.1em; margin: 0;
+  border-radius: 1em; background: rgba(255,255,255,0.9);
+  box-shadow:
+    0 0.55em 0 -0.008em rgba(255,255,255,0.75),
+    0 1.12em 0 -0.02em rgba(255,255,255,0.6),
+    0 1.70em 0 -0.03em rgba(255,255,255,0.45),
+    0 2.24em 0 -0.045em rgba(255,255,255,0.3);
+}
+@keyframes a7-letter {
+  0%   { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.3,0,.35,1); }
+  18%  { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); }
+  34%  { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); animation-timing-function: cubic-bezier(.4,0,.55,1); }
+  48%  { transform: translate(calc(var(--sx) + 0.9em), calc(var(--sy) * 0.7)) rotate(22deg); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+  70%  { transform: translate(0,0) rotate(-5deg); animation-timing-function: cubic-bezier(.35,0,.3,1); }
+  79%  { transform: translate(0,0) rotate(3deg); }
+  88%, 100% { transform: translate(0,0) rotate(0); }
+}
+@keyframes a7-gust {
+  0%, 32% { opacity: 0; transform: translateX(-4.2em) scaleX(0.5); }
+  38%     { opacity: 1; transform: translateX(-1.4em) scaleX(1); }
+  56%     { opacity: 1; transform: translateX(3.4em) scaleX(1.35); }
+  66%     { opacity: 0; transform: translateX(6em) scaleX(0.6); }
+  100%    { opacity: 0; }
+}
+
+/* ============ act 8 — a bomb clears everything that is not the name ==== */
+#hud-brand.act-bomb i { animation: a8-letter 3.2s both; animation-delay: calc(var(--i) * 0.02s); }
+#hud-brand.act-bomb .wm-junk { animation: a8-junk 3.2s both; }
+#hud-brand.act-bomb .wm-prop { animation: a8-bomb 3.2s ease both; }
+#hud-brand.act-bomb .wm-ring { animation: a8-blast 3.2s cubic-bezier(.2,0,.3,1) both; }
+#hud-brand.act-bomb .wm-prop {
+  width: 0.72em; height: 0.72em; margin: -0.36em 0 0 -0.36em; border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, #6b7183, #1b1e28 70%);
+  box-shadow: 0 -0.42em 0 -0.28em rgba(255,214,74,0.95), 0 0 0.5em rgba(255,214,74,0.5);
+}
+@keyframes a8-letter {
+  0%   { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.3,0,.35,1); }
+  16%  { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); }
+  55%  { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); animation-timing-function: cubic-bezier(.16,.85,.3,1); }
+  74%  { transform: translate(0,0) rotate(0); }
+  100% { transform: translate(0,0) rotate(0); }
+}
+@keyframes a8-junk {
+  0%   { opacity: 0; transform: translate(0,0) rotate(0) scale(0.5); animation-timing-function: cubic-bezier(.3,0,.35,1); }
+  16%  { opacity: 0.85; transform: translate(var(--jx), var(--jy)) rotate(var(--jr)) scale(1); }
+  55%  { opacity: 0.85; transform: translate(var(--jx), var(--jy)) rotate(var(--jr)) scale(1); animation-timing-function: cubic-bezier(.2,0,.5,1); }
+  70%  { opacity: 0; transform: translate(calc(var(--jx) * 3.2), calc(var(--jy) * 2.6)) rotate(calc(var(--jr) * 3)) scale(0.4); }
+  100% { opacity: 0; }
+}
+@keyframes a8-bomb {
+  0%, 18% { opacity: 0; transform: translateY(-260%) scale(0.7); }
+  30%     { opacity: 1; transform: translateY(0) scale(1); }
+  38%     { opacity: 1; transform: translateY(0) scale(1.14); }
+  44%     { opacity: 1; transform: translateY(0) scale(1); }
+  50%     { opacity: 1; transform: translateY(0) scale(1.2); }
+  55%     { opacity: 0; transform: translateY(0) scale(0.3); }
+  100%    { opacity: 0; }
+}
+@keyframes a8-blast {
+  0%, 54% { opacity: 0; transform: scale(0.2); }
+  57%     { opacity: 0.95; }
+  74%     { opacity: 0; transform: scale(3.6); }
+  100%    { opacity: 0; transform: scale(3.6); }
+}
+
+/* ============ act 9 — an angry block kicks it into shape =============== */
+#hud-brand.act-angry i { animation-duration: 3.4s; animation-fill-mode: both; }
+#hud-brand.act-angry .wm-over  i:nth-child(1),
+#hud-brand.act-angry .wm-over  i:nth-child(2) { animation-name: a9-k1; }
+#hud-brand.act-angry .wm-over  i:nth-child(3),
+#hud-brand.act-angry .wm-over  i:nth-child(4) { animation-name: a9-k2; }
+#hud-brand.act-angry .wm-stack i:nth-child(1),
+#hud-brand.act-angry .wm-stack i:nth-child(2) { animation-name: a9-k3; }
+#hud-brand.act-angry .wm-stack i:nth-child(3),
+#hud-brand.act-angry .wm-stack i:nth-child(4) { animation-name: a9-k4; }
+#hud-brand.act-angry .wm-stack i:nth-child(5) { animation-name: a9-k5; }
+#hud-brand.act-angry .wm-prop { animation: a9-hop 3.4s both; }
+#hud-brand.act-angry .wm-prop {
+  left: 0; top: 50%; width: 0.86em; height: 0.86em; margin: -0.43em 0 0 -0.43em;
+  border-radius: 0.2em; background: linear-gradient(165deg, #FF7A8E, #C41F43);
+  box-shadow: 0 0 0.42em rgba(255,77,109,0.65);
+}
+/* One scatter for all nine, then each pair is knocked home as the block lands
+   on it — the timings live in the keyframes so the scatter stays a single
+   deliberate move instead of nine staggered ones. */
+@keyframes a9-k1 {
+  0%  { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.3,0,.35,1); }
+  12% { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); }
+  25% { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); animation-timing-function: cubic-bezier(.18,.85,.3,1); }
+  33% { transform: translate(0,0) rotate(0); }
+  100%{ transform: translate(0,0) rotate(0); }
+}
+@keyframes a9-k2 {
+  0%  { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.3,0,.35,1); }
+  12% { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); }
+  40% { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); animation-timing-function: cubic-bezier(.18,.85,.3,1); }
+  48% { transform: translate(0,0) rotate(0); }
+  100%{ transform: translate(0,0) rotate(0); }
+}
+@keyframes a9-k3 {
+  0%  { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.3,0,.35,1); }
+  12% { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); }
+  55% { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); animation-timing-function: cubic-bezier(.18,.85,.3,1); }
+  63% { transform: translate(0,0) rotate(0); }
+  100%{ transform: translate(0,0) rotate(0); }
+}
+@keyframes a9-k4 {
+  0%  { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.3,0,.35,1); }
+  12% { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); }
+  70% { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); animation-timing-function: cubic-bezier(.18,.85,.3,1); }
+  78% { transform: translate(0,0) rotate(0); }
+  100%{ transform: translate(0,0) rotate(0); }
+}
+@keyframes a9-k5 {
+  0%  { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.3,0,.35,1); }
+  12% { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); }
+  76% { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); animation-timing-function: cubic-bezier(.18,.85,.3,1); }
+  84% { transform: translate(0,0) rotate(0); }
+  100%{ transform: translate(0,0) rotate(0); }
+}
+@keyframes a9-hop {
+  0%, 14% { opacity: 0; transform: translate(-1.6em, -260%) rotate(-20deg); }
+  18%     { opacity: 1; transform: translate(-1.2em, -40%) rotate(-12deg); animation-timing-function: cubic-bezier(.3,0,.35,1); }
+  25%     { opacity: 1; transform: translate(0.4em, 30%) rotate(6deg); animation-timing-function: cubic-bezier(.25,0,.4,1); }
+  31%     { opacity: 1; transform: translate(1.1em, -150%) rotate(-14deg); animation-timing-function: cubic-bezier(.5,0,.4,1); }
+  40%     { opacity: 1; transform: translate(2.4em, 30%) rotate(8deg); animation-timing-function: cubic-bezier(.25,0,.4,1); }
+  46%     { opacity: 1; transform: translate(3.1em, -150%) rotate(-12deg); animation-timing-function: cubic-bezier(.5,0,.4,1); }
+  55%     { opacity: 1; transform: translate(4.4em, 30%) rotate(10deg); animation-timing-function: cubic-bezier(.25,0,.4,1); }
+  61%     { opacity: 1; transform: translate(5.1em, -150%) rotate(-14deg); animation-timing-function: cubic-bezier(.5,0,.4,1); }
+  70%     { opacity: 1; transform: translate(6.4em, 30%) rotate(8deg); animation-timing-function: cubic-bezier(.25,0,.4,1); }
+  76%     { opacity: 1; transform: translate(7.2em, -170%) rotate(-16deg); animation-timing-function: cubic-bezier(.45,0,.6,.6); }
+  88%     { opacity: 0; transform: translate(9.4em, 60%) rotate(24deg); }
+  100%    { opacity: 0; }
+}
+
+/* ============ act 10 — the whole word leans, then rights itself ======== */
+#hud-brand.act-tumble i { animation: a10-letter 3s both; animation-delay: calc(var(--i) * 0.05s); }
+@keyframes a10-letter {
+  0%   { transform: rotate(0) translateY(0); animation-timing-function: cubic-bezier(.5,0,.6,1); }
+  22%  { transform: rotate(13deg) translateY(9%); animation-timing-function: ease-in-out; }
+  40%  { transform: rotate(15deg) translateY(11%); animation-timing-function: cubic-bezier(.5,0,.35,1); }
+  58%  { transform: rotate(-9deg) translateY(4%); animation-timing-function: cubic-bezier(.4,0,.35,1); }
+  72%  { transform: rotate(5deg) translateY(0); animation-timing-function: cubic-bezier(.4,0,.35,1); }
+  83%  { transform: rotate(-2deg) translateY(0); }
+  93%, 100% { transform: rotate(0) translateY(0); }
+}
+
+/* ============ act 11 — scattered, then snapped home in one beat ======== */
+#hud-brand.act-magnet i { animation: a11-letter 2.8s both; animation-delay: calc(var(--i) * 0.016s); }
+#hud-brand.act-magnet .wm-ring { animation: a11-pulse 2.8s cubic-bezier(.2,0,.3,1) both; }
+@keyframes a11-letter {
+  0%   { transform: translate(0,0) rotate(0) scale(1); animation-timing-function: cubic-bezier(.25,0,.3,1); }
+  22%  { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)) scale(1); }
+  46%  { transform: translate(calc(var(--sx) * 1.08), calc(var(--sy) * 1.06)) rotate(calc(var(--sr) * 1.15)) scale(1); animation-timing-function: cubic-bezier(.12,.9,.25,1); }
+  66%  { transform: translate(0,0) rotate(0) scale(1.06); animation-timing-function: cubic-bezier(.35,0,.3,1); }
+  78%, 100% { transform: translate(0,0) rotate(0) scale(1); }
+}
+@keyframes a11-pulse {
+  0%, 44% { opacity: 0; transform: scale(0.2); }
+  48%     { opacity: 0.9; }
+  68%     { opacity: 0; transform: scale(3.4); }
+  100%    { opacity: 0; transform: scale(3.4); }
+}
+
+/* Reduced motion opts out of the whole idea, not just the props. */
+.reduce-motion #hud-brand i,
+.reduce-motion #hud-brand .wm-over,
+.reduce-motion #hud-brand .wm-stack { animation: none !important; transform: none !important; }
+.reduce-motion #hud-brand i::before,
+.reduce-motion #hud-brand .wm-fx > b { animation: none !important; opacity: 0 !important; }
+
 /* ---------- surfaces: dark glass, generous curvature ---------- */
 .glass, .chip {
   border: 1px solid var(--glass-line);
@@ -677,7 +1132,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 
 <!-- HUD -->
 <div id="hud" class="hidden">
-  <div id="hud-brand" class="wordmark"><span class="wm-over"><i style="--i:0">O</i><i style="--i:1">V</i><i style="--i:2">E</i><i style="--i:3">R</i></span><span class="wm-stack"><i style="--i:4">S</i><i style="--i:5">T</i><i style="--i:6">A</i><i style="--i:7">C</i><i style="--i:8">K</i></span></div>
+  <div id="hud-brand" class="wordmark"><span class="wm-over"><i style="--i:0">O</i><i style="--i:1">V</i><i style="--i:2">E</i><i style="--i:3">R</i></span><span class="wm-stack"><i style="--i:4">S</i><i style="--i:5">T</i><i style="--i:6">A</i><i style="--i:7">C</i><i style="--i:8">K</i></span><span class="wm-fx" aria-hidden="true"><b class="wm-fa"></b><b class="wm-fb"></b><b class="wm-fm"></b><b class="wm-prop"></b><b class="wm-ring"></b><b class="wm-junk" style="--jx:-3.1em;--jy:-1.5em;--jr:-22deg">A</b><b class="wm-junk" style="--jx:3.4em;--jy:-1.9em;--jr:18deg">K</b><b class="wm-junk" style="--jx:-2.4em;--jy:0.7em;--jr:26deg">T</b><b class="wm-junk" style="--jx:2.7em;--jy:0.9em;--jr:-19deg">O</b><b class="wm-junk" style="--jx:-0.9em;--jy:-2.4em;--jr:12deg">S</b><b class="wm-junk" style="--jx:1.2em;--jy:-2.6em;--jr:-15deg">C</b></span></div>
   <div id="hud-score-wrap">
     <span class="metric-label">COINS THIS RUN</span>
     <div id="run-score"><span id="run-score-num">0</span></div>
@@ -976,6 +1431,13 @@ const CONFIG = {
   snapshotMinStability: 0.5,
   reviveGraceMs: 3_500,       // after a revive, a settling topple costs a piece, never the run
   loadingLoopDelayMs: 650,    // splash mark only animates if the wait is long enough to see
+  idleShow: {                 // the HUD wordmark's periodic piece of theatre
+    firstMs: 45_000,          // never during the opening minute of a run
+    minMs: 70_000, maxMs: 120_000,
+    boredMinMs: 42_000, boredMaxMs: 72_000,
+    ponderMs: 8_000,          // this long on one decision and the player has attention to spare
+    floorMs: 30_000,          // ...but an idle player can never pull them closer than this
+  },
   chainWindowMs: 1400,        // fusions inside this window chain: NICE! → UNREAL!!
   jackpotTier: 7,             // fusing into Titan or AUREX = jackpot moment
   fuseGapPx: 4,               // resting same-tier pieces this close still merge (adjacency fix)
@@ -2470,6 +2932,7 @@ const Game = {
     }
     UI.renderNextPreview();
     Tutor.maybeStart();
+    IdleShow.reset();
   },
 
   beginAim(x) {
@@ -4422,6 +4885,87 @@ const Tutor = {
   },
 };
 
+/* ==================== §21e THE MARK'S IDLE ACTS ==========================
+   The HUD wordmark is the one thing on screen that never changes, so once in a
+   while it earns its keep: a three-second piece of theatre built out of the
+   game's own vocabulary — shapes that fuse, a meteor, a black hole, a gust, a
+   bomb, an angry block. Reading the name eleven different ways over a session
+   is worth more than reading it once.
+
+   It stays out of the way by construction. Acts only begin from DECISION, the
+   one moment nothing is falling; they never run during the tour, on a low-tier
+   device, or under reduced motion; and the choreography itself lives entirely
+   in CSS on the letters, so the mark keeps its 0.3 wash the whole way through.
+   Acts are dealt from a shuffled bag, so every one is seen before any repeats. */
+const IdleShow = {
+  acts: [
+    { n: 'fuse', ms: 3000 }, { n: 'slide', ms: 3000 }, { n: 'letters', ms: 3200 },
+    { n: 'float', ms: 3000 }, { n: 'meteor', ms: 3000 }, { n: 'hole', ms: 3200 },
+    { n: 'wind', ms: 3100 }, { n: 'bomb', ms: 3200 }, { n: 'angry', ms: 3400 },
+    { n: 'tumble', ms: 3000 }, { n: 'magnet', ms: 2800 },
+  ],
+  bag: [], last: '', playing: false, nextAt: 0, earliestAt: 0, endsAt: 0,
+
+  reset() {
+    this.stop();
+    this.nextAt = now() + CONFIG.idleShow.firstMs;
+    this.earliestAt = this.nextAt;
+  },
+  stop() {
+    this.playing = false;
+    const el = $('hud-brand');
+    if (el) for (const a of this.acts) el.classList.remove('act-' + a.n);
+  },
+  deal() {
+    if (!this.bag.length) {
+      this.bag = this.acts.map((a) => a.n);
+      for (let i = this.bag.length - 1; i > 0; i--) {
+        const j = (Math.random() * (i + 1)) | 0;
+        const t = this.bag[i]; this.bag[i] = this.bag[j]; this.bag[j] = t;
+      }
+      // a reshuffle must not hand back the act that just played
+      if (this.bag[0] === this.last && this.bag.length > 1) {
+        const t = this.bag[0]; this.bag[0] = this.bag[1]; this.bag[1] = t;
+      }
+    }
+    return this.bag.shift();
+  },
+  schedule() {
+    const C = CONFIG.idleShow;
+    const bored = Director.flowBand === 'BORED';
+    this.nextAt = now() + (bored ? rand(C.boredMinMs, C.boredMaxMs) : rand(C.minMs, C.maxMs));
+    this.earliestAt = now() + C.floorMs;
+  },
+  play(name) {
+    const el = $('hud-brand');
+    const act = this.acts.find((a) => a.n === name);
+    if (!el || !act) return;
+    el.classList.remove('play');     // the run-open animation never overlaps an act
+    this.stop();
+    void el.offsetWidth;             // restart cleanly even if the same act repeats
+    el.classList.add('act-' + name);
+    this.playing = true;
+    this.last = name;
+    this.endsAt = now() + act.ms + 60;
+    this.schedule();
+    trackEvent('idle_act', { act: name });
+  },
+  tick() {
+    if (this.playing) {
+      if (now() >= this.endsAt || !Game.inPlay()) this.stop();
+      return;
+    }
+    if (Settings.reduceMotion || perf.tier === 'low') return;
+    if (!Game.inPlay() || Game.state !== 'DECISION' || Tutor.active) return;
+    const t = now();
+    if (t >= this.nextAt) { this.play(this.deal()); return; }
+    // A player who has been sitting on one decision has attention to spare, and
+    // that is exactly when a bit of novelty reads as a gift rather than noise.
+    const pondering = t - (Game.decisionStartT || t) > CONFIG.idleShow.ponderMs;
+    if ((pondering || Director.flowBand === 'BORED') && t >= this.earliestAt) this.play(this.deal());
+  },
+};
+
 /* ==================== §22 UI ============================================== */
 const UI = {
   playWordmark(el) {          // restart the stacking animation on a wordmark
@@ -4909,6 +5453,7 @@ function frame(t) {
   Camera.update(rawDt / 1000);
   UI.hudTick(rawDt / 1000);
   Tutor.place();
+  IdleShow.tick();
   render(t);
 }
 
@@ -4974,7 +5519,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { WORLD, Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, save, engine, Composite, Body };
+window.__overstack = { WORLD, Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, IdleShow, save, engine, Composite, Body };
 window.__overstackCam = Camera;
 window.__tierColors = themePalette();
 
