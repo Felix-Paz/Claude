@@ -651,8 +651,17 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   background: radial-gradient(60% 60% at 50% 45%, rgba(255,255,255,0.3), transparent 70%); }
 .reduce-motion #flash, .reduce-motion #chase-vignette { display: none; }
 
+/* On a phone BANK is a button, not a billboard: the word alone, at exactly the
+   height of the menu chip beside it, and no wider than it needs to be. The
+   running total is already the biggest number on the screen. */
+@media (max-width: 759px) {
+  #btn-bank {
+    min-width: 0; height: 48px; padding: 0 22px; border-radius: var(--r-btn);
+    font-size: 1rem; letter-spacing: 0.14em; line-height: 48px;
+  }
+  #btn-bank .bank-amt { display: none; }
+}
 @media (max-width: 480px) {
-  #btn-bank { min-width: 124px; padding: 14px 19px 13px; font-size: 1.06rem; }
   #menu-stats > span { padding: 11px 16px; }
 }
 </style>
@@ -758,7 +767,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
     <h2>SETTINGS</h2>
     <div class="card-sub">Kept deliberately tiny.</div>
     <div class="setting-row"><span>Sound</span><button class="toggle" id="tgl-sound"></button></div>
-    <div class="setting-row"><span>Haptics</span><button class="toggle" id="tgl-haptics"></button></div>
+    <div class="setting-row" id="row-haptics"><span>Haptics</span><button class="toggle" id="tgl-haptics"></button></div>
     <div class="setting-row"><span>Reduce motion / low power</span><button class="toggle" id="tgl-motion"></button></div>
   </div>
 </div>
@@ -1189,15 +1198,56 @@ function applyMotionClass() {
   document.body.classList.toggle('reduce-motion', Settings.reduceMotion || perf.tier === 'low');
   document.body.classList.toggle('low-fx', perf.tier === 'low');
 }
-function haptic(pattern) {
-  if (!Settings.haptics) return;
-  try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) { /* unsupported */ }
-}
-FeedbackBus.on('fusion', () => haptic(12));
-FeedbackBus.on('bank', () => haptic([20, 40, 60]));
-FeedbackBus.on('collapse', () => haptic([60, 50, 90]));
-FeedbackBus.on('jackpot', () => haptic([15, 30, 15, 30, 60]));
-FeedbackBus.on('explosion', () => haptic([80, 40, 40]));
+/* Haptics are a percussion section, not a rumble pack. Every cue is a shaped
+   beat — a soft pre-tick into a strong hit, or a run of taps that resolves —
+   rather than one flat buzz, and the whole thing runs on a budget so it can
+   never turn into continuous noise: nothing fires within 70ms of the last cue
+   unless it is heavier than what is already playing. Weight doubles as the
+   dramatic scale, so a collapse always cuts through a landing. */
+const Haptics = {
+  supported: typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function',
+  cues: {
+    tap:      { w: 1, p: 7 },
+    drop:     { w: 1, p: 11 },
+    landSoft: { w: 1, p: 9 },
+    landHard: { w: 2, p: [16, 26, 12] },
+    fuse:     { w: 2, p: [12, 26, 18] },
+    fuseBig:  { w: 3, p: [16, 34, 24, 34, 46] },
+    chain:    { w: 3, p: [10, 26, 10, 26, 10, 26, 34] },
+    greed:    { w: 2, p: [8, 60, 8] },
+    danger:   { w: 2, p: [14, 90, 14] },
+    incoming: { w: 3, p: [26, 70, 26, 70, 40] },
+    revive:   { w: 3, p: [10, 50, 18, 50, 34] },
+    nearMiss: { w: 4, p: [44, 70, 20] },
+    jackpot:  { w: 4, p: [14, 30, 14, 30, 14, 30, 72] },
+    blast:    { w: 4, p: [80, 40, 40] },
+    best:     { w: 4, p: [20, 40, 20, 40, 62] },
+    bank:     { w: 5, p: [24, 44, 78] },
+    unlock:   { w: 5, p: [18, 40, 18, 40, 18, 40, 92] },
+    collapse: { w: 5, p: [76, 54, 118] },
+  },
+  _at: 0, _weight: 0,
+  fire(name) {
+    if (!this.supported || !Settings.haptics) return;
+    const cue = this.cues[name];
+    if (!cue) return;
+    const t = Date.now();
+    if (t - this._at < 70 && cue.w <= this._weight) return;
+    this._at = t; this._weight = cue.w;
+    try { navigator.vibrate(cue.p); } catch (e) { /* permission denied */ }
+  },
+};
+function haptic(name) { Haptics.fire(name); }
+FeedbackBus.on('drop', () => haptic('drop'));
+FeedbackBus.on('land', (p) => haptic(p.impact > 0.55 ? 'landHard' : 'landSoft'));
+FeedbackBus.on('fusion', (p) => haptic(p.tier >= 5 ? 'fuseBig' : 'fuse'));
+FeedbackBus.on('chain', () => haptic('chain'));
+FeedbackBus.on('surprise', () => haptic('incoming'));
+FeedbackBus.on('newBest', () => haptic('best'));
+FeedbackBus.on('jackpot', () => haptic('jackpot'));
+FeedbackBus.on('explosion', () => haptic('blast'));
+FeedbackBus.on('bank', () => haptic('bank'));
+FeedbackBus.on('collapse', () => haptic('collapse'));
 
 /* ============================ §6 AUDIO (WebAudio synth) =================== */
 const Audio2 = {
@@ -2370,6 +2420,7 @@ const Game = {
   droppedCount: 0, fusionsThisRun: 0, maxTierThisRun: 1, peakPieces: 0,
   comboIdx: -1, comboLastT: 0, lastFusionT: 0, chainCount: 0,
   revivesUsedThisRun: 0, doubledUsed: false,
+  greedMark: 1, dangerRung: false,   // one-shot latches for the greed / danger cues
   aimX: WORLD.width / 2,
   spawnY: WORLD.platformY - WORLD.spawnClearance,
   decisionStartT: 0, dropStartT: 0, dropAimX: 0, dropBody: null,
@@ -2401,6 +2452,7 @@ const Game = {
     Camera.reset();
     RiskFX.reset();
     this.spamHeat = 0; this.spamStreak = 0; this.lastDropAt = 0; this.spamWarned = false;
+    this.greedMark = 1; this.dangerRung = false;
     PSV.runsThisSession++;
     PSV.samplePace();
     Streak.onRunStart();
@@ -2422,6 +2474,7 @@ const Game = {
 
   beginAim(x) {
     if (this.state !== 'DECISION') return;
+    haptic('tap');
     this.set('AIMING');
     this.aimX = this.clampAim(x);
   },
@@ -2654,6 +2707,11 @@ const Game = {
     if (!this.inPlay()) return;
     Audio2.setTension(clamp((Greed.value - 1) / 5 + (this.runCoins > 0 ? 0.1 : 0), 0, 1));
 
+    const gm = Math.floor(Greed.value);
+    if (gm > this.greedMark) { this.greedMark = gm; haptic('greed'); }
+    if (RiskFX.level > 0.8 && !this.dangerRung) { this.dangerRung = true; haptic('danger'); }
+    else if (RiskFX.level < 0.5) this.dangerRung = false;
+
     if (!save.hints.bank && Greed.value >= 1.6 && this.runCoins > 0) {
       save.hints.bank = true; SaveStore.save();
       UI.hint('BANK locks coins into your vault — collapse loses them.');
@@ -2799,6 +2857,7 @@ const Game = {
     this.afterRunBookkeeping('bank');
     UI.showResults('bank', { coins, isBest, newPowers });
     for (const m of newPowers) {
+      haptic('unlock');
       UI.react('SUPERPOWER!', 'var(--mint)');
       UI.toast(`${m.name} UNLOCKED — ${m.desc}`);
       Particles.goldRain(WORLD.width / 2, WORLD.platformY - 200);
@@ -2820,6 +2879,7 @@ const Game = {
       UI.toast(nm.message);
       trackEvent('near_miss', { intensity: +nm.intensity.toFixed(2), flowScore: Director.flowScore, band: Director.flowBand, arcPhase: SessionArc.phase });
       delay = nm.slowMoDurationMs + 800;
+      setTimeout(() => haptic('nearMiss'), 900);   // the ache lands after the crash, not under it
     }
     const lostCoins = Math.round(this.runCoins);
     setTimeout(() => this.finishCollapse(lostCoins), delay);
@@ -2907,6 +2967,7 @@ const Game = {
     EventDirector.hugeCharges = 0;
     EventDirector.schedule();                         // no event for another 45s+
     EventDirector.graceUntil = now() + CONFIG.reviveGraceMs;   // a settling topple costs a piece, not the run
+    haptic('revive');
     Surprise.forced = null;
     this.dropBody = null;
 
@@ -3308,7 +3369,13 @@ const Camera = {
     if (climbTop < this.frameTop - 4) this.frameTop = lerp(this.frameTop, climbTop, Math.min(dt * 1.4, 1));
     else if (climbTop > this.frameTop + 150) this.frameTop = lerp(this.frameTop, climbTop, Math.min(dt * 0.6, 1));
     const neededH = viewBottom - this.frameTop;
-    let targetZoom = Math.min(cw / (WORLD.width + 20), ch / neededH);
+    // Phones frame the DECK; desktop frames the world. Fitting all 480 world px
+    // across a narrow screen left the dock at barely half the width with dead
+    // space either side — so on a phone the horizontal fit is the dock plus
+    // just enough room to watch a piece topple off the edge.
+    const halfW = Stack.platform ? Stack.platform.plugin.halfW : WORLD.platformW / 2;
+    const frameW = cw < 760 ? halfW * 2 + 96 : WORLD.width + 20;
+    let targetZoom = Math.min(cw / frameW, ch / neededH);
     targetZoom = clamp(targetZoom, 0.35, 1.8);
     if (now() < this.pushUntil) targetZoom *= this.pushScale;
     const targetY = (this.frameTop + viewBottom) / 2;
@@ -4657,6 +4724,8 @@ const UI = {
   syncToggles() {
     $('tgl-sound').classList.toggle('on', Settings.sound);
     $('tgl-haptics').classList.toggle('on', Settings.haptics);
+    // a mouse cannot buzz — do not offer a switch that does nothing
+    $('row-haptics').style.display = Haptics.supported ? '' : 'none';
     $('tgl-motion').classList.toggle('on', Settings.reduceMotion);
   },
   hudTick(dt) {
@@ -4905,7 +4974,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { WORLD, Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, save, engine, Composite, Body };
+window.__overstack = { WORLD, Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, save, engine, Composite, Body };
 window.__overstackCam = Camera;
 window.__tierColors = themePalette();
 

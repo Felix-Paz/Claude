@@ -129,6 +129,38 @@ deck. `save.tutorialDone` keeps it from ever appearing twice, `tutorialRuns`
 retires it after three runs for a player who never fuses or banks, and ordinary
 onboarding hints stand down while it is on screen.
 
+## On a phone
+
+A phone is not a small desktop, so below 760px the game frames itself
+differently.
+
+**The camera frames the deck, not the world.** Fitting all 480 world px across a
+narrow screen left the dock at barely half the width with dead space either
+side. On a phone the horizontal fit is the dock plus just enough room to watch a
+piece topple off the edge, which puts the deck — and every shape on it — at
+about three quarters of the screen width. The aim range still fits entirely on
+screen, and the frame still eases out on its own as the tower grows. Desktop,
+where there is room for it, keeps the wider view.
+
+**BANK is a button, not a billboard.** Just the word, at exactly the height of
+the menu chip beside it, no wider than it needs to be. The running total drops
+off the button because it is already the biggest number on the screen.
+
+**Haptics are a percussion section, not a rumble pack.** Eighteen named cues,
+almost all of them shaped patterns — a soft pre-tick into a strong hit, or a run
+of taps that resolves — rather than one flat buzz: the tap as you take aim, the
+drop, a soft or hard landing, an ordinary fusion against a five-beat one for
+tier 5 and up, chains, each whole number of GREED, the moment the tower is
+genuinely about to go, an event announcing itself, a revive, a near miss (which
+lands *after* the crash rather than under it), jackpots, blasts, a new best, the
+bank, a superpower, the collapse.
+
+Every cue carries a weight, and weight is the dramatic scale: nothing fires
+within 70ms of the last cue unless it is heavier than what is already playing,
+so a collapse always cuts through a landing and the game can never settle into
+continuous noise. On a device with no vibration motor at all the Haptics switch
+is removed from Settings rather than left there doing nothing.
+
 ## Shapes
 
 One shape per tier, each with its own hue *and* side-count *and* size — three
@@ -275,6 +307,19 @@ title like THE GAMBLER / THE BANKER / THE COLLECTOR) drives:
   death, or a block that is impossible to place.
 - Any piece resting on a fused/removed/shrunk support is woken so it falls (no
   frozen floating blocks).
+
+## 404
+
+`404.html` is the same game, standing still: same tokens, same shape language,
+the same wordmark playing the same animation, and the world still taking its
+colour from the most valuable shape on screen. Underneath the number is a small
+pile sim — circles for the collisions, the game's polygons for the look, a deck
+with edges so the shapes stack instead of spreading into a row. Tapping drops
+another one. It is 15 KB, self-contained down to the 1.8 KB font subset that
+covers both `OVERSTACK` and `404`, and it makes no network requests at all.
+
+Most static hosts want it at the root of whatever they publish; on GitHub Pages
+that is `/404.html` for the published directory.
 
 ## Shipping to a real platform (Poki etc.)
 
