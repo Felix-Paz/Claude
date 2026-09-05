@@ -156,7 +156,15 @@ name too long to shrink readably wraps instead (JACKPOT / DIAMOND), and the icon
 is then centred in whatever is left and capped by it. Several specials paint well
 outside their own radius — a star's points, a bomb's fuse, a jackpot's rays — and
 each has a measured allowance. The canvas is sized to real device pixels rather
-than CSS pixels, which is what was making the type look mushy.
+than CSS pixels, which is what was making the type look mushy — and the logical
+size is a constant matched to the stylesheet rather than measured from the
+element, because measuring it fed the canvas's own size back into itself and the
+box grew every frame until it covered the screen.
+
+**The magnet is a horseshoe**: a red arch, two legs straight down, white pole
+faces on the ends, drawn once and shared by the piece and its preview. The old
+one was a shallow bowl with two stubs poking out of the bottom, which at 20px
+read as a blob with a bite taken out of it.
 
 ## The first run
 
