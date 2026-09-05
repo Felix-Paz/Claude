@@ -9,7 +9,8 @@ permanent vault) or push on and let **GREED** multiply the next payout. Collapse
 before banking and the run's coins burn — the vault never does.
 
 **Play it:** open `index.html` in any browser. One self-contained file, no build,
-no install, no login, no network required.
+no install, no login, no network required — 2.3 MB, of which 1.9 MB is the five
+embedded songs. Everything else, the whole game, is under 400 KB.
 
 ## Controls
 
@@ -30,8 +31,10 @@ no install, no login, no network required.
 - **VAULT** — banked coins. Permanent, spendable in the Collection, shown top-right.
   Collapsing never touches it.
 - **Lifetime banked** — never decreases; unlocks **superpowers** at milestones
-  (Midas Touch, Gold Rush, Steady Aim, Encore, Chroma Rush, Titan Line). Superpowers
-  are earned, never bought — see `MILESTONES` in §1.
+  (Midas Touch 25k, Gold Rush 120k, Steady Aim 400k, Encore 1.2M, Chroma Rush
+  3.5M, Titan Line 10M). Superpowers are earned, never bought — and the ladder is
+  deliberately long, because the daily reward alone hands out 50k on its first
+  day and the old thresholds gave away two of them before you had really played.
 - **Daily reward** — log in every day and claim a vault gift that **doubles**
   each consecutive day: 50k → 100k → 200k → 400k → 800k → 1.6M → **3.2M (max)**.
   Miss a day and the ladder restarts at 50k. The DAILY card auto-greets you once
@@ -144,9 +147,14 @@ than 30 seconds apart.
 **No emoji, no currency glyph.** Every mark in the interface is drawn; coins are
 plain numbers.
 
-**In-play messages never cover the deck.** Toasts, hints and the big reaction
-words all sit in the empty band directly under the GREED pill, well above the
-blocks and the landing.
+**In-play messages never cover the deck.** Toasts, hints, the curse banner and
+the big reaction words all sit in the empty band under the GREED pill — clear of
+it at every width — and well above the blocks and the landing.
+
+**The NEXT preview is never sliced by its own box.** Several specials paint well
+outside their own radius (a star's points, a bomb's fuse, a jackpot's rays), and
+a special also has a label to clear, so the icon is centred in the space that is
+actually left and capped by it rather than drawn at a fixed size and cropped.
 
 ## The first run
 
@@ -205,7 +213,9 @@ off the button because it is already the biggest number on the screen.
 
 **The phone HUD is four corners and nothing else.** NEXT and the menu chip
 across the top, the wordmark and BANK across the bottom with their centres on
-the same line. The vault comes off the play screen entirely — it is a
+the same line — and the mark sits at the exact mirror of BANK's centre, a size
+down from the desktop mark so it comes off the edge and the idle acts have room
+to move without ever reaching the screen border. The vault comes off the play screen entirely — it is a
 between-runs number, and it already lives on the menu and the results card. NEXT
 is smaller than on desktop, and HUD chips cast no drop shadow at all: they belong
 to the flat field they sit on, and a shadow under each one reads as grubbiness
@@ -215,8 +225,13 @@ run.)
 **Five recorded one-shots, and everything else synthesised.** The things that
 happen constantly — a drop, a landing, a fusion, a death, a button — are sampled,
 because a recording has a character no two-oscillator voice will ever have. They
-ship as base64 MP3 (~29 KB, and MP3 because Ogg Vorbis is Safari 17+ only), and
+ship as base64 MP3 (~25 KB, and MP3 because Ogg Vorbis is Safari 17+ only), and
 every one of them falls back to its synth voice if decoding ever fails.
+
+Every source file carried about 100ms of near-silence before the actual hit,
+which is heard as the whole game being late. They are trimmed to the first real
+sample at build time, the context asks for `latencyHint: 'interactive'`, and the
+one deliberate delay left — the wait to see whether a landing fuses — is 55ms.
 
 The landing sound is the sound of a piece that *found nobody*, so it waits 130ms
 to see whether a fusion follows and stays quiet if one does; and a later landing
@@ -232,14 +247,22 @@ pentatonic — no raw sawtooth anywhere — and **banking is the loudest cue in 
 game** by design: a resolved minor-seventh spread with soft attacks, a rising
 sub, and coins somewhere in the room.
 
-**The music is a progression, not a drone.** Three sine voices glide through
-i – VI – III – VII in C minor, eleven seconds a chord, under a gentle 12dB
-lowpass with no resonance and a highpass that keeps the sub out of a phone
-speaker entirely. (The bed before it was resonant low triangles, which is how
-you make a small speaker rattle.) It gets a little louder and brighter as the
-run gets dangerous, and ducks out of the way of anything big. **Sound effects
-and music are separate switches**, because they are separate things: the effects
-are information, the music is a room.
+**Five songs.** One plays on the menu and everywhere else outside a run; the
+other four are the in-run playlist, handed out in order. A run always starts the
+**next** one, and the position is saved — end on the third and the next run opens
+on the fourth, not back at the first. A revive keeps the song it was on, because
+it is the same run.
+
+Each song is cut to a loop whose tail has already been crossfaded onto its own
+head, so `loop = true` is genuinely seamless rather than a click every pass. They
+are decoded on demand (about 4.6 MB of PCM each) with the next one in the
+rotation fetched ahead, so a switch never stalls.
+
+**Switching songs is never a cut.** The outgoing one falls away through a
+closing lowpass while the incoming one opens up through one — how a DJ leaves a
+track, and far better than a fade. Big moments duck the music briefly rather
+than fighting it. **Sound effects and music are separate switches**, because
+they are separate things: the effects are information, the music is a room.
 
 **Haptics are a percussion section, not a rumble pack.** Eighteen named cues,
 almost all of them shaped patterns — a soft pre-tick into a strong hit, or a run
