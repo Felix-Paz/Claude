@@ -75,11 +75,15 @@ body {
    heavy, squared-off bowls. It belongs to the same family of forms as the
    pieces themselves.
 
-   The animation is the game. OVER is already standing; STACK falls in from
-   above and lands ON TOP of it; OVER takes the impact; STACK holds for a beat
-   and then topples down into its own slot to the right. While the word is
-   unfinished its letters are gold — "not placed yet" — and once it is whole the
-   brand colour sweeps across them one at a time, O through K. */
+   The animation is the game. STACK is already standing; OVER falls in from
+   above and lands ON TOP of it; STACK takes the impact; OVER holds for a beat,
+   slides across in one clean move and drops straight down into its own slot to
+   the left. While the word is unfinished its letters are gold — "not placed
+   yet" — and once it is whole the brand colour sweeps across them one at a
+   time, O through K.
+
+   The offsets below are geometry, not taste: +112.6% of OVER's own width is
+   exactly what centres OVER over STACK, at every size the mark is used at. */
 @font-face {
   font-family: 'Unbounded';
   font-style: normal;
@@ -96,30 +100,30 @@ body {
 .wordmark .wm-over, .wordmark .wm-stack { display: inline-flex; }
 .wordmark i { font-style: normal; display: inline-block; }
 
-.wordmark.play .wm-stack { animation: wm-drop 1.6s cubic-bezier(0.36, 0, 0.2, 1) both; }
-.wordmark.play .wm-over  { animation: wm-take 1.6s ease both; }
+.wordmark.play .wm-over  { animation: wm-drop 1.6s cubic-bezier(0.36, 0, 0.2, 1) both; z-index: 1; }
+.wordmark.play .wm-stack { animation: wm-take 1.6s ease both; }
 .wordmark.play i {
   color: var(--gold);
   animation: wm-light 0.42s ease forwards;
   animation-delay: calc(1.66s + var(--i) * 0.075s);
 }
 @keyframes wm-drop {
-  /* falls in and lands on OVER */
-  0%   { transform: translate(-90%, -430%); opacity: 0; animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.5); }
+  /* falls in and lands on STACK */
+  0%   { transform: translate(112.6%, -430%); opacity: 0; animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.5); }
   7%   { opacity: 1; }
-  25%  { transform: translate(-90%, -106%); animation-timing-function: cubic-bezier(0.3, 0, 0.35, 1); }
-  30%  { transform: translate(-90%, -96%); }
-  35%  { transform: translate(-90%, -106%); }
-  39%  { transform: translate(-90%, -102%); }
-  43%  { transform: translate(-90%, -106%); }
+  25%  { transform: translate(112.6%, -106%); animation-timing-function: cubic-bezier(0.3, 0, 0.35, 1); }
+  30%  { transform: translate(112.6%, -96%); }
+  35%  { transform: translate(112.6%, -106%); }
+  39%  { transform: translate(112.6%, -102%); }
+  43%  { transform: translate(112.6%, -106%); }
   /* holds, then slides ALL the way across at a constant height — one move */
-  58%  { transform: translate(-90%, -106%); animation-timing-function: cubic-bezier(0.62, 0, 0.3, 1); }
+  58%  { transform: translate(112.6%, -106%); animation-timing-function: cubic-bezier(0.62, 0, 0.3, 1); }
   78%  { transform: translate(0%, -106%); animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.45); }
   /* and only then drops straight down into its slot */
   94%  { transform: translate(0%, 4%); animation-timing-function: cubic-bezier(0.25, 0, 0.3, 1); }
   100% { transform: translate(0, 0); }
 }
-@keyframes wm-take {           /* OVER takes the weight */
+@keyframes wm-take {           /* STACK takes the weight */
   0%, 23% { transform: translateY(0); }
   28%     { transform: translateY(6%); }
   35%     { transform: translateY(0); }
@@ -131,8 +135,8 @@ body {
    splash is actually on screen for a while: the same choreography, then a hold,
    a fade, and a clean restart — never a jump cut. */
 .wordmark.loop { animation: wm-cycle 3.4s linear infinite; }
-.wordmark.loop .wm-stack { animation: wm-drop-loop 3.4s linear infinite; }
-.wordmark.loop .wm-over  { animation: wm-take-loop 3.4s linear infinite; }
+.wordmark.loop .wm-over  { animation: wm-drop-loop 3.4s linear infinite; z-index: 1; }
+.wordmark.loop .wm-stack { animation: wm-take-loop 3.4s linear infinite; }
 .wordmark.loop i { color: var(--gold); animation: wm-light-loop 3.4s linear infinite; animation-delay: calc(var(--i) * 0.075s); }
 @keyframes wm-cycle {
   0%   { opacity: 0; }
@@ -141,14 +145,14 @@ body {
   90%, 100% { opacity: 0; }
 }
 @keyframes wm-drop-loop {
-  0%   { transform: translate(-90%, -430%); opacity: 0; animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.5); }
+  0%   { transform: translate(112.6%, -430%); opacity: 0; animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.5); }
   3%   { opacity: 1; }
-  12%  { transform: translate(-90%, -106%); animation-timing-function: cubic-bezier(0.3, 0, 0.35, 1); }
-  14%  { transform: translate(-90%, -96%); }
-  17%  { transform: translate(-90%, -106%); }
-  18%  { transform: translate(-90%, -102%); }
-  20%  { transform: translate(-90%, -106%); animation-timing-function: cubic-bezier(0.62, 0, 0.3, 1); }
-  27%  { transform: translate(-90%, -106%); animation-timing-function: cubic-bezier(0.62, 0, 0.3, 1); }
+  12%  { transform: translate(112.6%, -106%); animation-timing-function: cubic-bezier(0.3, 0, 0.35, 1); }
+  14%  { transform: translate(112.6%, -96%); }
+  17%  { transform: translate(112.6%, -106%); }
+  18%  { transform: translate(112.6%, -102%); }
+  20%  { transform: translate(112.6%, -106%); animation-timing-function: cubic-bezier(0.62, 0, 0.3, 1); }
+  27%  { transform: translate(112.6%, -106%); animation-timing-function: cubic-bezier(0.62, 0, 0.3, 1); }
   37%  { transform: translate(0%, -106%); animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.45); }
   44%  { transform: translate(0%, 4%); animation-timing-function: cubic-bezier(0.25, 0, 0.3, 1); }
   47%, 100% { transform: translate(0, 0); }
@@ -1127,7 +1131,8 @@ const SaveStore = {
       streakDays: 0, lastPlayDate: '',
       daily: { last: '', streak: 0 },   // daily login reward: date last claimed + consecutive claims
       hints: { fusion: false, bank: false, safe: false },
-      tutorialDone: false,              // the three-beat first-run tour, shown once ever
+      tutorialDone: false,              // the four-beat first-run tour, shown once ever
+      tutorialRuns: 0,                  // runs it has opened on, so it cannot nag forever
       settings: { sound: true, haptics: true, reduceMotion: false },
       baselines: { decisionLatency: 0, decisionLatencySamples: [], sessionPace: 0, sessionMinutes: 0, sessions: 0 },
       profile: { // persisted play-style stats — surfaced as a style title
@@ -2456,15 +2461,16 @@ const Game = {
       this.spamStreak = 0;
     }
     const def = Director.current();
+    Tutor.checkMix(def);
     this.dropBody = Stack.spawnPiece(def, this.aimX, this.spawnY);
     this.dropAimX = this.aimX;
     this.dropStartT = now();
     this.droppedCount++;
     Director.advance();
+    Tutor.onDrop(def);           // may rig queue[1] — always before it is previewed
     UI.renderNextPreview();
     this.set('DROPPING');
     FeedbackBus.emit('drop', { x: this.aimX, y: this.spawnY });
-    Tutor.advance('drop');
     trackEvent('drop', { tier: def.tier, special: def.special || 'none', band: Director.flowBand });
     // The only per-drop camera move left: a deliberate, rare zoom-out to
     // make room for a GIANT / heavy / jackpot piece.
@@ -4191,22 +4197,43 @@ const Daily = {
 };
 
 /* ==================== §21d FIRST-RUN TOUR ================================
-   Three beats, in the order a new player meets them. Each one points at the
-   thing you actually touch and is dismissed by doing it — no buttons, no
-   dimming, no blocked input — and the whole thing is over inside one run. */
+   Four beats, in the order a new player needs them. Each one points at the
+   thing you actually touch and is dismissed by DOING it — no buttons, no
+   dimming, no blocked input.
+
+   The middle two beats also rig the queue, because "two of the same shape
+   fuse" is a rule you learn by doing it once, not by reading it: while the
+   fuse beat is up every piece the tour hands you is a twin of your first one,
+   so a fusion is always one well-aimed drop away. The moment one lands, the
+   tour does the opposite and slips in a shape that matches nothing on the
+   deck — the fastest way to teach that fusing is a rule and not just what
+   happens. After that the queue is back to normal for good.
+
+   Rigging only ever rewrites queue[1] BEFORE it is shown, so the NEXT box
+   still never lies about what is coming. */
 const Tutor = {
   steps: [
     { id: 'drop',   anchor: 'aim',   text: 'Tap anywhere to drop. It lands where you tap.' },
-    { id: 'fusion', anchor: 'stack', text: 'Two of the same shape fuse into a bigger one. That is your coins.', ttl: 14000 },
-    { id: 'bank',   anchor: 'bank',  text: 'Towers fall. <b>BANK</b> to keep what you earned.', ttl: 9000 },
+    { id: 'fusion', anchor: 'stack', text: 'Two of the same shape fuse into a bigger one. That is your coins.' },
+    { id: 'mix',    anchor: 'next',  text: 'This one matches nothing. Different shapes just stack.', ttl: 45_000 },
+    { id: 'bank',   anchor: 'bank',  text: 'A fall takes every coin you have not banked. <b>BANK</b> keeps them.', ttl: 15_000 },
   ],
   active: false,
   idx: -1,
+  waiting: false,       // step is current but its cue is not on screen yet
+  fuseTier: null,
+  mixQueued: false,
   _ttl: 0,
 
   maybeStart() {
-    if (save.tutorialDone || !CONFIG.onboarding) return;
+    if (this.active) this.stop();   // a new run never inherits the last one's beat
+    if (save.tutorialDone) return;
+    // Escape hatch: a player who never fuses and never banks still stops being
+    // shown the tour after a few runs.
+    if (save.tutorialRuns >= 3) { save.tutorialDone = true; SaveStore.save(); return; }
     clearTimeout(this._startT);
+    this.fuseTier = null;
+    this.mixQueued = false;
     this._startT = setTimeout(() => { if (Game.inPlay()) this.show(0); }, 700);
   },
   show(i) {
@@ -4214,41 +4241,97 @@ const Tutor = {
     if (!step) { this.finish(); return; }
     this.idx = i;
     this.active = true;
+    this.waiting = step.id === 'mix' && !this.mixQueued;  // hold until the odd shape is really in the NEXT box
     this._ttl = step.ttl ? now() + step.ttl : 0;
     $('tutor-step').textContent = `STEP ${i + 1} OF ${this.steps.length}`;
     $('tutor-text').innerHTML = step.text;
     this.place();
-    $('tutor').classList.add('show');
   },
   advance(id) {
-    if (!this.active || this.steps[this.idx].id !== id) return;
-    if (this.idx + 1 >= this.steps.length) this.finish();
-    else setTimeout(() => { if (this.active) this.show(this.idx + 1); }, 520);
+    if (!this.active || !this.steps[this.idx] || this.steps[this.idx].id !== id) return;
+    if (this.idx + 1 >= this.steps.length) { this.finish(); return; }
+    const nextIdx = this.idx + 1;
+    this.waiting = true;                                  // a clean beat between beats
+    $('tutor').classList.remove('show');
+    setTimeout(() => { if (this.active && this.idx === nextIdx - 1) this.show(nextIdx); }, 560);
   },
-  finish() {                    // seen it once, never again
-    if (save.tutorialDone) { this.stop(); return; }
-    save.tutorialDone = true;
-    SaveStore.save();
+
+  // Called from Game.drop() after the queue has advanced and BEFORE the NEXT
+  // box is redrawn, so anything rigged here is shown honestly from the start.
+  onDrop(def) {
+    if (!this.active) return;
+    if (this.fuseTier == null) this.fuseTier = def.tier;
+    this.rigQueue();
+    if (def.tutorMix) this.advance('mix');
+    else this.advance('drop');
+  },
+  rigQueue() {
+    const step = this.steps[this.idx];
+    const nx = Director.queue[1];
+    if (!step || !nx) return;
+    const plain = (d, tier) => {
+      d.tier = tier; d.kind = 'poly'; d.rScale = 1;
+      d.special = null; d.cursedHuge = false; d.giftNote = false;
+      d.friction = 1.15; d.restitution = 0.01;
+    };
+    if (step.id === 'drop' || step.id === 'fusion') {
+      plain(nx, this.fuseTier || 1);           // twins, and only twins, until one fuses
+    } else if (step.id === 'mix' && !this.mixQueued) {
+      // A tier the tower cannot grow into before this piece lands: not on the
+      // deck, not what their fusion just minted, and not one cascade above
+      // either the deck's tallest or the piece still in hand.
+      const tiers = Stack.pieces().map((b) => b.plugin.tier);
+      const taken = new Set(tiers);
+      taken.add(this.fuseTier);
+      taken.add(this.fuseTier + 1);
+      taken.add((tiers.length ? Math.max(...tiers) : this.fuseTier) + 1);
+      const cur = Director.current();
+      if (cur) { taken.add(cur.tier); taken.add(cur.tier + 1); }
+      plain(nx, [4, 5, 3, 6, 2, 7].find((t) => !taken.has(t)) || 6);
+      nx.tutorMix = true;
+      this.mixQueued = true;
+      this.waiting = false;
+    }
+  },
+  // Last look before the odd shape actually falls. Two drops is enough time for
+  // a lucky cascade to grow the tower into its tier — if that happened it is no
+  // longer an orphan and would teach the opposite lesson, so it drops as an
+  // ordinary piece and the tour quietly lines up a fresh one.
+  checkMix(def) {
+    if (!this.active || !def.tutorMix) return;
+    if (!Stack.pieces().some((b) => b.plugin.tier === def.tier)) return;
+    def.tutorMix = false;
+    this.mixQueued = false;
+    this.waiting = true;
+    $('tutor').classList.remove('show');
+  },
+
+  finish() {                    // seen it through, never again
+    if (!save.tutorialDone) { save.tutorialDone = true; SaveStore.save(); }
     this.stop();
   },
   stop() {
     clearTimeout(this._startT);
+    if (this.active && !save.tutorialDone) { save.tutorialRuns++; SaveStore.save(); }
     this.active = false;
+    this.waiting = false;
     this.idx = -1;
     $('tutor').classList.remove('show');
   },
   place() {
     if (!this.active) return;
-    if (!Game.inPlay()) { $('tutor').classList.remove('show'); return; }
-    $('tutor').classList.add('show');
+    if (!Game.inPlay() || this.waiting) { $('tutor').classList.remove('show'); return; }
     if (this._ttl && now() > this._ttl) { this.advance(this.steps[this.idx].id); return; }
+    $('tutor').classList.add('show');
     const step = this.steps[this.idx];
     const ring = $('tutor-ring'), tip = $('tutor-tip');
+    const inHand = Director.current();
     let cx, cy, r;
-    if (step.anchor === 'bank') {
-      const b = $('btn-bank').getBoundingClientRect();
+    if (step.anchor === 'bank' || (step.anchor === 'next' && !(inHand && inHand.tutorMix))) {
+      // a DOM anchor: the BANK button, or the NEXT box while the odd shape sits in it
+      const b = $(step.anchor === 'bank' ? 'btn-bank' : 'next-piece').getBoundingClientRect();
       cx = b.left + b.width / 2; cy = b.top + b.height / 2;
-      r = Math.max(b.width, b.height) / 2 + 14;
+      r = Math.max(b.width, b.height) / 2 + 12;
     } else {
       let wx = Game.aimX, wy = Game.spawnY;
       if (step.anchor === 'stack') {                 // ring the piece on top
@@ -4259,7 +4342,7 @@ const Tutor = {
       }
       cx = cw / 2 + (wx - Camera.x) * Camera.zoom;
       cy = ch / 2 + (wy - Camera.y) * Camera.zoom;
-      r = (step.anchor === 'aim' ? 44 : 54) * Camera.zoom;
+      r = (step.anchor === 'stack' ? 54 : 44) * Camera.zoom;
     }
     ring.style.left = (cx - r) + 'px';
     ring.style.top = (cy - r) + 'px';

@@ -70,13 +70,15 @@ the nine letters it needs and embedded as a 1.4 KB woff2 — so the file stays
 self-contained and renders identically offline. A geometric display face: wide,
 very heavy, squared-off bowls, in the same family of forms as the pieces.
 
-**It animates itself, and the animation is the game.** OVER is already standing;
-STACK falls in from above and lands **on top** of it; OVER takes the impact;
-STACK holds for a beat, then slides across in one clean move and drops straight
-down into its own slot. While
-the word is unfinished its letters are **gold** — not placed yet — and the moment
-it is whole the brand colour sweeps across them one at a time, O through K. It
-plays when the menu opens and quietly on the in-game mark as a run starts.
+**It animates itself, and the animation is the game.** STACK is already
+standing; OVER falls in from above and lands **on top** of it; STACK takes the
+impact; OVER holds for a beat, then slides across in one clean move and drops
+straight down into its own slot. While the word is unfinished its letters are
+**gold** — not placed yet — and the moment it is whole the brand colour sweeps
+across them one at a time, O through K. It plays when the menu opens and quietly
+on the in-game mark as a run starts. The offsets are geometry, not taste:
++112.6% of OVER's own width is exactly what centres it over STACK, at every size
+the mark is used at.
 
 On the loading screen it holds still, because the splash is normally gone inside
 a few hundred milliseconds and a 1.6s animation cut off a quarter of the way
@@ -94,20 +96,38 @@ blocks and the landing.
 
 ## The first run
 
-A brand-new player gets a three-beat tour, once, ever. Each beat is a gold ring
+A brand-new player gets a four-beat tour, once, ever. Each beat is a gold ring
 drawn around the thing you are meant to touch and one short line above it:
 
 1. the drop point — *"Tap anywhere to drop. It lands where you tap."*
 2. the piece on the deck — *"Two of the same shape fuse into a bigger one."*
-3. the BANK button — *"Towers fall. BANK to keep what you earned."*
+3. the NEXT box — *"This one matches nothing. Different shapes just stack."*
+4. the BANK button — *"A fall takes every coin you have not banked."*
 
 Nothing is dimmed, nothing is modal, and there is no Next button: the overlay is
 `pointer-events: none` and each beat is dismissed by **doing the thing** it
-describes. Beats 2 and 3 also time out on their own, so a player who ignores the
-tour entirely is still finished with it inside half a minute. The bubble is
-placed above its ring by preference — below would land it on the deck — and the
-whole thing is remembered in `save.tutorialDone`, so it never appears twice.
-Ordinary onboarding hints stand down while it is on screen.
+describes.
+
+**The middle two beats rig the queue**, because "two of the same shape fuse" is
+a rule you learn by doing it once, not by reading it. While beat 2 is up, every
+piece the tour hands you is a twin of your first one, so a fusion is always one
+well-aimed drop away and the ring stays until you land it. The moment one fuses,
+the tour does the exact opposite and slips in a shape that matches nothing on
+the deck — the fastest way to teach that fusing is a rule and not just what
+happens. After that the queue is back to normal for good.
+
+Rigging only ever rewrites `queue[1]` **before it is shown**, so the NEXT box
+still never lies about what is coming; and because a lucky cascade can grow the
+tower into the odd shape's tier during the two drops it takes to arrive, the
+tour checks again the instant before it falls and quietly lines up a fresh one
+if it is no longer an orphan.
+
+Beat 3 waits for the odd shape to land and beat 4 waits 15 seconds for a BANK
+before giving up, so a player who ignores the tour is finished with it anyway.
+The bubble is placed above its ring by preference — below would land it on the
+deck. `save.tutorialDone` keeps it from ever appearing twice, `tutorialRuns`
+retires it after three runs for a player who never fuses or banks, and ordinary
+onboarding hints stand down while it is on screen.
 
 ## Shapes
 
