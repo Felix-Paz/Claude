@@ -93,7 +93,7 @@ something worth watching and a fast one gets nothing at all.
 **The mark in the HUD is a character, not a watermark.** It sits at the bottom
 of the play screen at 30% opacity and, once in a while, it earns its keep: a
 three-second piece of theatre built out of the game's own vocabulary. There are
-sixteen acts and they are dealt from a shuffled bag, so all sixteen are seen
+fifteen acts and they are dealt from a shuffled bag, so all fifteen are seen
 before any repeats.
 
 - **FUSE** — OVER and STACK each get the same shape; STACK lifts, lands on
@@ -117,7 +117,6 @@ before any repeats.
   itself.
 - **MAGNET** — scattered, held, then snapped home in a single beat.
 - **SWELL** — the word thickens, glows and opens its spacing, holds, and lets go.
-- **GLINT** — a specular band passes across and every letter it touches lifts.
 - **FLIP** — a split-flap board turning each letter over in sequence.
 - **STAMP** — the word is driven flat, throws an impact ring, and springs back.
 - **SPLIT** — OVER and STACK open a gap, a piece drops through, and they close
@@ -132,8 +131,8 @@ and a half letter-heights, because vertical movement is what pulls the eye off
 the tower.
 
 Props sit **behind** the letters — a black hole on top of the word reads as a
-blot rather than a hole — except the meteor, the angry block and the glint,
-which are meant to pass in front of it. The six acts that scatter the word each
+blot rather than a hole — except the meteor and the angry block, which are meant
+to pass in front of it. The six acts that scatter the word each
 bend the same hand-placed base scatter their own way, mirrored or widened or
 flattened, so the set does not have one face.
 
@@ -151,10 +150,13 @@ plain numbers.
 the big reaction words all sit in the empty band under the GREED pill — clear of
 it at every width — and well above the blocks and the landing.
 
-**The NEXT preview is never sliced by its own box.** Several specials paint well
-outside their own radius (a star's points, a bomb's fuse, a jackpot's rays), and
-a special also has a label to clear, so the icon is centred in the space that is
-actually left and capped by it rather than drawn at a fixed size and cropped.
+**The NEXT preview is never sliced by its own box.** The label is laid out
+first, because how much room the icon gets depends on how many lines it takes: a
+name too long to shrink readably wraps instead (JACKPOT / DIAMOND), and the icon
+is then centred in whatever is left and capped by it. Several specials paint well
+outside their own radius — a star's points, a bomb's fuse, a jackpot's rays — and
+each has a measured allowance. The canvas is sized to real device pixels rather
+than CSS pixels, which is what was making the type look mushy.
 
 ## The first run
 
@@ -234,9 +236,11 @@ sample at build time, the context asks for `latencyHint: 'interactive'`, and the
 one deliberate delay left — the wait to see whether a landing fuses — is 55ms.
 
 The landing sound is the sound of a piece that *found nobody*, so it waits 130ms
-to see whether a fusion follows and stays quiet if one does; and a later landing
-supersedes it, so a settling cascade is one sound rather than five. Fusions pitch
-the recorded jump up the pentatonic ladder as the chain climbs.
+to see whether a fusion follows and stays quiet if one does — and a piece that
+already has a partner in reach when it touches down never even schedules it,
+because the fusion sound is coming. A later landing supersedes an earlier one, so
+a settling cascade is one sound rather than five. Fusions pitch their own sample
+up the pentatonic ladder as the chain climbs.
 
 Everything shares one signal path: a bus into a **soft-knee limiter** and a
 high-shelf tilt, so overlapping cues sit in the mix instead of stabbing; one
@@ -261,7 +265,8 @@ rotation fetched ahead, so a switch never stalls.
 **Switching songs is never a cut.** The outgoing one falls away through a
 closing lowpass while the incoming one opens up through one — how a DJ leaves a
 track, and far better than a fade. Big moments duck the music briefly rather
-than fighting it. **Sound effects and music are separate switches**, because
+than fighting it, and the whole bed sits at about a tenth of full scale: it is a
+room, not a performance, and the effects have to cut through it. **Sound effects and music are separate switches**, because
 they are separate things: the effects are information, the music is a room.
 
 **Haptics are a percussion section, not a rumble pack.** Eighteen named cues,
