@@ -90,7 +90,7 @@ something worth watching and a fast one gets nothing at all.
 **The mark in the HUD is a character, not a watermark.** It sits at the bottom
 of the play screen at 30% opacity and, once in a while, it earns its keep: a
 three-second piece of theatre built out of the game's own vocabulary. There are
-eleven acts and they are dealt from a shuffled bag, so all eleven are seen
+sixteen acts and they are dealt from a shuffled bag, so all sixteen are seen
 before any repeats.
 
 - **FUSE** — OVER and STACK each get the same shape; STACK lifts, lands on
@@ -113,6 +113,12 @@ before any repeats.
 - **TUMBLE** — the whole word leans like a tower about to go, then rights
   itself.
 - **MAGNET** — scattered, held, then snapped home in a single beat.
+- **SWELL** — the word thickens, glows and opens its spacing, holds, and lets go.
+- **GLINT** — a specular band passes across and every letter it touches lifts.
+- **FLIP** — a split-flap board turning each letter over in sequence.
+- **STAMP** — the word is driven flat, throws an impact ring, and springs back.
+- **SPLIT** — OVER and STACK open a gap, a piece drops through, and they close
+  on it.
 
 Three rules hold across all of them. Every act **opens and closes on the plain
 resting wordmark**, with a real entrance and exit rather than a fade, so any two
@@ -121,6 +127,12 @@ choreography writes to `#hud-brand` itself, which also keeps it centred. And
 motion stays inside a small envelope: vertical travel never exceeds about two
 and a half letter-heights, because vertical movement is what pulls the eye off
 the tower.
+
+Props sit **behind** the letters — a black hole on top of the word reads as a
+blot rather than a hole — except the meteor, the angry block and the glint,
+which are meant to pass in front of it. The six acts that scatter the word each
+bend the same hand-placed base scatter their own way, mirrored or widened or
+flattened, so the set does not have one face.
 
 Acts only begin from DECISION, the one moment nothing is falling; never during
 the first-run tour, on a low-tier device, or under reduced motion; and never in
@@ -138,13 +150,15 @@ blocks and the landing.
 
 ## The first run
 
-A brand-new player gets a four-beat tour, once, ever. Each beat is a gold ring
+A brand-new player gets a five-beat tour, once, ever. Each beat is a gold ring
 drawn around the thing you are meant to touch and one short line above it:
 
 1. the drop point — *"Tap anywhere to drop. It lands where you tap."*
 2. the piece on the deck — *"Two of the same shape fuse into a bigger one."*
 3. the NEXT box — *"This one matches nothing. Different shapes just stack."*
-4. the BANK button — *"A fall takes every coin you have not banked."*
+4. the GREED pill — *"GREED climbs with every drop, and it multiplies
+   everything you fuse."*
+5. the BANK button — *"But a fall takes every coin you have not banked."*
 
 Nothing is dimmed, nothing is modal, and there is no Next button: the overlay is
 `pointer-events: none` and each beat is dismissed by **doing the thing** it
@@ -164,10 +178,11 @@ tower into the odd shape's tier during the two drops it takes to arrive, the
 tour checks again the instant before it falls and quietly lines up a fresh one
 if it is no longer an orphan.
 
-Beat 3 waits for the odd shape to land and beat 4 waits 15 seconds for a BANK
-before giving up, so a player who ignores the tour is finished with it anyway.
-The bubble is placed above its ring by preference — below would land it on the
-deck. `save.tutorialDone` keeps it from ever appearing twice, `tutorialRuns`
+Beat 3 waits for the odd shape to land, beat 4 for the next drop, and beat 5
+waits 15 seconds for a BANK before giving up, so a player who ignores the tour
+is finished with it anyway. The ring takes the shape of what it is pointing at —
+a circle round the GREED pill would swallow half the HUD — and the bubble is
+placed above it by preference, because below would land it on the deck. `save.tutorialDone` keeps it from ever appearing twice, `tutorialRuns`
 retires it after three runs for a player who never fuses or banks, and ordinary
 onboarding hints stand down while it is on screen.
 
@@ -188,6 +203,25 @@ where there is room for it, keeps the wider view.
 the menu chip beside it, no wider than it needs to be. The running total drops
 off the button because it is already the biggest number on the screen.
 
+**Sound is a synth engine, not a bag of beeps.** Three things do most of the
+work. Everything lands on a shared bus into a soft-knee limiter and a high-shelf
+tilt, so two fusions and a collapse at once sit in the mix instead of stabbing,
+and the fizz that makes WebAudio games sound cheap is gone. One synthesised
+stereo room — decorrelated noise with an exponential tail, built at load — turns
+dry oscillators into sounds that happen somewhere, and every voice picks how wet
+it is. And everything is in one key, C minor pentatonic across four octaves, so
+any two sounds that overlap are consonant by construction; fusions climb the
+ladder as the combo climbs.
+
+The voices are FM bells, filtered triangles and noise through envelope-swept
+filters — there is not a single raw sawtooth stab left. Anything that happens at
+a place on the deck is panned to it. Banking is the most satisfying sound in the
+game by design: a resolved minor-seventh spread with soft attacks, a rising sub,
+and coins somewhere in the room. Under it all is a room tone that breathes
+rather than drones — detuned triangles under a slowly moving filter that only
+gets louder and brighter as the run gets more dangerous, and ducks out of the
+way of anything big.
+
 **Haptics are a percussion section, not a rumble pack.** Eighteen named cues,
 almost all of them shaped patterns — a soft pre-tick into a strong hit, or a run
 of taps that resolves — rather than one flat buzz: the tap as you take aim, the
@@ -200,8 +234,9 @@ bank, a superpower, the collapse.
 Every cue carries a weight, and weight is the dramatic scale: nothing fires
 within 70ms of the last cue unless it is heavier than what is already playing,
 so a collapse always cuts through a landing and the game can never settle into
-continuous noise. On a device with no vibration motor at all the Haptics switch
-is removed from Settings rather than left there doing nothing.
+continuous noise. The Haptics switch is offered on every device: iOS exposes no
+Vibration API at all, so feature-detecting it would hide the switch on exactly
+the phones most likely to want it.
 
 ## Shapes
 

@@ -240,8 +240,12 @@ body {
 #hud-brand.act-magnet i { --sx: calc(var(--bx) * -1.15); --sy: calc(var(--by) * 1.22); --sr: calc(var(--br) * -1.2); }
 
 /* the props layer: half-frames, the merge ring, and one prop per act */
-#hud-brand .wm-fx { position: absolute; inset: 0; pointer-events: none; }
+#hud-brand .wm-fx { position: absolute; inset: 0; pointer-events: none; z-index: -1; }
 #hud-brand .wm-fx > b { position: absolute; display: block; opacity: 0; }
+/* ...except the three that are meant to pass in front of it */
+#hud-brand.act-meteor .wm-fx,
+#hud-brand.act-angry .wm-fx,
+#hud-brand.act-glint .wm-fx { z-index: 1; }
 #hud-brand .wm-fa, #hud-brand .wm-fb, #hud-brand .wm-fm {
   top: -36%; height: 172%;
   background: rgba(255,255,255,0.18);
@@ -467,15 +471,33 @@ body {
 /* ============ act 7 — a gust blows it back into line =================== */
 #hud-brand.act-wind i { animation: a7-letter 3.1s both; animation-delay: calc(var(--i) * 0.03s); }
 #hud-brand.act-wind .wm-prop { animation: a7-gust 3.1s cubic-bezier(.35,0,.4,1) both; }
+/* One moving body of air, not five bars. A wide blurred sheet carries the
+   gust and four tapered streaks ride it at different heights and speeds — the
+   ends fade out, so nothing ever reads as a box. */
 #hud-brand.act-wind .wm-prop {
-  left: 0; top: -14%; width: 4.6em; height: 0.1em; margin: 0;
-  border-radius: 1em; background: rgba(255,255,255,0.9);
-  box-shadow:
-    0 0.55em 0 -0.008em rgba(255,255,255,0.75),
-    0 1.12em 0 -0.02em rgba(255,255,255,0.6),
-    0 1.70em 0 -0.03em rgba(255,255,255,0.45),
-    0 2.24em 0 -0.045em rgba(255,255,255,0.3);
+  left: -80%; top: -230%; width: 110%; height: 560%; margin: 0;
+  border-radius: 50%;
+  background: linear-gradient(96deg, transparent 0%, rgba(255,255,255,0.04) 20%,
+    rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.04) 80%, transparent 100%);
+  filter: blur(3px);
 }
+#hud-brand.act-wind .wm-prop2,
+#hud-brand.act-wind .wm-prop3,
+#hud-brand.act-wind .wm-prop4,
+#hud-brand.act-wind .wm-prop5 {
+  left: -70%; width: 120%; height: 0.085em; margin: 0; border-radius: 1em;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 18%,
+    rgba(255,255,255,0.95) 52%, rgba(255,255,255,0.35) 80%, transparent 100%);
+}
+#hud-brand.act-wind .wm-prop2 { top: -95%; }
+#hud-brand.act-wind .wm-prop3 { top: 22%;  height: 0.1em; }
+#hud-brand.act-wind .wm-prop4 { top: 118%; opacity: 0; }
+#hud-brand.act-wind .wm-prop5 { top: -32%; height: 0.07em; }
+#hud-brand.act-wind .wm-prop  { animation: a7-body 3.1s cubic-bezier(.3,0,.35,1) both; }
+#hud-brand.act-wind .wm-prop2 { animation: a7-streak 3.1s cubic-bezier(.32,0,.4,1) both; }
+#hud-brand.act-wind .wm-prop3 { animation: a7-streak 3.1s cubic-bezier(.28,0,.36,1) both 0.07s; }
+#hud-brand.act-wind .wm-prop4 { animation: a7-streak 3.1s cubic-bezier(.34,0,.42,1) both 0.13s; }
+#hud-brand.act-wind .wm-prop5 { animation: a7-streak 3.1s cubic-bezier(.3,0,.38,1) both 0.19s; }
 @keyframes a7-letter {
   0%   { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.3,0,.35,1); }
   18%  { transform: translate(var(--sx), var(--sy)) rotate(var(--sr)); }
@@ -485,12 +507,19 @@ body {
   79%  { transform: translate(0,0) rotate(3deg); }
   88%, 100% { transform: translate(0,0) rotate(0); }
 }
-@keyframes a7-gust {
-  0%, 32% { opacity: 0; transform: translateX(-4.2em) scaleX(0.5); }
-  38%     { opacity: 1; transform: translateX(-1.4em) scaleX(1); }
-  56%     { opacity: 1; transform: translateX(3.4em) scaleX(1.35); }
-  66%     { opacity: 0; transform: translateX(6em) scaleX(0.6); }
-  100%    { opacity: 0; }
+@keyframes a7-body {
+  0%, 28% { opacity: 0; transform: translateX(-30%); }
+  36%     { opacity: 1; }
+  60%     { opacity: 1; }
+  70%     { opacity: 0; transform: translateX(150%); }
+  100%    { opacity: 0; transform: translateX(150%); }
+}
+@keyframes a7-streak {
+  0%, 30% { opacity: 0; transform: translateX(-45%) scaleX(0.55); }
+  37%     { opacity: 0.9; transform: translateX(-10%) scaleX(1); }
+  57%     { opacity: 0.75; transform: translateX(85%) scaleX(1.25); }
+  67%     { opacity: 0; transform: translateX(140%) scaleX(0.7); }
+  100%    { opacity: 0; transform: translateX(140%); }
 }
 
 /* ============ act 8 — a bomb clears everything that is not the name ==== */
@@ -630,6 +659,126 @@ body {
   48%     { opacity: 0.9; }
   68%     { opacity: 0; transform: scale(3.4); }
   100%    { opacity: 0; transform: scale(3.4); }
+}
+
+/* ============ act 12 — it gets heavier, then lets go =================== */
+#hud-brand.act-swell i { animation: a12-letter 2.9s both; animation-delay: calc(var(--i) * 0.042s); }
+#hud-brand.act-swell .wm-over  { animation: a12-half 2.9s cubic-bezier(.3,0,.25,1) both; }
+#hud-brand.act-swell .wm-stack { animation: a12-half 2.9s cubic-bezier(.3,0,.25,1) both; }
+@keyframes a12-letter {
+  0%   { transform: scale(1); text-shadow: none; animation-timing-function: cubic-bezier(.25,0,.2,1); }
+  22%  { transform: scale(1.2, 1.16); text-shadow: 0 0 0.4em rgba(255,255,255,0.95), 0 0 0.1em rgba(255,255,255,0.9); }
+  30%  { transform: scale(1.17, 1.14); animation-timing-function: ease-in-out; }
+  50%  { transform: scale(1.17, 1.14); text-shadow: 0 0 0.4em rgba(255,255,255,0.95), 0 0 0.1em rgba(255,255,255,0.9); animation-timing-function: cubic-bezier(.5,0,.25,1); }
+  68%  { transform: scale(0.95, 0.97); text-shadow: none; animation-timing-function: cubic-bezier(.3,0,.3,1); }
+  80%  { transform: scale(1.02, 1.01); }
+  92%, 100% { transform: scale(1); text-shadow: none; }
+}
+/* the ends must match #hud-brand's own 0.04em, or the act would start and
+   finish on a wordmark that is not quite the resting one */
+@keyframes a12-half {
+  0%   { letter-spacing: 0.04em; }
+  24%  { letter-spacing: 0.095em; }
+  50%  { letter-spacing: 0.095em; }
+  70%  { letter-spacing: 0.028em; }
+  90%, 100% { letter-spacing: 0.04em; }
+}
+
+/* ============ act 13 — a specular pass, and the letters catch it ======== */
+#hud-brand.act-glint i { animation: a13-letter 2.8s ease both; animation-delay: calc(var(--i) * 0.062s); }
+#hud-brand.act-glint .wm-prop { animation: a13-sweep 2.8s cubic-bezier(.4,0,.35,1) both; }
+#hud-brand.act-glint .wm-prop {
+  left: -46%; top: -110%; width: 26%; height: 320%; margin: 0;
+  transform-origin: center;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), rgba(255,255,255,0.95), rgba(255,255,255,0.5), transparent);
+  filter: blur(1.4px);
+}
+@keyframes a13-letter {
+  0%   { transform: translateY(0) scale(1); }
+  38%  { transform: translateY(-16%) scale(1.09); }
+  56%  { transform: translateY(0) scale(1); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes a13-sweep {
+  0%, 16% { opacity: 0; transform: translateX(0) skewX(-16deg); }
+  26%     { opacity: 1; }
+  74%     { opacity: 1; transform: translateX(560%) skewX(-16deg); }
+  84%     { opacity: 0; transform: translateX(680%) skewX(-16deg); }
+  100%    { opacity: 0; }
+}
+
+/* ============ act 14 — a split-flap board turning over ================== */
+#hud-brand.act-flip .wm-over, #hud-brand.act-flip .wm-stack { perspective: 240px; }
+#hud-brand.act-flip i { animation: a14-letter 3s both; animation-delay: calc(var(--i) * 0.072s); }
+@keyframes a14-letter {
+  0%   { transform: rotateX(0) scale(1); animation-timing-function: cubic-bezier(.5,0,.55,1); }
+  16%  { transform: rotateX(92deg) scale(0.94); }
+  26%  { transform: rotateX(92deg) scale(0.94); animation-timing-function: cubic-bezier(.35,0,.2,1); }
+  40%  { transform: rotateX(-14deg) scale(1.03); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+  50%  { transform: rotateX(5deg) scale(1); }
+  60%, 100% { transform: rotateX(0) scale(1); }
+}
+
+/* ============ act 15 — stamped flat, then it springs back ============== */
+#hud-brand.act-stamp i { animation: a15-letter 2.9s both; animation-delay: calc(var(--i) * 0.014s); }
+#hud-brand.act-stamp .wm-ring { animation: a15-shock 2.9s cubic-bezier(.2,0,.3,1) both; }
+@keyframes a15-letter {
+  0%   { transform: scale(1, 1) translateY(0); animation-timing-function: cubic-bezier(.6,0,.85,.35); }
+  20%  { transform: scale(1, 1.18) translateY(-24%); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+  30%  { transform: scale(1.12, 0.66) translateY(16%); animation-timing-function: cubic-bezier(.2,0,.25,1); }
+  38%  { transform: scale(1.05, 0.84) translateY(7%); animation-timing-function: cubic-bezier(.15,.85,.3,1); }
+  56%  { transform: scale(0.98, 1.06) translateY(-4%); animation-timing-function: cubic-bezier(.35,0,.3,1); }
+  70%  { transform: scale(1.01, 0.98) translateY(0); }
+  84%, 100% { transform: scale(1, 1) translateY(0); }
+}
+#hud-brand.act-stamp .wm-ring { border-width: 1px; }
+@keyframes a15-shock {   /* an impact ring on the ground, not a blast */
+  0%, 29% { opacity: 0; transform: scale(0.25) scaleY(0.4); }
+  33%     { opacity: 0.85; }
+  56%     { opacity: 0; transform: scale(2.3) scaleY(0.5); }
+  100%    { opacity: 0; transform: scale(2.3) scaleY(0.5); }
+}
+
+/* ============ act 16 — the word opens, and something drops through ===== */
+#hud-brand.act-split .wm-over  { animation: a16-left 3.1s both; }
+#hud-brand.act-split .wm-stack { animation: a16-right 3.1s both; }
+#hud-brand.act-split .wm-prop  { animation: a16-piece 3.1s both; }
+#hud-brand.act-split .wm-ring  { animation: a16-crush 3.1s ease both; }
+#hud-brand.act-split .wm-prop {
+  width: 0.82em; height: 0.82em; margin: -0.41em 0 0 -0.41em;
+  background: rgba(255,255,255,0.5);
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+@keyframes a16-left {
+  0%   { transform: translateX(0); animation-timing-function: cubic-bezier(.35,0,.25,1); }
+  22%  { transform: translateX(-22%); }
+  46%  { transform: translateX(-22%); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+  62%  { transform: translateX(3%); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+  72%  { transform: translateX(-1.5%); }
+  84%, 100% { transform: translateX(0); }
+}
+@keyframes a16-right {
+  0%   { transform: translateX(0); animation-timing-function: cubic-bezier(.35,0,.25,1); }
+  22%  { transform: translateX(18%); }
+  46%  { transform: translateX(18%); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+  62%  { transform: translateX(-2.5%); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+  72%  { transform: translateX(1.2%); }
+  84%, 100% { transform: translateX(0); }
+}
+@keyframes a16-piece {
+  0%, 18% { opacity: 0; transform: translateY(-320%) rotate(-30deg) scale(0.8); }
+  26%     { opacity: 1; transform: translateY(-140%) rotate(-14deg) scale(1); animation-timing-function: cubic-bezier(.5,0,.8,.45); }
+  44%     { opacity: 1; transform: translateY(0) rotate(0) scale(1); }
+  52%     { opacity: 1; transform: translateY(0) rotate(0) scale(1); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+  60%     { opacity: 0.9; transform: translateY(0) rotate(0) scale(0.3, 1.25); }
+  66%     { opacity: 0; transform: translateY(0) rotate(0) scale(0.1, 1.4); }
+  100%    { opacity: 0; }
+}
+@keyframes a16-crush {
+  0%, 57% { opacity: 0; transform: scale(0.15); }
+  61%     { opacity: 0.8; }
+  78%     { opacity: 0; transform: scale(1.7); }
+  100%    { opacity: 0; transform: scale(1.7); }
 }
 
 /* Reduced motion opts out of the whole idea, not just the props. */
@@ -1132,7 +1281,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 
 <!-- HUD -->
 <div id="hud" class="hidden">
-  <div id="hud-brand" class="wordmark"><span class="wm-over"><i style="--i:0">O</i><i style="--i:1">V</i><i style="--i:2">E</i><i style="--i:3">R</i></span><span class="wm-stack"><i style="--i:4">S</i><i style="--i:5">T</i><i style="--i:6">A</i><i style="--i:7">C</i><i style="--i:8">K</i></span><span class="wm-fx" aria-hidden="true"><b class="wm-fa"></b><b class="wm-fb"></b><b class="wm-fm"></b><b class="wm-prop"></b><b class="wm-ring"></b><b class="wm-junk" style="--jx:-3.1em;--jy:-1.5em;--jr:-22deg">A</b><b class="wm-junk" style="--jx:3.4em;--jy:-1.9em;--jr:18deg">K</b><b class="wm-junk" style="--jx:-2.4em;--jy:0.7em;--jr:26deg">T</b><b class="wm-junk" style="--jx:2.7em;--jy:0.9em;--jr:-19deg">O</b><b class="wm-junk" style="--jx:-0.9em;--jy:-2.4em;--jr:12deg">S</b><b class="wm-junk" style="--jx:1.2em;--jy:-2.6em;--jr:-15deg">C</b></span></div>
+  <div id="hud-brand" class="wordmark"><span class="wm-over"><i style="--i:0">O</i><i style="--i:1">V</i><i style="--i:2">E</i><i style="--i:3">R</i></span><span class="wm-stack"><i style="--i:4">S</i><i style="--i:5">T</i><i style="--i:6">A</i><i style="--i:7">C</i><i style="--i:8">K</i></span><span class="wm-fx" aria-hidden="true"><b class="wm-fa"></b><b class="wm-fb"></b><b class="wm-fm"></b><b class="wm-prop"></b><b class="wm-prop2"></b><b class="wm-prop3"></b><b class="wm-prop4"></b><b class="wm-prop5"></b><b class="wm-ring"></b><b class="wm-junk" style="--jx:-3.1em;--jy:-1.5em;--jr:-22deg">A</b><b class="wm-junk" style="--jx:3.4em;--jy:-1.9em;--jr:18deg">K</b><b class="wm-junk" style="--jx:-2.4em;--jy:0.7em;--jr:26deg">T</b><b class="wm-junk" style="--jx:2.7em;--jy:0.9em;--jr:-19deg">O</b><b class="wm-junk" style="--jx:-0.9em;--jy:-2.4em;--jr:12deg">S</b><b class="wm-junk" style="--jx:1.2em;--jy:-2.6em;--jr:-15deg">C</b></span></div>
   <div id="hud-score-wrap">
     <span class="metric-label">COINS THIS RUN</span>
     <div id="run-score"><span id="run-score-num">0</span></div>
@@ -1220,7 +1369,6 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   <div id="settings-card" class="glass">
     <button class="card-x" id="settings-x"></button>
     <h2>SETTINGS</h2>
-    <div class="card-sub">Kept deliberately tiny.</div>
     <div class="setting-row"><span>Sound</span><button class="toggle" id="tgl-sound"></button></div>
     <div class="setting-row" id="row-haptics"><span>Haptics</span><button class="toggle" id="tgl-haptics"></button></div>
     <div class="setting-row"><span>Reduce motion / low power</span><button class="toggle" id="tgl-motion"></button></div>
@@ -1711,147 +1859,350 @@ FeedbackBus.on('explosion', () => haptic('blast'));
 FeedbackBus.on('bank', () => haptic('bank'));
 FeedbackBus.on('collapse', () => haptic('collapse'));
 
-/* ============================ §6 AUDIO (WebAudio synth) =================== */
+/* ============================ §6 AUDIO ====================================
+   A small synth engine rather than a bag of beeps. Three things do most of
+   the work:
+
+   · Everything lands on a shared bus → soft-knee limiter → high-shelf tilt.
+     The limiter means two fusions and a collapse at once still sit in the mix
+     instead of stabbing; the tilt takes the fizz off the top, which is most of
+     what makes a WebAudio game sound cheap.
+   · One synthesised room. A stereo impulse response — decorrelated noise with
+     an exponential tail — turns dry oscillators into sounds that happen
+     somewhere. Every voice chooses how wet it is.
+   · Everything is in one key (C minor pentatonic) across four octaves, so any
+     two sounds that overlap are consonant by construction. Fusions climb the
+     ladder as the combo climbs; nothing is ever detuned into sourness.
+
+   Voices are FM bells, filtered triangles and noise through envelope-swept
+   filters — no raw sawtooth stabs anywhere — and everything that happens at a
+   place on the deck is panned to it. */
 const Audio2 = {
-  ctx: null, master: null, ambient: null,
+  ctx: null, master: null, bus: null, send: null, pad: null, noiseBuf: null,
+  voices: 0,
+  // C minor pentatonic, in semitones from C3
+  SCALE: [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24, 27, 29, 31],
+  C3: 130.81,
+
   ensure() {
     if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
     try {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const AC = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AC();
+
+      const comp = this.ctx.createDynamicsCompressor();
+      comp.threshold.value = -15; comp.knee.value = 28; comp.ratio.value = 9;
+      comp.attack.value = 0.004; comp.release.value = 0.24;
+      const tilt = this.ctx.createBiquadFilter();
+      tilt.type = 'highshelf'; tilt.frequency.value = 6000; tilt.gain.value = -7;
+
       this.master = this.ctx.createGain();
-      this.master.gain.value = 0.55;
+      this.master.gain.value = 0.6;
+      this.bus = this.ctx.createGain();
+      this.bus.connect(comp); comp.connect(tilt); tilt.connect(this.master);
       this.master.connect(this.ctx.destination);
-      this.startAmbient();
+
+      const verb = this.ctx.createConvolver();
+      verb.buffer = this.buildRoom(2.1, 3.2);
+      const verbTone = this.ctx.createBiquadFilter();
+      verbTone.type = 'lowpass'; verbTone.frequency.value = 3400; verbTone.Q.value = 0.4;
+      const verbCut = this.ctx.createBiquadFilter();
+      verbCut.type = 'highpass'; verbCut.frequency.value = 180;   // keeps the tail out of the low end
+      const verbGain = this.ctx.createGain(); verbGain.gain.value = 0.95;
+      this.send = this.ctx.createGain(); this.send.gain.value = 1;
+      this.send.connect(verb); verb.connect(verbCut); verbCut.connect(verbTone);
+      verbTone.connect(verbGain); verbGain.connect(this.bus);
+
+      this.noiseBuf = this.buildNoise(2);
+      this.startPad();
     } catch (e) { this.ctx = null; }
   },
   get on() { return this.ctx && Settings.sound; },
-  env(gainNode, t0, peak, attack, decay) {
-    const g = gainNode.gain;
-    g.setValueAtTime(0.0001, t0);
-    g.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t0 + attack);
-    g.exponentialRampToValueAtTime(0.0001, t0 + attack + decay);
+
+  buildRoom(seconds, decay) {
+    const rate = this.ctx.sampleRate;
+    const len = Math.max(1, Math.floor(rate * seconds));
+    const buf = this.ctx.createBuffer(2, len, rate);
+    for (let c = 0; c < 2; c++) {
+      const ch = buf.getChannelData(c);
+      let lp = 0;
+      for (let i = 0; i < len; i++) {
+        const t = i / len;
+        // a touch of early-reflection sparseness, then a smooth exponential tail
+        const sparse = i < rate * 0.06 ? (Math.random() < 0.35 ? 1 : 0.15) : 1;
+        const white = (Math.random() * 2 - 1) * sparse;
+        lp += (white - lp) * 0.36;                  // dark, not hissy
+        ch[i] = lp * Math.pow(1 - t, decay);
+      }
+    }
+    return buf;
   },
-  tone({ freq, type = 'sine', peak = 0.2, attack = 0.006, decay = 0.3, detune = 0, when = 0, slideTo = 0 }) {
-    if (!this.on) return;
-    const t0 = this.ctx.currentTime + when;
-    const osc = this.ctx.createOscillator();
-    const g = this.ctx.createGain();
-    osc.type = type; osc.frequency.setValueAtTime(freq, t0); osc.detune.value = detune;
-    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t0 + attack + decay);
-    this.env(g, t0, peak, attack, decay);
-    osc.connect(g); g.connect(this.master);
-    osc.start(t0); osc.stop(t0 + attack + decay + 0.05);
-  },
-  noise({ peak = 0.15, decay = 0.3, filterFrom = 2400, filterTo = 300, type = 'bandpass', when = 0 }) {
-    if (!this.on) return;
-    const t0 = this.ctx.currentTime + when;
-    const len = Math.ceil(this.ctx.sampleRate * (decay + 0.1));
-    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+  buildNoise(seconds) {
+    const rate = this.ctx.sampleRate;
+    const len = Math.floor(rate * seconds);
+    const buf = this.ctx.createBuffer(1, len, rate);
     const ch = buf.getChannelData(0);
     for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
-    const src = this.ctx.createBufferSource(); src.buffer = buf;
-    const filt = this.ctx.createBiquadFilter(); filt.type = type;
-    filt.frequency.setValueAtTime(filterFrom, t0);
-    filt.frequency.exponentialRampToValueAtTime(Math.max(filterTo, 40), t0 + decay);
+    return buf;
+  },
+  // world x → a gentle stereo placement; nothing is ever hard-panned
+  panOf(x) { return clamp(((x || WORLD.width / 2) - WORLD.width / 2) / (WORLD.width / 2), -1, 1) * 0.7; },
+  note(step, octave = 0) {
+    const s = this.SCALE[clamp(step | 0, 0, this.SCALE.length - 1)];
+    return this.C3 * Math.pow(2, s / 12 + octave);
+  },
+  tail(g, t0, peak, attack, hold, decay) {
+    const p = Math.max(peak, 0.0004);
+    g.setValueAtTime(0.0001, t0);
+    g.linearRampToValueAtTime(p, t0 + attack);
+    if (hold) g.setValueAtTime(p, t0 + attack + hold);
+    g.exponentialRampToValueAtTime(0.0004, t0 + attack + hold + decay);
+    g.linearRampToValueAtTime(0, t0 + attack + hold + decay + 0.02);
+  },
+
+  /* one voice: optional FM, a swept lowpass, a real envelope, a pan, and a
+     choice of how much room it sits in */
+  voice(o) {
+    if (!this.on || this.voices > 26) return;
+    const t0 = this.ctx.currentTime + (o.when || 0);
+    const dur = (o.attack || 0.006) + (o.hold || 0) + (o.decay || 0.3) + 0.06;
+    const osc = this.ctx.createOscillator();
+    osc.type = o.type || 'sine';
+    osc.frequency.setValueAtTime(o.freq, t0);
+    if (o.detune) osc.detune.value = o.detune;
+    if (o.slideTo) osc.frequency.exponentialRampToValueAtTime(Math.max(o.slideTo, 20), t0 + dur * 0.9);
+
+    if (o.fm) {                                   // FM index → bell / metal / body
+      const m = this.ctx.createOscillator();
+      const mg = this.ctx.createGain();
+      m.type = 'sine';
+      m.frequency.setValueAtTime(o.freq * (o.fmRatio || 2), t0);
+      mg.gain.setValueAtTime(o.freq * o.fm, t0);
+      mg.gain.exponentialRampToValueAtTime(Math.max(o.freq * o.fm * 0.04, 0.5), t0 + dur * 0.7);
+      m.connect(mg); mg.connect(osc.frequency);
+      m.start(t0); m.stop(t0 + dur);
+    }
+
+    let node = osc;
+    if (o.cutoff) {
+      const f = this.ctx.createBiquadFilter();
+      f.type = 'lowpass'; f.Q.value = o.q || 0.8;
+      f.frequency.setValueAtTime(o.cutoff, t0);
+      if (o.cutoffTo) f.frequency.exponentialRampToValueAtTime(Math.max(o.cutoffTo, 60), t0 + dur * 0.8);
+      osc.connect(f); node = f;
+    }
     const g = this.ctx.createGain();
-    this.env(g, t0, peak, 0.005, decay);
-    src.connect(filt); filt.connect(g); g.connect(this.master);
-    src.start(t0); src.stop(t0 + decay + 0.1);
+    this.tail(g.gain, t0, o.peak == null ? 0.2 : o.peak, o.attack || 0.006, o.hold || 0, o.decay || 0.3);
+    node.connect(g);
+
+    const pan = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
+    if (pan) { pan.pan.value = o.pan || 0; g.connect(pan); } else { node = g; }
+    const out = pan || g;
+    out.connect(this.bus);
+    if (o.verb !== 0) {
+      const s = this.ctx.createGain();
+      s.gain.value = o.verb == null ? 0.16 : o.verb;
+      out.connect(s); s.connect(this.send);
+    }
+    this.voices++;
+    osc.start(t0); osc.stop(t0 + dur);
+    osc.onended = () => { this.voices--; };
   },
-  PENTA: [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24],
-  fusion(comboIdx, tier) {
-    if (!this.on) return;
-    const step = this.PENTA[Math.min(comboIdx, this.PENTA.length - 1)];
-    const base = 262 * Math.pow(2, step / 12);
-    const types = ['sine', 'triangle', 'sine', 'triangle'];
-    this.tone({ freq: base, type: pick(types), peak: 0.22, decay: 0.34, detune: rand(-9, 9) });
-    this.tone({ freq: base * 2, type: 'sine', peak: 0.07 + tier * 0.008, decay: 0.22, detune: rand(-6, 6), when: 0.012 });
-    if (tier >= 4) this.tone({ freq: base * 3, type: 'sine', peak: 0.045, decay: 0.3, when: 0.03 });
-    this.noise({ peak: 0.04 + tier * 0.006, decay: 0.14, filterFrom: 5200, filterTo: 2000 });
+
+  hiss(o) {
+    if (!this.on || !this.noiseBuf) return;
+    const t0 = this.ctx.currentTime + (o.when || 0);
+    const decay = o.decay || 0.2;
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.noiseBuf;
+    src.loop = true;
+    src.playbackRate.value = 0.8 + Math.random() * 0.4;
+    const f = this.ctx.createBiquadFilter();
+    f.type = o.type || 'bandpass';
+    f.Q.value = o.q || 0.9;
+    f.frequency.setValueAtTime(o.from || 2400, t0);
+    f.frequency.exponentialRampToValueAtTime(Math.max(o.to || 300, 40), t0 + decay);
+    const g = this.ctx.createGain();
+    this.tail(g.gain, t0, o.peak == null ? 0.12 : o.peak, o.attack || 0.004, 0, decay);
+    src.connect(f); f.connect(g);
+    const pan = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
+    if (pan) { pan.pan.value = o.pan || 0; g.connect(pan); }
+    const out = pan || g;
+    out.connect(this.bus);
+    if (o.verb) { const s = this.ctx.createGain(); s.gain.value = o.verb; out.connect(s); s.connect(this.send); }
+    src.start(t0, Math.random() * 1.5);
+    src.stop(t0 + decay + 0.08);
   },
-  chain(n) { // rising riser as the chain escalates
+
+  /* ---------------- the sounds ---------------- */
+  drop(x) {
+    const pan = this.panOf(x);
+    // air moving, not a click: a short down-swept breath with a soft body
+    this.hiss({ peak: 0.05, decay: 0.19, from: 2600, to: 420, q: 0.6, pan, verb: 0.1 });
+    this.voice({ freq: 320, type: 'sine', peak: 0.05, attack: 0.004, decay: 0.16, slideTo: 150, pan, verb: 0.08 });
+  },
+  land(impact, x) {
+    const pan = this.panOf(x);
+    const v = clamp(impact, 0, 1);
+    // a wooden tok: pitched body + a tiny transient, both scaled by the landing
+    this.voice({ freq: 168 - v * 34, type: 'triangle', peak: 0.05 + v * 0.09, attack: 0.002,
+      decay: 0.12 + v * 0.08, slideTo: 96, cutoff: 1500 + v * 2200, cutoffTo: 380, q: 1.4, pan, verb: 0.09 });
+    this.hiss({ peak: 0.018 + v * 0.05, decay: 0.06 + v * 0.04, from: 3200, to: 500, type: 'lowpass', pan, verb: 0.06 });
+    if (v > 0.55) this.voice({ freq: 62, type: 'sine', peak: 0.07 * v, attack: 0.004, decay: 0.16, pan: 0, verb: 0 });
+  },
+  fusion(comboIdx, tier, x) {
     if (!this.on) return;
-    const root = 330 * Math.pow(1.5, Math.min(n - 2, 3));
-    this.tone({ freq: root, type: 'sawtooth', peak: 0.06, attack: 0.02, decay: 0.4, slideTo: root * 1.5 });
-    this.tone({ freq: root * 2, type: 'sine', peak: 0.1, decay: 0.35, when: 0.05 });
+    const pan = this.panOf(x);
+    const step = clamp((comboIdx | 0) + 1, 0, this.SCALE.length - 1);
+    const oct = tier >= 6 ? 1 : tier >= 3 ? 0.5 : 0;
+    const f = this.note(step, oct);
+    // the bell: FM index falls with tier so big merges read rounder, not harsher
+    this.voice({ freq: f, type: 'sine', fm: 1.9 - Math.min(tier, 7) * 0.12, fmRatio: 2.01,
+      peak: 0.17, attack: 0.003, decay: 0.55 + tier * 0.05, pan, verb: 0.3 });
+    this.voice({ freq: f * 2, type: 'sine', peak: 0.045 + tier * 0.004, attack: 0.004,
+      decay: 0.3, when: 0.014, pan, verb: 0.34 });
+    this.voice({ freq: f / 2, type: 'triangle', peak: 0.08, attack: 0.006, decay: 0.34,
+      cutoff: 900, cutoffTo: 260, pan: pan * 0.4, verb: 0.1 });
+    if (tier >= 4) this.voice({ freq: f * 4, type: 'sine', peak: 0.03, attack: 0.002, decay: 0.5, when: 0.03, pan, verb: 0.5 });
+    this.hiss({ peak: 0.022 + tier * 0.004, decay: 0.13, from: 6800, to: 2600, pan, verb: 0.4 });
+  },
+  chain(n) {
+    if (!this.on) return;
+    const k = Math.min(n - 2, 4);
+    for (let i = 0; i < 3; i++) {
+      this.voice({ freq: this.note(4 + k * 2 + i * 2, 0.5), type: 'sine', fm: 1.1, fmRatio: 3.01,
+        peak: 0.085, attack: 0.003, decay: 0.34, when: i * 0.055, verb: 0.4 });
+    }
+    this.voice({ freq: this.note(0, 0), type: 'triangle', peak: 0.07, attack: 0.02, decay: 0.5,
+      cutoff: 500, cutoffTo: 1900, q: 3, verb: 0.2 });
   },
   jackpot() {
     if (!this.on) return;
-    [0, 4, 7, 12, 16].forEach((s, i) =>
-      this.tone({ freq: 392 * Math.pow(2, s / 12), type: i % 2 ? 'triangle' : 'sine', peak: 0.16, decay: 0.9, when: i * 0.07 }));
-    this.noise({ peak: 0.08, decay: 0.8, filterFrom: 8000, filterTo: 2500 });
+    [0, 2, 4, 5, 7].forEach((s, i) => {
+      this.voice({ freq: this.note(s, 0.5), type: 'sine', fm: 1.4, fmRatio: 2.01,
+        peak: 0.13, attack: 0.003, decay: 0.85, when: i * 0.062, verb: 0.5 });
+      this.voice({ freq: this.note(s, 1.5), type: 'sine', peak: 0.028, attack: 0.002,
+        decay: 0.6, when: i * 0.062 + 0.01, verb: 0.6 });
+    });
+    this.hiss({ peak: 0.05, decay: 0.8, from: 9000, to: 3000, verb: 0.6 });
+    this.duckPad();
   },
   newBest() {
     if (!this.on) return;
-    [0, 5, 9, 12].forEach((s, i) =>
-      this.tone({ freq: 523 * Math.pow(2, s / 12), type: 'sine', peak: 0.15, decay: 0.7, when: i * 0.09 }));
+    [0, 3, 5, 7].forEach((s, i) =>
+      this.voice({ freq: this.note(s, 1), type: 'sine', fm: 1.2, fmRatio: 2.01,
+        peak: 0.13, attack: 0.004, decay: 0.75, when: i * 0.085, verb: 0.45 }));
+    this.voice({ freq: this.note(0, -1), type: 'sine', peak: 0.1, attack: 0.01, decay: 0.9, verb: 0.1 });
   },
   explosion() {
-    this.noise({ peak: 0.3, decay: 0.6, filterFrom: 900, filterTo: 50, type: 'lowpass' });
-    this.tone({ freq: 90, type: 'sawtooth', peak: 0.12, decay: 0.5, slideTo: 35 });
-  },
-  shimmer() { // golden/rainbow block announce
     if (!this.on) return;
-    [0, 7, 12].forEach((s, i) => this.tone({ freq: 1046 * Math.pow(2, s / 12), type: 'sine', peak: 0.05, decay: 0.5, when: i * 0.06 }));
+    this.hiss({ peak: 0.2, decay: 0.55, from: 1400, to: 60, type: 'lowpass', q: 1.1, verb: 0.35 });
+    this.voice({ freq: 110, type: 'triangle', peak: 0.16, attack: 0.002, decay: 0.5,
+      slideTo: 32, cutoff: 700, cutoffTo: 90, q: 2.2, verb: 0.2 });
   },
-  drop() {
-    const v = (Math.random() * 3) | 0;
-    this.noise({ peak: 0.05, decay: 0.22 + v * 0.03, filterFrom: 1600 + v * 300, filterTo: 240 });
+  shimmer() {   // something is coming
+    if (!this.on) return;
+    [7, 9, 11].forEach((s, i) =>
+      this.voice({ freq: this.note(s, 1), type: 'sine', fm: 0.9, fmRatio: 3.01,
+        peak: 0.05, attack: 0.004, decay: 0.6, when: i * 0.07, verb: 0.65 }));
   },
-  land(impact) {
-    this.noise({ peak: clamp(0.03 + impact * 0.05, 0.03, 0.16), decay: 0.12, filterFrom: 900, filterTo: 120, type: 'lowpass' });
+  greed() {     // the multiplier crossing a whole number
+    if (!this.on) return;
+    this.voice({ freq: this.note(4, 0.5), type: 'sine', fm: 0.8, fmRatio: 2.01,
+      peak: 0.07, attack: 0.003, decay: 0.4, verb: 0.4 });
+    this.voice({ freq: this.note(7, 0.5), type: 'sine', peak: 0.045, attack: 0.003,
+      decay: 0.45, when: 0.07, verb: 0.45 });
+  },
+  danger() {
+    if (!this.on) return;
+    this.voice({ freq: this.note(0, -1), type: 'triangle', peak: 0.1, attack: 0.05, hold: 0.05,
+      decay: 0.5, cutoff: 380, cutoffTo: 140, q: 2, verb: 0.2 });
+  },
+  revive() {
+    if (!this.on) return;
+    [0, 3, 7, 12].forEach((s, i) =>
+      this.voice({ freq: this.note(0, 0) * Math.pow(2, s / 12), type: 'sine', peak: 0.09,
+        attack: 0.02, decay: 0.7, when: i * 0.07, verb: 0.5 }));
   },
   bank() {
     if (!this.on) return;
-    const root = 392;
-    [1, 1.25, 1.5, 2].forEach((r, i) => {
-      this.tone({ freq: root * r, type: 'sine', peak: 0.16, decay: 0.8, when: i * 0.06 });
-      this.tone({ freq: root * r, type: 'triangle', peak: 0.06, decay: 0.9, when: i * 0.06 });
+    // the most satisfying sound in the game: a resolved minor-seventh spread,
+    // soft attacks, a rising sub, and coins somewhere in the room
+    const root = this.note(0, 0);
+    [[1, 0.13, 0], [1.5, 0.1, 0.055], [2, 0.09, 0.105], [2.99, 0.055, 0.16]].forEach(([r, p, w]) => {
+      this.voice({ freq: root * r, type: 'sine', fm: 0.55, fmRatio: 2.01, peak: p,
+        attack: 0.012, decay: 1.05, when: w, verb: 0.42 });
     });
-    this.tone({ freq: root / 2, type: 'sine', peak: 0.18, decay: 1.1 });
-    this.duckAmbient();
+    this.voice({ freq: root / 2, type: 'sine', peak: 0.14, attack: 0.03, decay: 1.2, slideTo: root * 0.62, verb: 0.1 });
+    for (let i = 0; i < 7; i++) {
+      this.voice({ freq: this.note(5 + ((i * 3) % 7), 1.5), type: 'sine', peak: 0.026,
+        attack: 0.002, decay: 0.42, when: 0.06 + i * 0.045, pan: rand(-0.5, 0.5), verb: 0.7 });
+    }
+    this.duckPad();
   },
   collapse() {
     if (!this.on) return;
-    this.noise({ peak: 0.22, decay: 0.75, filterFrom: 700, filterTo: 60, type: 'lowpass' });
-    this.tone({ freq: 160, type: 'sawtooth', peak: 0.08, decay: 0.55 });
-    this.tone({ freq: 110, type: 'sine', peak: 0.12, decay: 0.8, when: 0.08 });
-    this.duckAmbient();
+    this.hiss({ peak: 0.16, decay: 0.85, from: 1100, to: 55, type: 'lowpass', q: 0.9, verb: 0.4 });
+    this.voice({ freq: 140, type: 'triangle', peak: 0.15, attack: 0.004, decay: 0.75,
+      slideTo: 40, cutoff: 620, cutoffTo: 80, q: 1.8, verb: 0.25 });
+    this.voice({ freq: this.note(1, -1), type: 'sine', peak: 0.1, attack: 0.02, decay: 1.1, when: 0.1, verb: 0.35 });
+    this.duckPad();
   },
-  ui() { this.tone({ freq: 660, type: 'sine', peak: 0.05, decay: 0.07 }); },
+  ui() {
+    this.voice({ freq: this.note(7, 0.5), type: 'sine', peak: 0.045, attack: 0.002,
+      decay: 0.075, cutoff: 3200, cutoffTo: 1400, verb: 0.12 });
+  },
   unlock() {
-    this.tone({ freq: 523, peak: 0.12, decay: 0.2 });
-    this.tone({ freq: 784, peak: 0.12, decay: 0.35, when: 0.09 });
+    if (!this.on) return;
+    [0, 4, 7, 11, 12].forEach((s, i) =>
+      this.voice({ freq: this.note(0, 0.5) * Math.pow(2, s / 12), type: 'sine', fm: 1.1, fmRatio: 2.01,
+        peak: 0.11, attack: 0.004, decay: 0.8, when: i * 0.075, verb: 0.55 }));
+    this.duckPad();
   },
-  startAmbient() {
+
+  /* ---------------- the room tone ----------------
+     Not a drone: three detuned triangles under a slow-moving filter, so it
+     breathes instead of buzzing. It only ever gets louder and brighter as the
+     run gets more dangerous. */
+  startPad() {
     if (!this.ctx) return;
     const g = this.ctx.createGain(); g.gain.value = 0;
-    const filt = this.ctx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 260; filt.Q.value = 0.8;
-    [98, 98.6, 147].forEach((f, i) => {
+    const filt = this.ctx.createBiquadFilter();
+    filt.type = 'lowpass'; filt.frequency.value = 260; filt.Q.value = 1.1;
+    const root = this.C3 / 2;
+    [[root, 0], [root, 7], [root * 1.5, -6], [root * 2, 4]].forEach(([f, cents]) => {
       const o = this.ctx.createOscillator();
-      o.type = i === 2 ? 'triangle' : 'sawtooth'; o.frequency.value = f;
-      o.connect(filt); o.start();
+      o.type = 'triangle'; o.frequency.value = f; o.detune.value = cents;
+      const og = this.ctx.createGain(); og.gain.value = 0.4;
+      o.connect(og); og.connect(filt); o.start();
     });
-    filt.connect(g); g.connect(this.master);
-    this.ambient = { g, filt };
+    const lfo = this.ctx.createOscillator();
+    const lfoG = this.ctx.createGain();
+    lfo.type = 'sine'; lfo.frequency.value = 0.07; lfoG.gain.value = 90;
+    lfo.connect(lfoG); lfoG.connect(filt.frequency); lfo.start();
+    const wet = this.ctx.createGain(); wet.gain.value = 0.5;
+    filt.connect(g); g.connect(this.bus);
+    g.connect(wet); wet.connect(this.send);
+    this.pad = { g, filt };
   },
   setTension(t) {
-    if (!this.ambient || !this.on) return;
+    if (!this.pad || !this.on) return;
     const ct = this.ctx.currentTime;
-    this.ambient.g.gain.setTargetAtTime(Settings.sound ? lerp(0.028, 0.08, t) : 0, ct, 0.4);
-    this.ambient.filt.frequency.setTargetAtTime(lerp(240, 1600, t * t), ct, 0.5);
+    this.pad.g.gain.setTargetAtTime(Settings.sound ? lerp(0.02, 0.062, t) : 0, ct, 0.5);
+    this.pad.filt.frequency.setTargetAtTime(lerp(220, 1250, t * t), ct, 0.6);
   },
-  duckAmbient() {
-    if (!this.ambient) return;
+  duckPad() {
+    if (!this.pad) return;
     const ct = this.ctx.currentTime;
-    this.ambient.g.gain.setTargetAtTime(0.012, ct, 0.15);
-    this.ambient.filt.frequency.setTargetAtTime(220, ct, 0.3);
+    this.pad.g.gain.setTargetAtTime(0.008, ct, 0.12);
+    this.pad.filt.frequency.setTargetAtTime(200, ct, 0.3);
   },
-  muteCheck() { if (this.ambient && this.ctx) this.ambient.g.gain.setTargetAtTime(Settings.sound ? 0.03 : 0, this.ctx.currentTime, 0.1); },
+  duckAmbient() { this.duckPad(); },
+  muteCheck() { if (this.pad && this.ctx) this.pad.g.gain.setTargetAtTime(Settings.sound ? 0.024 : 0, this.ctx.currentTime, 0.12); },
 };
-FeedbackBus.on('fusion', (p) => Audio2.fusion(p.combo, p.tier));
-FeedbackBus.on('drop', () => Audio2.drop());
-FeedbackBus.on('land', (p) => Audio2.land(p.impact));
+FeedbackBus.on('fusion', (p) => Audio2.fusion(p.combo, p.tier, p.x));
+FeedbackBus.on('drop', (p) => Audio2.drop(p.x));
+FeedbackBus.on('land', (p) => Audio2.land(p.impact, p.x));
 FeedbackBus.on('bank', () => Audio2.bank());
 FeedbackBus.on('collapse', () => Audio2.collapse());
 FeedbackBus.on('chain', (p) => Audio2.chain(p.n));
@@ -3171,8 +3522,8 @@ const Game = {
     Audio2.setTension(clamp((Greed.value - 1) / 5 + (this.runCoins > 0 ? 0.1 : 0), 0, 1));
 
     const gm = Math.floor(Greed.value);
-    if (gm > this.greedMark) { this.greedMark = gm; haptic('greed'); }
-    if (RiskFX.level > 0.8 && !this.dangerRung) { this.dangerRung = true; haptic('danger'); }
+    if (gm > this.greedMark) { this.greedMark = gm; haptic('greed'); Audio2.greed(); }
+    if (RiskFX.level > 0.8 && !this.dangerRung) { this.dangerRung = true; haptic('danger'); Audio2.danger(); }
     else if (RiskFX.level < 0.5) this.dangerRung = false;
 
     if (!save.hints.bank && Greed.value >= 1.6 && this.runCoins > 0) {
@@ -3431,6 +3782,7 @@ const Game = {
     EventDirector.schedule();                         // no event for another 45s+
     EventDirector.graceUntil = now() + CONFIG.reviveGraceMs;   // a settling topple costs a piece, not the run
     haptic('revive');
+    Audio2.revive();
     Surprise.forced = null;
     this.dropBody = null;
 
@@ -4746,7 +5098,8 @@ const Tutor = {
     { id: 'drop',   anchor: 'aim',   text: 'Tap anywhere to drop. It lands where you tap.' },
     { id: 'fusion', anchor: 'stack', text: 'Two of the same shape fuse into a bigger one. That is your coins.' },
     { id: 'mix',    anchor: 'next',  text: 'This one matches nothing. Different shapes just stack.', ttl: 45_000 },
-    { id: 'bank',   anchor: 'bank',  text: 'A fall takes every coin you have not banked. <b>BANK</b> keeps them.', ttl: 15_000 },
+    { id: 'greed',  anchor: 'greed', text: '<b>GREED</b> climbs with every drop, and it multiplies everything you fuse. Push further, earn more.', ttl: 12_000 },
+    { id: 'bank',   anchor: 'bank',  text: 'But a fall takes every coin you have not banked. <b>BANK</b> keeps them.', ttl: 15_000 },
   ],
   active: false,
   idx: -1,
@@ -4793,6 +5146,7 @@ const Tutor = {
     if (this.fuseTier == null) this.fuseTier = def.tier;
     this.rigQueue();
     if (def.tutorMix) this.advance('mix');
+    else if (this.steps[this.idx] && this.steps[this.idx].id === 'greed') this.advance('greed');
     else this.advance('drop');
   },
   rigQueue() {
@@ -4856,12 +5210,17 @@ const Tutor = {
     const step = this.steps[this.idx];
     const ring = $('tutor-ring'), tip = $('tutor-tip');
     const inHand = Director.current();
-    let cx, cy, r;
-    if (step.anchor === 'bank' || (step.anchor === 'next' && !(inHand && inHand.tutorMix))) {
-      // a DOM anchor: the BANK button, or the NEXT box while the odd shape sits in it
-      const b = $(step.anchor === 'bank' ? 'btn-bank' : 'next-piece').getBoundingClientRect();
+    let cx, cy, rw, rh;
+    const domAnchor = step.anchor === 'bank' ? 'btn-bank'
+      : step.anchor === 'greed' ? 'greed-pill'
+      : (step.anchor === 'next' && !(inHand && inHand.tutorMix)) ? 'next-piece' : null;
+    if (domAnchor) {
+      // the BANK button, the GREED pill, or the NEXT box while the odd shape sits in it
+      // A circle round a pill swallows half the HUD, so the ring takes the
+      // shape of whatever it is pointing at.
+      const b = $(domAnchor).getBoundingClientRect();
       cx = b.left + b.width / 2; cy = b.top + b.height / 2;
-      r = Math.max(b.width, b.height) / 2 + 12;
+      rw = b.width / 2 + 9; rh = b.height / 2 + 9;
     } else {
       let wx = Game.aimX, wy = Game.spawnY;
       if (step.anchor === 'stack') {                 // ring the piece on top
@@ -4872,16 +5231,17 @@ const Tutor = {
       }
       cx = cw / 2 + (wx - Camera.x) * Camera.zoom;
       cy = ch / 2 + (wy - Camera.y) * Camera.zoom;
-      r = (step.anchor === 'stack' ? 54 : 44) * Camera.zoom;
+      rw = rh = (step.anchor === 'stack' ? 54 : 44) * Camera.zoom;
     }
-    ring.style.left = (cx - r) + 'px';
-    ring.style.top = (cy - r) + 'px';
-    ring.style.width = ring.style.height = (r * 2) + 'px';
+    ring.style.left = (cx - rw) + 'px';
+    ring.style.top = (cy - rh) + 'px';
+    ring.style.width = (rw * 2) + 'px';
+    ring.style.height = (rh * 2) + 'px';
     // The bubble goes above the ring by preference — below would land it on the
     // deck, and the deck is the one thing the player needs to keep watching.
     const tipH = tip.offsetHeight || 64;
-    const above = cy - r - 16 - tipH;
-    tip.style.top = (above > 76 ? above : Math.min(cy + r + 16, ch - tipH - 14)) + 'px';
+    const above = cy - rh - 16 - tipH;
+    tip.style.top = (above > 76 ? above : Math.min(cy + rh + 16, ch - tipH - 14)) + 'px';
   },
 };
 
@@ -4902,7 +5262,9 @@ const IdleShow = {
     { n: 'fuse', ms: 3000 }, { n: 'slide', ms: 3000 }, { n: 'letters', ms: 3200 },
     { n: 'float', ms: 3000 }, { n: 'meteor', ms: 3000 }, { n: 'hole', ms: 3200 },
     { n: 'wind', ms: 3100 }, { n: 'bomb', ms: 3200 }, { n: 'angry', ms: 3400 },
-    { n: 'tumble', ms: 3000 }, { n: 'magnet', ms: 2800 },
+    { n: 'tumble', ms: 3000 }, { n: 'magnet', ms: 2800 }, { n: 'swell', ms: 2900 },
+    { n: 'glint', ms: 2800 }, { n: 'flip', ms: 3000 }, { n: 'stamp', ms: 2900 },
+    { n: 'split', ms: 3100 },
   ],
   bag: [], last: '', playing: false, nextAt: 0, earliestAt: 0, endsAt: 0,
 
@@ -5268,8 +5630,6 @@ const UI = {
   syncToggles() {
     $('tgl-sound').classList.toggle('on', Settings.sound);
     $('tgl-haptics').classList.toggle('on', Settings.haptics);
-    // a mouse cannot buzz — do not offer a switch that does nothing
-    $('row-haptics').style.display = Haptics.supported ? '' : 'none';
     $('tgl-motion').classList.toggle('on', Settings.reduceMotion);
   },
   hudTick(dt) {
@@ -5519,7 +5879,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { WORLD, Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, IdleShow, save, engine, Composite, Body };
+window.__overstack = { WORLD, Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, IdleShow, Audio2, Settings, save, engine, Composite, Body };
 window.__overstackCam = Camera;
 window.__tierColors = themePalette();
 
