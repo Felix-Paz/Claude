@@ -788,10 +788,17 @@ body {
 .reduce-motion #hud-brand i::before,
 .reduce-motion #hud-brand .wm-fx > b { animation: none !important; opacity: 0 !important; }
 
-/* ---------- surfaces: dark glass, generous curvature ---------- */
-.glass, .chip {
+/* ---------- surfaces: dark glass, generous curvature ----------
+   Cards keep a drop shadow because they float over the run; HUD chips do not,
+   because they belong to the flat field they sit on and a shadow under each one
+   reads as grubbiness rather than depth. */
+.glass {
   border: 1px solid var(--glass-line);
   box-shadow: 0 18px 44px -20px rgba(0,0,0,0.55), inset 0 1px 0 var(--glass-hi);
+}
+.chip {
+  border: 1px solid var(--glass-line);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
 }
 /* Cards are near-opaque: they carry a lot of small type, and the tower behind
    them must not read through as clutter. HUD chips stay true translucent
@@ -1031,6 +1038,10 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
    Three beats, each anchored to the thing you actually touch, each dismissed by
    doing the thing rather than by tapping a button. It never blocks input and it
    never appears again. */
+#hap-box, #hap-tick {
+  position: fixed; bottom: 0; left: 0; width: 1px; height: 1px;
+  opacity: 0; pointer-events: none; z-index: -1; appearance: none; border: 0; margin: 0;
+}
 #tutor { position: fixed; inset: 0; z-index: 34; pointer-events: none; opacity: 0; transition: opacity 0.3s ease; }
 #tutor.show { opacity: 1; }
 #tutor-ring {
@@ -1264,6 +1275,18 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
     font-size: 1rem; letter-spacing: 0.14em; line-height: 48px;
   }
   #btn-bank .bank-amt { display: none; }
+  /* The phone HUD is four corners and nothing else: NEXT and the menu across
+     the top, the mark and BANK across the bottom. The vault is a between-runs
+     number — it belongs on the menu and the results card, not over the deck. */
+  #vault { display: none; }
+  #hud-home { top: 14px; right: 14px; bottom: auto; left: auto; }
+  #hud-brand {
+    left: 14px; right: auto; transform: none;
+    bottom: calc(33px + var(--safe-bottom));   /* its centre lines up with BANK's */
+  }
+  #next-piece { padding: 7px 8px 5px; }
+  #next-piece canvas { width: 54px; height: 54px; margin-top: 3px; }
+  #next-piece .metric-label { font-size: 0.44rem; letter-spacing: 0.26em; }
 }
 @media (max-width: 480px) {
   #menu-stats > span { padding: 11px 16px; }
@@ -1305,6 +1328,8 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   <ol id="p-board"></ol>
 </div>
 
+<!-- iOS's only haptic surface: toggling a switch input via its label -->
+<input type="checkbox" switch id="hap-box" tabindex="-1" aria-hidden="true"><label for="hap-box" id="hap-tick" aria-hidden="true"></label>
 <div id="tutor"><div id="tutor-ring"></div><div id="tutor-tip"><span id="tutor-step"></span><span id="tutor-text"></span></div></div>
 <div id="hint" class="chip"></div>
 <div id="toast" class="chip"></div>
@@ -1369,7 +1394,8 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   <div id="settings-card" class="glass">
     <button class="card-x" id="settings-x"></button>
     <h2>SETTINGS</h2>
-    <div class="setting-row"><span>Sound</span><button class="toggle" id="tgl-sound"></button></div>
+    <div class="setting-row"><span>Sound effects</span><button class="toggle" id="tgl-sound"></button></div>
+    <div class="setting-row"><span>Music</span><button class="toggle" id="tgl-music"></button></div>
     <div class="setting-row" id="row-haptics"><span>Haptics</span><button class="toggle" id="tgl-haptics"></button></div>
     <div class="setting-row"><span>Reduce motion / low power</span><button class="toggle" id="tgl-motion"></button></div>
   </div>
@@ -1752,7 +1778,7 @@ const SaveStore = {
       hints: { fusion: false, bank: false, safe: false },
       tutorialDone: false,              // the four-beat first-run tour, shown once ever
       tutorialRuns: 0,                  // runs it has opened on, so it cannot nag forever
-      settings: { sound: true, haptics: true, reduceMotion: false },
+      settings: { sound: true, music: true, haptics: true, reduceMotion: false },
       baselines: { decisionLatency: 0, decisionLatencySamples: [], sessionPace: 0, sessionMinutes: 0, sessions: 0 },
       profile: { // persisted play-style stats — surfaced as a style title
         greedAtBank: 1.6, banks: 0, collapses: 0,
@@ -1795,6 +1821,7 @@ const FeedbackBus = {
 /* ============================ §5 SETTINGS + HAPTICS ======================= */
 const Settings = {
   get sound() { return save.settings.sound; },
+  get music() { return save.settings.music !== false; },   // older saves predate the split
   get haptics() { return save.settings.haptics; },
   get reduceMotion() { return save.settings.reduceMotion; },
   toggle(key) {
@@ -1815,7 +1842,9 @@ function applyMotionClass() {
    unless it is heavier than what is already playing. Weight doubles as the
    dramatic scale, so a collapse always cuts through a landing. */
 const Haptics = {
-  supported: typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function',
+  // Checked lazily, not at parse time: some browsers only expose vibrate once
+  // the page has been interacted with.
+  get supported() { return typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'; },
   cues: {
     tap:      { w: 1, p: 7 },
     drop:     { w: 1, p: 11 },
@@ -1838,14 +1867,28 @@ const Haptics = {
   },
   _at: 0, _weight: 0,
   fire(name) {
-    if (!this.supported || !Settings.haptics) return;
+    if (!Settings.haptics) return;
     const cue = this.cues[name];
     if (!cue) return;
     const t = Date.now();
     if (t - this._at < 70 && cue.w <= this._weight) return;
     this._at = t; this._weight = cue.w;
-    try { navigator.vibrate(cue.p); } catch (e) { /* permission denied */ }
+    if (this.supported) {
+      try { if (navigator.vibrate(cue.p) !== false) return; } catch (e) { /* fall through */ }
+    }
+    this.iosTick();
   },
+  // iOS has no Vibration API at all. Safari does, however, produce a real
+  // system tick when a <input type="checkbox" switch> is toggled by clicking
+  // its label — one fixed light tap, no patterns, but it is the difference
+  // between haptics and no haptics on an iPhone.
+  iosTick() {
+    const l = document.getElementById('hap-tick');
+    if (!l) return;
+    try { l.click(); } catch (e) { /* nothing more to try */ }
+  },
+  // fired when the switch is turned on, so the player gets an answer
+  confirm() { this._at = 0; this._weight = 0; this.fire('bank'); },
 };
 function haptic(name) { Haptics.fire(name); }
 FeedbackBus.on('drop', () => haptic('drop'));
@@ -1859,30 +1902,42 @@ FeedbackBus.on('explosion', () => haptic('blast'));
 FeedbackBus.on('bank', () => haptic('bank'));
 FeedbackBus.on('collapse', () => haptic('collapse'));
 
+/* Five recorded one-shots, base64 MP3 so the file stays self-contained and so
+   every browser can decode them (Ogg Vorbis is Safari 17+ only). ~29 KB.
+   Everything else in the game is still synthesised. */
+const SFX_DATA = {
+  drop: 'SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//tYwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAARAAAUQAAcHBwcHCoqKioqKjg4ODg4OEdHR0dHR1VVVVVVVWNjY2NjY3FxcXFxcYCAgICAgI6Ojo6OnJycnJycqqqqqqqquLi4uLi4x8fHx8fH1dXV1dXV4+Pj4+Pj8fHx8fHx//////8AAAAATGF2YzYwLjMxAAAAAAAAAAAAAAAAJAYKAAAAAAAAFECPW/mFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//tYxAADChIgZkMAs4IFwxwJgx04AAqyJIiOGjwgLCEF5uapcZubn///s7OzPps5iuzkOQ//92dndnIqXZnql2d2dv/dv//7FdnY5Dk/0RTFMKjxwuPHC4odF0GiQiHgUNBAOLjgYABeJpWlcWsfVr8SZxLI2TAYWCGjyBYRoJJSB++HJk7u7/tkLKQ7Xd7GHvmGGfq/4+eOEFJ/PPeo4WGhvoYYf9T3U/6FQeN//RhHCRv9RHJCwF4vb///oAgAwVjdzPiIREt9v/4oGAeN//+cCwJB9///zxHFoDyTfKA8B4NBoDwga6MoQODEYsxINStEt6WdxFdcWhyJPI+lRgnhxEpXRCROleylGkqv+fxIzVdFq+Ez99I6hmCz7egg//tYxByCFI4g8A0xrwHaw2Lo8ZW538zMmTMz+9jMe6RgPQwJ5myamyTJce5T+XECTP9CmTx3q+t31dIjFF0Fv6mKxPigC2K1frdNX+w9x3DWJYSJD1NpCHI///qhbyM2v7q9VBbi4MCcRf//8igrIvoN1HTQkgHIAaAuB80M3N1AMW5GiASMhaFv4CseXvEzDf7wXUS02L0RwYt5/EKi0RDwgBu8gt0L/6mnno5wAEFPwmLh8SBBoAB8eHCNU7iBD7ZxQjZzqc1uf2QrrQ729p6qc+53IT22/OrHExN0f6E///b/q9X8/Of///mEG9FDhQ+A4HMKZQDlRxpAB9EWUzUrRZ0lpKdbM9kQ9TUQ7376dFc0250nIDDiEjYwwwwq//tYxBSAELYfGvTVAAJCw6OXHtAASLeai6oh2VLZUUB6BSCYEYNwXxhCMdTjEdnsVOIj3apZJxpXnnbSM4ndWm1I/OPQpMseXdXOXsY85ipfseaL3LER/+7+env6LWj/ov53N///8a/ycPgZHgsi20qwApHJAAkymCdggCMfW6W0PwKyntg9zjqVCnGAavWPcl0X/ZN6bqZTrpqd7LU7u6D62Wg/qOLanUi5a9F+nNXTf2QHqifWg1Kmy601qfo1KbQdDoIIOiir6SK1KZSai6b1VqNUn0tzhx1OyqH9NI6edCp1atNEvu/9SnKQmonxcqQuv/3QEvJ5ml/9aGcMRLTJqgQkIlqd7vv/f78NQAgDHgXPNNQMECMqxXK1s0hJ//tYxA6AEnzTX7mtkBIIQqaPutAEpIOKvBBxvFBphiNSyGtv0d2igwSEhkGC8uqmKAA0Hq2GHCZMJoSWnxfqlhhoCteff1nSmMtldrC2XHYm66x13yNynhlkBR+WV7FfGt9Pn9Pb/POVSucqZ0Wq/O4YZfc7bx7/f/PP717//723O3f5D6v//////D6uzsAJhMdJuxr5/+FRh6MQhDUxiG0xbAcIBAChUYnFmYoguLAipEEgYRAAIAJMDAFFgOHUAHIAmgGGaBahKhMD58tPLaaqdzFHQPrNZiaKTRRMVKP5jOPUitLdqNSVT23UpA5ZZ7/8yMW//1D8Z///////////////////////zApPdoQAAMDsSAwI1ZT5zF7MK8Bc//tYxAkDTuITJG9o6sI6wmFB/k2QwJALjBbArMj0CowGQazBGAHMBUC8yWwZgKESdd+YJaA+JQHAhc3E026EHGGVioMFFFC3SdZ3waeJYuznp5zm6tVpppz7////5RBMg8/////////////////////////////QQA0wy8aqMO7lAzkaaIAw3QSdMCLDEjAWwpsxkwgFMl/EezBcwE8wNYFVMHyMRTNoCu4xZwVUMK4A1DBXwMQ+ymjzg4NPC0w+AzRhxMcGIOISHcxKFi+RZJYMT8EkgNGGl///r/////1DqDtiKIl8Yf/+v//////3/////X7f///////q9///+7siZAhwBa5/SgAAGd3O1wMC0HUwISjT+qhlMOMFwwyC//tYxAuCDpYVI091Q8JlQuRp7B2o8YAAwdA8xYog0eIAwHEwx8JUyzY42Rmc0TGMwFAwDACOg4MgawGWYQErqf1YzNKi0PGPeex7pp//8//f//lXIIxO/3T/1mf/6////////p6/////////////4GhkeBG2pYABgJBqmLkXoc0fixmcCDGCOCiYBABgkCYYAogxkqA1GAIEMYBoCQEADMFoWcwZQ2DBMAPXcIyqbDz5dYp0wLYWYREUPS4qxa8yOF5xthJwEAkAgjFKuTPFeZ6XJALW4GkIli9EAmJRGgBgP4oLeNGo3pXzUKZb9S7j43f/UTFv////////////////////////mAgWLwQAP21LAAJAIUCQGWMwcDWlJvph//tYxAoAEGjlSU5orfIowmZN3ZT4mAwCECW82zOFygYAtbk8Ys4w277/mDImREpnK8iLuqrg4ele3dm5glhxpBrgQYwEScHSjQHjKAHyYwgqYMGDhjP+KwOu5V1Teja238Ap1z0YjTdGIS6zqMRixMUUrndUnKfs/V7aP/EY0Q+h+EeHwq7gABoOzGoPT8b5CIdn3JAjBgTmXgJmPDYFAgKMAmOJrhN0QAJhg2YISlkS2SG08YYAPemilwmQREeM7D8OqXP67tE17lNQ2dsgeFhYyGEmiICgMHg8cOh0rGKpWyOahjG1LECHQcg5B8aN80oq3jA5o/wFH///////////////////////9RRRyhbmwADA4EPMDwqox8n+xwIg//tYxAiDUBYTKG9s54H0wmOJ/rR4wHwNQsBMYGgVBirAfoJRICMUEDWTg/4hEhKDVVDIjRHN/1hAQFGYCMWg1kqUxMF1WVOsnYteBUOFboc5i4iBM5yiAod/OfmtQ5Bs9Dqt+aQLoWH81v/6G/847///////////////////////qaKxawBgfAHKYliO5m07jqhh3YAqaUE2Z4h0Y3ugbsCeYSEIYVDwaNSAfIV+Cl1MFQrMGwVMDQgMjAVLXIiiwZGJYDBQBkDpC18wTAhCoep8G4E+HktA6aN2eo3NuZH//////UU1Hlt////////////////////////////1hpGyMAYBEzDwUis926I3DYscIA1okw6UZc0qIkDL+cy9//tYxA8DzRYTHg/2gQG+QmNB/jUgmfk2cbngAB6DAGOCgammB3m4GQFgWhgSNhdQUhDSymHzDnGzCtSWX/////////PzQmG////////////////////////////8UiTZgZYSaYefDtmLEiG5gJQGEYN6GJmLsgxpghoDgYIwAImHrDJxhyIUIc/TgOjZkJVGZSYYrDQEDRgIEmEAqGAYt66RdpLq/V5kpJJL////////86clA2P////////////////////////////9InAvVTB9xtg6WSiQMoRGzDBLgpsxHIJJMdJA8jAJwtow6sf0MwYEnzBrwiI5kyDkDDNWCUyWRDJYtMXA4weDggHS1c08+pBTV//////////0SdMy//tYxCgDzeYVEg/ySMGyQqHB/kkYIjrK3//qf/////////////////////////ph1gVNtRiu4X2f2i3vmOrDMZjTobiYJGpjGCaBFhgVAGqYZOeWmPhAZJgHALsfJjBkY0mFwYYOGZEmjFANa9VuWabf//V/////v//lgojVKoyp9X//LAwm////////////////////////99joSgFyT1oxMYXfNkINjTE0AzkwPsI0MZXNMTBJgUIwMcC6MKsA/THf05NhOwnzABhJMvaBANtJfYQTV/////T/6H/p/+mWCSHySyqkEP/5GEi/1m//pof//////5wqF/////TQ/////////egRc0BKDCxKjjEZEAoh9WyGGMuL8YOpOJnX//tYxD+DTdIXEg/uBsG0QuKF7jSYvuGEeIGZmLh1uXGIxEJBQRgZJKHYexWa0Vf///36s7/3foIbT/O/opFpFKBEPzJP/+Z/qY2/6ZmWf//oN///oIZUZj7r/1N//Ip7////2///p/qLguj0CAHISIyqEAwPAtzsoalMXYJswrBBzTcO9MPIBwwBwJTCGBbAQCtpaTs01H3qfuyn/r9alpbLf/5WUxjmpfP2V/7f843/rdv//zv1plv7/nD2kbGZTJNL/Ubt/+tsz/9Mt/63mZZ//+oWZ76hoGKKIcoRImyLjCfAuOGcfoy6GjOMiPomoOOQYDAcNnup2Lq3+m/b0/Pl1RXLEp6F2Iz3MoxyqlHU8w+7/+VIBJcYliIxfqvZ//tYxFcDTdYXFC8BrQHPQyLF7igaN37Hptz/duv+c3nP6nfon/lScqNyVKFvkzlv/8eTf+p5n/Kl5CS///sPSX8VhqFkfhw8aPUZAAMFAg80thajlAQw82PJGFrhQAX9Zq0swmm6v1tZB6mr3q7VqUu101rMU3STSQWya6+tJan/Q6JBH04WIJoP9X9TN0lr319q+60f3Rat1/TZFvqR/6zOspHEal+tqP+t/XQ/rrdJk/6jJf////3HYPEK8jCClEAEBKJO6tskGMIR32KJ0Bgg7W5Hda8jW6dPrb2VtlYxEW1EZimHLLIp2I5L7i/6PoULcZ/L7ar/9Hal0REavlte9Oj6en/+rsj//m/7etP6V2/6f////wpgmQQVGhAA//tYxGsADuoXFk9toQFsQqS1vBQQM3rAD/Y8AwGFgQi4CQGHCJ2MUVH0ZummvV2dqPru//v0cyItXcRd0oRERVdE/8YcJjx5mR39K9Zlss/5lr6n6s7Mya5urL9E3y0f5Rww43/sZm/3ZP/mo//+d////9IfjcO7jDFiABAAcTcuTRIAT52wJCve6v2fWq14Z8XHfkysYjVOQxDUKGPMV1MR4kzSxEeGhdf/QZFZcqSp9t2P9Ga7LVFWl/7W9X52Z/+/Sr6Uow4d/90b/6f0/t/7f////0DQrF4pHmX0AVfPAHXCwN3cozq9c7Wyt/e/hZOMTU7bm/4OglcVlPpVejK5f/yonCqOkJb9jZxqq10ui3bnFKzKroqpvdn7Zxxn//tYxIcADS4ZGEqVt8GEwyR1kJz4Vvup9DmpWh08XFjn6mfRG/9D/qZ/ei0Xo/////1kIbjQIgvBONCXGEQAfQBgYK7TYW9c7re9aPL6/3n5yXt6/Tw0JwyGLBKgMxgbvWaG9vXJff/q5UZHjbeRc9TDn0NtPOnof2RVs28w+iIrtozH0T1+x52r19blGP9Tf7Zn/+a3/Q7O//n///Hy+YTDYQAkApEZAAHyMZEoSpn6tkcmKd7R9KMGcCNdlKU6TGsamsaqdWlDUmNVLPzq2GpQ7lNU/6jUwkSQ5fQ7zlNR0t7v0q3o9kdf6s7f09Fau36HJjpv3f//9HU5aPv/Ryv/8Tlv//IDOgDRgBQBw+LQCIRUCEfD5NNrbFOuolsX//tYxKcCDRIZFi0FT0GxQuNdgZ247nTUXzumnS35bVqVvN+hn1L5S8rlL/1KWNAV/qXQxvq3mNobzG6lbmMZ/K9W9CtzG1b/0dBI3Qz/5v/EhYrqwkLa/oJB4m//ULkL1v/8ZALAhOaQiKFofD5wpUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQABYAYFRoJZgdnBXOEjbF3HlrTLMDdP762EZPIy9CCRmQ00zIjLz/mRmRp8iP/////////zIzLMuyWfZZL5Gstl////lk/zstl+WW////tYxMICTTIXFkeM7cGoQqAksqr5///ZbDI+VmsvyyVDJlihQUSqqukT/alMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//tYxKwDzHn8qEYEc8gAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV',
+  land: 'SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//tYwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAQAAATIAAeHh4eHh4tLS0tLS08PDw8PDxLS0tLS0taWlpaWlpaaWlpaWlpeHh4eHh4h4eHh4eHlpaWlpaWlqWlpaWlpbS0tLS0tMPDw8PDw9LS0tLS0tLh4eHh4eHw8PDw8PD///////8AAAAATGF2YzYwLjMxAAAAAAAAAAAAAAAAJAT8AAAAAAAAEyB9YB4JAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//tYxAADTMxM8AwxJgnIwx8E8ZS4Mo0N40uRFRFRMRYgHBHBMEwTFZOjRtoECBAgQIECBGjRo0aNGjbQQAAAAAw8PDw8AAAAAAw8PDw8AAAAAAw8PDw8AAAAAAw8PDw8AAAAAAw8PDw8AAAAARh4eHjwAAAABUf/+7//ZBzAJQC0DeHEdQo+1bnksFMbMxsqqq0TPun/IU9v/5Q+L+ro31O5GU5yX/9XQg0CKLjBRQ+L0DjIRXUPgQofck/xAOBwOM//1fdBAX+RlJoQTF5Ox3IKN/Oh/U79GOl6ToHBRv/Ie2Qjf//DgoiCDB8XdRHDir7/l2FDIILklnm+K364AUCCv3hJeKR8YJhiv/cbxXaU4LKud0FBeb0pJLDdF/oI//tYxBkAFFIXBgQxfkImtqWkUSagj3XzMzOOWu+Uwg4vi+tiZbuVqTNWoj4wXE1UYU6m/f6YhgmP55M9PTFPi2TqDsNCWP9/7E0Dqz2IGO8wWZL4JmSDvbPnZK7vVHefWP2+N6Ci0blqJ5gPld//68WTz/CBpX/MV//cbyCIWg9ri8jjspABBf//8AAr/1fkaT6vVBSgCACvDi6EAGh33IMTDj4MD7soG/UWrKjQ4iEGqEABB1Dmb///qKzguYQMnIIC5/F28Rt9AoGCBC0oxAjaYQKRRwTP5/+vv6mfY7NYMIINzqHphAmwghDIyQRhl7aBj+yf0SXWZ/V0FHdTZqQ3z2dvcKkPJhiQ6nfpD6oEFc/+AAAq9D7dKb7kpr65//tYxAgAUHIVLyUkswoWwuX2mFAAlHH9tGmPNqPsicWznc/XRmT352X5d++xjLJoQ/o//AdqcEheggCB0g0QGt/85ReNRzEFa8dHEMVEK48aY6rIcdHlZ68qHi2UaOVyHPuhyuKIZhc0P0KrNz0I6L7+4q6dSkKXUt/9Su2g7+7fo9eKBYqIn9adkmlSiACEb/99J6/l6+z3YYNqxwQIcByqwqLjTiBWHiiiBnUoqXK2HQ+VvxEr1boX9C5GrQ7Cisoi4/n/oYeQhzMToKjxyR6vOxRU8rSnRhxTipRcTjtCGGR+dri1ckkSuICKEIZNmYtpOiVV3NWtpaIZSS47+IyCy9Bf//8rxgiEyhBE1Q4kMJGTBa0DEIrGmVioOIzH//tYxAiAERyrRBm9AAH2lKkDNZAAxcELRm4OZC0mSCwQJ5GOmyQpqxCYEMNDS8OCCBIYvUuhtGcQgImCwcWCEx0YTrVl+MbnwMEd8u4ygmPoTEzUbIfy5+HsOYA9kETmcaZlbYfTvNz+/3/+zzdjncNxzDK9cug/7n+oeYo69P9Jh/+j/+r//J//1/gsDDY2DAiw34YU3ES4iqEAUysQeVBe2ZIEVwwKeNgQRyMOvHRpOIpiLsjJpd0hdBTqYD8kxoNCU88pC67IYA8zV32AQcgSzgwKALzcBsEPtFpYA3YfN/YXH6k69zGMpi5L9YVu5/+7nf7h/PoL90uT2f/d//XT//////3///71IEYsttjAAGdkWQqkNeBUUm9Mwoqg//tYxAqAEVyzUHmcAAIWlKo3svAEmiICghykmVBphKOagMRKOkZCKZIUXMQBSGT1rsQgZf6h04TLRDvMZomowQyKAqWgXbZYvWg+e5Q5z0jjv0G7EH2L9DqzHqOZvWPy+52pu/rn67rvP/+XUyoUGmpUGQABoseGNMhFg1x7WFVBtg0HjREVvRU/3AYgAAgFWxyOrAIpyztSIjJZCgBDwmA7f0UDAQEPP3RU4AZhLzGnQCwIMzWghLUOcrWjB6cq6giuMUa3LsY0bfsg9/1SFreExRfizEfdv5Gu2/Cja/8h6K1Hq9mB2JYJSDyLBx0RiByBzHwsLmkGhgldiJ9y0PHho8AXaQ+3FHP9/6//0XjlAGqoZQyNawAUXMpIhZyz//tYxAeDEGIRQE20tkoMwqgJvB4YAEAbBh0FIAVb5agPNVWjoDSzhoqBAdOy9sgVRh4Apbk0Kj6Pl//fUFDGeFmdQHtqfomoLzYzhvJ8QVuO816A3i3iPp9/+q9PiGyyLObp0c5Ur2c+bdFvZrszq3ov69UR3bo//tf+tl9en/+tvq3//TVxhyEApunmGjYmTJiw4cEP8BIQOxkC0OTLxg+ChK6yibnNUNEP2+ekmCqoasfzbw2OTB6J3K6okID03KO2gFe/L6kEq1c/4LZI3A5uEJfqM+Q8p5Ru5/u/vTf6JejXa/d0dP+377M1TbHJa86rehzMunOa9X91bpfuYd+mjf109f9dP//KSqoAlYmhCInAe5kYChMQ1TuEHUZy//tYxAmBEJSxPE3lsoIWFimdrCD4DOSYeGvkYGHHlgqETTVCoENlWm0iLlKzgVzgvGXzQMNK9ns1edsBjQuNyyYJVIEt/pGdceetxBZp5PDv1Egf50p9SfpNzjdRqA52M+rNsQdEwlkDqxGOOvBMQsrSKwFZW9VcrmQARQjNc4iln937ftxhQCm12speoGWGtRAeB2iWAjhTNkxGTnMED3JO45wXLbtuYL+qxyyMaiZQGKRvKOqghyIY4tLvQKSGR5EuMF7FExJc3AkTSiyv5Fv5J93Ir+BUInj15xgPDmnAXIC5sq8MmZ+lNGASDioiAkLnkEpceRHvLsWszWSi6F58vbJa9Whv/nFDBlUjAAAAAq77/bhxJoXQWTAiLaHI//tYxAmAEIyDU6w9MEHZsay1hI3SztLoRJ0WkgQqZTEKGMppJnBwGmKQlw+ijWHbI4nKdRoCRQVtEiesKCtI8baZWrX6YZTndbDOohEpMCi6AyKjyUoTatFFIrS1wfUKOeO7ha1RWdNCQcNhYncpaEywCHuMxqG0UnjqMUlZFRDbq/9MggPARqgkEJy7bX87KTCBk+weaS1AJUInW1jVVtj1iFFB5Un/ZFROCBiXZY8YzCsAG4JicccNTRfazEdO6Fll/DLr0r0/Of5+eXn22KdOlnDM4We6fNenSjf5y9LL1zU+0yp+aKStF7///87weIZ9i16LCmnfX/4yNbAAJyySfMtgMb0s+UTJ5AjKAgK8pLUskqRqVjN4/ftaCwTl//tYxBGADrzZWOwwcJHHkSspgxaCs/c2ydIaMRMGNG45F0KkLygcEMsFOgeaBUMIR9aPIuc6xuT73yL8155l4s0CToJAGdLOSOs6Xl2LMsMtF1sM0HnPa591uy56ottOSdNvu9v0jxijkAAFySSdqRtCwavKKZukLfWAgqdFqQzsfu0j+sCbSfwnspmIMEs28bNwPJieabLB4UNmfA81WdbYkaMYCkVieJVB8WLjxAHSjBO7WhRSxZRZIYsrvWtS4qQzZ5THX3kh6ibRZLkq70/6XO/+z5MeMl3gGgAAAu/7fWZfWISg+eH6VmTlQ3JAImk3A8sqP3RxksBg5BdiwSXYSSAEgPMN/OilGdv/NACoKI1QoXUs7w7kD+MH6vqn//tYxCMBDpCpU6ywsIHGkinpp5YQTUdKyMvEx7NChUXW4qGlClxG00NSY3UPafUTcy9l67LJ9lWeU09V1ORX/7PWKrA4AM2111dpFOzpgovEJpBaH4kvMyi0y4Vzpiq40xOr+AgMBjvXM70qANJKILfzLDOlupSMXAFBRlfDx0FG5iPDjajKnLlgxHLFHOqIGpwWUxCHyN750aZsUtPZzpjWFGgNpFbK2d1Ul12gNXZnfu9Y16p0Vskgp2xlJd48ycI9yy+bsjp3GlsSZ6ABRn9EzWwVY6p/6Zx2oit/LBXWQ7kti127WOMqb10xTRnoQ5A7/sxxgbDXnG0BvX9h+1S5RYhcncq4COqu/ptY2XCJydcpGpZcCLTW1qbzxLJL//tYxDUADmy1X6w9TbHUm6p9lon0YDqr3u///pjRxuEiYCAAb/tJJjlCS8x+owpRhd6dsIsQ2sAaxMUt1H0PUggQBAReTj+O8Gs/WZtioRz86PFsQIIR286DjHT+JK/6i4/8nN4rr/j3GCKgselguUdg4qkVeYLKYTTMiw05BqXFB49j6Gvbm9AXu2oi3vu/o6jA+pDpQmHNtY23lVjybpkBiyaDUGUYYs4uS4+sofRvcWQNltfFPFidjozCNAIwxR7YlRHxUUUQxGFVL6YeyT7fMhTH/UW29qCc7nao2/jkpgkaraZMqICBA0JGXLROEQs/YNO1lAAog/rxZRp/Iv2oEX6P9HUoeSMiACUtrUm96oU7jMyXwdueXgTAc4ML//tYxEYADpS9Z6xATfHYwqm1p52kAsREpTJy/uX4IYfsbOUxX3HbGz8v7fQ7nIvUhqEI1/QDA1oY+rfyPoYyF5x5e22dfp6GmOUQimfWjNXZ7qzMpje/5tevTdr+fton/7brp+vZX985lTT16f9f/r6OjlKkVYJKXWNpJX4b1BY6LNdEBpSWV4Ot6ETNP0Ni+o5imd/7Wq4HKyUnXKcr8DmViCq21xhcHq3f4QM2zNtrX/0Rro6K9p2t2Z+k6vluR69Uqrsqnd0zqY1/R3nO0gsshSiJRwEMvS9pce8WQ4QWsys457Tv/3/XHKQEDAIms8RKMpt07gG6mvI4bSEdm3OROg4ABe3RGw7s7qmBnT/xcexsrOt1XP/hMvBJMBPy//tYxFYADvFBXaw8SfHan+j1p4k0aLsY+hg45nKH/wdk4oz/3+UujyseQ10ZLYYNKULuMi5sLGXAmZwgu4q/oa3QeMBYQOF2iqCzQEpT82rbX8n9b0sJ1WMwTtmiJKhW5ahUcyyJZQdFmvotQ7AsaMvCIHcyTLraB4FeWLNXxtjJ0kjm33M8olKROzoRDzaoQosDSUc8no++PF21Of+iJsrOipMlzelqT9KfJNVFN575ns7L972/fRu9P/T67fvpyNTe//ZG/9EY5xjJkfaAAB221AEy6MVRUM7GZG1iMrbce1DjRXl6gXXRyYOxhk+bIGSOkB1sUEwYIQ2UDE6CDhgPRBwsQiADQspAnQQWMPTMwmUgfJ7EAMmZh5aYhEms//tYxGQADr4RPU2krQnGF6iplJmggfd6gaFgTLkCZwcBA2ea6aovo/p3s//9n2fYz///4soflKexxiwiPD7IaLkYKPLivLT2pSQKeElJG4dslqJWRhrFQVVhrChrtSDCISsCQUCoCEpFgSCoySDp0eVSSIhMFgKZJBo8MRkgqAgEaho8eGFUzp50SkWj6ZFrcqSt5IjlSyNw8sIv/p/7f+gr4V5CxPJ/5hmvFE/8o79rheL8kPahuP6KFRVV//4OkVrJOWvyRWskRSr/yTYFgVCMUPFb/4BscIQNTYYWuDif9ihZgVGitFA2OJIO+DijuVkVrFRxR3AdA2O+VFbyQ9Do7/////Gm40BV6gIHGkGisy///4jNf/5rY5HmoYE6//tYxHWDDUhtMieYbMGwQZ6AAKLYOhqGC0mWGU+WGR/rHGFBY/2f/rHIyZaTUj1DRyyNZTWGsMBDAnQyZZVBUuVD9rD/5SZYf/8pHMms/////aoOAhgTq0xBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//tYxI+Dyt4O0mAEeIgAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV',
+  fuse: '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',
+  die: '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W//UOsJP+jgKCv+jgKCrAAZMQU1FMy4xMDCqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tYxLwD0EIc6wSMs0AHAEABAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq',
+  ui: 'SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//tYwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAQAAATIAAeHh4eHh4tLS0tLS08PDw8PDxLS0tLS0taWlpaWlpaaWlpaWlpeHh4eHh4h4eHh4eHlpaWlpaWlqWlpaWlpbS0tLS0tMPDw8PDw9LS0tLS0tLh4eHh4eHw8PDw8PD///////8AAAAATGF2YzYwLjMxAAAAAAAAAAAAAAAAJATOAAAAAAAAEyDpuFcxAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//tYxAADDMRK5geAyAmFnZ3I8YnwADAcitIOIWIeLmXNVzQYQIAAIAZMmTJkyZMmQIECBAgQIIJh4eHh4AAAAABh4eHh4AAAAABh4eHh4AAAAABh4eHh4AAAAABh4eHh4AAAAABh4eHjwAAAABGHh4ePAAAAM3//7v/9iUrA+QKoVIhpotEFyhaxCZmZ8+hQlqg6tqwzaG0lJa9VyNpMzmVyIv85DaSdvbsd3dEJQ5G/93/Ix9Bb2YYh84SC0MEz8QE/kD8EIYXDEcc5cCOqBDwwf+CDv/6gQKBhoYUCBvLqA2HXnqVTd03avX+V6lu5KKfnKm5uRfY75HvSOrmyjvpcoYbXUp//Tmw3cfIKIUf+7SmY/LR2vK13/02pmkAU//tYxCGCFKoa9qwls8JQQyIFgzW4AwepGbz////oGK9eH8jspvECKb/SBxHpP/rpZR4hab++djR//oHBkf/Ki6/TMD0l0DpxA4PRrHDQv2TpqZZWSR76mTQ7LnR5mL63VrfHGOe3////WMOZjvJEYMxB1g2yOeTGAGGAQFLIEfGNy+YhyX51M8q4DTZOIIKuydJ74Qx07c/bggh7v/wUh773vjL3GcmTqEOxDOh9ZonTHmJIF4C8DkL5/+t6lpqag1aqdBM3TqZaak+cLiCzMuGj3Vpob6HrTQzNJ0EENSOxfL5vU3UYGjUK009+/UYIM6kEOk39b1qUYN////1jvKZow+ByAWgFYHoUFVvlANoHtFhKqRvlcZXsXc+BBX+K//tYxAoDEVoZGkeNrcHxQuMJgSl5WVvf2i0rLs3f3+a45A3KmGwxKDUS46jhgN0047kJ0bg9BBBcQqY+G1N/QpNSPonlajyKzVUzWg7rah6kamaih0UcwqPt7qPZumZHUjU+roGJscNjjeybVbPo6vUzre7VOkvpdfRqb//zM3f/UXU6xOg0DACfl1nkABIorJr5bSz1idq43EGlv0d/pRz+YjEBGcBsLABvFhhIomETcxzDzWShRFTP1HwgBQMTDJs7vbNa1DKI63UzVnV5mua7GOzKcu1jqmd9DHsZbKFp5rCQTiu/7f6UI8vscd+m592JKt/L//5Yef8oJ55UWwVAaCAFkLsPAAAkxoIgAFODwZMxrvIGs7vqfW86Xnnm//tYxAwAEM4fHVT1AAIyFOgnOYAAHmVQzTzVXLjxi55OaUblidTz8wxj1O5ph90ep9J55guHCBk7NdVqkzMkaI6USn6td1MY416nXdzDP0Z1nut3Y6rVNONliimF2XU5ZiO7K/f7f0mTFRbf///KkxwuNurmo5iMcSi8bDcCAJBOrkD4ACQAAAfnmHkJul1hCFzGS+MIEsz1TErEkDVAcEQtNFBsAhJ274FCAQADCIABQHl0Mj81KWAF9n7beUChBUgVGaSA+re7l8cfhpCcBeJEFYJgKwryupX+xvqRKpHTsvY/cy/riy3U13Dmfef8NVbcCS7+9k+pXPjiX3mRU4Pd/8yBf///b/Iez//+FzhtSdQASC94k0jCEWDGcYju//tYxAgDEPoRNH3aAAICQiWN7jS51ezOYiR4dICYSyos1LmvNLL6mAgUlARikyAjImZgNYT8kHdAInANJRcJkkkxkK8XURyBAyS71qdyDiYGtEizdRmICjMiliJJa0USyKGIkl+s9qRSPJpf/oMsvfUghOm//X//////7P0jQ43/////////////9A6sx5UIBkzXUmwMBIYG4CJqYE7nBQiEFwMAaq7IE/0h7LKaMxghAgdMJZC81XGCoWOABb46rhJqQqxnhZacTQI6DLsmZqJowIF6RkThIlHqMgixfNzV/QTC9Iv/XqeamLf/km1m+Xj1aX///////+k/UmcPf/////////////nDxWUqDUTAAFQAxIBYaAIMAMD4wfAY//tYxAkAEJIXKm9sqcIOoCspp42+DVHY4MNgFZNdXESpbwsCRtJQxQONRiAhoaMMAS3G37QOoqYRGRxs6EkksksufyUQmNy2fgp/viMblUsks1KKrsRqHFECno0O1RbkeYJo/9NReKo3/5cX+gY3/////////zI3/////////////4gOCziQ6AOJnbpIwVMC3C7GGCAEdRDSxCxcLWF4HYZxSvzxyrFwaCghx7t5MkJN1X7bIhwRMzPJFPCLAegRwhBzA2ABwA4HBcn4KcTMQxCJoDBM5/bYhiGMkNjQ9jY4u8s8N+7nuLd3MgVFi34iF7u5nEd+JCP/iFloEDHJ/8v5/rGO///////H1QRBWSexOk4zDkEJLIMSUFgymKxW//tYxAoAEFljTu087dIbQmYN3Z05tJhRaG2+ZaW06YsVrVCAEZGcZS0ilardXhPn0/wzPo2zJQ164wHrjVlRyHrkahFEGhziPgvGn+RXMT59PWudVg1rZDjlaiXQ76dJxx1vp1NOeKwGgNCpBRWD0HP0JqGf//5n+n+PliHr//1///+kAJ5oBdwUAERgEYXHgeFESUBSYPgIIQESCZTDRhggcwACIDY7fXRDrJTLTUHr4WADCQZ2WgRmljiCWK1YZosuyVxYG+Zf2zddFnspd2luboaAJJTjTTDtVnVodOdPNf2KkSvTSdOmUP+hNztFfq3/R/6f9P/7fmKy/////////////52hxR5FRngCYA8vQIAQjA8P+NWQG4kAjTyX//tYxAqDD/4XJk9w58IZwqUN7jSwgyqMszBDiJ0a5r/pujwIYiwswtqzpIriLgQtnM7RkISX9J+VZb+1FWbW8f/CEHxgPnQRjxMMnI6HKayqc//9PajDrGtT/uWnfnl/R/I///mv//V/5/5Yd/6Nu3//7/9//////9WlQ0BJDi1laZIBgnA1GA2DaYWIBphAIzGzcF4YHwAIGJYICiCEwUAk0DDEMDRTFaAcAIOALDktzB0JOagplMWs3+TwGoPRt7gYIBGKXyKJA2RZ6zwmRqX2zjUdab/ay3u3ak5WxxdT/81Un9OYf9T///p///qX1fonXU39tf/6H6P////////OksVIF1WORNAAwiSAxrbk02bY+v5s7ERM00Gs0NgM//tYxAyCD6IXKG7s5YGXLOYpnpw6vIQUcFY8Fwc4GmPyERoGg5O0ui/SgwMRjdQRK13qW1zILAHfj4Pj/xq8o+VEkwyjI+9jn9Cxk0lNb7kxWxRc3/QbkCXxqcO///9/5Ke///nf/V1b///6fv////////xO4qLCZBLclTSAMmw2VSyJhth5ssEIoBSR7qMSuBYCzCYmyImX6q/NT0eTSRKsg+HUVGt838y7KeXPGqs5kfZHyQhZ31Fh5IamHW/qXFaqn/l6m/RKfzv/5b/lX//92/+XI/6f/q///5JAcRIQAABCAQYB4EBgqgJGDlA2aAwIpgrAPEQWo06c6UAZnFKaQKlvHXnL9ygiSzoqn//8nYeZIXMJnPMLTW9T6X7J//tYxCCDDmYXHm9tRUHBQuPN7CiYf/1Hgvcelszb/7Uff9v57P0/p/6H/zW6N1dC5T/6vo//+V/yn+W////+gm6igCcahQqI0EAAW2BwCpEC2Yxi2JomC5GEMCWN6RZYO8ccBDSkDNb7aTD/6v926oRnvQoUPMNJa90re3VLIyN+pEWGJco3q2e2VfVppDPN8z/sj2/5C3/U7/9HP1kBdG/nG0f/b/p/nV/Ug////8oTYqCaE1Bg6gAUKUrCIAftLAwFQHTCkFrNS4N0wsgaC3YYAAw934cjLuSDAv7Gy/9d6XqX6QMxptVG4FY/QG4Ncd05cmzEPq3JCQqXIH/1Mr9soY72z//5v+9l/1T//OzTCBz29Xqd/9v+v/s/pX////tYxDQADiYXIU8NTcGxQuRpnpRg//+4lCqE8uGCAAQs5GWQA3FI4xpzM8NeYKNhBCFi8TEjNqdoH0pr5G1fvet0krfdIsKGZ7nMYWHm6LojbtapiP7TnEhMaPO9G2qtDUdVOVKqe9m07f+j99Pv/TX2bzCog9/tN//136/6dOv/////cKcIhoBitQAECXJdqpEAxqbZEMBZhR4CIMiBVYalm189/0v6tcn77+ec89XSmY2qofGXUwzgkQ5DkhZF/oqR40WE9H/Kb/eyJzsa3U2uzK63oif7Wb6+2dtGGMTt/v///////////6A7DxV74gAvc8kDpwGESAdRThMP1NHHjcYiYlN/8//5l8coTvGpsVUskZHZxtVZdrVPmnto//tYxEqADJIXK62MrcHDwuOJwal41fU0qNiEdRP7nMlz+c5zmHq9We1E7Oy7Ztj7fR0oeSFbP9t9d4uZy35r/+pb20/q/87IP////youzwtBUEMA4coAEEKBOxhIgF2n4mXqIFQOIprKvu3rk/fZva1Jc0lHVLGZXCFdZqHOgNTM7nZtJ73/1IGlxzr6z3t7IldW31zOr1brutWzzzPsiOi87MmNmOULFWv6P+//5vf3/b/mf/H//1GuPlwOFwwAXoAMGBZijYMQgdFkobmhimZKNKL6ldVarddlo6bPQxDO6uimoi3eylsimzrLLzvKGKDCz0N6uRZPZTXNXuRkZ367t1ztyqnrUidj85mmfOPEAxcaRsk/zcjsO/0dXT/E//tYxGUADSITI6yI68nDwuNVMrb4v+bf+se3//JAQc2CCQFmZ7kQAPzBy6ZNDNHEGOudp39eqpvqcXw8VCxsTZiq1XojuR0LPnWqIyp/K9BWGhYJ+rO9dDmNRVJsVqvb/MzH75fRU9SfO2xX+NiY4YfO2fT/3dqP/uarclO/+Qv/1N//QgJBID0eAYDUFgTg3wCHENWmyi7ZnRWaLNbbVerHcjUSCe7pgKhXKED4h2damKQ0jyCszdc56D8gHSUtReYyNpQ6js/aeeYzWXt0mUVFvu6r9Par86+X7FSzs/830LftTRvnP75V/ymc////46WIhVCEoGgTlQA0ooANZIOpM+5bSoKOboMX+d/UoxHpdXNiURUDyEv7LIbIrofX//tYxH2CTVIXHEgVVcGqQqOZASm5Te8xtM1zDxsLiYYTX10Oq7Xba6GMeiI6z7Jufzs413pno6zKvbtn6oTfqWGJKVKT/8x6fv1qxlam/Nv+h6t8gP///xVLSINAXwUA64ILokAE5Eum5dZSSSno3WrtZbKr+/RU7GR48c5DjNxrFlVlb7TGK1S/RzKgkDIhXSpBa7KmxXVqatvTqWtOre02vLrlb16Gdv2CxxnZH/qX91b3aWh6zej/od/KF/9v/sPyhOIUPQ1JS48IxqpMQU1FqqoAqsKAAoSxwmRVjjs5+bm6P/ZH0f8q6S3Lb/5en/VHZyoqTKxtyrdk3Lburf+lWT/v9ft++nKnyhnLYyPT/6OXrdb1R2/p/7XzUX0z//tYxJiADkYXHMkNS8GwQ2OY0qr5LX/rDXqvKrlCxYLSUEomBsIIoHwcnm1MQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//tYxKuDzFYhBsOJF8AAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV',
+};
+
 /* ============================ §6 AUDIO ====================================
-   A small synth engine rather than a bag of beeps. Three things do most of
-   the work:
+   Recorded one-shots for the five things that happen constantly — a drop, a
+   landing, a fusion, a death, a button — because a sample has a character no
+   two-oscillator synth voice will ever have. Everything rarer is synthesised,
+   and all of it shares one signal path:
 
-   · Everything lands on a shared bus → soft-knee limiter → high-shelf tilt.
-     The limiter means two fusions and a collapse at once still sit in the mix
-     instead of stabbing; the tilt takes the fizz off the top, which is most of
-     what makes a WebAudio game sound cheap.
-   · One synthesised room. A stereo impulse response — decorrelated noise with
-     an exponential tail — turns dry oscillators into sounds that happen
-     somewhere. Every voice chooses how wet it is.
-   · Everything is in one key (C minor pentatonic) across four octaves, so any
-     two sounds that overlap are consonant by construction. Fusions climb the
-     ladder as the combo climbs; nothing is ever detuned into sourness.
+   · A shared bus into a soft-knee limiter and a high-shelf tilt. Two fusions
+     and a collapse at once sit in the mix instead of stabbing, and the fizz
+     that makes WebAudio games sound cheap never reaches the output.
+   · One synthesised stereo room — decorrelated noise with an exponential tail
+     — so nothing sounds like it is happening in a vacuum. Each cue picks how
+     wet it is.
+   · Anything that happens at a place on the deck is panned to it, and the
+     synth voices all sit in C minor pentatonic, so two that overlap are
+     consonant by construction.
 
-   Voices are FM bells, filtered triangles and noise through envelope-swept
-   filters — no raw sawtooth stabs anywhere — and everything that happens at a
-   place on the deck is panned to it. */
+   Sound effects and music are separate switches because they are separate
+   things: the effects are information, the music is a room. */
 const Audio2 = {
-  ctx: null, master: null, bus: null, send: null, pad: null, noiseBuf: null,
-  voices: 0,
-  // C minor pentatonic, in semitones from C3
-  SCALE: [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24, 27, 29, 31],
+  ctx: null, master: null, bus: null, send: null, music: null, noiseBuf: null,
+  buf: {}, voices: 0,
+  SCALE: [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24, 27, 29, 31],   // C minor pentatonic
   C3: 130.81,
+  // i – VI – III – VII in C minor, voice-led so the pad glides rather than jumps
+  CHORDS: [[0, 15, 19], [8, 12, 15], [3, 15, 19], [10, 14, 17]],
 
   ensure() {
     if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
@@ -1894,7 +1949,7 @@ const Audio2 = {
       comp.threshold.value = -15; comp.knee.value = 28; comp.ratio.value = 9;
       comp.attack.value = 0.004; comp.release.value = 0.24;
       const tilt = this.ctx.createBiquadFilter();
-      tilt.type = 'highshelf'; tilt.frequency.value = 6000; tilt.gain.value = -7;
+      tilt.type = 'highshelf'; tilt.frequency.value = 6000; tilt.gain.value = -6;
 
       this.master = this.ctx.createGain();
       this.master.gain.value = 0.6;
@@ -1907,18 +1962,31 @@ const Audio2 = {
       const verbTone = this.ctx.createBiquadFilter();
       verbTone.type = 'lowpass'; verbTone.frequency.value = 3400; verbTone.Q.value = 0.4;
       const verbCut = this.ctx.createBiquadFilter();
-      verbCut.type = 'highpass'; verbCut.frequency.value = 180;   // keeps the tail out of the low end
-      const verbGain = this.ctx.createGain(); verbGain.gain.value = 0.95;
+      verbCut.type = 'highpass'; verbCut.frequency.value = 180;
+      const verbGain = this.ctx.createGain(); verbGain.gain.value = 0.9;
       this.send = this.ctx.createGain(); this.send.gain.value = 1;
       this.send.connect(verb); verb.connect(verbCut); verbCut.connect(verbTone);
       verbTone.connect(verbGain); verbGain.connect(this.bus);
 
       this.noiseBuf = this.buildNoise(2);
-      this.startPad();
+      this.loadSamples();
+      this.startMusic();
     } catch (e) { this.ctx = null; }
   },
   get on() { return this.ctx && Settings.sound; },
 
+  loadSamples() {
+    for (const name of Object.keys(SFX_DATA)) {
+      try {
+        const raw = atob(SFX_DATA[name]);
+        const bytes = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+        const done = (b) => { this.buf[name] = b; };
+        const p = this.ctx.decodeAudioData(bytes.buffer, done, () => {});
+        if (p && p.then) p.then(done, () => {});   // every cue falls back to synth if this fails
+      } catch (e) { /* keep the synth fallback */ }
+    }
+  },
   buildRoom(seconds, decay) {
     const rate = this.ctx.sampleRate;
     const len = Math.max(1, Math.floor(rate * seconds));
@@ -1928,10 +1996,9 @@ const Audio2 = {
       let lp = 0;
       for (let i = 0; i < len; i++) {
         const t = i / len;
-        // a touch of early-reflection sparseness, then a smooth exponential tail
         const sparse = i < rate * 0.06 ? (Math.random() < 0.35 ? 1 : 0.15) : 1;
         const white = (Math.random() * 2 - 1) * sparse;
-        lp += (white - lp) * 0.36;                  // dark, not hissy
+        lp += (white - lp) * 0.36;
         ch[i] = lp * Math.pow(1 - t, decay);
       }
     }
@@ -1945,7 +2012,6 @@ const Audio2 = {
     for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
     return buf;
   },
-  // world x → a gentle stereo placement; nothing is ever hard-panned
   panOf(x) { return clamp(((x || WORLD.width / 2) - WORLD.width / 2) / (WORLD.width / 2), -1, 1) * 0.7; },
   note(step, octave = 0) {
     const s = this.SCALE[clamp(step | 0, 0, this.SCALE.length - 1)];
@@ -1959,9 +2025,30 @@ const Audio2 = {
     g.exponentialRampToValueAtTime(0.0004, t0 + attack + hold + decay);
     g.linearRampToValueAtTime(0, t0 + attack + hold + decay + 0.02);
   },
+  out(node, pan, verb) {
+    const p = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
+    if (p) { p.pan.value = pan || 0; node.connect(p); }
+    const o = p || node;
+    o.connect(this.bus);
+    if (verb) { const s = this.ctx.createGain(); s.gain.value = verb; o.connect(s); s.connect(this.send); }
+  },
 
-  /* one voice: optional FM, a swept lowpass, a real envelope, a pan, and a
-     choice of how much room it sits in */
+  /* a recorded one-shot; returns false if it is not decoded yet so the caller
+     can fall back to its synth voice */
+  sample(name, o = {}) {
+    if (!this.on || !this.buf[name]) return false;
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.buf[name];
+    src.playbackRate.value = o.rate || 1;
+    const g = this.ctx.createGain();
+    g.gain.value = o.gain == null ? 1 : o.gain;
+    src.connect(g);
+    this.out(g, o.pan, o.verb);
+    src.start(this.ctx.currentTime + (o.when || 0));
+    return true;
+  },
+
+  /* one synth voice: optional FM, a swept lowpass, a real envelope, a pan */
   voice(o) {
     if (!this.on || this.voices > 26) return;
     const t0 = this.ctx.currentTime + (o.when || 0);
@@ -1971,8 +2058,7 @@ const Audio2 = {
     osc.frequency.setValueAtTime(o.freq, t0);
     if (o.detune) osc.detune.value = o.detune;
     if (o.slideTo) osc.frequency.exponentialRampToValueAtTime(Math.max(o.slideTo, 20), t0 + dur * 0.9);
-
-    if (o.fm) {                                   // FM index → bell / metal / body
+    if (o.fm) {
       const m = this.ctx.createOscillator();
       const mg = this.ctx.createGain();
       m.type = 'sine';
@@ -1982,7 +2068,6 @@ const Audio2 = {
       m.connect(mg); mg.connect(osc.frequency);
       m.start(t0); m.stop(t0 + dur);
     }
-
     let node = osc;
     if (o.cutoff) {
       const f = this.ctx.createBiquadFilter();
@@ -1994,21 +2079,11 @@ const Audio2 = {
     const g = this.ctx.createGain();
     this.tail(g.gain, t0, o.peak == null ? 0.2 : o.peak, o.attack || 0.006, o.hold || 0, o.decay || 0.3);
     node.connect(g);
-
-    const pan = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
-    if (pan) { pan.pan.value = o.pan || 0; g.connect(pan); } else { node = g; }
-    const out = pan || g;
-    out.connect(this.bus);
-    if (o.verb !== 0) {
-      const s = this.ctx.createGain();
-      s.gain.value = o.verb == null ? 0.16 : o.verb;
-      out.connect(s); s.connect(this.send);
-    }
+    this.out(g, o.pan, o.verb == null ? 0.16 : o.verb);
     this.voices++;
     osc.start(t0); osc.stop(t0 + dur);
     osc.onended = () => { this.voices--; };
   },
-
   hiss(o) {
     if (!this.on || !this.noiseBuf) return;
     const t0 = this.ctx.currentTime + (o.when || 0);
@@ -2025,11 +2100,7 @@ const Audio2 = {
     const g = this.ctx.createGain();
     this.tail(g.gain, t0, o.peak == null ? 0.12 : o.peak, o.attack || 0.004, 0, decay);
     src.connect(f); f.connect(g);
-    const pan = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
-    if (pan) { pan.pan.value = o.pan || 0; g.connect(pan); }
-    const out = pan || g;
-    out.connect(this.bus);
-    if (o.verb) { const s = this.ctx.createGain(); s.gain.value = o.verb; out.connect(s); s.connect(this.send); }
+    this.out(g, o.pan, o.verb);
     src.start(t0, Math.random() * 1.5);
     src.stop(t0 + decay + 0.08);
   },
@@ -2037,34 +2108,36 @@ const Audio2 = {
   /* ---------------- the sounds ---------------- */
   drop(x) {
     const pan = this.panOf(x);
-    // air moving, not a click: a short down-swept breath with a soft body
+    if (this.sample('drop', { pan, gain: 0.28, rate: rand(0.95, 1.06), verb: 0.12 })) return;
     this.hiss({ peak: 0.05, decay: 0.19, from: 2600, to: 420, q: 0.6, pan, verb: 0.1 });
     this.voice({ freq: 320, type: 'sine', peak: 0.05, attack: 0.004, decay: 0.16, slideTo: 150, pan, verb: 0.08 });
   },
   land(impact, x) {
     const pan = this.panOf(x);
     const v = clamp(impact, 0, 1);
-    // a wooden tok: pitched body + a tiny transient, both scaled by the landing
+    if (this.sample('land', { pan, gain: 0.16 + v * 0.2, rate: 1.06 - v * 0.16, verb: 0.14 })) return;
     this.voice({ freq: 168 - v * 34, type: 'triangle', peak: 0.05 + v * 0.09, attack: 0.002,
       decay: 0.12 + v * 0.08, slideTo: 96, cutoff: 1500 + v * 2200, cutoffTo: 380, q: 1.4, pan, verb: 0.09 });
     this.hiss({ peak: 0.018 + v * 0.05, decay: 0.06 + v * 0.04, from: 3200, to: 500, type: 'lowpass', pan, verb: 0.06 });
-    if (v > 0.55) this.voice({ freq: 62, type: 'sine', peak: 0.07 * v, attack: 0.004, decay: 0.16, pan: 0, verb: 0 });
   },
   fusion(comboIdx, tier, x) {
     if (!this.on) return;
     const pan = this.panOf(x);
     const step = clamp((comboIdx | 0) + 1, 0, this.SCALE.length - 1);
+    // the recorded jump, pitched up the pentatonic ladder as the chain climbs
+    const semis = this.SCALE[step] + (tier >= 6 ? 7 : tier >= 3 ? 3 : 0);
+    if (this.sample('fuse', { pan, gain: 0.3 + Math.min(tier, 7) * 0.02,
+      rate: clamp(Math.pow(2, semis / 24), 0.85, 2.1), verb: 0.3 })) {
+      this.voice({ freq: this.note(step, tier >= 5 ? 0 : -0.5), type: 'sine', peak: 0.055,
+        attack: 0.008, decay: 0.42, pan: pan * 0.4, verb: 0.25 });
+      return;
+    }
     const oct = tier >= 6 ? 1 : tier >= 3 ? 0.5 : 0;
     const f = this.note(step, oct);
-    // the bell: FM index falls with tier so big merges read rounder, not harsher
     this.voice({ freq: f, type: 'sine', fm: 1.9 - Math.min(tier, 7) * 0.12, fmRatio: 2.01,
       peak: 0.17, attack: 0.003, decay: 0.55 + tier * 0.05, pan, verb: 0.3 });
-    this.voice({ freq: f * 2, type: 'sine', peak: 0.045 + tier * 0.004, attack: 0.004,
-      decay: 0.3, when: 0.014, pan, verb: 0.34 });
     this.voice({ freq: f / 2, type: 'triangle', peak: 0.08, attack: 0.006, decay: 0.34,
       cutoff: 900, cutoffTo: 260, pan: pan * 0.4, verb: 0.1 });
-    if (tier >= 4) this.voice({ freq: f * 4, type: 'sine', peak: 0.03, attack: 0.002, decay: 0.5, when: 0.03, pan, verb: 0.5 });
-    this.hiss({ peak: 0.022 + tier * 0.004, decay: 0.13, from: 6800, to: 2600, pan, verb: 0.4 });
   },
   chain(n) {
     if (!this.on) return;
@@ -2085,7 +2158,7 @@ const Audio2 = {
         decay: 0.6, when: i * 0.062 + 0.01, verb: 0.6 });
     });
     this.hiss({ peak: 0.05, decay: 0.8, from: 9000, to: 3000, verb: 0.6 });
-    this.duckPad();
+    this.duckMusic();
   },
   newBest() {
     if (!this.on) return;
@@ -2100,13 +2173,13 @@ const Audio2 = {
     this.voice({ freq: 110, type: 'triangle', peak: 0.16, attack: 0.002, decay: 0.5,
       slideTo: 32, cutoff: 700, cutoffTo: 90, q: 2.2, verb: 0.2 });
   },
-  shimmer() {   // something is coming
+  shimmer() {
     if (!this.on) return;
     [7, 9, 11].forEach((s, i) =>
       this.voice({ freq: this.note(s, 1), type: 'sine', fm: 0.9, fmRatio: 3.01,
         peak: 0.05, attack: 0.004, decay: 0.6, when: i * 0.07, verb: 0.65 }));
   },
-  greed() {     // the multiplier crossing a whole number
+  greed() {
     if (!this.on) return;
     this.voice({ freq: this.note(4, 0.5), type: 'sine', fm: 0.8, fmRatio: 2.01,
       peak: 0.07, attack: 0.003, decay: 0.4, verb: 0.4 });
@@ -2126,29 +2199,32 @@ const Audio2 = {
   },
   bank() {
     if (!this.on) return;
-    // the most satisfying sound in the game: a resolved minor-seventh spread,
+    // the one sound the whole game is about: a resolved minor-seventh spread,
     // soft attacks, a rising sub, and coins somewhere in the room
     const root = this.note(0, 0);
-    [[1, 0.13, 0], [1.5, 0.1, 0.055], [2, 0.09, 0.105], [2.99, 0.055, 0.16]].forEach(([r, p, w]) => {
+    [[1, 0.17, 0], [1.5, 0.13, 0.055], [2, 0.115, 0.105], [2.99, 0.07, 0.16]].forEach(([r, p, w]) => {
       this.voice({ freq: root * r, type: 'sine', fm: 0.55, fmRatio: 2.01, peak: p,
         attack: 0.012, decay: 1.05, when: w, verb: 0.42 });
     });
-    this.voice({ freq: root / 2, type: 'sine', peak: 0.14, attack: 0.03, decay: 1.2, slideTo: root * 0.62, verb: 0.1 });
+    this.voice({ freq: root / 2, type: 'sine', peak: 0.18, attack: 0.03, decay: 1.2, slideTo: root * 0.62, verb: 0.1 });
     for (let i = 0; i < 7; i++) {
       this.voice({ freq: this.note(5 + ((i * 3) % 7), 1.5), type: 'sine', peak: 0.026,
         attack: 0.002, decay: 0.42, when: 0.06 + i * 0.045, pan: rand(-0.5, 0.5), verb: 0.7 });
     }
-    this.duckPad();
+    this.duckMusic();
   },
   collapse() {
     if (!this.on) return;
-    this.hiss({ peak: 0.16, decay: 0.85, from: 1100, to: 55, type: 'lowpass', q: 0.9, verb: 0.4 });
-    this.voice({ freq: 140, type: 'triangle', peak: 0.15, attack: 0.004, decay: 0.75,
-      slideTo: 40, cutoff: 620, cutoffTo: 80, q: 1.8, verb: 0.25 });
-    this.voice({ freq: this.note(1, -1), type: 'sine', peak: 0.1, attack: 0.02, decay: 1.1, when: 0.1, verb: 0.35 });
-    this.duckPad();
+    if (!this.sample('die', { gain: 0.5, verb: 0.3 })) {
+      this.hiss({ peak: 0.16, decay: 0.85, from: 1100, to: 55, type: 'lowpass', q: 0.9, verb: 0.4 });
+      this.voice({ freq: 140, type: 'triangle', peak: 0.15, attack: 0.004, decay: 0.75,
+        slideTo: 40, cutoff: 620, cutoffTo: 80, q: 1.8, verb: 0.25 });
+    }
+    this.voice({ freq: this.note(1, -1), type: 'sine', peak: 0.09, attack: 0.02, decay: 1.1, when: 0.12, verb: 0.35 });
+    this.duckMusic();
   },
   ui() {
+    if (this.sample('ui', { gain: 0.22, rate: rand(0.98, 1.03), verb: 0.1 })) return;
     this.voice({ freq: this.note(7, 0.5), type: 'sine', peak: 0.045, attack: 0.002,
       decay: 0.075, cutoff: 3200, cutoffTo: 1400, verb: 0.12 });
   },
@@ -2157,52 +2233,83 @@ const Audio2 = {
     [0, 4, 7, 11, 12].forEach((s, i) =>
       this.voice({ freq: this.note(0, 0.5) * Math.pow(2, s / 12), type: 'sine', fm: 1.1, fmRatio: 2.01,
         peak: 0.11, attack: 0.004, decay: 0.8, when: i * 0.075, verb: 0.55 }));
-    this.duckPad();
+    this.duckMusic();
   },
 
-  /* ---------------- the room tone ----------------
-     Not a drone: three detuned triangles under a slow-moving filter, so it
-     breathes instead of buzzing. It only ever gets louder and brighter as the
-     run gets more dangerous. */
-  startPad() {
+  /* ---------------- the music ----------------
+     Three sine voices gliding through i – VI – III – VII in C minor, under a
+     gentle 12dB lowpass with no resonance and a highpass that keeps the sub out
+     of a phone speaker entirely. The old bed was resonant low triangles, which
+     is exactly how you make a small speaker rattle. */
+  startMusic() {
     if (!this.ctx) return;
     const g = this.ctx.createGain(); g.gain.value = 0;
-    const filt = this.ctx.createBiquadFilter();
-    filt.type = 'lowpass'; filt.frequency.value = 260; filt.Q.value = 1.1;
-    const root = this.C3 / 2;
-    [[root, 0], [root, 7], [root * 1.5, -6], [root * 2, 4]].forEach(([f, cents]) => {
-      const o = this.ctx.createOscillator();
-      o.type = 'triangle'; o.frequency.value = f; o.detune.value = cents;
-      const og = this.ctx.createGain(); og.gain.value = 0.4;
-      o.connect(og); og.connect(filt); o.start();
-    });
-    const lfo = this.ctx.createOscillator();
-    const lfoG = this.ctx.createGain();
-    lfo.type = 'sine'; lfo.frequency.value = 0.07; lfoG.gain.value = 90;
-    lfo.connect(lfoG); lfoG.connect(filt.frequency); lfo.start();
-    const wet = this.ctx.createGain(); wet.gain.value = 0.5;
-    filt.connect(g); g.connect(this.bus);
+    const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 850; lp.Q.value = 0.35;
+    const hp = this.ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 120; hp.Q.value = 0.4;
+    lp.connect(hp); hp.connect(g); g.connect(this.bus);
+    const wet = this.ctx.createGain(); wet.gain.value = 0.6;
     g.connect(wet); wet.connect(this.send);
-    this.pad = { g, filt };
+    const voices = [];
+    for (let i = 0; i < 3; i++) {
+      const o = this.ctx.createOscillator();
+      o.type = 'sine';
+      o.detune.value = (i - 1) * 5;
+      o.frequency.value = this.C3 * Math.pow(2, this.CHORDS[0][i] / 12);
+      const vg = this.ctx.createGain(); vg.gain.value = 0.36 - i * 0.06;
+      o.connect(vg); vg.connect(lp); o.start();
+      voices.push(o);
+    }
+    const breathe = this.ctx.createOscillator();
+    const bg = this.ctx.createGain();
+    breathe.type = 'sine'; breathe.frequency.value = 0.055; bg.gain.value = 140;
+    breathe.connect(bg); bg.connect(lp.frequency); breathe.start();
+    this.music = { g, lp, voices, chord: 0, nextAt: 0 };
   },
-  setTension(t) {
-    if (!this.pad || !this.on) return;
+  tickMusic() {
+    if (!this.music || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (t < this.music.nextAt) return;
+    this.music.nextAt = t + 11;
+    const chord = this.CHORDS[this.music.chord % this.CHORDS.length];
+    this.music.chord++;
+    this.music.voices.forEach((o, i) => {
+      o.frequency.setTargetAtTime(this.C3 * Math.pow(2, chord[i] / 12), t, 2.4);
+    });
+  },
+  setTension(tension) {
+    if (!this.music || !this.ctx) return;
     const ct = this.ctx.currentTime;
-    this.pad.g.gain.setTargetAtTime(Settings.sound ? lerp(0.02, 0.062, t) : 0, ct, 0.5);
-    this.pad.filt.frequency.setTargetAtTime(lerp(220, 1250, t * t), ct, 0.6);
+    const level = Settings.music ? lerp(0.028, 0.075, tension) : 0;
+    this.music.g.gain.setTargetAtTime(level, ct, 0.5);
+    this.music.lp.frequency.setTargetAtTime(lerp(620, 1500, tension * tension), ct, 0.6);
   },
-  duckPad() {
-    if (!this.pad) return;
+  duckMusic() {
+    if (!this.music) return;
     const ct = this.ctx.currentTime;
-    this.pad.g.gain.setTargetAtTime(0.008, ct, 0.12);
-    this.pad.filt.frequency.setTargetAtTime(200, ct, 0.3);
+    this.music.g.gain.setTargetAtTime(Settings.music ? 0.01 : 0, ct, 0.12);
   },
-  duckAmbient() { this.duckPad(); },
-  muteCheck() { if (this.pad && this.ctx) this.pad.g.gain.setTargetAtTime(Settings.sound ? 0.024 : 0, this.ctx.currentTime, 0.12); },
+  duckAmbient() { this.duckMusic(); },
+  muteCheck() {
+    if (this.music && this.ctx) {
+      this.music.g.gain.setTargetAtTime(Settings.music ? 0.03 : 0, this.ctx.currentTime, 0.12);
+    }
+  },
 };
 FeedbackBus.on('fusion', (p) => Audio2.fusion(p.combo, p.tier, p.x));
 FeedbackBus.on('drop', (p) => Audio2.drop(p.x));
-FeedbackBus.on('land', (p) => Audio2.land(p.impact, p.x));
+/* The landing sound is the sound of a piece that found nobody, so it waits a
+   beat to see whether a fusion follows — and a later landing supersedes it, so
+   a settling cascade is one sound rather than five. */
+let landSeq = 0;
+FeedbackBus.on('land', (p) => {
+  const seq = ++landSeq;
+  const before = typeof Game !== 'undefined' ? Game.fusionsThisRun : -1;
+  setTimeout(() => {
+    if (seq !== landSeq) return;
+    if (typeof Game !== 'undefined' && Game.fusionsThisRun !== before) return;
+    Audio2.land(p.impact, p.x);
+  }, 130);
+});
 FeedbackBus.on('bank', () => Audio2.bank());
 FeedbackBus.on('collapse', () => Audio2.collapse());
 FeedbackBus.on('chain', (p) => Audio2.chain(p.n));
@@ -5629,6 +5736,7 @@ const UI = {
   },
   syncToggles() {
     $('tgl-sound').classList.toggle('on', Settings.sound);
+    $('tgl-music').classList.toggle('on', Settings.music);
     $('tgl-haptics').classList.toggle('on', Settings.haptics);
     $('tgl-motion').classList.toggle('on', Settings.reduceMotion);
   },
@@ -5775,7 +5883,8 @@ const Input = {
     $('board').addEventListener('click', (e) => { if (e.target === $('board')) { Audio2.ui(); UI.showMenu(); } });
     $('confirm-dialog').addEventListener('click', (e) => { if (e.target === $('confirm-dialog')) $('confirm-dialog').classList.add('hidden'); });
     bind('tgl-sound', () => { Settings.toggle('sound'); Audio2.muteCheck(); UI.syncToggles(); });
-    bind('tgl-haptics', () => { Settings.toggle('haptics'); UI.syncToggles(); });
+    bind('tgl-music', () => { Settings.toggle('music'); Audio2.muteCheck(); UI.syncToggles(); });
+    bind('tgl-haptics', () => { if (Settings.toggle('haptics')) Haptics.confirm(); UI.syncToggles(); });
     bind('tgl-motion', () => { Settings.toggle('reduceMotion'); UI.syncToggles(); });
   },
 };
@@ -5812,6 +5921,7 @@ function frame(t) {
   Shake.update(rawDt / 1000);
   Camera.update(rawDt / 1000);
   UI.hudTick(rawDt / 1000);
+  Audio2.tickMusic();
   Tutor.place();
   IdleShow.tick();
   render(t);
@@ -5879,7 +5989,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { WORLD, Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, IdleShow, Audio2, Settings, save, engine, Composite, Body };
+window.__overstack = { WORLD, Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, IdleShow, Audio2, Settings, FeedbackBus, save, engine, Composite, Body };
 window.__overstackCam = Camera;
 window.__tierColors = themePalette();
 

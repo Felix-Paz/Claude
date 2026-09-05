@@ -203,24 +203,43 @@ where there is room for it, keeps the wider view.
 the menu chip beside it, no wider than it needs to be. The running total drops
 off the button because it is already the biggest number on the screen.
 
-**Sound is a synth engine, not a bag of beeps.** Three things do most of the
-work. Everything lands on a shared bus into a soft-knee limiter and a high-shelf
-tilt, so two fusions and a collapse at once sit in the mix instead of stabbing,
-and the fizz that makes WebAudio games sound cheap is gone. One synthesised
-stereo room — decorrelated noise with an exponential tail, built at load — turns
-dry oscillators into sounds that happen somewhere, and every voice picks how wet
-it is. And everything is in one key, C minor pentatonic across four octaves, so
-any two sounds that overlap are consonant by construction; fusions climb the
-ladder as the combo climbs.
+**The phone HUD is four corners and nothing else.** NEXT and the menu chip
+across the top, the wordmark and BANK across the bottom with their centres on
+the same line. The vault comes off the play screen entirely — it is a
+between-runs number, and it already lives on the menu and the results card. NEXT
+is smaller than on desktop, and HUD chips cast no drop shadow at all: they belong
+to the flat field they sit on, and a shadow under each one reads as grubbiness
+rather than depth. (Cards keep theirs, because those really do float over the
+run.)
 
-The voices are FM bells, filtered triangles and noise through envelope-swept
-filters — there is not a single raw sawtooth stab left. Anything that happens at
-a place on the deck is panned to it. Banking is the most satisfying sound in the
-game by design: a resolved minor-seventh spread with soft attacks, a rising sub,
-and coins somewhere in the room. Under it all is a room tone that breathes
-rather than drones — detuned triangles under a slowly moving filter that only
-gets louder and brighter as the run gets more dangerous, and ducks out of the
-way of anything big.
+**Five recorded one-shots, and everything else synthesised.** The things that
+happen constantly — a drop, a landing, a fusion, a death, a button — are sampled,
+because a recording has a character no two-oscillator voice will ever have. They
+ship as base64 MP3 (~29 KB, and MP3 because Ogg Vorbis is Safari 17+ only), and
+every one of them falls back to its synth voice if decoding ever fails.
+
+The landing sound is the sound of a piece that *found nobody*, so it waits 130ms
+to see whether a fusion follows and stays quiet if one does; and a later landing
+supersedes it, so a settling cascade is one sound rather than five. Fusions pitch
+the recorded jump up the pentatonic ladder as the chain climbs.
+
+Everything shares one signal path: a bus into a **soft-knee limiter** and a
+high-shelf tilt, so overlapping cues sit in the mix instead of stabbing; one
+**synthesised stereo room** (decorrelated noise with an exponential tail) so
+nothing happens in a vacuum; and a pan on anything that happens at a place on
+the deck. The synth voices are FM bells and filtered triangles in C minor
+pentatonic — no raw sawtooth anywhere — and **banking is the loudest cue in the
+game** by design: a resolved minor-seventh spread with soft attacks, a rising
+sub, and coins somewhere in the room.
+
+**The music is a progression, not a drone.** Three sine voices glide through
+i – VI – III – VII in C minor, eleven seconds a chord, under a gentle 12dB
+lowpass with no resonance and a highpass that keeps the sub out of a phone
+speaker entirely. (The bed before it was resonant low triangles, which is how
+you make a small speaker rattle.) It gets a little louder and brighter as the
+run gets dangerous, and ducks out of the way of anything big. **Sound effects
+and music are separate switches**, because they are separate things: the effects
+are information, the music is a room.
 
 **Haptics are a percussion section, not a rumble pack.** Eighteen named cues,
 almost all of them shaped patterns — a soft pre-tick into a strong hit, or a run
@@ -234,9 +253,15 @@ bank, a superpower, the collapse.
 Every cue carries a weight, and weight is the dramatic scale: nothing fires
 within 70ms of the last cue unless it is heavier than what is already playing,
 so a collapse always cuts through a landing and the game can never settle into
-continuous noise. The Haptics switch is offered on every device: iOS exposes no
-Vibration API at all, so feature-detecting it would hide the switch on exactly
-the phones most likely to want it.
+continuous noise.
+
+**iOS has no Vibration API at all**, so on an iPhone the whole vocabulary would
+otherwise be silence. Safari does produce a real system tick when a
+`<input type="checkbox" switch>` is toggled by clicking its label, so that is the
+fallback: one fixed light tap, no patterns, but the difference between haptics
+and none. Support is re-checked at call time rather than at parse time, the
+switch is offered on every device, and turning it on fires a cue immediately so
+the answer is unambiguous.
 
 ## Shapes
 
