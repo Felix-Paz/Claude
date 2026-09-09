@@ -966,18 +966,193 @@ body.risk3 #risk-vignette { animation: riskpulse 0.45s ease-in-out infinite; }
 .reduce-motion #risk-vignette { animation: none !important; }
 body.cursed #risk-vignette { background: radial-gradient(78% 68% at 50% 52%, transparent 46%, rgba(255, 40, 70, 0.42) 100%); opacity: 0.5 !important; }
 
-#curse-banner {
-  /* below the GREED pill, not on top of it, at every width */
+/* Every "something is happening to you right now" notice lives in one column
+   under the GREED pill, so a curse and a gust at the same time stack instead of
+   landing on top of each other. */
+#banner-rail {
   position: fixed; top: 112px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  width: max-content; max-width: min(92vw, 430px);
+  z-index: 33; pointer-events: none;
+}
+#curse-banner {
   padding: 8px 18px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.2em;
   color: #fff; background: rgba(180, 26, 58, 0.85);
   border: 1px solid rgba(255,120,145,0.65); border-radius: 999px;
-  z-index: 33; white-space: nowrap; box-shadow: 0 0 28px rgba(255,60,90,0.5);
+  white-space: nowrap; box-shadow: 0 0 28px rgba(255,60,90,0.5);
   animation: cursepulse 0.9s ease-in-out infinite;
 }
-#curse-banner.hidden { display: none; }
+#curse-banner.hidden, #wind-banner.hidden { display: none; }
+#wind-banner {
+  padding: 7px 16px; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.18em;
+  color: #dff6ff; background: rgba(18,44,60,0.82);
+  border: 1px solid rgba(139,224,255,0.5); border-radius: 999px; white-space: nowrap;
+}
 @keyframes cursepulse { 0%,100% { box-shadow: 0 0 20px rgba(255,60,90,0.45);} 50% { box-shadow: 0 0 38px rgba(255,60,90,0.95);} }
 
+/* ---------- THE OVERFLOW (AUREX + AUREX) ---------------------------------
+   AUREX is the top of the ladder — there is no tier 9 — so when two of them
+   touch, the tower does not build: it cashes itself in. This is the one moment
+   in the game that is pure reward, and it is allowed to take the whole screen.
+   Four beats: the light builds between the two blocks, it blasts out white,
+   the deck comes back empty, and the number climbs. Nothing here is decorative
+   — every piece of it is telling you the same thing, which is that something
+   enormous just happened. */
+#of-orb {
+  position: fixed; left: var(--ox, 50%); top: var(--oy, 50%);
+  width: 62vmax; height: 62vmax; border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.04);
+  background: radial-gradient(closest-side, #ffffff 0%, #fffaf0 30%,
+    rgba(255,228,155,0.92) 52%, rgba(255,198,70,0.40) 74%, rgba(255,170,20,0) 100%);
+  opacity: 0; pointer-events: none; z-index: 36;
+}
+#of-white {
+  position: fixed; inset: 0; background: #fff;
+  opacity: 0; pointer-events: none; z-index: 37;
+}
+#of-orb.go   { animation: of-orb 1.5s cubic-bezier(.12,.72,.3,1) forwards; }
+#of-white.go { animation: of-white 1.5s ease-out forwards; }
+@keyframes of-orb {
+  0%   { opacity: 0;    transform: translate(-50%,-50%) scale(0.04); }
+  8%   { opacity: 1;    transform: translate(-50%,-50%) scale(0.55); }
+  22%  { opacity: 1;    transform: translate(-50%,-50%) scale(1.5); }
+  40%  { opacity: 1;    transform: translate(-50%,-50%) scale(2.6); }
+  70%  { opacity: 0.55; transform: translate(-50%,-50%) scale(3.4); }
+  100% { opacity: 0;    transform: translate(-50%,-50%) scale(3.8); }
+}
+@keyframes of-white {
+  0% { opacity: 0; } 9% { opacity: 1; } 26% { opacity: 1; } 100% { opacity: 0; }
+}
+
+/* The number owns the screen while it climbs. It grows from its own top edge so
+   a 2.6x figure runs DOWN into the play area instead of off the top of it. */
+#run-score-num { display: inline-block; transform-origin: 50% 0; }
+/* While the number owns the screen, nothing shares it: the label and the GREED
+   pill step aside rather than get written over by a 2.6x figure. */
+body.of-live #hud-score-wrap .metric-label,
+body.of-live #greed-pill { opacity: 0; transition: opacity 0.25s ease; }
+#hud-score-wrap .metric-label, #greed-pill { transition: opacity 0.4s ease; }
+/* Lifted over the NEXT box and the menu chip while it is enormous — but still
+   under the blast overlays, so the white sheet covers it like everything else. */
+#run-score.of-count { position: relative; z-index: 34; }
+#run-score.of-count::before {
+  content: ''; position: absolute; left: 50%; top: 46%;
+  width: 46px; height: 46px; border-radius: 50%; transform: translate(-50%,-50%) scale(0.4);
+  background: radial-gradient(closest-side, rgba(255,244,205,0.6), rgba(255,205,90,0.2) 46%, transparent 72%);
+  animation: of-halo 2.4s ease-out forwards; pointer-events: none;
+}
+@keyframes of-halo {
+  0%   { transform: translate(-50%,-50%) scale(0.4);  opacity: 0; }
+  18%  { opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(15);   opacity: 0; }
+}
+#run-score.of-rise   #run-score-num { animation: of-num-rise 2.4s cubic-bezier(.35,.02,.2,1) forwards; }
+#run-score.of-settle #run-score-num { animation: of-num-settle 0.8s cubic-bezier(.25,1.4,.4,1) forwards; }
+@keyframes of-num-rise {
+  0%   { transform: scale(1) translateY(0); color: #fff; filter: none;
+         text-shadow: 0 2px 24px rgba(0,0,0,0.6); }
+  10%  { transform: scale(1.45) translateY(2px); filter: brightness(1.7); }
+  18%  { transform: scale(1.38) translateY(2px); filter: brightness(1); }
+  40%  { transform: scale(1.9) translateY(4px); color: #FFF6D8; filter: brightness(1.55);
+         text-shadow: 0 0 16px rgba(255,255,255,0.95), 0 0 44px rgba(255,214,110,0.9); }
+  52%  { transform: scale(2.05) translateY(4px); filter: brightness(1); }
+  74%  { transform: scale(2.38) translateY(6px); filter: brightness(1.6);
+         text-shadow: 0 0 22px #fff, 0 0 60px rgba(255,220,130,0.95), 0 0 120px rgba(255,190,60,0.7); }
+  88%  { transform: scale(2.52) translateY(6px); filter: brightness(1.1); }
+  100% { transform: scale(2.6) translateY(6px); color: #fff; filter: brightness(1.35);
+         text-shadow: 0 0 26px #fff, 0 0 72px rgba(255,220,130,1),
+                      0 0 150px rgba(255,190,60,0.85), 0 0 220px rgba(255,170,30,0.5); }
+}
+/* A phone has a third of the width to spend, so the figure grows less far. */
+@media (max-width: 759px) {
+  @keyframes of-num-rise {
+    0%   { transform: scale(1) translateY(0); color: #fff; filter: none;
+           text-shadow: 0 2px 24px rgba(0,0,0,0.6); }
+    10%  { transform: scale(1.25) translateY(2px); filter: brightness(1.7); }
+    18%  { transform: scale(1.2) translateY(2px); filter: brightness(1); }
+    40%  { transform: scale(1.5) translateY(3px); color: #FFF6D8; filter: brightness(1.55);
+           text-shadow: 0 0 14px rgba(255,255,255,0.95), 0 0 38px rgba(255,214,110,0.9); }
+    52%  { transform: scale(1.6) translateY(3px); filter: brightness(1); }
+    74%  { transform: scale(1.82) translateY(4px); filter: brightness(1.6);
+           text-shadow: 0 0 18px #fff, 0 0 52px rgba(255,220,130,0.95), 0 0 100px rgba(255,190,60,0.7); }
+    88%  { transform: scale(1.92) translateY(4px); filter: brightness(1.1); }
+    100% { transform: scale(2) translateY(4px); color: #fff; filter: brightness(1.35);
+           text-shadow: 0 0 22px #fff, 0 0 60px rgba(255,220,130,1),
+                        0 0 130px rgba(255,190,60,0.85), 0 0 190px rgba(255,170,30,0.5); }
+  }
+  @keyframes of-num-settle {
+    0%   { transform: scale(2) translateY(4px); color: #fff;
+           text-shadow: 0 0 22px #fff, 0 0 60px rgba(255,220,130,1), 0 0 130px rgba(255,190,60,0.85); }
+    100% { transform: scale(1) translateY(0); color: #fff; text-shadow: 0 2px 24px rgba(0,0,0,0.6); }
+  }
+}
+@keyframes of-num-settle {
+  0%   { transform: scale(2.6) translateY(6px); color: #fff;
+         text-shadow: 0 0 26px #fff, 0 0 72px rgba(255,220,130,1), 0 0 150px rgba(255,190,60,0.85); }
+  100% { transform: scale(1) translateY(0); color: #fff; text-shadow: 0 2px 24px rgba(0,0,0,0.6); }
+}
+
+/* BANK stops being a button and starts being an alarm. */
+#btn-bank.of-blow {
+  animation: of-bank 2.6s cubic-bezier(.3,0,.3,1) 1 both;
+  border-color: rgba(255,236,180,0.95); color: #fff;
+}
+@keyframes of-bank {
+  0%   { transform: scale(1);    box-shadow: 0 0 0 rgba(255,214,110,0); }
+  6%   { transform: scale(1.34); box-shadow: 0 0 60px 18px rgba(255,232,150,0.95); }
+  14%  { transform: scale(1.02); box-shadow: 0 0 18px 2px rgba(255,214,110,0.5); }
+  24%  { transform: scale(1.3);  box-shadow: 0 0 74px 22px rgba(255,240,180,1); }
+  34%  { transform: scale(1.03); box-shadow: 0 0 20px 3px rgba(255,214,110,0.55); }
+  46%  { transform: scale(1.26); box-shadow: 0 0 66px 20px rgba(255,236,170,0.95); }
+  58%  { transform: scale(1.04); box-shadow: 0 0 22px 4px rgba(255,214,110,0.5); }
+  72%  { transform: scale(1.18); box-shadow: 0 0 52px 14px rgba(255,232,150,0.8); }
+  86%  { transform: scale(1.05); box-shadow: 0 0 20px 3px rgba(255,214,110,0.4); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 rgba(255,214,110,0); }
+}
+
+/* The mark has spent the whole game at 0.3 opacity. Once, it gets to shine. */
+#hud-brand.act-overflow          { animation: of-brand 3.2s cubic-bezier(.2,.72,.25,1) both; }
+#hud-brand.act-overflow i        { animation: of-brand-letter 3.2s cubic-bezier(.2,.72,.25,1) both;
+                                   animation-delay: calc(var(--i) * 0.045s); }
+#hud-brand.act-overflow .wm-over,
+#hud-brand.act-overflow .wm-stack { animation: of-brand-half 3.2s cubic-bezier(.25,.8,.3,1) both; }
+@keyframes of-brand {
+  0%   { opacity: 0.3; }
+  9%   { opacity: 1; }
+  62%  { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+@keyframes of-brand-letter {
+  0%   { transform: scale(1) translateY(0); text-shadow: none; }
+  8%   { transform: scale(1.5) translateY(-7px);
+         text-shadow: 0 0 0.5em #fff, 0 0 1.1em rgba(255,225,150,0.95), 0 0 2.2em rgba(255,196,70,0.75); }
+  26%  { transform: scale(1.28) translateY(-3px);
+         text-shadow: 0 0 0.45em #fff, 0 0 1em rgba(255,225,150,0.9); }
+  44%  { transform: scale(1.4) translateY(-5px);
+         text-shadow: 0 0 0.55em #fff, 0 0 1.3em rgba(255,232,160,1), 0 0 2.6em rgba(255,190,50,0.8); }
+  70%  { transform: scale(1.12) translateY(-1px); text-shadow: 0 0 0.3em rgba(255,255,255,0.7); }
+  100% { transform: scale(1) translateY(0); text-shadow: none; }
+}
+@keyframes of-brand-half {
+  0%   { letter-spacing: 0.04em; }
+  10%  { letter-spacing: 0.30em; }
+  46%  { letter-spacing: 0.24em; }
+  78%  { letter-spacing: 0.02em; }
+  100% { letter-spacing: 0.04em; }
+}
+
+/* Reduced motion keeps the reward and drops the spectacle. */
+.reduce-motion #of-orb, .reduce-motion #of-white { animation: none; }
+.reduce-motion #of-white.go { animation: of-white-calm 0.8s ease-out forwards; }
+@keyframes of-white-calm { 0% { opacity: 0; } 20% { opacity: 0.55; } 100% { opacity: 0; } }
+.reduce-motion #run-score.of-rise #run-score-num,
+.reduce-motion #run-score.of-settle #run-score-num,
+.reduce-motion #run-score.of-count::before,
+.reduce-motion #btn-bank.of-blow,
+.reduce-motion #hud-brand.act-overflow,
+.reduce-motion #hud-brand.act-overflow i,
+.reduce-motion #hud-brand.act-overflow .wm-over,
+.reduce-motion #hud-brand.act-overflow .wm-stack { animation: none; }
 #chase-vignette {
   position: fixed; inset: 0; pointer-events: none; z-index: 17; opacity: 0;
   background: radial-gradient(80% 70% at 50% 50%, transparent 55%, rgba(255, 200, 70, 0.24) 100%);
@@ -1027,11 +1202,15 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 #tutor-ring {
   position: absolute; border: 2px solid var(--gold); border-radius: 999px;
   box-shadow: 0 0 0 3px rgba(255,210,74,0.16), 0 0 34px rgba(255,210,74,0.4);
+  /* opacity is NOT part of the pulse: the ring fades itself out whenever its
+     subject leaves the screen, and a keyframe would win over that */
+  opacity: 0.9; transition: opacity 0.22s ease;
   animation: tutor-pulse 1.6s ease-in-out infinite;
 }
+#tutor-ring.waiting { opacity: 0; }
 @keyframes tutor-pulse {
-  0%,100% { transform: scale(1);    opacity: 0.8; }
-  50%     { transform: scale(1.07); opacity: 1; }
+  0%,100% { transform: scale(1); }
+  50%     { transform: scale(1.07); }
 }
 #tutor-tip {
   position: absolute; left: 50%; transform: translateX(-50%);
@@ -1272,6 +1451,10 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   }
 
   #next-piece { padding: 7px 8px 5px; }
+  /* the rail shares a phone screen with the score and the GREED pill */
+  #banner-rail { max-width: min(94vw, 340px); gap: 6px; }
+  #curse-banner { padding: 7px 14px; font-size: 0.58rem; letter-spacing: 0.16em; }
+  #wind-banner { padding: 6px 13px; font-size: 0.53rem; letter-spacing: 0.14em; }
   #next-piece canvas { width: 54px; height: 54px; margin-top: 3px; }
   #next-piece .metric-label { font-size: 0.44rem; letter-spacing: 0.26em; }
 }
@@ -1286,7 +1469,12 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 <div id="chase-vignette"></div>
 <div id="risk-vignette"></div>
 <div id="reaction"></div>
-<div id="curse-banner" class="hidden"></div>
+<div id="of-orb"></div>
+<div id="of-white"></div>
+<div id="banner-rail">
+  <div id="curse-banner" class="hidden"></div>
+  <div id="wind-banner" class="hidden"></div>
+</div>
 
 
 <!-- HUD -->
@@ -1485,30 +1673,34 @@ const TIERS = {
   radii:  [0, 15, 19, 24, 31, 39, 49, 61, 76],
 };
 
-/* Shape packs — each pack is a RADICAL departure from Signal (not a subtle
-   recolor): monochrome noir, all-fire inferno, jewel-tone royal, arcade retro…
-   Adjacent tiers stay unmistakable inside every pack. Perks scale with price. */
+/* Shape packs. Six, and every one of them is a DIFFERENT IDEA rather than a
+   different set of hues — the surest way to end up with ten packs that all look
+   like each other is to keep re-rolling the same rainbow.
+
+     Signal    the spectrum        (the default — untouched, and untouchable)
+     Noir      a value ladder      monochrome ink, one blood accent, gold apex
+     Abyss     a depth ladder      foam down to the trench, lit from below
+     Inferno   a heat ladder       ash, ember, flame, white-hot core
+     Bloom     a muted ladder      clay, olive, denim, plum: dyed, not lit
+     Sovereign a material ladder   struck metal — copper, brass, silver, gold
+
+   Adjacent tiers stay unmistakable inside every pack (nothing under ~100 of
+   Manhattan RGB separation; Signal's own closest pair is 107), and each pack's
+   perk changes how the run PLAYS, not just what it pays — see Economy's pack
+   getters, which now read the same levers the docks do. */
 const THEMES = {
-  default: { name: 'Signal',  bonus: {},
+  default:   { name: 'Signal',    bonus: {},
     colors: ['', '#FF2E2E', '#FF7A00', '#FFE500', '#22DD4B', '#00D4D4', '#2E6BFF', '#B23BFF', '#FFFFFF'] },
-  noir:    { name: 'Noir',    bonus: { coinMult: 1.04 }, // monochrome ladder, one blood accent, gold apex
-    colors: ['', '#F8F8F8', '#C4C4CC', '#8E8E9A', '#5E5E6C', '#3B3B47', '#1F1F28', '#E01E3C', '#FFD700'] },
-  oceanic: { name: 'Oceanic', bonus: { greedStart: 1.2 }, // deep-sea ladder: foam → abyss
-    colors: ['', '#D8FBFF', '#7CE8F0', '#2EC4E0', '#0E8FD0', '#1F5FC0', '#2E3AA8', '#521E98', '#FFE08A'] },
-  toxic:   { name: 'Toxic',   bonus: { coinMult: 1.08 }, // acid / uv-lab
-    colors: ['', '#EEFF00', '#A8F000', '#4CE800', '#00E070', '#00D8C8', '#8A5BFF', '#E82EFF', '#F4FF9E'] },
-  candy:   { name: 'Candy',   bonus: { goldenBias: 2.0 }, // saturated sugar shop
-    colors: ['', '#FF4D9E', '#FF8A3C', '#FFE03C', '#4CE87A', '#3CD4FF', '#8A7AFF', '#E060FF', '#FFF6C8'] },
-  retro:   { name: 'Retro',   bonus: { coinMult: 1.08, greedStart: 1.15 }, // 80s arcade cabinet
-    colors: ['', '#FF3355', '#FF9722', '#FFEE33', '#33EE66', '#22DDEE', '#4477FF', '#EE44EE', '#F8F0D8'] },
-  inferno: { name: 'Inferno', bonus: { coinMult: 1.12 }, // everything burns — heat ladder
-    colors: ['', '#FFF1A8', '#FFD24C', '#FFA02E', '#FF6B1A', '#F53D2E', '#C81E50', '#8E1060', '#FFFFFF'] },
-  royal:   { name: 'Royal',   bonus: { greedStart: 1.25, coinMult: 1.06 }, // jewel tones on velvet
-    colors: ['', '#E8B4B8', '#D4485F', '#B01E48', '#20A46E', '#1E7898', '#2E4EA8', '#6E2EA0', '#F0C420'] },
-  cyber:   { name: 'Cyber',   bonus: { coinMult: 1.10, goldenBias: 1.5 }, // neon on gunmetal
-    colors: ['', '#00FFD4', '#00C8FF', '#4C8AFF', '#8A5BFF', '#C43CFF', '#FF2ED4', '#FF3C6B', '#EAFBFF'] },
-  prism:   { name: 'Prism',   bonus: { coinMult: 1.15, greedStart: 1.35 }, // max saturation, white apex
-    colors: ['', '#FF0044', '#FF7A00', '#FFE800', '#00FF66', '#00E5FF', '#3366FF', '#C400FF', '#FFFFFF'] },
+  noir:      { name: 'Noir',      bonus: { coinMult: 1.06, salvageMult: 1.8 },
+    colors: ['', '#FFFFFF', '#C9CBD6', '#9297A8', '#646B80', '#41485C', '#E01E3C', '#FF7A96', '#FFD24A'] },
+  abyss:     { name: 'Abyss',     bonus: { greedStart: 1.25, slowFall: 0.012 },
+    colors: ['', '#EAFFFF', '#7DF0DC', '#17C9C0', '#0C7CEA', '#2138D8', '#4A18B0', '#A800B4', '#FFE27A'] },
+  inferno:   { name: 'Inferno',   bonus: { coinMult: 1.12, comboBonusMs: 900 },
+    colors: ['', '#FFE9B0', '#FFC23C', '#FF7A05', '#C41B12', '#F2295E', '#8E0F5E', '#4A0A8C', '#FFFFFF'] },
+  bloom:     { name: 'Bloom',     bonus: { greedStart: 1.2, forgiveness: 0.10 },
+    colors: ['', '#F4E3C8', '#E8A05C', '#C4553F', '#7C8C4A', '#2E7F72', '#2F4FA8', '#6B3A6E', '#F0C24A'] },
+  sovereign: { name: 'Sovereign', bonus: { coinMult: 1.10, goldenBias: 3 },
+    colors: ['', '#C87F3E', '#F2DCA0', '#A9762B', '#D8E2EE', '#3B3226', '#F0C63C', '#9FE8F0', '#FFFFFF'] },
 };
 
 /* Docks — the shop's anchor purchase. Design rule learned the hard way:
@@ -1545,14 +1737,14 @@ const SPECIALS = {
   golden:   { label: 'GOLDEN BLOCK',    coinMult: 3, targetsFusable: true },
   giant:    { label: 'GIANT BLOCK',     coinMult: 3, sizeMult: 1.55, targetsFusable: true, cameraKick: true },
   rainbow:  { label: 'RAINBOW BLOCK',   coinMult: 2.5, wild: true },
-  unstable: { label: 'UNSTABLE BLOCK',  coinMult: 2, friction: 0.34, jitter: true },
+  unstable: { label: 'UNSTABLE BLOCK',  coinMult: 2, friction: 0.95, jitter: true, density: 0.00008, harmlessFall: true },
   ice:      { label: 'ICE BLOCK',       coinMult: 2, friction: 0.02, restitution: 0.22, slippery: true },
   star:     { label: 'LUCKY STAR',      coinMult: 2, greedBonus: 0.7, targetsFusable: true },
-  bomb:     { label: 'BOMB',            noFuse: true },
+  bomb:     { label: 'BOMB',            noFuse: true, harmlessFall: true },
   magnet:   { label: 'MAGNET BLOCK',    coinMult: 2,   targetsFusable: true, magnetize: true },
-  heavy:    { label: 'HEAVY BLOCK',     coinMult: 1.5, targetsFusable: true, density: 0.02, sizeMult: 1.12, slam: true },
+  heavy:    { label: 'HEAVY BLOCK',     coinMult: 1.5, targetsFusable: true, density: 0.02, sizeMult: 1.12, slam: true, harmlessFall: true },
   split:    { label: 'SPLIT BLOCK',     noFuse: true,  splits: 4 },
-  angry:    { label: 'ANGRY BLOCK',     coinMult: 2,   targetsFusable: true, jumps: true },
+  angry:    { label: 'ANGRY BLOCK',     coinMult: 2,   targetsFusable: true, jumps: true, harmlessFall: true },
   dice:     { label: 'DICE BLOCK',      coinMult: 2,   dice: true },
   chest:    { label: 'LUCKY CHEST',     noFuse: true,  chest: true },
   jackpot:  { label: 'JACKPOT DIAMOND', coinMult: 8,   sizeMult: 1.35, targetsFusable: true, jackpotBlock: true },
@@ -1612,7 +1804,8 @@ const CONFIG = {
     blackholeGraceMs: 3_000,         // pieces it flings off the deck vanish, they never end the run
     windGraceMs: 3_500,              // covers the gust plus the settling tail after it
     meteorWarnMs: 1200,
-    windMs: 9_000,
+    windMs: 9_000,                   // a FLOOR, not a timer — the gust also needs windDrops landings
+    windDrops: 3,                    // you cannot wait wind out; you have to drop through it
     windForce: 0.0035,               // pushes the FALLING block sideways — landing always clamped over the dock
     meteorGraceMs: 4_000,            // after impact, knocked-off pieces vanish instead of killing
     angryGraceMs: 2_500,             // same idea after an angry jump
@@ -1629,6 +1822,16 @@ const CONFIG = {
     spamDecayPerSec: 0.18,     // heat cools once they slow down and aim
   },
   bankDramaAt: 150_000,        // unbanked coins where the BANK button starts escalating
+  /* THE OVERFLOW — two AUREX touching (§21f). The one payout in the game that
+     is a flat, promised number rather than a multiplied one, because the whole
+     point of the moment is that you can read it while it climbs. */
+  overflow: {
+    coins: 500_000,
+    chargeMs: 640,             // light builds between the two blocks
+    countAtMs: 1180,           // from the start of the charge: the number sets off
+    countMs: 2400,             // and climbs for this long
+    settleMs: 800,             // then falls back to its normal size
+  },
 };
 
 /* Milestone superpowers — earned by LIFETIME banked coins, never bought.
@@ -1739,15 +1942,11 @@ const SHOP_CATALOG = [
   { id: 'dock_crown',     kind: 'dock', name: 'OBSIDIAN CROWN', price: 10000000,   data: 'crown',     power: 'EVERYTHING · +22% length · walls · max greed' },
   // SHAPE PACKS
   { id: 'theme_default', kind: 'theme', name: 'Signal',  price: 0,        data: 'default', power: '' },
-  { id: 'theme_noir',    kind: 'theme', name: 'Noir',    price: 70000,   data: 'noir',    power: '+4% fusion coins' },
-  { id: 'theme_oceanic', kind: 'theme', name: 'Oceanic', price: 120000,   data: 'oceanic', power: 'GREED starts ×1.2' },
-  { id: 'theme_toxic',   kind: 'theme', name: 'Toxic',   price: 200000,   data: 'toxic',   power: '+8% fusion coins' },
-  { id: 'theme_candy',   kind: 'theme', name: 'Candy',   price: 300000,   data: 'candy',   power: 'golden blocks 2× as often' },
-  { id: 'theme_retro',   kind: 'theme', name: 'Retro',   price: 400000,   data: 'retro',   power: '+8% coins · GREED starts ×1.15' },
-  { id: 'theme_inferno', kind: 'theme', name: 'Inferno', price: 500000,  data: 'inferno', power: '+12% fusion coins' },
-  { id: 'theme_royal',   kind: 'theme', name: 'Royal',   price: 800000,  data: 'royal',   power: '+6% coins · GREED starts ×1.25' },
-  { id: 'theme_cyber',   kind: 'theme', name: 'Cyber',   price: 1500000,  data: 'cyber',   power: '+10% coins · more goldens' },
-  { id: 'theme_prism',   kind: 'theme', name: 'Prism',   price: 3000000,  data: 'prism',   power: '+15% coins · GREED starts ×1.35' },
+  { id: 'theme_noir',      kind: 'theme', name: 'Noir',      price: 70000,   data: 'noir',      power: '+6% coins · bombs salvage ×1.8' },
+  { id: 'theme_abyss',     kind: 'theme', name: 'Abyss',     price: 150000,  data: 'abyss',     power: 'GREED opens ×1.25 · everything falls slower' },
+  { id: 'theme_inferno',   kind: 'theme', name: 'Inferno',   price: 400000,  data: 'inferno',   power: '+12% coins · +0.9s to every chain' },
+  { id: 'theme_bloom',     kind: 'theme', name: 'Bloom',     price: 900000,  data: 'bloom',     power: 'GREED opens ×1.2 · the dock forgives the edge' },
+  { id: 'theme_sovereign', kind: 'theme', name: 'Sovereign', price: 2000000, data: 'sovereign', power: '+10% coins · golden blocks 3× as often' },
 ];
 
 /* ============================ §2 PERSISTENCE ============================== */
@@ -1785,6 +1984,16 @@ const SaveStore = {
       const raw = localStorage.getItem(this.KEY);
       this.data = raw ? Object.assign(this.defaults(), JSON.parse(raw)) : this.defaults();
       this.data.profile = Object.assign(this.defaults().profile, this.data.profile || {});
+      /* Retired shape packs. A save written by an older build can still be
+         carrying an id that no longer exists — drop it rather than let the shop
+         render a hole, and put anyone still wearing one back in Signal. */
+      const live = new Set(SHOP_CATALOG.map((it) => it.id));
+      this.data.unlocked = (this.data.unlocked || []).filter((id) => live.has(id));
+      this.data.everEquipped = (this.data.everEquipped || []).filter((id) => live.has(id));
+      if (!this.data.unlocked.includes('theme_default')) this.data.unlocked.push('theme_default');
+      if (!this.data.unlocked.includes('dock_slab')) this.data.unlocked.push('dock_slab');
+      if (!THEMES[this.data.equipped.theme]) this.data.equipped.theme = 'default';
+      if (!DOCKS[this.data.equipped.dock]) this.data.equipped.dock = 'slab';
     } catch (e) { this.data = this.defaults(); }
     return this.data;
   },
@@ -1857,6 +2066,10 @@ const Haptics = {
     bank:     { w: 5, p: [24, 44, 78] },
     unlock:   { w: 5, p: [18, 40, 18, 40, 18, 40, 92] },
     collapse: { w: 5, p: [76, 54, 118] },
+    // THE OVERFLOW — the only cue allowed to run over a second: the charge
+    // stutters faster and faster, then one enormous hit for the blast
+    ofCharge: { w: 5, p: [10, 90, 12, 78, 14, 66, 18, 54, 22, 42, 28, 30, 36] },
+    ofBlast:  { w: 5, p: [190, 60, 40, 40, 30, 40, 24, 40, 18] },
   },
   _at: 0, _weight: 0,
   fire(name) {
@@ -1894,6 +2107,8 @@ FeedbackBus.on('jackpot', () => haptic('jackpot'));
 FeedbackBus.on('explosion', () => haptic('blast'));
 FeedbackBus.on('bank', () => haptic('bank'));
 FeedbackBus.on('collapse', () => haptic('collapse'));
+FeedbackBus.on('overflowCharge', () => haptic('ofCharge'));
+FeedbackBus.on('overflowBlast', () => haptic('ofBlast'));
 
 /* Five recorded one-shots, base64 MP3 so the file stays self-contained and so
    every browser can decode them (Ogg Vorbis is Safari 17+ only). ~29 KB.
@@ -2183,6 +2398,55 @@ const Audio2 = {
     this.voice({ freq: 110, type: 'triangle', peak: 0.16, attack: 0.002, decay: 0.5,
       slideTo: 32, cutoff: 700, cutoffTo: 90, q: 2.2, verb: 0.2 });
   },
+  /* THE OVERFLOW, in three parts, because it is three moments: a charge that
+     rises and will not stop rising, the blast itself, and a coin ladder that
+     climbs for as long as the number does. */
+  overflowCharge(ms) {
+    if (!this.on) return;
+    const d = (ms || 640) / 1000;
+    /* A riser that only goes up. Built from FM rather than a raw saw for the
+       same reason everything else in here is: a saw stab through a filter is
+       the sound of a cheap game, and this is the least cheap moment in ours. */
+    this.voice({ freq: this.note(0, -1), type: 'triangle', fm: 2.4, fmRatio: 1.5, peak: 0.085,
+      attack: d * 0.75, decay: 0.14, slideTo: this.note(0, 1.4),
+      cutoff: 300, cutoffTo: 5200, q: 6, verb: 0.35 });
+    this.voice({ freq: this.note(4, -1), type: 'sine', fm: 1.8, fmRatio: 2.51, peak: 0.06,
+      attack: d * 0.8, decay: 0.12, slideTo: this.note(4, 1.4),
+      cutoff: 260, cutoffTo: 4200, q: 7, verb: 0.4, detune: 8 });
+    this.hiss({ peak: 0.05, decay: d + 0.1, from: 400, to: 12000, type: 'bandpass', q: 1.2, verb: 0.4 });
+    this.duckMusic();
+  },
+  overflowBlast() {
+    if (!this.on) return;
+    // the hit: sub, body, and a wall of air going out
+    this.voice({ freq: 68, type: 'sine', peak: 0.3, attack: 0.002, decay: 1.5,
+      slideTo: 26, cutoff: 900, cutoffTo: 60, q: 1.4, verb: 0.25 });
+    this.voice({ freq: 150, type: 'triangle', peak: 0.16, attack: 0.002, decay: 0.9,
+      slideTo: 44, cutoff: 1600, cutoffTo: 120, q: 2, verb: 0.3 });
+    this.hiss({ peak: 0.3, decay: 1.7, from: 15000, to: 220, type: 'lowpass', q: 0.9, verb: 0.7 });
+    // and the chord it opens into
+    [0, 4, 7, 11].forEach((s, i) =>
+      this.voice({ freq: this.note(s, 1), type: 'sine', fm: 1.3, fmRatio: 2.01, peak: 0.11,
+        attack: 0.01, decay: 1.6, when: 0.06 + i * 0.03, verb: 0.75 }));
+    this.duckMusic();
+  },
+  overflowCount(ms) {
+    if (!this.on) return;
+    // a ladder of bells that climbs for exactly as long as the number does
+    const total = (ms || 2400) / 1000;
+    const steps = 22;
+    for (let i = 0; i < steps; i++) {
+      const k = i / (steps - 1);
+      this.voice({ freq: this.note(i % 5 + (i > 12 ? 2 : 0), 0.5 + k * 1.6), type: 'sine',
+        fm: 1.1, fmRatio: 2.01, peak: 0.035 + k * 0.055, attack: 0.003,
+        decay: 0.35 + k * 0.4, when: Math.pow(k, 1.35) * total, verb: 0.5 });
+    }
+    // the landing
+    [0, 4, 7, 12].forEach((s, i) =>
+      this.voice({ freq: this.note(s, 1), type: 'sine', fm: 1.4, fmRatio: 2.01, peak: 0.13,
+        attack: 0.004, decay: 1.4, when: total + i * 0.05, verb: 0.7 }));
+    this.hiss({ peak: 0.06, decay: 1.2, from: 11000, to: 3000, verb: 0.7, when: total });
+  },
   shimmer() {
     if (!this.on) return;
     [7, 9, 11].forEach((s, i) =>
@@ -2373,6 +2637,9 @@ FeedbackBus.on('jackpot', () => Audio2.jackpot());
 FeedbackBus.on('explosion', () => Audio2.explosion());
 FeedbackBus.on('surprise', () => Audio2.shimmer());
 FeedbackBus.on('newBest', () => Audio2.newBest());
+FeedbackBus.on('overflowCharge', (p) => Audio2.overflowCharge(p.ms));
+FeedbackBus.on('overflowBlast', () => Audio2.overflowBlast());
+FeedbackBus.on('overflowCount', (p) => Audio2.overflowCount(p.ms));
 
 /* ============================ §7 PERF MONITOR ============================= */
 const perf = { tier: 'high', samples: [], done: false, particleCap: 620 };
@@ -2913,25 +3180,29 @@ const Economy = {
   },
   // STEADY AIM stacks on top of whatever the equipped dock already grants.
   get edgeForgiveness() {
-    let f = this.dock.forgiveness || 0;
+    let f = (this.dock.forgiveness || 0) + (this.packBonus.forgiveness || 0);
     if (save.powers.includes('power_steadyaim')) f += 0.15;
     return f;
   },
-  // --- dock powers ---
-  get dockSlowFall() { return this.dock.slowFall || 0; },
-  get greedRate() { return 1 + (this.dock.greedRate || 0); },
-  get salvageMult() { return this.dock.salvageMult || 1; },
+  /* Dock powers and pack powers now share one set of levers, and they stack. A
+     shape pack that only ever moved a coin multiplier was a skin with a price
+     tag; a pack that slows the fall, widens the chain window or forgives the
+     edge is a way to play, which is the thing worth saving up for. */
+  get dockSlowFall() { return (this.dock.slowFall || 0) + (this.packBonus.slowFall || 0); },
+  get greedRate() { return 1 + (this.dock.greedRate || 0) + (this.packBonus.greedRate || 0); },
+  get salvageMult() { return (this.dock.salvageMult || 1) * (this.packBonus.salvageMult || 1); },
   get dockWalls() { return !!this.dock.walls; },
-  get comboWindowMs() { return CONFIG.chainWindowMs + (this.dock.comboBonusMs || 0); },
+  get comboWindowMs() { return CONFIG.chainWindowMs + (this.dock.comboBonusMs || 0) + (this.packBonus.comboBonusMs || 0); },
   // --- shape-pack perks ---
   get pack() { return THEMES[save.equipped.theme] || THEMES.default; },
+  get packBonus() { return this.pack.bonus || {}; },
   get coinMult() {
-    let m = (this.pack.bonus && this.pack.bonus.coinMult) || 1;
+    let m = this.packBonus.coinMult || 1;
     if (save.powers.includes('power_midas')) m *= 1.05; // MIDAS TOUCH superpower
     return m;
   },
-  get greedStart() { return (this.pack.bonus && this.pack.bonus.greedStart) || 1; },
-  get goldenBias() { return (this.pack.bonus && this.pack.bonus.goldenBias) || 0; },
+  get greedStart() { return this.packBonus.greedStart || 1; },
+  get goldenBias() { return this.packBonus.goldenBias || 0; },
   checkMilestones() {
     const newly = [];
     for (const m of MILESTONES) {
@@ -3090,7 +3361,74 @@ engine.velocityIterations = 8;
 // that geometrically impossible.
 Events.on(engine, 'beforeUpdate', () => {
   for (const b of Composite.allBodies(engine.world)) {
-    if (b.plugin && b.plugin.piece && b.velocity.y > 12) Body.setVelocity(b, { x: b.velocity.x, y: 12 });
+    if (!b.plugin || !b.plugin.piece) continue;
+    if (b.velocity.y > 12) Body.setVelocity(b, { x: b.velocity.x, y: 12 });
+    // pre-step velocity, so the shove an UNSTABLE block delivers can be
+    // measured after the solver has run and handed straight back
+    b.plugin.preVX = b.velocity.x; b.plugin.preVY = b.velocity.y; b.plugin.preAV = b.angularVelocity;
+    b.plugin.prePX = b.position.x; b.plugin.prePY = b.position.y;
+  }
+});
+/* An UNSTABLE block shakes itself silly. The one thing it must never do is take
+   the tower with it: a block that hops around is a spectacle, a block that
+   shoves its neighbours off the dock is a punishment nobody chose. So every
+   step, the velocity a neighbour gained along its contact with an unstable
+   block is measured and subtracted straight back out. The neighbour keeps
+   gravity and keeps whatever every other body did to it — it just feels nothing
+   at all from this one. Two exceptions keep it honest: a piece resting ON the
+   unstable block still gets the upward support it needs, and on a side-by-side
+   contact the tangent is vertical, so cancelling it would cancel gravity. */
+Events.on(engine, 'afterUpdate', () => {
+  const pairs = engine.pairs && engine.pairs.list;
+  if (!pairs) return;
+  for (const pair of pairs) {
+    if (!pair.isActive || !pair.collision) continue;
+    const a = pair.bodyA, b = pair.bodyB;
+    const aU = a.plugin && a.plugin.piece && a.plugin.special === 'unstable';
+    const bU = b.plugin && b.plugin.piece && b.plugin.special === 'unstable';
+    if (aU === bU) continue;                       // neither, or two of them shoving each other
+    const other = aU ? b : a;
+    if (!other.plugin || !other.plugin.piece || other.isStatic || other.plugin.preVX === undefined) continue;
+    const s = aU ? 1 : -1;                         // the pair normal runs bodyA -> bodyB
+    const nx = pair.collision.normal.x * s, ny = pair.collision.normal.y * s;
+    const dvx = other.velocity.x - other.plugin.preVX, dvy = other.velocity.y - other.plugin.preVY;
+    const along = dvx * nx + dvy * ny;
+    let kx = 0, ky = 0;
+    if (along > 0 && ny >= -0.5) { kx += along * nx; ky += along * ny; }   // the outward shove
+    if (Math.abs(ny) > 0.5) {                                             // and the sideways drag
+      const tx = -ny, ty = nx, tan = dvx * tx + dvy * ty;
+      kx += tan * tx; ky += tan * ty;
+    }
+    if (kx || ky) {
+      Body.setVelocity(other, { x: other.velocity.x - kx, y: other.velocity.y - ky });
+      const preAV = other.plugin.preAV === undefined ? other.angularVelocity : other.plugin.preAV;
+      Body.setAngularVelocity(other, preAV + (other.angularVelocity - preAV) * 0.25);
+      other.plugin.preVX = other.velocity.x; other.plugin.preVY = other.velocity.y;
+    }
+    /* Cancelling the impulse is only half of it. Matter also un-overlaps bodies
+       by moving them directly, and that positional shove is what was still
+       walking a settled neighbour across the deck. The same decomposition is
+       applied to it — and because the component taken back is always the one
+       across the contact, never the one along gravity, the neighbour still
+       falls exactly as it would have. */
+    if (other.plugin.prePX === undefined) continue;
+    const dpx = other.position.x - other.plugin.prePX, dpy = other.position.y - other.plugin.prePY;
+    const pAlong = dpx * nx + dpy * ny;
+    let px = 0, py = 0;
+    if (pAlong > 0 && ny >= -0.5) { px += pAlong * nx; py += pAlong * ny; }
+    if (Math.abs(ny) > 0.5) {
+      const ptx = -ny, pty = nx, ptan = dpx * ptx + dpy * pty;
+      px += ptan * ptx; py += ptan * pty;
+    }
+    if (!px && !py) continue;
+    /* Bounded, always. Handing back an unbounded positional correction can feed
+       energy back into the solver on the next step and end up throwing the very
+       block it was protecting; a per-step cap makes that impossible while still
+       being far more than enough to absorb a shove. */
+    const mag = Math.hypot(px, py), cap = 0.6;
+    if (mag > cap) { px *= cap / mag; py *= cap / mag; }
+    Body.setPosition(other, { x: other.position.x - px, y: other.position.y - py });
+    other.plugin.prePX = other.position.x; other.plugin.prePY = other.position.y;
   }
 });
 
@@ -3182,7 +3520,8 @@ const Stack = {
     const sa = SPECIALS[a.plugin.special], sb = SPECIALS[b.plugin.special];
     if ((sa && sa.noFuse) || (sb && sb.noFuse)) return false;   // bomb never fuses
     if ((sa && sa.wild) || (sb && sb.wild)) return true;        // rainbow = wildcard
-    return a.plugin.tier === b.plugin.tier && a.plugin.tier < TIERS.count;
+    // AUREX + AUREX is legal now — processFusions routes it to the OVERFLOW
+    return a.plugin.tier === b.plugin.tier;
   },
   specialMult(a, b) {
     let m = 1;
@@ -3234,6 +3573,12 @@ const Stack = {
     for (const [a, b] of queue) {
       if (consumed.has(a.id) || consumed.has(b.id)) continue;
       if (!a.plugin || !b.plugin || !this.canFuse(a, b)) continue;
+      // Two AUREX. There is no rung above this one, so the tower does not build
+      // — it cashes itself in (§21f THE OVERFLOW).
+      if (a.plugin.tier === TIERS.count && b.plugin.tier === TIERS.count) {
+        if (!Overflow.active) { consumed.add(a.id); consumed.add(b.id); Overflow.start(a, b); }
+        continue;
+      }
       const newTier = Math.min(Math.max(a.plugin.tier, b.plugin.tier) + 1, TIERS.count);
       const mult = this.specialMult(a, b);
       const specials = [a.plugin.special, b.plugin.special].filter(Boolean);
@@ -3273,15 +3618,23 @@ const Stack = {
   stability() {
     const ps = this.pieces();
     if (!ps.length || !this.platform) return 1;
-    let mass = 0, comX = 0, motion = 0;
+    let mass = 0, comX = 0, motion = 0, counted = 0;
     for (const b of ps) {
+      /* A frozen piece has INFINITE mass in Matter, and one of those in the
+         centre-of-mass sum turns the whole reading into NaN — which then walks
+         out through the micro-shake and into the camera transform. Anything
+         that is not a real, finite weight simply is not part of the balance. */
+      if (!Number.isFinite(b.mass) || b.mass <= 0) continue;
       mass += b.mass;
       comX += b.position.x * b.mass;
+      counted++;
+      if (b.plugin.special === 'unstable') continue;      // its shudder is not the tower's
       motion += Math.hypot(b.velocity.x, b.velocity.y) + Math.abs(b.angularVelocity) * 14;
     }
+    if (!counted || !mass) return 1;
     comX /= mass;
     const comRatio = clamp(Math.abs(comX - WORLD.width / 2) / this.platform.plugin.halfW, 0, 1.3);
-    const motionRatio = clamp(motion / ps.length / 3.2, 0, 1);
+    const motionRatio = clamp(motion / counted / 3.2, 0, 1);
     // premium docks/STEADY AIM add a modest stability floor — never enough
     // to trivialize the risk decision, just a little breathing room.
     return clamp(1 - (0.7 * Math.pow(comRatio, 1.6) + 0.55 * motionRatio) + Economy.edgeForgiveness * 0.5, 0, 1);
@@ -3302,7 +3655,11 @@ const Stack = {
     return best ? best.v : 1;
   },
   allSettled() {
-    return this.pieces().every((b) => b.isSleeping || Math.hypot(b.velocity.x, b.velocity.y) < WORLD.settleSpeed);
+    // An UNSTABLE block never stops moving — that is the whole point of it — so
+    // it is excused from the settle check; waiting for it would put a 3-second
+    // timeout in front of every single drop.
+    return this.pieces().every((b) => b.plugin.special === 'unstable'
+      || b.isSleeping || Math.hypot(b.velocity.x, b.velocity.y) < WORLD.settleSpeed);
   },
   stackTopY() {
     let top = WORLD.platformY;
@@ -3316,13 +3673,26 @@ const Stack = {
     const hw = this.platform.plugin.halfW, cx = WORLD.width / 2;
     const stackTop = this.stackTopY();
     const edgeSlack = 0.4 + Economy.edgeForgiveness;
+    /* A WALLED dock moves the point of no return UP. On an open deck a piece is
+       only lost once it drops past the dock line; on a walled one it is lost the
+       moment it clears the crest on the outside, because the wall it just went
+       over is now between it and any way back. Reading the dock line there
+       handed the player a free banking window while the piece was still visibly
+       on its way down the outside — that window is gone. */
+    const wallLine = this.walls ? WORLD.platformY - (this.wallH || 0) + 6 : null;
+    const wallFace = hw + 14;
+    const wallDrop = 10 + Economy.edgeForgiveness * 14;
     for (const b of this.pieces()) {
-      if (b.plugin.special === 'bomb') continue;
+      // a piece whose fall is never lethal cannot doom the run either
+      if ((SPECIALS[b.plugin.special] || {}).harmlessFall) continue;
       if (b.position.y > WORLD.platformY + 10) return true; // already below dock level
-      const off = Math.abs(b.position.x - cx) > hw + b.plugin.r * edgeSlack;
+      const dx = Math.abs(b.position.x - cx);
+      const off = dx > hw + b.plugin.r * edgeSlack;
       if (!off) continue;
       // a clean drop still in flight above the tower isn't doomed yet
       if (!b.plugin.contacted && b.position.y < stackTop - 20) continue;
+      // over the wall and already sinking on the wrong side of it
+      if (wallLine !== null && dx > wallFace && b.position.y + b.plugin.r > wallLine + wallDrop) return true;
       if (b.position.y + b.plugin.r > WORLD.platformY + 6) return true; // beside the dock with nothing below
       if (b.velocity.y > 3.5) return true;                              // free-falling past the edge
     }
@@ -3404,7 +3774,7 @@ Events.on(engine, 'collisionActive', (ev) => {
    Coins ARE the score: fusions mint coins, banking moves them to the vault. */
 const Game = {
   state: 'BOOT',
-  runCoins: 0, displayCoins: 0,
+  runCoins: 0, displayCoins: 0, coinLock: false,
   droppedCount: 0, fusionsThisRun: 0, maxTierThisRun: 1, peakPieces: 0,
   comboIdx: -1, comboLastT: 0, lastFusionT: 0, chainCount: 0,
   revivesUsedThisRun: 0, doubledUsed: false,
@@ -3439,6 +3809,7 @@ const Game = {
     this.spawnY = WORLD.platformY - WORLD.spawnClearance;
     Camera.reset();
     RiskFX.reset();
+    Overflow.reset();
     this.spamHeat = 0; this.spamStreak = 0; this.lastDropAt = 0; this.spamWarned = false;
     this.greedMark = 1; this.dangerRung = false;
     PSV.runsThisSession++;
@@ -3478,6 +3849,7 @@ const Game = {
   release() { if (this.state === 'AIMING') this.drop(); },
   drop() {
     if (this.state !== 'DECISION' && this.state !== 'AIMING') return;
+    if (Overflow.blocking) return;      // the OVERFLOW owns the screen until it is done
     PSV.sampleDecisionLatency(now() - this.decisionStartT);
     PSV.inputJitter = this.computeJitter();
     // Revive snapshot is taken BEFORE the drop, so it captures the tower
@@ -3542,6 +3914,7 @@ const Game = {
     const sp = body.plugin.special;
     if (sp === 'bomb' && !body.plugin.armedAt) body.plugin.armedAt = now();
     if (!body.plugin.landedAt) body.plugin.landedAt = now();
+    if (body === this.dropBody) EventDirector.noteWindDrop();   // wind is cleared by playing, not by waiting
     const impact = Math.min(Math.hypot(body.velocity.x, body.velocity.y) / 8, 1);
     FeedbackBus.emit('land', { impact, x: body.position.x, y: body.position.y, fuses: Stack.willFuse(body) });
     // ---- special on-land behaviors (§20b) ----
@@ -3731,9 +4104,32 @@ const Game = {
         FeedbackBus.emit('explosion', res);
         Profile.onChaos();
         trackEvent('bomb_exploded', { destroyed: res.destroyed, salvage: res.salvage });
-      } else if (sp === 'unstable') {           // UNSTABLE: shudders constantly
-        if (Math.random() < 0.12) Body.applyForce(b, b.position, { x: rand(-1, 1) * 0.0016 * b.mass, y: -Math.random() * 0.0006 * b.mass });
+      } else if (sp === 'unstable') {
+        /* UNSTABLE does not just LOOK glitchy — it cannot hold still. It
+           shudders every frame and, roughly once a second, actually HOPS: it
+           walks itself along the tower and, often enough, straight off it.
+           Two rules make it safe to play this hard, and both are absolute:
+           nothing it touches is ever moved by it (the shove-cancel in §19),
+           and its own fall is never lethal (harmlessFall). It is a spectacle,
+           not a punishment. */
         Sleeping.set(b, false);
+        if (Math.random() < 0.45) Body.applyForce(b, b.position, { x: rand(-1, 1) * 0.0018 * b.mass, y: rand(-0.5, 0.5) * 0.0006 * b.mass });
+        if (b.plugin.contacted) {
+          // grounded drag: the shudder must not turn into a slide off the deck,
+          // so between hops it is scrubbed of horizontal speed
+          if (Math.abs(b.velocity.y) < 0.7) Body.setVelocity(b, { x: b.velocity.x * 0.84, y: b.velocity.y });
+          if (!b.plugin.hopAt) b.plugin.hopAt = now() + rand(320, 750);
+          if (now() > b.plugin.hopAt) {
+            b.plugin.hopAt = now() + rand(650, 1300);
+            // it wanders, but it wanders INWARD: the further out it has walked
+            // itself the harder the next hop pulls back over the dock, so it
+            // stays around long enough to be worth fusing
+            const pull = Stack.platform ? clamp((b.position.x - WORLD.width / 2) / Stack.platform.plugin.halfW, -1, 1) : 0;
+            Body.setVelocity(b, { x: clamp(rand(-0.8, 0.8) - pull * 2.2, -2.2, 2.2), y: -rand(2.4, 4.0) });
+            Body.setAngularVelocity(b, rand(-0.3, 0.3));
+            Particles.burst(b.position.x, b.position.y, '#fff28a', 7, 170, 0.35);
+          }
+        }
       } else if (sp === 'magnet') {             // MAGNET: pulls same-tier pieces in to fuse
         for (const o of pieces) {
           if (o === b || o.plugin.tier !== b.plugin.tier) continue;
@@ -3763,15 +4159,18 @@ const Game = {
     // world events (curse leak / black hole / meteor / wind) advance here
     EventDirector.tick(dt, this.runActive());
 
-    // collapse check. Some falls are NEVER lethal: bombs, angry blocks and
-    // heavy blocks going over the edge just vanish, and during an event
+    // collapse check. Some falls are NEVER lethal — every special flagged
+    // `harmlessFall` (bomb, angry, heavy, unstable) just vanishes, and during an event
     // grace window (meteor impact / angry jump) ANY knocked-off piece
     // vanishes with a poof instead of ending the run.
     if (this.droppedCount > 0) {
       for (const b of pieces) {
+        // a piece that has left through the TOP of the world is a stray, never
+        // a death — nothing the player did put it there and it is not coming back
+        if (b.position.y < -900) { Composite.remove(engine.world, b); Stack.wakeAll(); continue; }
         if (b.position.y > WORLD.platformY + WORLD.killMargin || Math.abs(b.position.x - WORLD.width / 2) > WORLD.width) {
           const sp = b.plugin.special;
-          if (sp === 'bomb' || sp === 'angry' || sp === 'heavy' || now() < EventDirector.graceUntil) {
+          if ((SPECIALS[sp] || {}).harmlessFall || now() < EventDirector.graceUntil) {
             Particles.burst(b.position.x, Math.min(b.position.y, WORLD.platformY + 50), 'rgba(210,230,255,0.6)', 10, 130, 0.5);
             Composite.remove(engine.world, b);
             Stack.wakeAll();
@@ -3823,6 +4222,7 @@ const Game = {
   bank(opts = {}) {
     const bankableState = opts.force ? this.inPlay() : (this.state === 'DECISION' || this.state === 'AIMING');
     if (!bankableState || this.runCoins <= 0) return;
+    if (Overflow.blocking) return;      // banking mid-blast would cut the moment in half
     if (!opts.force && EventDirector.curseActive('nobank')) { UI.toast('CURSED — banking sealed'); return; }
     if (Stack.isDoomed()) { // defense in depth — never bank an already-falling tower
       if (!opts.force) UI.toast('TOO LATE — it’s already falling');
@@ -3952,7 +4352,7 @@ const Game = {
        the player is still getting their bearings: every live world event, any
        special block that was queued up, and the piece that was mid-flight. */
     EventDirector.clearCurse();
-    EventDirector.wind = null;
+    EventDirector.endWind();
     EventDirector.meteor = null;
     EventDirector.blackhole = null;
     EventDirector.hugeCharges = 0;
@@ -4005,6 +4405,7 @@ const Game = {
 
   async toMenu() {
     Tutor.stop();
+    Overflow.reset();
     Audio2.toMenuMusic();
     // Exit-banking follows the BANK button exactly: bank() applies the same
     // guards that light the button (piece in preview, coins, no curse, not
@@ -4027,12 +4428,13 @@ const EventDirector = {
   curse: null,              // { type, until }
   blackhole: null,          // { x, y, until, eaten, max }
   meteor: null,             // { x, y, vx, vy, warnUntil, fired }
-  wind: null,               // { until, dir }
+  wind: null,               // { until, dir, left, need }
   lastJackpotAt: 0,
 
   reset() {
     this.nextAt = now() + CONFIG.events.firstEventDelayMs;
-    this.hugeCharges = 0; this.graceUntil = 0; this.curse = null; this.blackhole = null; this.meteor = null; this.wind = null;
+    this.hugeCharges = 0; this.graceUntil = 0; this.curse = null; this.blackhole = null; this.meteor = null;
+    this.endWind();
     this.lastJackpotAt = now();
     document.body.classList.remove('cursed');
   },
@@ -4207,20 +4609,49 @@ const EventDirector = {
   // drifts sideways to a spot the player didn't intend. Its landing x is
   // hard-clamped over the dock, so wind alone can never cause a death.
   startWind() {
-    this.wind = { until: now() + CONFIG.events.windMs, dir: Math.random() < 0.5 ? 1 : -1 };
+    /* Waiting it out used to be the correct play: sit still for nine seconds
+       and the weather was gone. Now the clock is only a floor — the gust lifts
+       when you have LANDED windDrops pieces through it. The only way past
+       weather is to play in it, and the banner counts the drops down so that
+       reads as a task rather than a punishment. */
+    const need = CONFIG.events.windDrops;
+    this.wind = { until: now() + CONFIG.events.windMs, dir: Math.random() < 0.5 ? 1 : -1, left: need, need };
     /* A gust must never cost a run — not directly, and not two seconds later
        when the piece it nudged slides off whatever it landed on. The grace
-       window covers the whole gust plus a settling tail, so anything that goes
-       over the edge in that time vanishes instead of collapsing the tower. */
-    this.graceUntil = Math.max(this.graceUntil, this.wind.until + CONFIG.events.windGraceMs);
+       window is topped up every frame the wind blows, so anything that goes
+       over the edge during weather vanishes instead of collapsing the tower. */
+    this.graceUntil = Math.max(this.graceUntil, now() + CONFIG.events.windMs + CONFIG.events.windGraceMs);
     UI.react('WIND', PAL.ice);
     UI.toast(this.wind.dir > 0 ? 'Wind gusting east — drops will drift' : 'Wind gusting west — drops will drift');
+    this.paintWindBanner();
     trackEvent('wind_start', { dir: this.wind.dir });
   },
+  // one landing = one tick off the gust's counter (called on first contact)
+  noteWindDrop() {
+    const w = this.wind;
+    if (!w || w.left <= 0) return;
+    w.left--;
+    this.paintWindBanner();
+    if (w.left <= 0) UI.react('WIND EASING', PAL.ice);
+  },
+  paintWindBanner() {
+    const el = $('wind-banner');
+    if (!el) return;
+    const w = this.wind;
+    if (!w) { el.classList.add('hidden'); return; }
+    el.textContent = w.left > 0
+      ? `${w.dir > 0 ? '\u2192' : '\u2190'} WIND \u2014 ${w.left} MORE DROP${w.left === 1 ? '' : 'S'} TO CLEAR`
+      : `${w.dir > 0 ? '\u2192' : '\u2190'} WIND EASING`;
+    el.classList.remove('hidden');
+  },
+  endWind() { this.wind = null; this.paintWindBanner(); },
   updateWind(dt) {
     const w = this.wind;
     if (!w) return;
-    if (now() >= w.until) { this.wind = null; return; }
+    // the gust holds until BOTH the floor has elapsed and the drops are in
+    if (now() >= w.until && w.left <= 0) { this.endWind(); return; }
+    // nobody dies to weather: keep the forgiveness window ahead of the gust
+    this.graceUntil = Math.max(this.graceUntil, now() + CONFIG.events.windGraceMs);
     const gust = 0.55 + 0.45 * Math.sin(now() * 0.004);
     const b = Game.dropBody;
     // only while the drop is airborne (pre-contact)
@@ -4635,13 +5066,19 @@ function drawBody(b, glowStrength, t) {
   if (sp === 'jackpot') { drawJackpot(b, t); return; }
 
   let color = themeColor(b.plugin.tier);
-  if (sp === 'golden' || sp === 'star') color = '#ffd93a';
+  /* GOLD, not yellow. The golden block used to be #ffd93a — a hair off the
+     palette's own tier-3 yellow (#FFE500), so on half the boards it read as an
+     ordinary block that happened to sparkle. This is a deep struck gold, ~116
+     of Manhattan RGB away from that yellow, and it carries a milled rim below
+     that no other block has. */
+  if (sp === 'golden') color = '#E3A81B';
+  else if (sp === 'star') color = '#ffd93a';
   if (sp === 'ice') color = '#bfeaff';
 
   // UNSTABLE renders with a per-frame glitch offset so it looks genuinely
   // volatile (not a normal shape). Save/translate by a jitter, draw, restore.
   let glitched = false;
-  if (sp === 'unstable') { glitched = true; ctx.save(); ctx.translate(rand(-2.5, 2.5), rand(-2.5, 2.5)); }
+  if (sp === 'unstable') { glitched = true; ctx.save(); ctx.translate(rand(-1.8, 1.8), rand(-1.8, 1.8)); }
 
   // ---- shape path: star gets a real star, everything else uses its polygon body ----
   const isStar = sp === 'star';
@@ -4665,12 +5102,18 @@ function drawBody(b, glowStrength, t) {
     const g = ctx.createRadialGradient(
       b.position.x - r * 0.3, b.position.y - r * 0.4, r * 0.1,
       b.position.x, b.position.y, r * 1.5);
-    g.addColorStop(0, lighten(color, sp === 'ice' ? 0.5 : 0.35));
-    g.addColorStop(1, color);
+    if (sp === 'golden') {
+      // struck metal falls off to bronze at the rim — the one thing a flat
+      // yellow block never does, and what keeps the two apart at a glance
+      g.addColorStop(0, '#FFDC7A'); g.addColorStop(0.55, '#E3A81B'); g.addColorStop(1, '#8A6410');
+    } else {
+      g.addColorStop(0, lighten(color, sp === 'ice' ? 0.5 : 0.35));
+      g.addColorStop(1, color);
+    }
     ctx.fillStyle = g;
   }
   if (perf.tier !== 'low') {
-    ctx.shadowColor = (sp === 'golden' || sp === 'star') ? '#ffd700' : sp === 'rainbow' ? '#ff5ad0' : color;
+    ctx.shadowColor = sp === 'golden' ? '#F0B417' : sp === 'star' ? '#ffd700' : sp === 'rainbow' ? '#ff5ad0' : color;
     ctx.shadowBlur = (sp === 'golden' || sp === 'star') ? glowStrength + 16 : glowStrength;
   }
   if (sp === 'unstable') ctx.globalAlpha = 0.7 + 0.3 * Math.sin(t * 0.02);
@@ -4683,6 +5126,7 @@ function drawBody(b, glowStrength, t) {
   else if (sp === 'unstable') { ctx.strokeStyle = `rgba(255,235,120,${0.6 + 0.4 * Math.sin(t * 0.03)})`; ctx.lineWidth = 3; }
   else if (sp === 'ice') { ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 2.5; }
   else if (sp === 'star') { ctx.strokeStyle = '#fff3b0'; ctx.lineWidth = 2.5; }
+  else if (sp === 'golden') { ctx.strokeStyle = '#FFE9A8'; ctx.lineWidth = 2.5; }
   else ctx.strokeStyle = 'rgba(255,255,255,0.35)';
   ctx.stroke();
 
@@ -4700,6 +5144,27 @@ function drawBody(b, glowStrength, t) {
   if (sp === 'star') { // twinkle
     ctx.beginPath(); ctx.arc(b.position.x - r * 0.25, b.position.y - r * 0.28, r * 0.14, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill();
+  }
+  if (sp === 'golden') { // MILLED RIM — the reeded edge of a struck coin
+    /* One added detail, and it does the whole job: nothing else in the game has
+       a milled edge, so "this is metal, and it is worth something" is legible at
+       a glance and at any size, without touching the shape or the glow. */
+    ctx.save(); bodyPath(b); ctx.clip();
+    ctx.strokeStyle = 'rgba(84,52,4,0.5)';
+    ctx.lineWidth = Math.max(1.1, r * 0.06);
+    const ticks = 24;
+    for (let i = 0; i < ticks; i++) {
+      const ta = b.angle + (i / ticks) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(b.position.x + Math.cos(ta) * r * 1.06, b.position.y + Math.sin(ta) * r * 1.06);
+      ctx.lineTo(b.position.x + Math.cos(ta) * r * 0.80, b.position.y + Math.sin(ta) * r * 0.80);
+      ctx.stroke();
+    }
+    ctx.restore();
+    // and the engraved inner line the ticks stop at, so the rim reads as a rim
+    ctx.strokeStyle = 'rgba(255,240,190,0.5)'; ctx.lineWidth = Math.max(1, r * 0.045);
+    polyPath(ctx, b.position.x, b.position.y, TIERS.sides[b.plugin.tier], r * 0.72, b.angle);
+    ctx.stroke();
   }
   if (sp === 'unstable') { // hazard chevrons + electric arcs + crackle → looks volatile
     ctx.save(); bodyPath(b); ctx.clip();
@@ -4727,7 +5192,7 @@ function drawBody(b, glowStrength, t) {
   }
   // golden / star sparkle
   if ((sp === 'golden' || sp === 'star') && Math.random() < 0.14 && perf.tier !== 'low') {
-    Particles.spawn({ x: b.position.x + rand(-r, r), y: b.position.y + rand(-r, r), vx: rand(-16, 16), vy: rand(-40, -12), life: 0.5, maxLife: 0.5, size: rand(1.5, 3), color: '#fff3b0', glow: true });
+    Particles.spawn({ x: b.position.x + rand(-r, r), y: b.position.y + rand(-r, r), vx: rand(-16, 16), vy: rand(-40, -12), life: 0.5, maxLife: 0.5, size: rand(1.5, 3), color: sp === 'golden' ? '#FFE9A8' : '#fff3b0', glow: true });
   }
 }
 
@@ -4910,6 +5375,10 @@ function render(t) {
      no horizon, no seam at the dock, nothing showing through at any zoom. */
   let bestTier = 0;
   for (const b of Stack.pieces()) if (b.plugin.tier > bestTier) bestTier = b.plugin.tier;
+  // The OVERFLOW empties the deck, and without this the room would snap from
+  // AUREX white straight back to tier-1 red at the exact moment of the payoff.
+  // Holding it at the top tier lets the colour drift back on its own afterwards.
+  if (Overflow.active) bestTier = TIERS.count;
   const hsl = hexToHsl(themeColor(bestTier || 1));
   bgH = angleLerp(bgH, hsl[0], 0.04);
   bgS = lerp(bgS, hsl[1], 0.04);
@@ -5052,6 +5521,8 @@ function render(t) {
     }
   }
   ctx.globalAlpha = 1;
+
+  Overflow.draw(t);   // the AUREX charge — world space, anchored to the two blocks
 
   // score popups — spring overshoot
   for (let i = popups.length - 1; i >= 0; i--) {
@@ -5203,16 +5674,31 @@ function drawDefIcon(c, def, x, y, r, t) {
       for (let i = 0; i <= 6; i++) rg.addColorStop(i / 6, `hsl(${(off + i * 60) % 360}, 95%, 62%)`);
       c.fillStyle = rg;
     } else {
-      const col = sp === 'golden' ? '#ffd93a' : sp === 'ice' ? '#bfeaff' : themeColor(tier);
+      const col = sp === 'golden' ? '#E3A81B' : sp === 'ice' ? '#bfeaff' : themeColor(tier);
       const g = c.createRadialGradient(x - r * 0.3, y - r * 0.4, r * 0.1, x, y, r * 1.5);
-      g.addColorStop(0, lighten(col, sp === 'ice' ? 0.5 : 0.35)); g.addColorStop(1, col);
+      if (sp === 'golden') { g.addColorStop(0, '#FFDC7A'); g.addColorStop(0.55, '#E3A81B'); g.addColorStop(1, '#8A6410'); }
+      else { g.addColorStop(0, lighten(col, sp === 'ice' ? 0.5 : 0.35)); g.addColorStop(1, col); }
       c.fillStyle = g;
     }
     c.fill();
     if (sp === 'rainbow') { c.strokeStyle = `hsl(${((t || 0) * 0.28) % 360}, 95%, 62%)`; c.lineWidth = 4; }
     else if (sp === 'unstable') { c.strokeStyle = '#fff28a'; c.lineWidth = 3; }
     else if (sp === 'ice') { c.strokeStyle = 'rgba(255,255,255,0.8)'; c.lineWidth = 2.5; }
-    else if (sp === 'golden') { c.strokeStyle = '#fff3b0'; c.lineWidth = 2.5; }
+    else if (sp === 'golden') { c.strokeStyle = '#FFE9A8'; c.lineWidth = 2.5; }
+    if (sp === 'golden') {                       // the same milled rim, in miniature
+      c.save(); poly(); c.clip();
+      c.strokeStyle = 'rgba(84,52,4,0.5)'; c.lineWidth = Math.max(1, r * 0.07);
+      for (let i = 0; i < 20; i++) {
+        const ta = (i / 20) * Math.PI * 2;
+        c.beginPath();
+        c.moveTo(x + Math.cos(ta) * r * 1.06, y + Math.sin(ta) * r * 1.06);
+        c.lineTo(x + Math.cos(ta) * r * 0.78, y + Math.sin(ta) * r * 0.78);
+        c.stroke();
+      }
+      c.restore();
+      c.strokeStyle = 'rgba(255,240,190,0.55)'; c.lineWidth = Math.max(1, r * 0.05);
+      c.beginPath(); c.arc(x, y, r * 0.7, 0, Math.PI * 2); c.stroke();
+    }
     else { c.strokeStyle = 'rgba(255,255,255,0.35)'; c.lineWidth = 2; }
     c.stroke();
     if (sp === 'ice') {
@@ -5287,6 +5773,7 @@ const Tutor = {
   active: false,
   idx: -1,
   waiting: false,       // step is current but its cue is not on screen yet
+  placed: false,        // the ring has found its subject at least once this beat
   fuseTier: null,
   mixQueued: false,
   _ttl: 0,
@@ -5308,6 +5795,7 @@ const Tutor = {
     this.idx = i;
     this.active = true;
     this.waiting = step.id === 'mix' && !this.mixQueued;  // hold until the odd shape is really in the NEXT box
+    this.placed = false;
     this._ttl = step.ttl ? now() + step.ttl : 0;
     $('tutor-step').textContent = `STEP ${i + 1} OF ${this.steps.length}`;
     $('tutor-text').innerHTML = step.text;
@@ -5385,46 +5873,271 @@ const Tutor = {
     this.idx = -1;
     $('tutor').classList.remove('show');
   },
-  place() {
-    if (!this.active) return;
-    if (!Game.inPlay() || this.waiting) { $('tutor').classList.remove('show'); return; }
-    if (this._ttl && now() > this._ttl) { this.advance(this.steps[this.idx].id); return; }
-    $('tutor').classList.add('show');
-    const step = this.steps[this.idx];
-    const ring = $('tutor-ring'), tip = $('tutor-tip');
-    const inHand = Director.current();
-    let cx, cy, rw, rh;
-    const domAnchor = step.anchor === 'bank' ? 'btn-bank'
-      : step.anchor === 'greed' ? 'greed-pill'
-      : (step.anchor === 'next' && !(inHand && inHand.tutorMix)) ? 'next-piece' : null;
-    if (domAnchor) {
-      // the BANK button, the GREED pill, or the NEXT box while the odd shape sits in it
+  /* Where the ring belongs RIGHT NOW — or null when the thing it points at is
+     not on screen. This is the whole fix for a ring that used to show up before
+     its shape did: the aim ghost is only drawn between drops, and the odd shape
+     only sits in the NEXT box for a beat, so while a piece is in the air there
+     is genuinely nothing to circle. Rather than park the ring where the subject
+     WILL be — which reads as lag, or as a ring in a random place — the ring
+     waits, and comes back the moment the shape is actually there. */
+  anchorFor(step) {
+    const dom = (id) => {
+      const n = $(id);
+      if (!n) return null;
+      const b = n.getBoundingClientRect();
+      if (b.width < 4 || b.height < 4) return null;    // not laid out at this width
       // A circle round a pill swallows half the HUD, so the ring takes the
       // shape of whatever it is pointing at.
-      const b = $(domAnchor).getBoundingClientRect();
-      cx = b.left + b.width / 2; cy = b.top + b.height / 2;
-      rw = b.width / 2 + 9; rh = b.height / 2 + 9;
-    } else {
-      let wx = Game.aimX, wy = Game.spawnY;
-      if (step.anchor === 'stack') {                 // ring the piece on top
-        let top = null;
-        for (const b of Stack.pieces()) if (!top || b.position.y < top.position.y) top = b;
-        wx = top ? top.position.x : WORLD.width / 2;
-        wy = top ? top.position.y : Stack.stackTopY();
-      }
-      cx = cw / 2 + (wx - Camera.x) * Camera.zoom;
-      cy = ch / 2 + (wy - Camera.y) * Camera.zoom;
-      rw = rh = (step.anchor === 'stack' ? 54 : 44) * Camera.zoom;
+      return { key: id, cx: b.left + b.width / 2, cy: b.top + b.height / 2, rw: b.width / 2 + 9, rh: b.height / 2 + 9 };
+    };
+    const world = (key, wx, wy, r) => ({
+      key, cx: cw / 2 + (wx - Camera.x) * Camera.zoom, cy: ch / 2 + (wy - Camera.y) * Camera.zoom,
+      rw: r * Camera.zoom, rh: r * Camera.zoom,
+    });
+    const inHand = Director.current();
+    // the ghost piece is drawn in DECISION/AIMING and nowhere else
+    const previewing = (Game.state === 'DECISION' || Game.state === 'AIMING') && !!inHand;
+    if (step.anchor === 'bank') return dom('btn-bank');
+    if (step.anchor === 'greed') return dom('greed-pill');
+    if (step.anchor === 'next') {
+      const nx = Director.next();
+      if (nx && nx.tutorMix) return dom('next-piece');            // still queued — ring the box it sits in
+      if (previewing && inHand.tutorMix) return world('aim', Game.aimX, Game.spawnY, 44);
+      return null;                                                // in transit between the two
     }
-    ring.style.left = (cx - rw) + 'px';
-    ring.style.top = (cy - rh) + 'px';
-    ring.style.width = (rw * 2) + 'px';
-    ring.style.height = (rh * 2) + 'px';
+    if (step.anchor === 'stack') {
+      if (!previewing) return null;        // something is still falling; the top is not settled
+      let top = null;
+      for (const b of Stack.pieces()) if (!top || b.position.y < top.position.y) top = b;
+      return top ? world('stack', top.position.x, top.position.y, 54) : null;
+    }
+    return previewing ? world('aim', Game.aimX, Game.spawnY, 44) : null;
+  },
+  place() {
+    if (!this.active) return;
+    const root = $('tutor');
+    if (!Game.inPlay() || this.waiting) { root.classList.remove('show'); return; }
+    if (this._ttl && now() > this._ttl) { this.advance(this.steps[this.idx].id); return; }
+    const ring = $('tutor-ring'), tip = $('tutor-tip');
+    const at = this.anchorFor(this.steps[this.idx]);
+    if (!at) {
+      // Nothing to point at yet. Before the first placement of a beat the whole
+      // thing stays down — a bubble pointing nowhere is worse than no bubble;
+      // after it, the words hold their place and only the ring steps out.
+      if (!this.placed) { root.classList.remove('show'); return; }
+      ring.classList.add('waiting');
+      return;
+    }
+    root.classList.add('show');
+    ring.classList.remove('waiting');
+    this.placed = true;
+    ring.style.left = (at.cx - at.rw) + 'px';
+    ring.style.top = (at.cy - at.rh) + 'px';
+    ring.style.width = (at.rw * 2) + 'px';
+    ring.style.height = (at.rh * 2) + 'px';
     // The bubble goes above the ring by preference — below would land it on the
     // deck, and the deck is the one thing the player needs to keep watching.
     const tipH = tip.offsetHeight || 64;
-    const above = cy - rh - 16 - tipH;
-    tip.style.top = (above > 76 ? above : Math.min(cy + rh + 16, ch - tipH - 14)) + 'px';
+    const above = at.cy - at.rh - 16 - tipH;
+    tip.style.top = (above > 76 ? above : Math.min(at.cy + at.rh + 16, ch - tipH - 14)) + 'px';
+  },
+};
+
+/* ==================== §21f THE OVERFLOW ==================================
+   AUREX sits at the top of the ladder and there is no tier 9, so two of them
+   touching used to do precisely nothing: the two most valuable blocks in the
+   game would sit side by side, inert, and the player who had built them both
+   got no answer. Now the tower cashes itself in.
+
+   Four beats, and every one of them is doing a job:
+
+     CHARGE  the light builds BETWEEN the two blocks and the screen starts to
+             shake — the player has to know something is coming before it lands,
+             or the blast is a jump-scare instead of a payoff
+     BLAST   white, everywhere, out of that exact point. The deck is emptied
+             under cover of the light, so when it lifts the board is simply gone
+             rather than visibly deleted
+     COUNT   the number climbs, and GROWS while it climbs. This is the real
+             reward — not the coins, the watching of the coins
+     SETTLE  everything returns to exactly where it was, because a moment only
+             reads as big if the game goes back to normal afterwards
+
+   Nothing here can be interrupted and nothing can kill you during it: drops and
+   banking are refused for the duration, every live world event is cleared, and
+   the grace window covers the whole thing plus a tail. */
+const Overflow = {
+  active: false, phase: '', t0: 0, phaseAt: 0, x: 0, y: 0, from: 0, to: 0, pair: null,
+
+  // play is refused right up to the settle; the settle is only a look
+  get blocking() { return this.active && this.phase !== 'settle'; },
+
+  reset() {
+    this.active = false; this.phase = ''; this.pair = null;
+    Game.coinLock = false;
+    const score = $('run-score'), bank = $('btn-bank'), brand = $('hud-brand');
+    for (const [id, cls] of [['of-orb', 'go'], ['of-white', 'go']]) {
+      const el = $(id); if (el) el.classList.remove(cls);
+    }
+    if (score) score.classList.remove('of-count', 'of-rise', 'of-settle');
+    if (bank) bank.classList.remove('of-blow');
+    if (brand) brand.classList.remove('act-overflow');
+    document.body.classList.remove('of-live');
+  },
+
+  start(a, b) {
+    if (this.active) return;
+    const C = CONFIG.overflow;
+    this.active = true;
+    this.phase = 'charge';
+    this.t0 = this.phaseAt = now();
+    this.x = (a.position.x + b.position.x) / 2;
+    this.y = (a.position.y + b.position.y) / 2;
+    this.pair = [a, b];
+    Game.coinLock = true;                       // the HUD ticker lets go of the number
+    a.plugin.consumed = b.plugin.consumed = true;
+    // hold the two of them exactly where they met while the light builds
+    for (const p of this.pair) { Sleeping.set(p, false); Body.setStatic(p, true); }
+    const total = C.countAtMs + C.countMs + C.settleMs + 900;
+    EventDirector.graceUntil = Math.max(EventDirector.graceUntil, now() + total);
+    EventDirector.endWind();
+    EventDirector.clearCurse();
+    EventDirector.nextAt = now() + total + 4000;  // and no new weather on the way out
+    IdleShow.stop();
+    SlowMo.trigger(0.4, C.chargeMs);
+    UI.react('OVERFLOW!!', PAL.goldHi);
+    const bank = $('btn-bank');
+    if (bank) { bank.classList.remove('of-blow'); void bank.offsetWidth; bank.classList.add('of-blow'); }
+    FeedbackBus.emit('overflowCharge', { ms: C.chargeMs });
+    trackEvent('overflow_start', { greed: Greed.value, coins: CONFIG.overflow.coins });
+  },
+
+  blast() {
+    const C = CONFIG.overflow;
+    this.phase = 'blast'; this.phaseAt = now();
+    // the whole deck goes, under cover of the light
+    for (const p of Stack.pieces()) Composite.remove(engine.world, p);
+    Stack.fusionQueue.length = 0;
+    Stack.snapshot = null;                      // there is no tower to revive back to
+    Game.dropBody = null;
+    this.pair = null;
+    Game.runCoins += C.coins;
+    Game.maxTierThisRun = TIERS.count;
+    // the light leaves from the exact screen point the two blocks met at
+    const orb = $('of-orb'), white = $('of-white');
+    if (orb) {
+      orb.style.setProperty('--ox', (cw / 2 + (this.x - Camera.x) * Camera.zoom) + 'px');
+      orb.style.setProperty('--oy', (ch / 2 + (this.y - Camera.y) * Camera.zoom) + 'px');
+      orb.classList.remove('go'); void orb.offsetWidth; orb.classList.add('go');
+    }
+    if (white) { white.classList.remove('go'); void white.offsetWidth; white.classList.add('go'); }
+    const brand = $('hud-brand');
+    if (brand) { brand.classList.remove('act-overflow'); void brand.offsetWidth; brand.classList.add('act-overflow'); }
+    Shake.impulse(1);
+    Camera.pushIn && Camera.pushIn(1.06, 900);
+    Particles.goldRain(this.x, this.y);
+    Particles.burst(this.x, this.y, '#fffdf2', 90, 640, 1.5);
+    Particles.burst(this.x, this.y, '#ffd24a', 60, 430, 1.9);
+    FeedbackBus.emit('overflowBlast', {});
+  },
+
+  count() {
+    const C = CONFIG.overflow;
+    this.phase = 'count'; this.phaseAt = now();
+    this.from = Game.displayCoins;
+    this.to = Game.runCoins;
+    const score = $('run-score');
+    if (score) { score.classList.remove('of-settle'); score.classList.add('of-count', 'of-rise'); }
+    document.body.classList.add('of-live');    // the label and GREED pill step aside
+    FeedbackBus.emit('overflowCount', { ms: C.countMs });
+  },
+
+  settle() {
+    this.phase = 'settle'; this.phaseAt = now();
+    Game.displayCoins = Game.runCoins;
+    Game.coinLock = false;                      // the number is handed back to the HUD
+    const score = $('run-score');
+    if (score) { score.classList.remove('of-rise'); score.classList.add('of-settle'); }
+    UI.toast(`OVERFLOW — +${fmt(CONFIG.overflow.coins)} banked into the run, and the deck is clear`);
+  },
+
+  finish() {
+    this.reset();
+    IdleShow.schedule();
+    trackEvent('overflow_end', {});
+  },
+
+  /* Every phase is timed from its OWN start, not from a running offset: a
+     dropped frame then costs that phase a few milliseconds instead of skipping
+     whole beats of the choreography. */
+  tick() {
+    if (!this.active) return;
+    const C = CONFIG.overflow, el = now() - this.phaseAt;
+    if (this.phase === 'charge') {
+      // the shake ramps all the way in, so the blast arrives on a rising line
+      const k = clamp(el / C.chargeMs, 0, 1);
+      Shake.micro = Math.max(Shake.micro || 0, 0.35 + k * k * 1.45);
+      if (el >= C.chargeMs) this.blast();
+    } else if (this.phase === 'blast') {
+      Shake.micro = Math.max(Shake.micro || 0, clamp(1 - el / 500, 0, 1) * 0.9);
+      if (el >= C.countAtMs - C.chargeMs) this.count();
+    } else if (this.phase === 'count') {
+      const k = clamp(el / C.countMs, 0, 1);
+      // smootherstep: it starts slow, goes UP, and lands rather than stopping
+      Game.displayCoins = this.from + (this.to - this.from) * (k * k * k * (k * (k * 6 - 15) + 10));
+      if (k >= 1) this.settle();
+    } else if (this.phase === 'settle') {
+      if (el >= C.settleMs) this.finish();
+    }
+  },
+
+  /* The charge, drawn in world space so it is anchored to the two blocks
+     themselves rather than floating over them. */
+  draw(t) {
+    if (!this.active || this.phase !== 'charge' || !this.pair) return;
+    const C = CONFIG.overflow;
+    const k = clamp((now() - this.phaseAt) / C.chargeMs, 0, 1);
+    const R = 34 + k * k * 170;
+    const g = ctx.createRadialGradient(this.x, this.y, 1, this.x, this.y, R);
+    g.addColorStop(0, `rgba(255,255,255,${0.5 + 0.5 * k})`);
+    g.addColorStop(0.3, `rgba(255,248,214,${0.15 + 0.55 * k})`);
+    g.addColorStop(0.7, `rgba(255,206,90,${0.25 * k})`);
+    g.addColorStop(1, 'rgba(255,180,40,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(this.x, this.y, R, 0, Math.PI * 2); ctx.fill();
+    // each block wears its own corona, so it reads as the BLOCKS doing this
+    for (const p of this.pair) {
+      if (!p.plugin) continue;
+      const pr = p.plugin.r * (1.1 + k * 0.5);
+      const pg = ctx.createRadialGradient(p.position.x, p.position.y, p.plugin.r * 0.4, p.position.x, p.position.y, pr);
+      pg.addColorStop(0, `rgba(255,255,255,${0.25 + 0.6 * k})`);
+      pg.addColorStop(1, 'rgba(255,235,150,0)');
+      ctx.fillStyle = pg;
+      ctx.beginPath(); ctx.arc(p.position.x, p.position.y, pr, 0, Math.PI * 2); ctx.fill();
+    }
+    // and arcs of light jumping the gap between them
+    if (perf.tier !== 'low') {
+      const [a, b] = this.pair;
+      ctx.lineWidth = 1 + k * 2.5;
+      for (let i = 0; i < 2 + (k * 3 | 0); i++) {
+        ctx.strokeStyle = `rgba(255,255,255,${0.25 + 0.65 * Math.random() * k})`;
+        ctx.beginPath();
+        ctx.moveTo(a.position.x, a.position.y);
+        const segs = 4;
+        for (let s = 1; s <= segs; s++) {
+          const f = s / segs;
+          ctx.lineTo(a.position.x + (b.position.x - a.position.x) * f + rand(-16, 16) * (1 - Math.abs(f - 0.5) * 2),
+            a.position.y + (b.position.y - a.position.y) * f + rand(-16, 16) * (1 - Math.abs(f - 0.5) * 2));
+        }
+        ctx.stroke();
+      }
+      // dust pulled INTO the point, not thrown out of it — this is a charge
+      if (Math.random() < 0.9) {
+        const ang = rand(0, 6.283), d = rand(90, 230);
+        Particles.spawn({ x: this.x + Math.cos(ang) * d, y: this.y + Math.sin(ang) * d,
+          vx: -Math.cos(ang) * d * 1.5, vy: -Math.sin(ang) * d * 1.5,
+          life: 0.42, maxLife: 0.42, size: rand(1.5, 3.2), color: '#fff3c8', glow: true, drag: 1 });
+      }
+    }
   },
 };
 
@@ -5501,7 +6214,7 @@ const IdleShow = {
       return;
     }
     if (Settings.reduceMotion || perf.tier === 'low') return;
-    if (!Game.inPlay() || Game.state !== 'DECISION' || Tutor.active) return;
+    if (!Game.inPlay() || Game.state !== 'DECISION' || Tutor.active || Overflow.active) return;
     const t = now();
     if (t >= this.nextAt) { this.play(this.deal()); return; }
     // A player who has been sitting on one decision has attention to spare, and
@@ -5866,7 +6579,8 @@ const UI = {
     // unmistakable in the box, not a stale single frame
     this._pvT = (this._pvT || 0) + dt;
     if (this._pvT > 0.15 && Game.inPlay()) { this._pvT = 0; this.renderNextPreview(); }
-    Game.displayCoins = lerp(Game.displayCoins, Game.runCoins, Math.min(dt * 9, 1));
+    // the OVERFLOW drives the number itself while it climbs (§21f)
+    if (!Game.coinLock) Game.displayCoins = lerp(Game.displayCoins, Game.runCoins, Math.min(dt * 9, 1));
     $('run-score-num').textContent = fmt(Game.displayCoins);
     const gv = Greed.value;
     $('greed-val').textContent = `×${gv.toFixed(1)}`;
@@ -5875,6 +6589,13 @@ const UI = {
     pill.classList.toggle('g3', gv >= 3.5);
 
     const bank = $('btn-bank');
+    if (Overflow.active) {
+      // BANK is running its own animation and is not a button right now
+      bank.disabled = true;
+      bank.classList.remove('u1', 'u2', 'u3', 'u4', 'doomed');
+      $('bank-amt').textContent = `+${fmt(Game.runCoins)}`;
+      return;
+    }
     // Bankable only while the next piece is "in preview" (DECISION/AIMING).
     const previewState = Game.state === 'DECISION' || Game.state === 'AIMING';
     if (Game.runCoins > 0) {
@@ -6041,6 +6762,7 @@ function frame(t) {
   Particles.update(dt);
   Shake.update(rawDt / 1000);
   Camera.update(rawDt / 1000);
+  Overflow.tick();                 // before hudTick, which paints the number
   UI.hudTick(rawDt / 1000);
   Tutor.place();
   IdleShow.tick();
@@ -6109,8 +6831,11 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { WORLD, Game, Stack, Director, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, IdleShow, Audio2, Settings, FeedbackBus, UI, save, engine, Composite, Body };
+window.__overstack = { WORLD, Game, Stack, Director, Overflow, SPECIALS, TIERS, THEMES, CONFIG, __cat: SHOP_CATALOG, SPECIALS, TIERS, THEMES, __cat: SHOP_CATALOG, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, IdleShow, Audio2, Settings, FeedbackBus, UI, save, engine, Composite, Body };
 window.__overstackCam = Camera;
+window.__shake = Shake;
+window.__drawDefIcon = drawDefIcon;   // debug handle: the NEXT-box icon, on any canvas
+window.__drawDefIcon = drawDefIcon;   // debug handle: the NEXT-box icon, on any canvas
 window.__tierColors = themePalette();
 
 })();

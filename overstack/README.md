@@ -200,7 +200,16 @@ Beat 3 waits for the odd shape to land, beat 4 for the next drop, and beat 5
 waits 15 seconds for a BANK before giving up, so a player who ignores the tour
 is finished with it anyway. The ring takes the shape of what it is pointing at —
 a circle round the GREED pill would swallow half the HUD — and the bubble is
-placed above it by preference, because below would land it on the deck. `save.tutorialDone` keeps it from ever appearing twice, `tutorialRuns`
+placed above it by preference, because below would land it on the deck.
+
+**The ring waits for its subject.** The aim ghost is only drawn between drops,
+and the odd shape only sits in the NEXT box for a beat, so while a piece is in
+the air there is genuinely nothing to circle. Rather than park the ring where
+the subject *will* be — which read as lag, or as a ring appearing before the
+shape it is pointing at — `Tutor.anchorFor()` returns nothing at all, and the
+ring fades out and comes back the moment the shape is really there. The words
+hold their place while it is away; before a beat's first placement the whole
+bubble stays down, because a bubble pointing nowhere is worse than no bubble. `save.tutorialDone` keeps it from ever appearing twice, `tutorialRuns`
 retires it after three runs for a player who never fuses or banks, and ordinary
 onboarding hints stand down while it is on screen.
 
@@ -306,18 +315,43 @@ redundant cues so value is never a subtle read: red triangle, orange square,
 yellow pentagon, green hexagon, cyan heptagon, blue octagon, violet nonagon, gold
 12-sided **AUREX**. Pieces are glossy solids: a radial fall-off, a bright rim, a
 coloured glow that grows with the tier, and chamfered corners on the physics body
-itself.
+itself. AUREX is the end of the ladder — and two of them touching is
+[THE OVERFLOW](#the-overflow--two-aurex).
 
-**Shape packs** (the Collection's `theme` items) are radical departures from the
-default Signal palette — monochrome Noir, all-fire Inferno, jewel-tone Royal,
-arcade Retro, neon Cyber, deep-sea Oceanic, acid Toxic, sugar Candy, and
-max-saturation Prism — and each grants a perk (pricier = better).
+**Shape packs** (the Collection's `theme` items) are **six**, and each is a
+different *idea* rather than a different set of hues — the surest way to end up
+with ten packs that all look alike is to keep re-rolling the same rainbow:
+
+| Pack | The idea | Perk |
+|---|---|---|
+| **Signal** (free) | the spectrum | — |
+| **Noir** 70k | a value ladder: monochrome ink, one blood accent, gold apex | +6% coins · bombs salvage ×1.8 |
+| **Abyss** 150k | a depth ladder: foam down to the trench, lit from below | GREED opens ×1.25 · everything falls slower |
+| **Inferno** 400k | a heat ladder: ash, ember, flame, white-hot core | +12% coins · +0.9 s to every chain |
+| **Bloom** 900k | a muted ladder: clay, olive, denim, plum — dyed, not lit | GREED opens ×1.2 · the dock forgives the edge |
+| **Sovereign** 2M | a material ladder: struck copper, brass, silver, gold | +10% coins · golden blocks 3× as often |
+
+Adjacent tiers stay unmistakable inside every pack (nothing under ~100 of
+Manhattan RGB separation — Signal's own closest pair is 107), and pack perks now
+pull the same levers docks do (`slowFall`, `comboBonusMs`, `forgiveness`,
+`salvageMult`), so a pack changes how a run *plays*, not only what it pays. A
+save still wearing a retired pack is migrated back to Signal on load.
 
 **Special blocks** each have their own unmistakable skin (never disguised as a
 normal shape) and its own behavior:
-- GOLDEN (3× coins) · GIANT (huge, 3×, deliberate camera zoom-out on drop)
+- GOLDEN (3× coins) — **gold, not yellow**. It used to be `#ffd93a`, a hair off
+  the palette's own tier-3 yellow, so on half the boards it read as an ordinary
+  block that happened to sparkle. Now it is deep struck metal that falls off to
+  bronze at the rim, and it wears a **milled edge** — the reeded rim of a coin.
+  Nothing else in the game has one, so it is identifiable at a glance and at any
+  size, without changing its shape, its glow or its sparkle.
+- GIANT (huge, 3×, deliberate camera zoom-out on drop)
 - BOMB (dark sphere, lit fuse + countdown ring; explodes for salvage)
-- UNSTABLE (glitchy hazard skin, shudders constantly, 2×) · ICE (slippery, 2×)
+- UNSTABLE (glitchy hazard skin — and it genuinely *cannot hold still*: it
+  shudders every frame and hops about once a second, walking itself along the
+  tower and often straight off it. Two rules make that safe to play this hard:
+  it can never move anything it touches, and its own fall is never lethal. 2×)
+- ICE (slippery, 2×)
 - LUCKY STAR (2× + greed surge) · RAINBOW (animated rainbow, fuses with anything)
 - MAGNET (horseshoe skin, physically pulls same-tier pieces together to fuse)
 - HEAVY (dense iron block, slams + compresses the tower on landing)
@@ -334,7 +368,9 @@ it can knock pieces clean off the dock, but knocked-off pieces just *vanish in a
 poof* during its grace window: a meteor can cost you blocks, never the run),
 WIND (gusts on the block that is FALLING — the drop drifts sideways to a spot
 you didn't pick, its landing x hard-clamped over the dock so wind alone can never
-kill; the settled stack is untouched), and CURSE (no-banking / coin-leak /
+kill; the settled stack is untouched). **You cannot wait a gust out**: the clock
+is only a floor, and the gust lifts when you have *landed* three pieces through
+it, counted down on a banner. The only way past weather is to play in it, and CURSE (no-banking / coin-leak /
 slippery / next-3-huge). Curses are always felt: the HUGE curse balloons the
 pieces already in the queue (the aim ghost and NEXT box grow instantly), the
 leak drips visible `-coin` losses off the tower, and the director only picks a
@@ -345,6 +381,32 @@ extends past the event itself: each opens a grace window covering the whole
 effect plus a settling tail, so a piece nudged by a gust that slides off its
 neighbour two seconds later still vanishes rather than collapsing the tower. When any special block is announced as *incoming*,
 it IS the next drop — never hidden behind another queued piece.
+
+### THE OVERFLOW — two AUREX
+
+AUREX sits at the top of the ladder and there is no tier 9, so two of them
+touching used to do precisely nothing: the two most valuable blocks in the game
+would sit side by side, inert, and the player who had built them both got no
+answer at all. Now the tower cashes itself in — **+500,000 coins, flat**, and a
+clean deck.
+
+It is four beats, and each one has a job:
+
+| Beat | ~ms | What happens | Why |
+|---|---|---|---|
+| **CHARGE** | 0–640 | light builds *between* the two blocks, arcs jump the gap, dust is pulled inward, the screen starts to vibrate, the BANK button detonates into pulses | the player has to know something is coming before it lands, or the blast is a jump-scare instead of a payoff |
+| **BLAST** | 640 | white, everywhere, out of that exact point — full-screen — and the deck is emptied underneath it | the board is simply *gone* when the light lifts, rather than visibly deleted |
+| **COUNT** | 1180–3580 | the number climbs to +500,000 on a smootherstep curve while growing to 2.6× (2× on a phone), blasting light, with a halo expanding behind it and the wordmark blazing from its usual 0.3 opacity up to full | this is the real reward: not the coins, the *watching* of the coins |
+| **SETTLE** | 3580–4380 | the figure springs back to its normal size, the label and GREED pill return, the room's colour drifts back off AUREX white | a moment only reads as big if the game goes back to normal afterwards |
+
+Nothing can be interrupted and nothing can kill you inside it: drops and banking
+are refused for the duration, every live world event is cleared, the event timer
+is pushed out, and the grace window covers the whole thing plus a tail. The room
+holds the AUREX colour while it plays — without that, emptying the deck would
+snap the world from white straight back to tier-1 red at the exact instant of
+the payoff. Timings live in `CONFIG.overflow`; each phase is clocked from its
+own start, so a dropped frame costs that phase a few milliseconds instead of
+skipping a beat of the choreography.
 
 ### Event Director
 Every 45–75 s the `EventDirector` asks "what crazy thing should happen now?" and
@@ -364,8 +426,8 @@ no jitter, no particles.
 
 Prices climb in honest bands: pure looks 30–70k, entry perks 100–150k, solid
 powers 200–500k, legends 750k–3M, and ONE crown jewel at 10,000,000.
-16 docks, each a clean material with one quiet signature detail (restraint reads
-expensive): Slab (the free default — a cool charcoal-slate that pops against the
+Six shape packs (above) and 16 docks, each a clean material with one quiet
+signature detail (restraint reads expensive): Slab (the free default — a cool charcoal-slate that pops against the
 green world), Heartwood, Brushed Steel, Carrara, Porcelain, Liquid Glass,
 Basalt Forge, Reactor, Bullion, Bumper Deck, Aurora Deck, Nebula, Crimson Velvet,
 Vortex Core, Obsidian, and the 10,000,000 OBSIDIAN CROWN. Power dimensions:
@@ -401,6 +463,23 @@ title like THE GAMBLER / THE BANKER / THE COLLECTOR) drives:
   falling or resolving, the BANK button disables outright: there is no window to
   tap Bank a split second before a visible death. `Stack.isDoomed()` remains as a
   defense-in-depth check for the DECISION edge case.
+- **A walled dock moves the point of no return up.** On an open deck a piece is
+  only lost once it drops past the dock line; on Bumper Deck or OBSIDIAN CROWN
+  it is lost the moment it clears the crest on the outside, because the wall it
+  just went over is now between it and any way back. Reading the dock line there
+  handed the player a free banking window while the piece was still visibly on
+  its way down the outside — that window is gone.
+- **An UNSTABLE block can never move anything else.** Every physics step, the
+  velocity a neighbour gained along its contact with an unstable block is
+  measured and handed straight back: the neighbour keeps gravity and keeps
+  whatever every other body did to it, and feels nothing at all from this one. A
+  piece stacked *on* one still gets its support (only the sideways drag is
+  cancelled), and the settle check excuses a block that is never still, so a
+  shuddering block never stalls the run behind a timeout.
+- A frozen piece has *infinite* mass in Matter, and one of those in the
+  centre-of-mass sum turns `Stack.stability()` into `NaN`, which then walks out
+  through the micro-shake and into the camera transform. Anything without a
+  finite, positive mass is simply not part of the balance.
 - Revive **always** costs a watched ad, with no free path — the ENCORE superpower
   only grants a second revive attempt per run, each one still ad-gated.
 - Ad offers (revive / double) are opt-in, one-tap, and never bigger than the free
