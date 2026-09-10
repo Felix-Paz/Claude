@@ -370,7 +370,24 @@ WIND (gusts on the block that is FALLING — the drop drifts sideways to a spot
 you didn't pick, its landing x hard-clamped over the dock so wind alone can never
 kill; the settled stack is untouched). **You cannot wait a gust out**: the clock
 is only a floor, and the gust lifts when you have *landed* three pieces through
-it, counted down on a banner. The only way past weather is to play in it, and CURSE (no-banking / coin-leak /
+it, counted down on a banner. The only way past weather is to play in it.
+
+**And the gust is drawn where you can actually see it.** It used to be a scatter
+of pale dots thrown into the *world* layer, which gave it two problems that are
+really one problem: it scaled and shook with the deck and never reached the
+edges of the screen, and it was a single flat colour, so against a pale board it
+disappeared. The physics is untouched — not one line of the force, the landing
+clamp or the drop counter — and the look is rebuilt as a viewport-wide layer
+(`Weather`, §21g): a **windward wash** with a harder rim right on the edge the
+gust comes from, because a large area of tone is what survives a light board
+where thin lines do not; long curved **ribbons of moving air** on a slow drift,
+each laid down twice — a dark pass under a light one, two pixels apart — so on a
+pale board the dark edge carries it and on a dark board the light one does; and
+a **drift trail** bending off the piece that is actually being pushed. All of it
+breathes on `gust`, the same 0.55–1.0 sine the force uses, so what the screen is
+doing and what the physics is doing are the same thing.
+
+There is also CURSE (no-banking / coin-leak /
 slippery / next-3-huge). Curses are always felt: the HUGE curse balloons the
 pieces already in the queue (the aim ghost and NEXT box grow instantly), the
 leak drips visible `-coin` losses off the tower, and the director only picks a
@@ -394,10 +411,10 @@ It is four beats, and each one has a job:
 
 | Beat | ~ms | What happens | Why |
 |---|---|---|---|
-| **CHARGE** | 0–640 | light builds *between* the two blocks, arcs jump the gap, dust is pulled inward, the screen starts to vibrate, the BANK button detonates into pulses | the player has to know something is coming before it lands, or the blast is a jump-scare instead of a payoff |
-| **BLAST** | 640 | white, everywhere, out of that exact point — full-screen — and the deck is emptied underneath it | the board is simply *gone* when the light lifts, rather than visibly deleted |
-| **COUNT** | 1180–3580 | the number climbs to +500,000 on a smootherstep curve while growing to 2.6× (2× on a phone), blasting light, with a halo expanding behind it and the wordmark blazing from its usual 0.3 opacity up to full | this is the real reward: not the coins, the *watching* of the coins |
-| **SETTLE** | 3580–4380 | the figure springs back to its normal size, the label and GREED pill return, the room's colour drifts back off AUREX white | a moment only reads as big if the game goes back to normal afterwards |
+| **CHARGE** | 0–780 | light builds *between* the two blocks and rings tighten **inward** — the light is being gathered, not spent — arcs jump the gap, dust is pulled in, the shake ramps all the way up and BANK detonates into pulses | the player has to know something is coming before it lands, or the blast is a jump-scare instead of a payoff |
+| **BLAST** | 780 | white, everywhere, out of that exact point — full-screen. Three shockwaves cross the whole world, a column of light stands where the blocks were, and the deck is emptied underneath the flash | the board is simply *gone* when the light lifts, rather than visibly deleted |
+| **COUNT** | 1350–4150 | the number climbs to +500,000 on a smootherstep curve while growing to **3.1×** (2.15× on a phone) — and **every hundred thousand it crosses, it takes a hit**: a scale kick, a flash, a shockwave off the figure itself, a bell climbing the scale | a smooth ramp reads as a progress bar; a ramp that keeps getting punched reads as a number that will not stop |
+| **SETTLE** | 4150–5050 | the figure does not shrink politely, it **slams** back through its resting size and settles, with a last shockwave and a low boom | a moment only reads as big if the game goes back to normal afterwards |
 
 Nothing can be interrupted and nothing can kill you inside it: drops and banking
 are refused for the duration, every live world event is cleared, the event timer
@@ -407,6 +424,83 @@ snap the world from white straight back to tier-1 red at the exact instant of
 the payoff. Timings live in `CONFIG.overflow`; each phase is clocked from its
 own start, so a dropped frame costs that phase a few milliseconds instead of
 skipping a beat of the choreography.
+
+**Why it used to play in full only once.** The figure's growth was a CSS
+keyframe driven by a class, and re-adding a class that is already on an element
+— or whose animation object still exists — does not restart that animation. So
+the second OVERFLOW of a session ran its logic, cleared the deck and paid out,
+but the number never grew. It is driven from `Overflow.paintNumber()` on the
+frame loop now, as an inline transform and shadow: there is no animation left to
+restart and so nothing that can fail to re-trigger. Every class the event does
+still use is cancelled with `getAnimations().cancel()` before being re-added,
+`reset()` puts every property back by hand rather than trusting a class to have
+been removed, and a hard backstop finishes the event however it is interrupted.
+
+### FIRST LOOK — a deck, and a pack, arriving
+
+Buying a thing and then just *having* it is the least interesting version of
+owning it. The first run on a deck you have never played, and the first run in a
+pack you have never played, now open with the thing arriving. It fires once per
+item, the first time it is actually **played** with — not when it is bought and
+not when it is equipped in the shop, because neither of those is the moment you
+see it (`save.debuted`).
+
+**A deck builds itself.** The deck is not there when the run opens. Then slabs
+drop in from above and lock together, built from the middle outwards so it grows
+into its own length, each landing with a thud, a puff of dust and a knock that
+climbs a little with every piece. When the last one seats, the surface light runs
+across it, the deck's signature detail fades up out of the material, and — if it
+has them — the bumper walls rise out of the ends. Every frame of it is drawn by
+the **same renderer that draws the finished deck**, in slices: `paintDock()`
+takes a slab, clips the paint to a horizontal slice and offsets it, so a build-up
+can never drift out of step with the real thing because it *is* the real thing.
+(The ambient glow is the one thing skipped on a slab — clipped to a slice it
+stops being a halo and becomes a hot line down both cut edges, which is exactly
+what makes an assembly read as stripes instead of one deck.)
+
+**A pack arrives as its shapes.** The room runs up the pack's whole ladder in
+about a second, tier by tier, while the eight shapes fly in from alternating
+sides and line up across the middle; then they scatter and the room settles.
+
+**Then the name lands, and how hard it lands is what it cost.** Four grades on
+the same three elements, so the difference is choreography rather than clutter —
+which is what makes the expensive one feel expensive:
+
+| Grade | Price | The arrival |
+|---|---|---|
+| 0 | under 200k | a clean lift, letters together |
+| 1 | 200k–700k | letters slide in behind a sweep, out of blur |
+| 2 | 700k–5M | each letter **slams** in on its own, from 2.6× and blurred, with a flash on landing |
+| 3 | 5M+ | the same, harder and held longer, with a gold sweep running over the top |
+
+Play is refused while the thing is still arriving, and not a moment longer — the
+name card is only a look, so the deck is playable underneath it.
+
+### PAST THE CROWN — a trial, and something you are given
+
+OBSIDIAN CROWN used to be where the game quietly ended: the most expensive deck
+in the Collection, every perk at once, and nothing left to want. So the crown
+keeps all of its rewards and asks for something back. A deck can now carry a
+`trial` multiplier, and every system that can lean on the player reads that one
+number: **world events come at you ~45% more often**, and **the board's own edge
+forgives proportionally less** than its trim suggests. It is the hardest board in
+the game *and* the best one, which is the only way an endgame deck stays
+interesting. The divisor is applied to the board's forgiveness and never to
+STEADY AIM: a superpower is earned once and belongs to the player, and a deck
+that quietly confiscated it would be a punishment for equipping the best thing
+you own.
+
+And past it there is **ZENITH**, at 20,000,000 — the only thing in the game that
+is not for sale until it is offered. It carries no price, no progress bar and no
+row in the Collection until **three runs have been finished on a trial deck**;
+then a card arrives unbidden, says what the player did to deserve being shown it,
+names it, and gets out of the way. It is not given — the price is still the price
+— because a gift you cannot afford yet is a goal, and a goal is the point. In the
+Collection it renders as a different *kind* of row rather than a more expensive
+one: violet-on-black with a MYTHIC tag. The deck itself is the only one that is
+not a material at all — a prism, with bands of the whole spectrum drifting under
+a white surface, gold rules top and bottom and a slow star at the centre — and it
+runs at the steepest trial in the game.
 
 ### Event Director
 Every 45–75 s the `EventDirector` asks "what crazy thing should happen now?" and
@@ -426,13 +520,18 @@ no jitter, no particles.
 
 Prices climb in honest bands: pure looks 30–70k, entry perks 100–150k, solid
 powers 200–500k, legends 750k–3M, and ONE crown jewel at 10,000,000.
-Six shape packs (above) and 16 docks, each a clean material with one quiet
+Six shape packs (above) and 17 docks, each a clean material with one quiet
 signature detail (restraint reads expensive): Slab (the free default — a cool charcoal-slate that pops against the
 green world), Heartwood, Brushed Steel, Carrara, Porcelain, Liquid Glass,
 Basalt Forge, Reactor, Bullion, Bumper Deck, Aurora Deck, Nebula, Crimson Velvet,
-Vortex Core, Obsidian, and the 10,000,000 OBSIDIAN CROWN. Power dimensions:
+Vortex Core, Obsidian, the 10,000,000 OBSIDIAN CROWN and — once it has been
+earned rather than found — the 20,000,000 ZENITH. Power dimensions:
 `lengthBonus`, `grip`, `forgiveness`, `slowFall`, `greedRate`, `salvageMult`,
-`comboBonusMs`, `walls`. Difficulty also leans harder as your vault grows past
+`comboBonusMs`, `walls`, and `trial` — the one that makes a deck *harder* rather
+than kinder.
+
+Every dock and pack also gets a **first look** the first time it is played (see
+above), graded by what it cost. Difficulty also leans harder as your vault grows past
 100k (bigger/odder pieces — honest pressure, never rigged RNG), and spam-clicking
 sub-second drops triggers punish heat plus an "AIM!" warning.
 

@@ -1034,7 +1034,11 @@ body.of-live #greed-pill { opacity: 0; transition: opacity 0.25s ease; }
 #hud-score-wrap .metric-label, #greed-pill { transition: opacity 0.4s ease; }
 /* Lifted over the NEXT box and the menu chip while it is enormous — but still
    under the blast overlays, so the white sheet covers it like everything else. */
+/* While it is enormous it is lifted over the NEXT box and the menu chip, and
+   the wrap slides down so a 3.1x figure is not pressed against the top edge. */
 #run-score.of-count { position: relative; z-index: 34; }
+body.of-live #hud-score-wrap { transform: translateX(-50%) translateY(18px); transition: transform 0.5s cubic-bezier(.2,.9,.3,1); }
+#hud-score-wrap { transition: transform 0.5s ease; }
 #run-score.of-count::before {
   content: ''; position: absolute; left: 50%; top: 46%;
   width: 46px; height: 46px; border-radius: 50%; transform: translate(-50%,-50%) scale(0.4);
@@ -1046,51 +1050,160 @@ body.of-live #greed-pill { opacity: 0; transition: opacity 0.25s ease; }
   18%  { opacity: 1; }
   100% { transform: translate(-50%,-50%) scale(15);   opacity: 0; }
 }
-#run-score.of-rise   #run-score-num { animation: of-num-rise 2.4s cubic-bezier(.35,.02,.2,1) forwards; }
-#run-score.of-settle #run-score-num { animation: of-num-settle 0.8s cubic-bezier(.25,1.4,.4,1) forwards; }
-@keyframes of-num-rise {
-  0%   { transform: scale(1) translateY(0); color: #fff; filter: none;
-         text-shadow: 0 2px 24px rgba(0,0,0,0.6); }
-  10%  { transform: scale(1.45) translateY(2px); filter: brightness(1.7); }
-  18%  { transform: scale(1.38) translateY(2px); filter: brightness(1); }
-  40%  { transform: scale(1.9) translateY(4px); color: #FFF6D8; filter: brightness(1.55);
-         text-shadow: 0 0 16px rgba(255,255,255,0.95), 0 0 44px rgba(255,214,110,0.9); }
-  52%  { transform: scale(2.05) translateY(4px); filter: brightness(1); }
-  74%  { transform: scale(2.38) translateY(6px); filter: brightness(1.6);
-         text-shadow: 0 0 22px #fff, 0 0 60px rgba(255,220,130,0.95), 0 0 120px rgba(255,190,60,0.7); }
-  88%  { transform: scale(2.52) translateY(6px); filter: brightness(1.1); }
-  100% { transform: scale(2.6) translateY(6px); color: #fff; filter: brightness(1.35);
-         text-shadow: 0 0 26px #fff, 0 0 72px rgba(255,220,130,1),
-                      0 0 150px rgba(255,190,60,0.85), 0 0 220px rgba(255,170,30,0.5); }
+/* The figure's own motion is driven from Overflow.paintNumber() rather than a
+   keyframe. A class re-added on a second showing does not restart an animation
+   that is already there, and that is exactly how the OVERFLOW came to play in
+   full once and then never again. Inline styles cannot fail to reapply. */
+/* ---------- §21i the offer, and the one mythic row ------------------------ */
+#offer-card {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  z-index: 46; pointer-events: none; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  width: max-content; max-width: min(88vw, 460px);
+  padding: 30px 34px 28px; border-radius: 26px;
+  background: radial-gradient(120% 130% at 50% 0%, rgba(46,38,72,0.97), rgba(12,10,20,0.97));
+  border: 1px solid rgba(226,214,255,0.45);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 40px 120px -30px rgba(0,0,0,0.9),
+              0 0 90px -10px rgba(190,170,255,0.45);
 }
-/* A phone has a third of the width to spend, so the figure grows less far. */
-@media (max-width: 759px) {
-  @keyframes of-num-rise {
-    0%   { transform: scale(1) translateY(0); color: #fff; filter: none;
-           text-shadow: 0 2px 24px rgba(0,0,0,0.6); }
-    10%  { transform: scale(1.25) translateY(2px); filter: brightness(1.7); }
-    18%  { transform: scale(1.2) translateY(2px); filter: brightness(1); }
-    40%  { transform: scale(1.5) translateY(3px); color: #FFF6D8; filter: brightness(1.55);
-           text-shadow: 0 0 14px rgba(255,255,255,0.95), 0 0 38px rgba(255,214,110,0.9); }
-    52%  { transform: scale(1.6) translateY(3px); filter: brightness(1); }
-    74%  { transform: scale(1.82) translateY(4px); filter: brightness(1.6);
-           text-shadow: 0 0 18px #fff, 0 0 52px rgba(255,220,130,0.95), 0 0 100px rgba(255,190,60,0.7); }
-    88%  { transform: scale(1.92) translateY(4px); filter: brightness(1.1); }
-    100% { transform: scale(2) translateY(4px); color: #fff; filter: brightness(1.35);
-           text-shadow: 0 0 22px #fff, 0 0 60px rgba(255,220,130,1),
-                        0 0 130px rgba(255,190,60,0.85), 0 0 190px rgba(255,170,30,0.5); }
-  }
-  @keyframes of-num-settle {
-    0%   { transform: scale(2) translateY(4px); color: #fff;
-           text-shadow: 0 0 22px #fff, 0 0 60px rgba(255,220,130,1), 0 0 130px rgba(255,190,60,0.85); }
-    100% { transform: scale(1) translateY(0); color: #fff; text-shadow: 0 2px 24px rgba(0,0,0,0.6); }
-  }
+#offer-card.hidden { display: none; }
+#offer-card .of-kicker { font-size: 0.5rem; font-weight: 800; letter-spacing: 0.4em; color: var(--gold); }
+#offer-card .of-name {
+  font-size: clamp(2rem, 8vw, 3.2rem); font-weight: 800; line-height: 1; color: #fff;
+  text-shadow: 0 0 30px rgba(226,214,255,0.9), 0 0 80px rgba(160,130,255,0.6);
 }
-@keyframes of-num-settle {
-  0%   { transform: scale(2.6) translateY(6px); color: #fff;
-         text-shadow: 0 0 26px #fff, 0 0 72px rgba(255,220,130,1), 0 0 150px rgba(255,190,60,0.85); }
-  100% { transform: scale(1) translateY(0); color: #fff; text-shadow: 0 2px 24px rgba(0,0,0,0.6); }
+#offer-card .of-body { font-size: 0.8rem; font-weight: 600; line-height: 1.45; color: rgba(255,255,255,0.78); }
+#offer-card .of-price {
+  font-size: 1.15rem; font-weight: 800; color: var(--gold); letter-spacing: 0.04em; margin-top: 2px;
 }
+#offer-card.go { animation: offer-in 9s cubic-bezier(.2,.9,.25,1) both; }
+#offer-card.go .of-name { animation: offer-name 9s cubic-bezier(.15,1.1,.3,1) 0.12s both; }
+@keyframes offer-in {
+  0%   { opacity: 0; transform: translate(-50%, -46%) scale(0.88); }
+  4%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  92%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -52%) scale(0.97); }
+}
+@keyframes offer-name {
+  0%   { opacity: 0; transform: scale(2.2); filter: blur(10px); }
+  5%   { opacity: 1; transform: scale(1); filter: blur(0); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.reduce-motion #offer-card.go, .reduce-motion #offer-card.go .of-name { animation: none; }
+
+/* A mythic row does not look like a more expensive row, it looks like a
+   different KIND of row — which is the whole point of there being one. */
+.shop-item.mythic {
+  background: linear-gradient(165deg, rgba(60,48,96,0.75), rgba(20,16,34,0.85));
+  border-color: rgba(226,214,255,0.5);
+  box-shadow: 0 0 0 1px rgba(226,214,255,0.14), 0 0 34px -6px rgba(180,150,255,0.5);
+}
+.shop-item.mythic .name { color: #F3EDFF; }
+.shop-item.mythic .price { color: var(--gold); }
+.shop-item .myth-tag {
+  display: inline-block; margin: 6px 0 2px; padding: 3px 9px; border-radius: 999px;
+  font-size: 0.44rem; font-weight: 800; letter-spacing: 0.28em;
+  color: #1a1226; background: linear-gradient(100deg, #FFE9A8, #E2D6FF);
+}
+
+/* ---------- FIRST LOOK: the name card (§21h) -----------------------------
+   Four grades of arrival, and the grade is the price. A 70,000 deck gets a
+   clean lift; the 20,000,000 gets letters slammed in one at a time behind a
+   shockwave with a gold sweep over the top. Everything is on the same three
+   elements, so the difference between grades is choreography rather than
+   clutter — which is what makes the expensive one feel expensive. */
+#reveal-card {
+  position: fixed; left: 50%; top: 38%; transform: translate(-50%, -50%);
+  z-index: 35; pointer-events: none; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  width: max-content; max-width: 92vw;
+}
+#reveal-card.hidden { display: none; }
+#reveal-card .rv-kicker {
+  font-size: 0.52rem; font-weight: 800; letter-spacing: 0.42em;
+  color: rgba(255,255,255,0.62);
+}
+#reveal-card .rv-name {
+  display: flex; font-weight: 800; line-height: 1;
+  font-size: clamp(2rem, 9vw, 4.1rem); letter-spacing: 0.02em; color: #fff;
+}
+#reveal-card .rv-name i { font-style: normal; display: inline-block; }
+#reveal-card .rv-power {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+  color: var(--mint); max-width: 42ch;
+}
+/* grade 0 — a clean lift */
+#reveal-card.t0.go .rv-kicker { animation: rv-fade 1.7s ease both; }
+#reveal-card.t0.go .rv-name i { animation: rv-lift 1.7s cubic-bezier(.2,.9,.3,1) both;
+  animation-delay: calc(var(--i) * 0.018s); }
+#reveal-card.t0.go .rv-power  { animation: rv-fade 1.7s ease 0.18s both; }
+/* grade 1 — the letters come in behind a sweep */
+#reveal-card.t1.go .rv-kicker { animation: rv-fade 2s ease both; }
+#reveal-card.t1.go .rv-name i { animation: rv-slide 2s cubic-bezier(.2,.9,.28,1) both;
+  animation-delay: calc(var(--i) * 0.03s); }
+#reveal-card.t1.go .rv-power  { animation: rv-fade 2s ease 0.3s both; }
+/* grade 2 — each letter lands on its own, hard */
+#reveal-card.t2.go .rv-kicker { animation: rv-fade 2.4s ease both; }
+#reveal-card.t2.go .rv-name i { animation: rv-slam 2.4s cubic-bezier(.16,1.1,.3,1) both;
+  animation-delay: calc(var(--i) * 0.045s); }
+#reveal-card.t2.go .rv-power  { animation: rv-rise 2.4s cubic-bezier(.2,.9,.3,1) 0.5s both; }
+/* grade 3 — all of that, held longer, with the sweep running over it */
+#reveal-card.t3.go .rv-kicker { animation: rv-fade 3s ease both; }
+#reveal-card.t3.go .rv-name i { animation: rv-slam-gold 3s cubic-bezier(.14,1.2,.28,1) both;
+  animation-delay: calc(var(--i) * 0.055s); }
+#reveal-card.t3.go .rv-power  { animation: rv-rise 3s cubic-bezier(.2,.9,.3,1) 0.7s both; }
+#reveal-card.t3.go .rv-name::after,
+#reveal-card.mythic.go .rv-name::after {
+  content: ''; position: absolute; inset: -0.2em -1em;
+  background: linear-gradient(105deg, transparent 36%, rgba(255,236,170,0.85) 50%, transparent 64%);
+  animation: rv-sweep 3s cubic-bezier(.3,0,.2,1) 0.55s both; pointer-events: none;
+}
+#reveal-card .rv-name { position: relative; }
+#reveal-card.mythic .rv-name i { color: #FFF3C4; }
+#reveal-card.mythic .rv-power { color: var(--gold); }
+
+@keyframes rv-fade { 0% { opacity: 0; } 14% { opacity: 1; } 74% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes rv-lift {
+  0%   { opacity: 0; transform: translateY(16px); }
+  16%  { opacity: 1; transform: translateY(0); }
+  76%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-12px); }
+}
+@keyframes rv-slide {
+  0%   { opacity: 0; transform: translateX(26px) skewX(-12deg); filter: blur(6px); }
+  18%  { opacity: 1; transform: none; filter: blur(0); }
+  74%  { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateX(-18px); filter: blur(4px); }
+}
+@keyframes rv-slam {
+  0%   { opacity: 0; transform: scale(2.6) translateY(-8px); filter: blur(9px); }
+  12%  { opacity: 1; transform: scale(1); filter: blur(0);
+         text-shadow: 0 0 18px rgba(255,255,255,0.9), 0 0 46px rgba(255,214,110,0.7); }
+  22%  { text-shadow: 0 0 8px rgba(255,255,255,0.4); }
+  76%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.94) translateY(-10px); }
+}
+@keyframes rv-slam-gold {
+  0%   { opacity: 0; transform: scale(3.1) translateY(-10px) rotate(-3deg); filter: blur(11px); }
+  11%  { opacity: 1; transform: scale(1) rotate(0deg); filter: blur(0);
+         text-shadow: 0 0 22px #fff, 0 0 60px rgba(255,224,140,0.95), 0 0 130px rgba(255,190,60,0.7); }
+  24%  { text-shadow: 0 0 12px rgba(255,255,255,0.55), 0 0 40px rgba(255,214,110,0.5); }
+  80%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.92) translateY(-12px); }
+}
+@keyframes rv-rise {
+  0%   { opacity: 0; transform: translateY(14px); }
+  20%  { opacity: 1; transform: translateY(0); }
+  78%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes rv-sweep {
+  0%   { opacity: 0; transform: translateX(-130%); }
+  20%  { opacity: 1; }
+  70%  { opacity: 1; transform: translateX(130%); }
+  100% { opacity: 0; transform: translateX(130%); }
+}
+.reduce-motion #reveal-card { display: none !important; }
 
 /* BANK stops being a button and starts being an alarm. */
 #btn-bank.of-blow {
@@ -1145,8 +1258,6 @@ body.of-live #greed-pill { opacity: 0; transition: opacity 0.25s ease; }
 .reduce-motion #of-orb, .reduce-motion #of-white { animation: none; }
 .reduce-motion #of-white.go { animation: of-white-calm 0.8s ease-out forwards; }
 @keyframes of-white-calm { 0% { opacity: 0; } 20% { opacity: 0.55; } 100% { opacity: 0; } }
-.reduce-motion #run-score.of-rise #run-score-num,
-.reduce-motion #run-score.of-settle #run-score-num,
 .reduce-motion #run-score.of-count::before,
 .reduce-motion #btn-bank.of-blow,
 .reduce-motion #hud-brand.act-overflow,
@@ -1469,6 +1580,8 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 <div id="chase-vignette"></div>
 <div id="risk-vignette"></div>
 <div id="reaction"></div>
+<div id="reveal-card" class="hidden"></div>
+<div id="offer-card" class="hidden"></div>
 <div id="of-orb"></div>
 <div id="of-white"></div>
 <div id="banner-rail">
@@ -1725,7 +1838,21 @@ const DOCKS = {
   velvet:    { style: 'velvet',    c1: '#7a1e3c', c2: '#3c0e1e', glow: 'rgba(220,80,120,0.35)',  lengthBonus: 0.10, grip: 0.25, comboBonusMs: 700, salvageMult: 1.4 },
   vortex:    { style: 'vortex',    c1: '#b393e8', c2: '#3a2468', glow: 'rgba(185,150,240,0.40)', lengthBonus: 0.16, grip: 0.3, forgiveness: 0.08, greedRate: 0.3 },
   obsidian:  { style: 'obsidian',  c1: '#2a2a34', c2: '#0c0c12', glow: 'rgba(140,150,180,0.35)', lengthBonus: 0.14, forgiveness: 0.08, slowFall: 0.012, salvageMult: 1.5 },
-  crown:     { style: 'crown',     c1: '#14141c', c2: '#040408', glow: 'rgba(255,214,110,0.45)', lengthBonus: 0.22, grip: 0.3, forgiveness: 0.10, greedRate: 0.4, salvageMult: 1.8, comboBonusMs: 1000, walls: true },
+  /* OBSIDIAN CROWN is not a victory lap. Handing a player every perk in the
+     game and nothing to spend them on is how a game ends quietly at its most
+     expensive item — so the crown keeps all of its rewards and asks for
+     something back: the world throws events at you far more often, the deck
+     forgives less than its own trim suggests, and the pieces run big. It is
+     the hardest board in the game AND the best one, which is the only way an
+     endgame deck stays interesting. */
+  crown:     { style: 'crown',     c1: '#14141c', c2: '#040408', glow: 'rgba(255,214,110,0.45)', lengthBonus: 0.22, grip: 0.3, forgiveness: 0.10, greedRate: 0.4, salvageMult: 1.8, comboBonusMs: 1000, walls: true,
+               trial: 1.45 },
+  /* And past it, the only thing in the game that is not for sale until it is
+     offered: ZENITH, at twenty million. It is a gift in the sense that matters
+     — nobody can find it, price it or plan for it until the game decides they
+     have earned the right to be shown it. */
+  zenith:    { style: 'zenith',    c1: '#f7f3ff', c2: '#b9a6ff', glow: 'rgba(226,214,255,0.55)', lengthBonus: 0.26, grip: 0.34, forgiveness: 0.12, greedRate: 0.5, salvageMult: 2.1, comboBonusMs: 1200, walls: true,
+               trial: 1.75 },
 };
 
 /* Special blocks — each with its own unmistakable skin (drawn in §21) and its
@@ -1827,10 +1954,12 @@ const CONFIG = {
      point of the moment is that you can read it while it climbs. */
   overflow: {
     coins: 500_000,
-    chargeMs: 640,             // light builds between the two blocks
-    countAtMs: 1180,           // from the start of the charge: the number sets off
-    countMs: 2400,             // and climbs for this long
-    settleMs: 800,             // then falls back to its normal size
+    chargeMs: 780,             // light builds between the two blocks
+    countAtMs: 570,            // after the blast: how long the white holds before the number sets off
+    countMs: 2800,             // and then it climbs for this long
+    settleMs: 900,             // before slamming back to its normal size
+    scale: 3.1,                // how big the figure gets on a desktop
+    scalePhone: 2.15,          // and on a phone, where there is a third of the width
   },
 };
 
@@ -1947,6 +2076,9 @@ const SHOP_CATALOG = [
   { id: 'theme_inferno',   kind: 'theme', name: 'Inferno',   price: 400000,  data: 'inferno',   power: '+12% coins · +0.9s to every chain' },
   { id: 'theme_bloom',     kind: 'theme', name: 'Bloom',     price: 900000,  data: 'bloom',     power: 'GREED opens ×1.2 · the dock forgives the edge' },
   { id: 'theme_sovereign', kind: 'theme', name: 'Sovereign', price: 2000000, data: 'sovereign', power: '+10% coins · golden blocks 3× as often' },
+  /* Hidden until the crown has been played enough to earn the sight of it. */
+  { id: 'dock_zenith', kind: 'dock', name: 'Zenith', price: 20000000, data: 'zenith', mythic: true, offer: 'zenith',
+    power: 'every crown power, further · the hardest board there is' },
 ];
 
 /* ============================ §2 PERSISTENCE ============================== */
@@ -1962,10 +2094,14 @@ const SaveStore = {
       unlocked: ['dock_slab', 'theme_default'],
       equipped: { dock: 'slab', theme: 'default' },
       everEquipped: ['dock_slab', 'theme_default'],
+      // things that have had their first-look (§21h). Equipping is not seeing.
+      debuted: ['dock_slab', 'theme_default'],
       powers: [],
       topRuns: [],
       streakDays: 0, lastPlayDate: '',
       daily: { last: '', streak: 0 },   // daily login reward: date last claimed + consecutive claims
+      crownRuns: 0,                     // runs finished on a trial deck — ZENITH is offered after a few
+      offers: [],                       // items the game has decided to show you (§21i)
       musicIdx: -1,                     // where the in-run playlist got to; a run always starts the next one
       hints: { fusion: false, bank: false, safe: false },
       tutorialDone: false,              // the four-beat first-run tour, shown once ever
@@ -1990,6 +2126,7 @@ const SaveStore = {
       const live = new Set(SHOP_CATALOG.map((it) => it.id));
       this.data.unlocked = (this.data.unlocked || []).filter((id) => live.has(id));
       this.data.everEquipped = (this.data.everEquipped || []).filter((id) => live.has(id));
+      this.data.debuted = (this.data.debuted || []).filter((id) => live.has(id));
       if (!this.data.unlocked.includes('theme_default')) this.data.unlocked.push('theme_default');
       if (!this.data.unlocked.includes('dock_slab')) this.data.unlocked.push('dock_slab');
       if (!THEMES[this.data.equipped.theme]) this.data.equipped.theme = 'default';
@@ -2109,6 +2246,11 @@ FeedbackBus.on('bank', () => haptic('bank'));
 FeedbackBus.on('collapse', () => haptic('collapse'));
 FeedbackBus.on('overflowCharge', () => haptic('ofCharge'));
 FeedbackBus.on('overflowBlast', () => haptic('ofBlast'));
+FeedbackBus.on('overflowStep', () => haptic('fuseBig'));
+FeedbackBus.on('overflowLand', () => haptic('unlock'));
+FeedbackBus.on('revealPart', () => haptic('landSoft'));
+FeedbackBus.on('revealLand', (p) => haptic(p.tier >= 2 ? 'unlock' : 'bank'));
+FeedbackBus.on('offer', () => haptic('unlock'));
 
 /* Five recorded one-shots, base64 MP3 so the file stays self-contained and so
    every browser can decode them (Ogg Vorbis is Safari 17+ only). ~29 KB.
@@ -2430,6 +2572,46 @@ const Audio2 = {
         attack: 0.01, decay: 1.6, when: 0.06 + i * 0.03, verb: 0.75 }));
     this.duckMusic();
   },
+  /* One hit per hundred thousand the figure crosses. It climbs the scale as the
+     number does, so the ladder of punches is audibly going somewhere. */
+  overflowStep(n) {
+    if (!this.on) return;
+    const k = clamp((n - 1) / 5, 0, 1);
+    this.voice({ freq: this.note(n % 5, 0.5 + k * 1.4), type: 'sine', fm: 1.5, fmRatio: 2.01,
+      peak: 0.075 + k * 0.06, attack: 0.002, decay: 0.5 + k * 0.3, verb: 0.5 });
+    this.voice({ freq: this.note(0, -0.5), type: 'triangle', peak: 0.055, attack: 0.002,
+      decay: 0.24, slideTo: this.note(0, -1.5), cutoff: 700, cutoffTo: 120, q: 1.6, verb: 0.15 });
+  },
+  // the figure hitting its resting size, hard
+  overflowLand() {
+    if (!this.on) return;
+    this.voice({ freq: 58, type: 'sine', peak: 0.26, attack: 0.002, decay: 1.2,
+      slideTo: 24, cutoff: 800, cutoffTo: 50, q: 1.3, verb: 0.2 });
+    this.hiss({ peak: 0.16, decay: 1.0, from: 9000, to: 180, type: 'lowpass', q: 0.9, verb: 0.6 });
+    [0, 7, 12].forEach((s, i) =>
+      this.voice({ freq: this.note(s, 1), type: 'sine', fm: 1.3, fmRatio: 2.01, peak: 0.1,
+        attack: 0.004, decay: 1.5, when: i * 0.04, verb: 0.7 }));
+  },
+  /* A deck coming together, one slab at a time: a wooden knock that climbs a
+     little with each piece, so an assembly sounds like it is getting somewhere. */
+  revealPart(n, of, tier) {
+    if (!this.on) return;
+    const k = of > 1 ? (n - 1) / (of - 1) : 0;
+    this.voice({ freq: 120 + k * 90, type: 'triangle', peak: 0.09 + tier * 0.012, attack: 0.002,
+      decay: 0.16, slideTo: 62 + k * 40, cutoff: 1500, cutoffTo: 300, q: 2, verb: 0.18 });
+    this.hiss({ peak: 0.035, decay: 0.1, from: 3600, to: 700, verb: 0.2 });
+  },
+  // and the moment the last piece seats and the name lands
+  revealLand(tier) {
+    if (!this.on) return;
+    this.voice({ freq: 72, type: 'sine', peak: 0.16 + tier * 0.03, attack: 0.002, decay: 0.9,
+      slideTo: 34, cutoff: 800, cutoffTo: 70, q: 1.4, verb: 0.22 });
+    const chord = [[0, 7], [0, 4, 7], [0, 4, 7, 11], [0, 4, 7, 11, 14]][clamp(tier, 0, 3)];
+    chord.forEach((s, i) =>
+      this.voice({ freq: this.note(s, 0.5), type: 'sine', fm: 1.2, fmRatio: 2.01,
+        peak: 0.085, attack: 0.005, decay: 1.1 + tier * 0.25, when: i * 0.05, verb: 0.6 }));
+    if (tier >= 2) this.hiss({ peak: 0.07, decay: 0.9, from: 10000, to: 2600, verb: 0.6 });
+  },
   overflowCount(ms) {
     if (!this.on) return;
     // a ladder of bells that climbs for exactly as long as the number does
@@ -2640,6 +2822,11 @@ FeedbackBus.on('newBest', () => Audio2.newBest());
 FeedbackBus.on('overflowCharge', (p) => Audio2.overflowCharge(p.ms));
 FeedbackBus.on('overflowBlast', () => Audio2.overflowBlast());
 FeedbackBus.on('overflowCount', (p) => Audio2.overflowCount(p.ms));
+FeedbackBus.on('overflowStep', (p) => Audio2.overflowStep(p.n));
+FeedbackBus.on('overflowLand', () => Audio2.overflowLand());
+FeedbackBus.on('revealPart', (p) => Audio2.revealPart(p.n, p.of, p.tier));
+FeedbackBus.on('revealLand', (p) => Audio2.revealLand(p.tier));
+FeedbackBus.on('offer', () => Audio2.revealLand(3));
 
 /* ============================ §7 PERF MONITOR ============================= */
 const perf = { tier: 'high', samples: [], done: false, particleCap: 620 };
@@ -3151,6 +3338,28 @@ const Economy = {
     return this.checkMilestones();
   },
   spendable(n) { return save.coins >= n; },
+  /* §21i OFFERS. Almost everything in the Collection is visible from the first
+     minute, because a price you can see is a goal. One thing is not: ZENITH
+     cannot be found, priced or planned for until the game decides you have
+     earned the sight of it. That is the difference between a secret and a
+     surprise — a secret is withheld, a surprise is given. */
+  visible(item) { return !item.offer || (save.offers || []).includes(item.offer); },
+  offered(tag) { return (save.offers || []).includes(tag); },
+  grantOffer(tag) {
+    if (this.offered(tag)) return false;
+    save.offers = (save.offers || []).concat([tag]);
+    SaveStore.save();
+    return true;
+  },
+  /* Called when a run on a trial deck ends. Three of them is enough to say the
+     player did not merely buy the crown, they have been living on it. */
+  noteTrialRun() {
+    if (Economy.trial <= 1) return null;
+    save.crownRuns = (save.crownRuns || 0) + 1;
+    SaveStore.save();
+    if (save.crownRuns >= 3 && this.grantOffer('zenith')) return this.item('dock_zenith');
+    return null;
+  },
   owned(id) { return save.unlocked.includes(id); },
   item(id) { return SHOP_CATALOG.find((i) => i.id === id); },
   buy(id) {
@@ -3180,7 +3389,12 @@ const Economy = {
   },
   // STEADY AIM stacks on top of whatever the equipped dock already grants.
   get edgeForgiveness() {
-    let f = (this.dock.forgiveness || 0) + (this.packBonus.forgiveness || 0);
+    /* A trial deck's own edge is less generous than its trim suggests — but the
+       divisor is applied to the BOARD's forgiveness, never to STEADY AIM. A
+       superpower is earned once and belongs to the player; a deck that quietly
+       confiscated it would be a punishment for equipping the best thing you
+       own, which is the opposite of the point. */
+    let f = ((this.dock.forgiveness || 0) + (this.packBonus.forgiveness || 0)) / this.trial;
     if (save.powers.includes('power_steadyaim')) f += 0.15;
     return f;
   },
@@ -3192,6 +3406,10 @@ const Economy = {
   get greedRate() { return 1 + (this.dock.greedRate || 0) + (this.packBonus.greedRate || 0); },
   get salvageMult() { return (this.dock.salvageMult || 1) * (this.packBonus.salvageMult || 1); },
   get dockWalls() { return !!this.dock.walls; },
+  /* A trial deck asks for something back. 1 is an ordinary board; the crown
+     runs at 1.45 and ZENITH at 1.75, and every system that can lean on the
+     player reads this one number. */
+  get trial() { return this.dock.trial || 1; },
   get comboWindowMs() { return CONFIG.chainWindowMs + (this.dock.comboBonusMs || 0) + (this.packBonus.comboBonusMs || 0); },
   // --- shape-pack perks ---
   get pack() { return THEMES[save.equipped.theme] || THEMES.default; },
@@ -3218,7 +3436,7 @@ const Economy = {
   nearestUnlock() {
     let best = null;
     for (const item of SHOP_CATALOG) {
-      if (this.owned(item.id) || item.price === 0) continue;
+      if (this.owned(item.id) || item.price === 0 || !this.visible(item)) continue;
       const need = item.price - save.coins;
       const ratio = need / item.price;
       if (need > 0 && (!best || ratio < best.ratio)) best = { item, need, ratio };
@@ -3810,6 +4028,7 @@ const Game = {
     Camera.reset();
     RiskFX.reset();
     Overflow.reset();
+    Reveal.maybeStart();      // a deck or a pack you have never played arrives (§21h)
     this.spamHeat = 0; this.spamStreak = 0; this.lastDropAt = 0; this.spamWarned = false;
     this.greedMark = 1; this.dangerRung = false;
     PSV.runsThisSession++;
@@ -3849,7 +4068,7 @@ const Game = {
   release() { if (this.state === 'AIMING') this.drop(); },
   drop() {
     if (this.state !== 'DECISION' && this.state !== 'AIMING') return;
-    if (Overflow.blocking) return;      // the OVERFLOW owns the screen until it is done
+    if (Overflow.blocking || Reveal.blocking) return;   // the OVERFLOW, or a deck still arriving
     PSV.sampleDecisionLatency(now() - this.decisionStartT);
     PSV.inputJitter = this.computeJitter();
     // Revive snapshot is taken BEFORE the drop, so it captures the tower
@@ -4300,6 +4519,9 @@ const Game = {
     this.earnedCoinsLastRun = coins;
     save.runsTotal++;
     SaveStore.save();
+    // living on a trial deck is what earns the sight of what comes after it
+    const gift = Economy.noteTrialRun();
+    if (gift) UI.offerCard(gift);
     AdManager.notifyGameplayStop();
     Audio2.toMenuMusic();          // the run is over — back to the opener
     Audio2.setTension(0);
@@ -4461,7 +4683,8 @@ const EventDirector = {
     for (const [k, v] of Object.entries(w)) { r -= v; if (r <= 0) return k; }
     return 'golden';
   },
-  schedule() { this.nextAt = now() + rand(CONFIG.events.minGapMs, CONFIG.events.maxGapMs); },
+  // a trial deck (OBSIDIAN CROWN, ZENITH) is hounded by the world
+  schedule() { this.nextAt = now() + rand(CONFIG.events.minGapMs, CONFIG.events.maxGapMs) / Economy.trial; },
 
   tick(dt, runActive) {
     // advance any live world effects first
@@ -4615,7 +4838,7 @@ const EventDirector = {
        weather is to play in it, and the banner counts the drops down so that
        reads as a task rather than a punishment. */
     const need = CONFIG.events.windDrops;
-    this.wind = { until: now() + CONFIG.events.windMs, dir: Math.random() < 0.5 ? 1 : -1, left: need, need };
+    this.wind = { until: now() + CONFIG.events.windMs, dir: Math.random() < 0.5 ? 1 : -1, left: need, need, startedAt: now() };
     /* A gust must never cost a run — not directly, and not two seconds later
        when the piece it nudged slides off whatever it landed on. The grace
        window is topped up every frame the wind blows, so anything that goes
@@ -4664,14 +4887,11 @@ const EventDirector = {
         Body.setPosition(b, { x: cx2 + Math.sign(b.position.x - cx2) * safe, y: b.position.y });
         Body.setVelocity(b, { x: 0, y: b.velocity.y });
       }
-      // gust streaks around the falling block sell the push
-      if (perf.tier !== 'low' && Math.random() < 0.7) {
-        Particles.spawn({ x: b.position.x - w.dir * rand(30, 90), y: b.position.y + rand(-40, 40), vx: w.dir * rand(220, 340) * gust, vy: rand(-6, 6), life: 0.5, maxLife: 0.5, size: rand(1, 2), color: 'rgba(216,246,255,0.8)', glow: false, drag: 1 });
-      }
     }
-    if (perf.tier !== 'low' && Math.random() < 0.25) {
-      Particles.spawn({ x: w.dir > 0 ? -20 : WORLD.width + 20, y: rand(WORLD.platformY - 420, WORLD.platformY - 120), vx: w.dir * rand(180, 320) * gust, vy: rand(-8, 8), life: 0.8, maxLife: 0.8, size: rand(1, 2), color: 'rgba(216,246,255,0.55)', glow: false, drag: 1 });
-    }
+    /* Nothing is drawn from here any more. The gust used to throw pale dots
+       into the world layer, where they scaled with the camera, shook with the
+       deck and vanished against a light board; Weather.draw() paints the whole
+       thing in screen space instead (§21g). The physics above is untouched. */
   },
 
   // ---- METEOR ----
@@ -5199,13 +5419,27 @@ function drawBody(b, glowStrength, t) {
 /* Per-dock canvas render — the v6 rule: RESTRAINT reads expensive.
    Every dock = clean material gradient + crisp top light + soft ground
    shadow + ONE quiet signature detail. No effect spam. */
-function drawDock(hw) {
+/* One slab of the deck, or the whole thing. `slab` is only ever set while a
+   dock is assembling itself for the first time (§21h): it clips the paint to a
+   horizontal slice and offsets it, so the same renderer that draws the finished
+   deck also draws every piece of it on the way in — a build-up can never drift
+   out of step with the real thing because it IS the real thing, in slices. */
+function paintDock(hw, detail, slab) {
   const skin = Economy.dock, t = now();
   const x0 = WORLD.width / 2 - hw, w = hw * 2, y0 = WORLD.platformY, h = WORLD.platformH + 26;
   const cx = WORLD.width / 2;
   ctx.save();
-  // soft ambient glow — the dock is a lit object, not a machined part
-  if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 18; }
+  if (slab) {
+    ctx.globalAlpha = slab.a;
+    ctx.beginPath();
+    ctx.rect(slab.x0, y0 - 300, slab.x1 - slab.x0, h + 320);
+    ctx.clip();
+    ctx.translate(0, slab.dy);
+  }
+  /* The ambient glow is skipped on a slab: clipped to a slice it stops being a
+     halo around a lit object and becomes a hot line down both cut edges, which
+     is exactly what makes an assembly read as stripes instead of one deck. */
+  if (perf.tier !== 'low' && !slab) { ctx.shadowColor = skin.glow; ctx.shadowBlur = 18; }
   const bg = ctx.createLinearGradient(0, y0, 0, y0 + h);
   bg.addColorStop(0, skin.c1); bg.addColorStop(1, skin.c2);
   ctx.fillStyle = bg;
@@ -5213,6 +5447,7 @@ function drawDock(hw) {
   ctx.shadowBlur = 0;
   // signature details, clipped to the body
   ctx.save(); roundRect(x0, y0, w, h, 14); ctx.clip();
+  ctx.globalAlpha *= detail;               // the signature detail arrives last
   switch (skin.style) {
     case 'wood': { // three quiet grain lines
       ctx.strokeStyle = 'rgba(60,32,12,0.30)'; ctx.lineWidth = 1;
@@ -5325,6 +5560,30 @@ function drawDock(hw) {
       ctx.beginPath(); ctx.moveTo(x0 + w * 0.2, y0 + h); ctx.lineTo(x0 + w * 0.34, y0); ctx.stroke();
       break;
     }
+    case 'zenith': { /* past the flagship: not a material at all — a prism.
+                        Bands of the whole spectrum drift under a white surface,
+                        with a gold rule top and bottom and a slow star at the
+                        centre. Nothing else in the game shifts colour. */
+      for (let i = 0; i < 7; i++) {
+        const bx = x0 + ((i / 7) * w + ((t * 0.02) % (w / 7)));
+        const bg2 = ctx.createLinearGradient(bx, y0, bx + w / 7, y0);
+        bg2.addColorStop(0, 'rgba(255,255,255,0)');
+        bg2.addColorStop(0.5, `hsla(${(i * 51 + t * 0.02) % 360}, 90%, 72%, 0.42)`);
+        bg2.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = bg2;
+        ctx.fillRect(bx, y0, w / 7, h);
+      }
+      ctx.strokeStyle = 'rgba(255,226,150,0.95)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + 7); ctx.lineTo(x0 + w - 8, y0 + 7); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + h - 7); ctx.lineTo(x0 + w - 8, y0 + h - 7); ctx.stroke();
+      const spin = t * 0.0009;
+      if (perf.tier !== 'low') { ctx.shadowColor = '#fff'; ctx.shadowBlur = 14; }
+      ctx.fillStyle = '#fff';
+      starPath(cx, y0 + h / 2, 11, 4.4, 4, spin); ctx.fill();
+      starPath(cx, y0 + h / 2, 6.5, 2.6, 4, spin + Math.PI / 4); ctx.fillStyle = '#FFE9A8'; ctx.fill();
+      ctx.shadowBlur = 0;
+      break;
+    }
     case 'crown': { // the flagship: black glass, double gold trim, diamond emblem
       ctx.strokeStyle = 'rgba(255,214,110,0.9)'; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + 8); ctx.lineTo(x0 + w - 8, y0 + 8); ctx.stroke();
@@ -5346,19 +5605,28 @@ function drawDock(hw) {
   ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1;
   roundRect(x0 + 1, y0 + 1, w - 2, h - 2, 13); ctx.stroke();
   ctx.restore();
-  // bumper walls
-  if (Stack.walls) {
-    const wallH = Stack.wallH || 96;
-    for (const wl of Stack.walls) {
-      const wx = wl.position.x;
-      ctx.fillStyle = lighten(skin.c1, 0.1);
-      if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 10; }
-      roundRect(wx - 6, WORLD.platformY - wallH + 6, 12, wallH, 6); ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = 'rgba(255,255,255,0.5)';
-      roundRect(wx - 6, WORLD.platformY - wallH + 6, 12, 5, 3); ctx.fill();
-    }
+}
+// the bumper walls, which rise out of the deck rather than appearing on it
+function paintWalls(k) {
+  if (!Stack.walls || k <= 0.001) return;
+  const skin = Economy.dock;
+  const full = Stack.wallH || 96;
+  const wallH = full * clamp(k, 0, 1);
+  for (const wl of Stack.walls) {
+    const wx = wl.position.x;
+    ctx.fillStyle = lighten(skin.c1, 0.1);
+    if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 10; }
+    roundRect(wx - 6, WORLD.platformY - wallH + 6, 12, wallH, 6); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    roundRect(wx - 6, WORLD.platformY - wallH + 6, 12, 5, 3); ctx.fill();
   }
+}
+function drawDock(hw) {
+  const b = Reveal.dockSlabs(hw);
+  if (!b) { paintDock(hw, 1, null); paintWalls(1); return; }
+  for (const s of b.slabs) paintDock(hw, b.detail, s);
+  paintWalls(b.wallK);
 }
 
 
@@ -5379,6 +5647,8 @@ function render(t) {
   // AUREX white straight back to tier-1 red at the exact moment of the payoff.
   // Holding it at the top tier lets the colour drift back on its own afterwards.
   if (Overflow.active) bestTier = TIERS.count;
+  // a pack introduces itself by running its whole ladder, tier by tier
+  if (Reveal.kind === 'pack') bestTier = Reveal.paletteTier();
   const hsl = hexToHsl(themeColor(bestTier || 1));
   bgH = angleLerp(bgH, hsl[0], 0.04);
   bgS = lerp(bgS, hsl[1], 0.04);
@@ -5540,6 +5810,16 @@ function render(t) {
     ctx.fillText(p.text, p.x, p.y - age * 46);
     ctx.shadowBlur = 0;
   }
+  ctx.globalAlpha = 1;
+
+  /* ---- screen-space pass -------------------------------------------------
+     Everything below belongs to the VIEWPORT rather than the world: it must
+     not scale with the camera, must not be shaken with the deck, and must be
+     able to reach the actual edges of the screen at any zoom. */
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  Weather.draw(t);
+  Reveal.drawHud();
+  Overflow.drawHud();
   ctx.globalAlpha = 1;
 }
 function easeOutBack(t) {
@@ -5967,76 +6247,108 @@ const Tutor = {
    the grace window covers the whole thing plus a tail. */
 const Overflow = {
   active: false, phase: '', t0: 0, phaseAt: 0, x: 0, y: 0, from: 0, to: 0, pair: null,
+  kick: 0, kickAt: 0, milestone: 0, rings: [], vig: 0,
 
   // play is refused right up to the settle; the settle is only a look
   get blocking() { return this.active && this.phase !== 'settle'; },
 
   reset() {
     this.active = false; this.phase = ''; this.pair = null;
+    this.kick = 0; this.kickAt = 0; this.milestone = 0; this.rings.length = 0; this.vig = 0;
     Game.coinLock = false;
-    const score = $('run-score'), bank = $('btn-bank'), brand = $('hud-brand');
-    for (const [id, cls] of [['of-orb', 'go'], ['of-white', 'go']]) {
-      const el = $(id); if (el) el.classList.remove(cls);
+    /* Everything this event touches is put back by hand rather than left to a
+       class that might not have been removed. The number in particular is
+       driven from tick() rather than a keyframe, so restoring it is a matter of
+       clearing two inline styles — there is no animation left to restart, and
+       therefore no way for a second OVERFLOW to come up short. */
+    const num = $('run-score-num');
+    if (num) { num.style.transform = ''; num.style.textShadow = ''; num.style.color = ''; num.style.filter = ''; }
+    const score = $('run-score');
+    if (score) { score.classList.remove('of-count'); this.cancelAnims(score); }
+    for (const id of ['of-orb', 'of-white']) {
+      const el = $(id);
+      if (el) { el.classList.remove('go'); this.cancelAnims(el); }
     }
-    if (score) score.classList.remove('of-count', 'of-rise', 'of-settle');
-    if (bank) bank.classList.remove('of-blow');
-    if (brand) brand.classList.remove('act-overflow');
+    const bank = $('btn-bank');
+    if (bank) { bank.classList.remove('of-blow'); this.cancelAnims(bank); }
+    const brand = $('hud-brand');
+    if (brand) { brand.classList.remove('act-overflow'); this.cancelAnims(brand); }
     document.body.classList.remove('of-live');
+  },
+  // a class re-added while its animation still exists does not restart it;
+  // cancelling first is the only way to be certain the show plays every time
+  cancelAnims(el) {
+    if (!el || !el.getAnimations) return;
+    try { el.getAnimations({ subtree: true }).forEach((a) => a.cancel()); } catch (e) { /* older engine */ }
+  },
+  restart(el, cls) {
+    if (!el) return;
+    el.classList.remove(cls);
+    this.cancelAnims(el);
+    void el.offsetWidth;
+    el.classList.add(cls);
   },
 
   start(a, b) {
     if (this.active) return;
     const C = CONFIG.overflow;
+    this.reset();                                  // never inherit a scrap of the last one
     this.active = true;
     this.phase = 'charge';
     this.t0 = this.phaseAt = now();
     this.x = (a.position.x + b.position.x) / 2;
     this.y = (a.position.y + b.position.y) / 2;
     this.pair = [a, b];
-    Game.coinLock = true;                       // the HUD ticker lets go of the number
+    this.milestone = 0;
+    Game.coinLock = true;                          // the HUD ticker lets go of the number
     a.plugin.consumed = b.plugin.consumed = true;
     // hold the two of them exactly where they met while the light builds
     for (const p of this.pair) { Sleeping.set(p, false); Body.setStatic(p, true); }
-    const total = C.countAtMs + C.countMs + C.settleMs + 900;
+    const total = C.chargeMs + C.countAtMs + C.countMs + C.settleMs + 1200;
     EventDirector.graceUntil = Math.max(EventDirector.graceUntil, now() + total);
     EventDirector.endWind();
     EventDirector.clearCurse();
-    EventDirector.nextAt = now() + total + 4000;  // and no new weather on the way out
+    EventDirector.nextAt = now() + total + 4000;   // and no new weather on the way out
     IdleShow.stop();
-    SlowMo.trigger(0.4, C.chargeMs);
+    SlowMo.trigger(0.32, C.chargeMs + 260);
     UI.react('OVERFLOW!!', PAL.goldHi);
-    const bank = $('btn-bank');
-    if (bank) { bank.classList.remove('of-blow'); void bank.offsetWidth; bank.classList.add('of-blow'); }
+    this.restart($('btn-bank'), 'of-blow');
     FeedbackBus.emit('overflowCharge', { ms: C.chargeMs });
-    trackEvent('overflow_start', { greed: Greed.value, coins: CONFIG.overflow.coins });
+    trackEvent('overflow_start', { greed: Greed.value, coins: C.coins });
   },
 
   blast() {
     const C = CONFIG.overflow;
     this.phase = 'blast'; this.phaseAt = now();
     // the whole deck goes, under cover of the light
-    for (const p of Stack.pieces()) Composite.remove(engine.world, p);
+    for (const p of Stack.pieces()) {
+      Particles.burst(p.position.x, p.position.y, '#fff4cf', 10, 260, 0.9);
+      Composite.remove(engine.world, p);
+    }
     Stack.fusionQueue.length = 0;
-    Stack.snapshot = null;                      // there is no tower to revive back to
+    Stack.snapshot = null;                         // there is no tower to revive back to
     Game.dropBody = null;
     this.pair = null;
     Game.runCoins += C.coins;
     Game.maxTierThisRun = TIERS.count;
-    // the light leaves from the exact screen point the two blocks met at
-    const orb = $('of-orb'), white = $('of-white');
+    // three shockwaves, thrown from the exact point the two blocks met
+    this.rings = [0, 190, 380].map((d) => ({ at: now() + d, ms: 1150 }));
+    this.vig = 1;
+    const sx = cw / 2 + (this.x - Camera.x) * Camera.zoom;
+    const sy = ch / 2 + (this.y - Camera.y) * Camera.zoom;
+    const orb = $('of-orb');
     if (orb) {
-      orb.style.setProperty('--ox', (cw / 2 + (this.x - Camera.x) * Camera.zoom) + 'px');
-      orb.style.setProperty('--oy', (ch / 2 + (this.y - Camera.y) * Camera.zoom) + 'px');
-      orb.classList.remove('go'); void orb.offsetWidth; orb.classList.add('go');
+      orb.style.setProperty('--ox', sx + 'px');
+      orb.style.setProperty('--oy', sy + 'px');
+      this.restart(orb, 'go');
     }
-    if (white) { white.classList.remove('go'); void white.offsetWidth; white.classList.add('go'); }
-    const brand = $('hud-brand');
-    if (brand) { brand.classList.remove('act-overflow'); void brand.offsetWidth; brand.classList.add('act-overflow'); }
+    this.restart($('of-white'), 'go');
+    this.restart($('hud-brand'), 'act-overflow');
     Shake.impulse(1);
-    Camera.pushIn && Camera.pushIn(1.06, 900);
+    Camera.pushIn && Camera.pushIn(1.08, 1100);
     Particles.goldRain(this.x, this.y);
-    Particles.burst(this.x, this.y, '#fffdf2', 90, 640, 1.5);
-    Particles.burst(this.x, this.y, '#ffd24a', 60, 430, 1.9);
+    Particles.burst(this.x, this.y, '#fffdf2', 110, 700, 1.7);
+    Particles.burst(this.x, this.y, '#ffd24a', 80, 470, 2.1);
     FeedbackBus.emit('overflowBlast', {});
   },
 
@@ -6045,19 +6357,22 @@ const Overflow = {
     this.phase = 'count'; this.phaseAt = now();
     this.from = Game.displayCoins;
     this.to = Game.runCoins;
+    this.milestone = 0;
     const score = $('run-score');
-    if (score) { score.classList.remove('of-settle'); score.classList.add('of-count', 'of-rise'); }
-    document.body.classList.add('of-live');    // the label and GREED pill step aside
+    if (score) { score.classList.remove('of-count'); this.cancelAnims(score); void score.offsetWidth; score.classList.add('of-count'); }
+    document.body.classList.add('of-live');        // the label and GREED pill step aside
     FeedbackBus.emit('overflowCount', { ms: C.countMs });
   },
 
   settle() {
     this.phase = 'settle'; this.phaseAt = now();
     Game.displayCoins = Game.runCoins;
-    Game.coinLock = false;                      // the number is handed back to the HUD
-    const score = $('run-score');
-    if (score) { score.classList.remove('of-rise'); score.classList.add('of-settle'); }
-    UI.toast(`OVERFLOW — +${fmt(CONFIG.overflow.coins)} banked into the run, and the deck is clear`);
+    Game.coinLock = false;                         // the number is handed back to the HUD
+    // it does not shrink politely, it SLAMS back down
+    Shake.impulse(0.5);
+    this.rings.push({ at: now() + 90, ms: 900, hud: true });
+    FeedbackBus.emit('overflowLand', {});
+    UI.toast(`OVERFLOW — +${fmt(CONFIG.overflow.coins)} into the run, and the deck is clear`);
   },
 
   finish() {
@@ -6072,71 +6387,540 @@ const Overflow = {
   tick() {
     if (!this.active) return;
     const C = CONFIG.overflow, el = now() - this.phaseAt;
+    // a hard backstop: however this event is interrupted, it always lets go
+    if (now() - this.t0 > C.chargeMs + C.countAtMs + C.countMs + C.settleMs + 3000) { this.finish(); return; }
     if (this.phase === 'charge') {
-      // the shake ramps all the way in, so the blast arrives on a rising line
       const k = clamp(el / C.chargeMs, 0, 1);
-      Shake.micro = Math.max(Shake.micro || 0, 0.35 + k * k * 1.45);
+      Shake.micro = Math.max(Shake.micro || 0, 0.35 + k * k * 1.6);
       if (el >= C.chargeMs) this.blast();
     } else if (this.phase === 'blast') {
-      Shake.micro = Math.max(Shake.micro || 0, clamp(1 - el / 500, 0, 1) * 0.9);
-      if (el >= C.countAtMs - C.chargeMs) this.count();
+      Shake.micro = Math.max(Shake.micro || 0, clamp(1 - el / 620, 0, 1) * 1.1);
+      if (el >= C.countAtMs) this.count();
     } else if (this.phase === 'count') {
       const k = clamp(el / C.countMs, 0, 1);
       // smootherstep: it starts slow, goes UP, and lands rather than stopping
-      Game.displayCoins = this.from + (this.to - this.from) * (k * k * k * (k * (k * 6 - 15) + 10));
+      const e = k * k * k * (k * (k * 6 - 15) + 10);
+      Game.displayCoins = this.from + (this.to - this.from) * e;
+      /* Every hundred thousand it crosses, the figure takes a hit: a scale
+         kick, a flash and a bell. A smooth ramp reads as a progress bar; a
+         ramp that keeps getting punched reads as a number that will not stop. */
+      const step = Math.floor((Game.displayCoins - this.from) / 100000);
+      if (step > this.milestone) {
+        this.milestone = step;
+        this.kick = 1; this.kickAt = now();
+        this.vig = Math.max(this.vig, 0.85);
+        Shake.impulse(0.16);
+        this.rings.push({ at: now(), ms: 800, hud: true });
+        FeedbackBus.emit('overflowStep', { n: step });
+      }
+      this.paintNumber(k);
       if (k >= 1) this.settle();
     } else if (this.phase === 'settle') {
+      this.paintNumber(1 + clamp(el / C.settleMs, 0, 1));
       if (el >= C.settleMs) this.finish();
+    }
+    this.vig = Math.max(0, this.vig - 0.012);
+  },
+
+  /* The figure, drawn by hand every frame. `p` runs 0->1 across the climb and
+     1->2 across the slam, so one function owns the whole arc of it and there is
+     no keyframe anywhere that could fail to restart on a second showing. */
+  paintNumber(p) {
+    const num = $('run-score-num');
+    if (!num) return;
+    if (Settings.reduceMotion) { num.style.transform = ''; num.style.textShadow = ''; return; }
+    const big = window.matchMedia('(max-width: 759px)').matches ? CONFIG.overflow.scalePhone : CONFIG.overflow.scale;
+    let s, glow;
+    if (p <= 1) {
+      const e = p * p * (3 - 2 * p);
+      s = 1 + (big - 1) * e;
+      glow = e;
+    } else {
+      // the slam: past full size, then down through the resting size and back
+      const q = clamp(p - 1, 0, 1);
+      const e = 1 - Math.pow(1 - q, 3);
+      s = big + (1 - big) * e - Math.sin(q * Math.PI) * 0.10;
+      glow = 1 - e;
+    }
+    // the milestone punch rides on top of whatever the climb is doing
+    const kickAge = (now() - this.kickAt) / 150;
+    const kick = this.kick && kickAge < 1 ? (1 - kickAge) * 0.26 : 0;
+    if (kickAge >= 1) this.kick = 0;
+    const sc = s + kick;
+    // it grows from its own top edge, so it also has to walk down out of the
+    // very top of the screen as it gets bigger
+    num.style.transform = `scale(${sc.toFixed(3)}) translateY(${(9 * glow).toFixed(1)}px)`;
+    const g = clamp(glow + kick * 2.2, 0, 1.4);
+    num.style.color = g > 0.05 ? '#fff' : '';
+    num.style.filter = `brightness(${(1 + g * 0.5).toFixed(2)})`;
+    num.style.textShadow = g < 0.04 ? '' :
+      `0 0 ${(10 + 22 * g).toFixed(0)}px rgba(255,255,255,${(0.55 * g).toFixed(2)}),` +
+      `0 0 ${(30 + 60 * g).toFixed(0)}px rgba(255,220,130,${(0.9 * g).toFixed(2)}),` +
+      `0 0 ${(70 + 140 * g).toFixed(0)}px rgba(255,190,60,${(0.65 * g).toFixed(2)}),` +
+      `0 0 ${(120 + 220 * g).toFixed(0)}px rgba(255,170,30,${(0.4 * g).toFixed(2)})`;
+  },
+
+  /* The charge and the shockwaves, drawn in world space so they are anchored to
+     the two blocks themselves rather than floating over them. */
+  draw(t) {
+    if (!this.active) return;
+    const C = CONFIG.overflow;
+    if (this.phase === 'charge' && this.pair) {
+      const k = clamp((now() - this.phaseAt) / C.chargeMs, 0, 1);
+      const R = 34 + k * k * 190;
+      const g = ctx.createRadialGradient(this.x, this.y, 1, this.x, this.y, R);
+      g.addColorStop(0, `rgba(255,255,255,${0.5 + 0.5 * k})`);
+      g.addColorStop(0.3, `rgba(255,248,214,${0.15 + 0.6 * k})`);
+      g.addColorStop(0.7, `rgba(255,206,90,${0.3 * k})`);
+      g.addColorStop(1, 'rgba(255,180,40,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(this.x, this.y, R, 0, Math.PI * 2); ctx.fill();
+      // each block wears its own corona, so it reads as the BLOCKS doing this
+      for (const p of this.pair) {
+        if (!p.plugin) continue;
+        const pr = p.plugin.r * (1.1 + k * 0.6);
+        const pg = ctx.createRadialGradient(p.position.x, p.position.y, p.plugin.r * 0.4, p.position.x, p.position.y, pr);
+        pg.addColorStop(0, `rgba(255,255,255,${0.25 + 0.65 * k})`);
+        pg.addColorStop(1, 'rgba(255,235,150,0)');
+        ctx.fillStyle = pg;
+        ctx.beginPath(); ctx.arc(p.position.x, p.position.y, pr, 0, Math.PI * 2); ctx.fill();
+      }
+      if (perf.tier !== 'low') {
+        // rings tightening INWARD — the light is being gathered, not spent
+        for (let i = 0; i < 3; i++) {
+          const rk = ((k * 2.2 + i / 3) % 1);
+          ctx.strokeStyle = `rgba(255,240,190,${(1 - rk) * 0.5 * k})`;
+          ctx.lineWidth = 2 + (1 - rk) * 3;
+          ctx.beginPath(); ctx.arc(this.x, this.y, 40 + rk * 210, 0, Math.PI * 2); ctx.stroke();
+        }
+        const [a, b] = this.pair;
+        ctx.lineWidth = 1 + k * 3;
+        for (let i = 0; i < 2 + (k * 4 | 0); i++) {
+          ctx.strokeStyle = `rgba(255,255,255,${0.25 + 0.7 * Math.random() * k})`;
+          ctx.beginPath();
+          ctx.moveTo(a.position.x, a.position.y);
+          for (let sgm = 1; sgm <= 4; sgm++) {
+            const f = sgm / 4, spread = (1 - Math.abs(f - 0.5) * 2) * 18;
+            ctx.lineTo(a.position.x + (b.position.x - a.position.x) * f + rand(-spread, spread),
+              a.position.y + (b.position.y - a.position.y) * f + rand(-spread, spread));
+          }
+          ctx.stroke();
+        }
+        if (Math.random() < 0.95) {
+          const ang = rand(0, 6.283), d = rand(90, 250);
+          Particles.spawn({ x: this.x + Math.cos(ang) * d, y: this.y + Math.sin(ang) * d,
+            vx: -Math.cos(ang) * d * 1.6, vy: -Math.sin(ang) * d * 1.6,
+            life: 0.42, maxLife: 0.42, size: rand(1.5, 3.4), color: '#fff3c8', glow: true, drag: 1 });
+        }
+      }
+      return;
+    }
+    // shockwaves, and a column of light standing where the blocks were
+    if (perf.tier === 'low') return;
+    const n = now();
+    for (let i = this.rings.length - 1; i >= 0; i--) {
+      const r = this.rings[i];
+      if (r.hud) continue;                          // drawn in screen space instead
+      const k = (n - r.at) / r.ms;
+      if (k < 0) continue;
+      if (k > 1) { this.rings.splice(i, 1); continue; }
+      const rr = 30 + k * 900;
+      ctx.strokeStyle = `rgba(255,244,206,${(1 - k) * 0.55})`;
+      ctx.lineWidth = (1 - k) * 16 + 1;
+      ctx.beginPath(); ctx.arc(this.x, this.y, rr, 0, Math.PI * 2); ctx.stroke();
+    }
+    if (this.phase === 'blast' || this.phase === 'count') {
+      const age = clamp((n - (this.phase === 'blast' ? this.phaseAt : this.phaseAt - CONFIG.overflow.countAtMs)) / 2200, 0, 1);
+      const colW = 90 * (1 - age) + 18;
+      const col = ctx.createLinearGradient(this.x - colW, 0, this.x + colW, 0);
+      col.addColorStop(0, 'rgba(255,220,130,0)');
+      col.addColorStop(0.5, `rgba(255,246,214,${0.4 * (1 - age)})`);
+      col.addColorStop(1, 'rgba(255,220,130,0)');
+      ctx.fillStyle = col;
+      ctx.fillRect(this.x - colW, -600, colW * 2, this.y + 600);
+      if (Math.random() < 0.7) {
+        Particles.spawn({ x: this.x + rand(-colW, colW), y: this.y + rand(-40, 40),
+          vx: rand(-30, 30), vy: -rand(120, 380), life: 1.1, maxLife: 1.1,
+          size: rand(1.5, 3.6), color: pick(['#fff6d8', '#ffd24a', '#ffffff']), glow: true, drag: 0.4 });
+      }
     }
   },
 
-  /* The charge, drawn in world space so it is anchored to the two blocks
-     themselves rather than floating over them. */
-  draw(t) {
-    if (!this.active || this.phase !== 'charge' || !this.pair) return;
-    const C = CONFIG.overflow;
-    const k = clamp((now() - this.phaseAt) / C.chargeMs, 0, 1);
-    const R = 34 + k * k * 170;
-    const g = ctx.createRadialGradient(this.x, this.y, 1, this.x, this.y, R);
-    g.addColorStop(0, `rgba(255,255,255,${0.5 + 0.5 * k})`);
-    g.addColorStop(0.3, `rgba(255,248,214,${0.15 + 0.55 * k})`);
-    g.addColorStop(0.7, `rgba(255,206,90,${0.25 * k})`);
-    g.addColorStop(1, 'rgba(255,180,40,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(this.x, this.y, R, 0, Math.PI * 2); ctx.fill();
-    // each block wears its own corona, so it reads as the BLOCKS doing this
-    for (const p of this.pair) {
-      if (!p.plugin) continue;
-      const pr = p.plugin.r * (1.1 + k * 0.5);
-      const pg = ctx.createRadialGradient(p.position.x, p.position.y, p.plugin.r * 0.4, p.position.x, p.position.y, pr);
-      pg.addColorStop(0, `rgba(255,255,255,${0.25 + 0.6 * k})`);
-      pg.addColorStop(1, 'rgba(255,235,150,0)');
-      ctx.fillStyle = pg;
-      ctx.beginPath(); ctx.arc(p.position.x, p.position.y, pr, 0, Math.PI * 2); ctx.fill();
+  /* Screen-space finish: the gold wash at the edges, and the rings that come
+     off the number itself when it takes a hit. */
+  drawHud() {
+    if (!this.active || perf.tier === 'low' || Settings.reduceMotion) return;
+    const n = now();
+    if (this.vig > 0.02) {
+      const v = ctx.createRadialGradient(cw / 2, ch * 0.42, Math.min(cw, ch) * 0.28, cw / 2, ch * 0.42, Math.max(cw, ch) * 0.75);
+      v.addColorStop(0, 'rgba(255,200,70,0)');
+      v.addColorStop(1, `rgba(255,196,64,${(0.34 * this.vig).toFixed(3)})`);
+      ctx.fillStyle = v;
+      ctx.fillRect(0, 0, cw, ch);
     }
-    // and arcs of light jumping the gap between them
-    if (perf.tier !== 'low') {
-      const [a, b] = this.pair;
-      ctx.lineWidth = 1 + k * 2.5;
-      for (let i = 0; i < 2 + (k * 3 | 0); i++) {
-        ctx.strokeStyle = `rgba(255,255,255,${0.25 + 0.65 * Math.random() * k})`;
-        ctx.beginPath();
-        ctx.moveTo(a.position.x, a.position.y);
-        const segs = 4;
-        for (let s = 1; s <= segs; s++) {
-          const f = s / segs;
-          ctx.lineTo(a.position.x + (b.position.x - a.position.x) * f + rand(-16, 16) * (1 - Math.abs(f - 0.5) * 2),
-            a.position.y + (b.position.y - a.position.y) * f + rand(-16, 16) * (1 - Math.abs(f - 0.5) * 2));
+    const numEl = $('run-score-num');
+    if (!numEl) return;
+    const r0 = numEl.getBoundingClientRect();
+    const hx = r0.left + r0.width / 2, hy = r0.top + r0.height / 2;
+    for (let i = this.rings.length - 1; i >= 0; i--) {
+      const r = this.rings[i];
+      if (!r.hud) continue;
+      const k = (n - r.at) / r.ms;
+      if (k < 0) continue;
+      if (k > 1) { this.rings.splice(i, 1); continue; }
+      ctx.strokeStyle = `rgba(255,238,180,${(1 - k) * 0.5})`;
+      ctx.lineWidth = (1 - k) * 7 + 1;
+      ctx.beginPath(); ctx.arc(hx, hy, 40 + k * 420, 0, Math.PI * 2); ctx.stroke();
+    }
+  },
+};
+
+/* ==================== §21h FIRST LOOK ====================================
+   Buying a thing and then just... having it is the least interesting version
+   of owning it. The first run on a deck you have never played, and the first
+   run in a pack you have never played, now open with the thing arriving.
+
+   A DECK BUILDS ITSELF. The deck is not there when the run opens; then slabs
+   drop in from alternating sides and lock together, left to right, each one
+   landing with a thud and a puff of dust. When the last one seats, the surface
+   light runs across it, the deck's signature detail fades up out of the
+   material, and — if it has them — the bumper walls rise out of the ends.
+   Everything is drawn by the SAME renderer that draws the finished deck, in
+   slices, so a build-up can never look like a different object.
+
+   A PACK ARRIVES AS ITS SHAPES. The room runs up the pack's whole ladder in
+   about a second, tier by tier, while the eight shapes fly in from alternating
+   sides and line up across the middle; then they scatter and the room settles
+   on the colour of the top tier.
+
+   Then the name lands. How hard it lands is set by what the thing cost: a
+   70,000 deck gets a clean card, a 2,000,000 pack gets letters that slam in
+   one at a time behind a shockwave, and the 20,000,000 gets all of that plus
+   a gold sweep and a held note. Price is the promise; this is the receipt. */
+const Reveal = {
+  kind: null,          // 'dock' | 'pack'
+  item: null,          // the SHOP_CATALOG row
+  t0: 0,
+  tier: 0,             // 0..3, from the price
+  slabs: 0,
+  landed: -1,
+  parade: [],
+  done: false,
+
+  get active() { return !!this.kind; },
+  // play is held only while the thing is still arriving, never for the card
+  get blocking() { return this.active && now() - this.t0 < this.buildMs(); },
+
+  tierOf(price) { return price >= 5_000_000 ? 3 : price >= 700_000 ? 2 : price >= 200_000 ? 1 : 0; },
+  buildMs() { return this.kind === 'dock' ? 620 + this.slabs * 190 : 1500; },
+  cardMs() { return [1700, 2000, 2400, 3000][this.tier]; },
+
+  /* Called at the top of every run. A thing "debuts" once, the first time it
+     is actually played with — not when it is bought, and not when it is
+     equipped in the shop, because neither of those is the moment you see it. */
+  maybeStart() {
+    this.stop();
+    if (Settings.reduceMotion) { this.markDebut(); return; }
+    for (const kind of ['dock', 'pack']) {
+      const id = kind === 'dock' ? 'dock_' + save.equipped.dock : 'theme_' + save.equipped.theme;
+      const item = Economy.item(id);
+      if (!item || (save.debuted || []).includes(id)) continue;
+      this.kind = kind === 'dock' ? 'dock' : 'pack';
+      this.item = item;
+      this.tier = this.tierOf(item.price);
+      this.t0 = now();
+      this.landed = -1;
+      this.done = false;
+      this.slabs = [3, 4, 5, 7][this.tier];
+      if (this.kind === 'pack') this.buildParade();
+      save.debuted = (save.debuted || []).concat([id]);
+      SaveStore.save();
+      FeedbackBus.emit('revealStart', { kind: this.kind, tier: this.tier });
+      trackEvent('reveal', { id, kind: this.kind, tier: this.tier });
+      return;                                   // one arrival per run, never two
+    }
+  },
+  markDebut() {
+    const ids = ['dock_' + save.equipped.dock, 'theme_' + save.equipped.theme];
+    save.debuted = (save.debuted || []).slice();
+    let touched = false;
+    for (const id of ids) if (Economy.item(id) && !save.debuted.includes(id)) { save.debuted.push(id); touched = true; }
+    if (touched) SaveStore.save();
+  },
+  stop() {
+    this.kind = null; this.item = null; this.parade.length = 0; this.landed = -1;
+    const card = $('reveal-card');
+    if (card) { card.className = 'hidden'; card.innerHTML = ''; }
+  },
+
+  buildParade() {
+    const pal = Economy.pack.colors;
+    this.parade = [];
+    for (let i = 1; i <= 8; i++) {
+      this.parade.push({ tier: i, at: 120 + (i - 1) * 105, from: i % 2 ? -1 : 1, col: pal[i] });
+    }
+  },
+
+  /* What drawDock should paint this frame: which slabs have landed, where the
+     one in the air is, how far up the detail and the walls have come. */
+  dockSlabs(hw) {
+    if (this.kind !== 'dock') return null;
+    const el = now() - this.t0;
+    const build = this.buildMs();
+    if (el >= build + 400) return null;             // finished: the ordinary renderer takes over
+    const x0 = WORLD.width / 2 - hw, w = hw * 2;
+    const per = w / this.slabs;
+    const out = { slabs: [], detail: clamp((el - build * 0.55) / (build * 0.5), 0, 1), wallK: clamp((el - build * 0.8) / 420, 0, 1) };
+    for (let i = 0; i < this.slabs; i++) {
+      // built from the middle outwards, so it grows into its own length
+      const order = i % 2 === 0 ? Math.floor(this.slabs / 2) + Math.floor(i / 2) : Math.floor(this.slabs / 2) - 1 - Math.floor(i / 2);
+      const startAt = 260 + i * 170;
+      const k = clamp((el - startAt) / 300, 0, 1);
+      if (k <= 0) continue;
+      if (k > this.landed / 1000) { /* noop: landing sounds are fired in tick() */ }
+      const e = 1 - Math.pow(1 - k, 3);
+      out.slabs.push({
+        x0: x0 + order * per - 0.5,
+        x1: x0 + (order + 1) * per + 0.5,
+        dy: -170 * (1 - e),
+        a: Math.min(1, k * 2.2),
+      });
+    }
+    return out;
+  },
+
+  tick() {
+    if (!this.kind) return;
+    const el = now() - this.t0;
+    const build = this.buildMs();
+    if (this.kind === 'dock') {
+      // one thud per slab, at the moment it seats
+      const seated = Math.floor((el - 260 - 300) / 170) + 1;
+      if (seated > this.landed && seated <= this.slabs) {
+        this.landed = seated;
+        const hw = Stack.platform ? Stack.platform.plugin.halfW : 130;
+        const per = (hw * 2) / this.slabs;
+        const order = (this.landed - 1) % 2 === 0
+          ? Math.floor(this.slabs / 2) + Math.floor((this.landed - 1) / 2)
+          : Math.floor(this.slabs / 2) - 1 - Math.floor((this.landed - 1) / 2);
+        const px = WORLD.width / 2 - hw + (order + 0.5) * per;
+        Shake.impulse(0.1 + this.tier * 0.04);
+        Particles.burst(px, WORLD.platformY + 4, 'rgba(226,232,246,0.75)', 14, 190, 0.62);
+        for (let d = 0; d < 5; d++) {
+          Particles.spawn({ x: px + rand(-per * 0.45, per * 0.45), y: WORLD.platformY + rand(0, 8),
+            vx: rand(-70, 70), vy: -rand(20, 90), life: 0.5, maxLife: 0.5,
+            size: rand(1.5, 3.4), color: 'rgba(255,255,255,0.8)', glow: true, drag: 0.6 });
         }
-        ctx.stroke();
+        FeedbackBus.emit('revealPart', { n: this.landed, of: this.slabs, tier: this.tier });
       }
-      // dust pulled INTO the point, not thrown out of it — this is a charge
-      if (Math.random() < 0.9) {
-        const ang = rand(0, 6.283), d = rand(90, 230);
-        Particles.spawn({ x: this.x + Math.cos(ang) * d, y: this.y + Math.sin(ang) * d,
-          vx: -Math.cos(ang) * d * 1.5, vy: -Math.sin(ang) * d * 1.5,
-          life: 0.42, maxLife: 0.42, size: rand(1.5, 3.2), color: '#fff3c8', glow: true, drag: 1 });
-      }
+    }
+    if (!this.done && el >= build) {
+      this.done = true;
+      Shake.impulse(0.22 + this.tier * 0.1);
+      FeedbackBus.emit('revealLand', { tier: this.tier });
+      this.showCard();
+    }
+    if (el > build + this.cardMs() + 200) this.stop();
+  },
+
+  showCard() {
+    const card = $('reveal-card');
+    if (!card || !this.item) return;
+    const kicker = this.kind === 'dock' ? 'DOCK' : 'SHAPE PACK';
+    const name = (this.item.name || '').toUpperCase();
+    const letters = [...name].map((ch, i) =>
+      `<i style="--i:${i}">${ch === ' ' ? '&nbsp;' : ch}</i>`).join('');
+    card.innerHTML =
+      `<span class="rv-kicker">${kicker}</span>` +
+      `<span class="rv-name">${letters}</span>` +
+      (this.item.power ? `<span class="rv-power">${this.item.power}</span>` : '');
+    card.className = `t${this.tier}` + (this.item.mythic ? ' mythic' : '');
+    void card.offsetWidth;
+    card.classList.add('go');
+  },
+
+  /* The pack's arrival: the room runs the whole ladder while the eight shapes
+     fly in and line up. Drawn in screen space so it owns the viewport. */
+  drawHud() {
+    if (this.kind !== 'pack' || perf.tier === 'low') return;
+    const el = now() - this.t0;
+    const midY = ch * 0.44;
+    const span = Math.min(cw * 0.86, 720);
+    for (const s of this.parade) {
+      const k = clamp((el - s.at) / 420, 0, 1);
+      if (k <= 0) continue;
+      const out = clamp((el - (this.buildMs() + 260)) / 420, 0, 1);   // then they scatter
+      const e = 1 - Math.pow(1 - k, 4);
+      const restX = cw / 2 + (s.tier - 4.5) * (span / 8);
+      const x = restX + s.from * cw * 0.75 * (1 - e) + s.from * cw * 0.6 * out * out;
+      const r = (13 + s.tier * 2.6) * (1 + 0.5 * (1 - e)) * (1 - out * 0.4);
+      const a = (1 - out) * Math.min(1, k * 3);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = s.col;
+      if (perf.tier !== 'low') { ctx.shadowColor = s.col; ctx.shadowBlur = 16 + s.tier * 3; }
+      polyPath(ctx, x, midY + Math.sin(el * 0.004 + s.tier) * 5, TIERS.sides[s.tier], r, -Math.PI / 2 + (1 - e) * 3);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1.6;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  },
+  // the room walks the pack's ladder while the shapes come in
+  paletteTier() {
+    if (this.kind !== 'pack') return 0;
+    const el = now() - this.t0;
+    return clamp(Math.floor(el / 150) + 1, 1, TIERS.count);
+  },
+};
+
+/* ==================== §21g WEATHER, DRAWN IN SCREEN SPACE ==================
+   The gust used to be a scatter of pale dots thrown across the world layer,
+   and it had two problems that are really the same problem: it was drawn in
+   world space, so it scaled and shook with the deck and never reached the
+   edges of the screen; and it was a single flat colour, so against a pale
+   board it simply disappeared.
+
+   This is the same physics — not one line of the force, the clamp or the drop
+   counter changes — with the look rebuilt as a viewport-wide layer:
+
+     · a WINDWARD WASH, a soft gradient standing on the edge the gust comes
+       from, which is what actually reads on any background: it is a large
+       area of tone rather than thin lines, so it survives a light board
+     · long CURVED STREAKS on a slow vertical drift, each one a two-stop
+       gradient that fades in and out along its own length, so nothing has a
+       hard end; they are drawn once dark and once light, one pixel apart, so
+       there is always contrast against whatever is behind them
+     · a drift on the falling piece itself, a comet of the same streaks bent
+       the way the block is being pushed
+
+   All of it breathes with `gust`, the same 0.55-1.0 sine the force uses, so
+   what the screen is doing and what the physics is doing are the same thing. */
+const Weather = {
+  streaks: [],
+  seedAt: 0,
+
+  gustNow() {
+    const w = EventDirector.wind;
+    if (!w) return 0;
+    // fades in over the first third of a second and out as the drops run down
+    const age = clamp((now() - (w.startedAt || 0)) / 340, 0, 1);
+    const easing = w.left <= 0 ? clamp((w.until - now()) / 600, 0, 1) : 1;
+    return age * easing * (0.55 + 0.45 * Math.sin(now() * 0.004));
+  },
+
+  ensure(dir) {
+    if (this.streaks.length && now() - this.seedAt < 60_000) return;
+    this.seedAt = now();
+    this.streaks = [];
+    for (let i = 0; i < 20; i++) {
+      this.streaks.push({
+        y: Math.random(),                    // 0..1 of the viewport height
+        len: rand(0.26, 0.78),               // as a fraction of the width
+        speed: rand(0.5, 1.35),
+        phase: Math.random(),
+        bow: rand(-0.05, 0.05),              // how far the ribbon arcs
+        w: rand(5, 20),                      // ribbons of moving air, not scratches
+        drift: rand(-0.02, 0.02),
+      });
+    }
+  },
+
+  draw(t) {
+    const w = EventDirector.wind;
+    if (!w || Settings.reduceMotion) return;
+    const g = this.gustNow();
+    if (g <= 0.01) return;
+    this.ensure(w.dir);
+    const dir = w.dir;
+
+    /* 1. the windward wash. A gust comes FROM somewhere, and this is that
+       somewhere: a band of tone on the edge it blows off, bright enough to
+       read on a dark board and cool enough to read on a bright one. */
+    const edge = dir > 0 ? 0 : cw;
+    const wash = ctx.createLinearGradient(edge, 0, dir > 0 ? cw * 0.72 : cw * 0.28, 0);
+    wash.addColorStop(0, `rgba(198,238,255,${(0.30 * g).toFixed(3)})`);
+    wash.addColorStop(0.22, `rgba(168,222,250,${(0.15 * g).toFixed(3)})`);
+    wash.addColorStop(0.6, `rgba(140,200,240,${(0.05 * g).toFixed(3)})`);
+    wash.addColorStop(1, 'rgba(140,200,240,0)');
+    ctx.fillStyle = wash;
+    ctx.fillRect(0, 0, cw, ch);
+    // a hard-edged rim right on the windward side, so there is one place on
+    // screen the gust unmistakably comes FROM
+    const rim = ctx.createLinearGradient(edge, 0, dir > 0 ? cw * 0.10 : cw * 0.90, 0);
+    rim.addColorStop(0, `rgba(230,250,255,${(0.34 * g).toFixed(3)})`);
+    rim.addColorStop(1, 'rgba(230,250,255,0)');
+    ctx.fillStyle = rim;
+    ctx.fillRect(0, 0, cw, ch);
+
+    /* 2. the streaks. Each is drawn twice — a dark pass a pixel below and a
+       light pass on top — which is the whole contrast trick: on a pale board
+       the dark edge carries it, on a dark board the light one does. */
+    if (perf.tier === 'low') return;
+    const T = t * 0.001;
+    ctx.lineCap = 'round';
+    for (const s of this.streaks) {
+      const span = s.len * cw;
+      const travel = ((T * s.speed * 0.42 + s.phase) % 1.35) - 0.2;   // off one edge and back
+      const x0 = dir > 0 ? travel * (cw + span) - span : cw - travel * (cw + span);
+      const y = (s.y + Math.sin(T * 0.5 + s.phase * 6.28) * s.drift) * ch;
+      const x1 = x0 + span * dir;
+      const bowY = s.bow * ch;
+      const a = clamp(g, 0, 1);
+      const lw = s.w * (0.45 + g * 0.75);
+      /* Each ribbon is laid down twice, a couple of pixels apart: a dark pass
+         under a light one. On a pale board the dark edge is what you see; on a
+         dark board the light one is. Neither can disappear, which is the whole
+         reason the old single-colour dots could. */
+      const stops = (c1, c2, mul) => {
+        const gr = ctx.createLinearGradient(x0, y, x1, y);
+        gr.addColorStop(0, c1.replace('$A', '0'));
+        gr.addColorStop(0.26, c1.replace('$A', (a * 0.55 * mul).toFixed(3)));
+        gr.addColorStop(0.68, c2.replace('$A', (a * mul).toFixed(3)));
+        gr.addColorStop(1, c1.replace('$A', '0'));
+        return gr;
+      };
+      ctx.strokeStyle = stops('rgba(8,30,50,$A)', 'rgba(8,30,50,$A)', 0.30);
+      ctx.lineWidth = lw * 1.45;
+      ctx.beginPath();
+      ctx.moveTo(x0, y + 2.5);
+      ctx.quadraticCurveTo((x0 + x1) / 2, y + bowY + 2.5, x1, y + 2.5);
+      ctx.stroke();
+      ctx.strokeStyle = stops('rgba(214,244,255,$A)', 'rgba(255,255,255,$A)', 0.42);
+      ctx.lineWidth = lw;
+      ctx.beginPath();
+      ctx.moveTo(x0, y);
+      ctx.quadraticCurveTo((x0 + x1) / 2, y + bowY, x1, y);
+      ctx.stroke();
+      // a bright filament down the middle of the ribbon gives it an edge
+      ctx.strokeStyle = stops('rgba(255,255,255,$A)', 'rgba(255,255,255,$A)', 0.5);
+      ctx.lineWidth = Math.max(1, lw * 0.16);
+      ctx.beginPath();
+      ctx.moveTo(x0, y);
+      ctx.quadraticCurveTo((x0 + x1) / 2, y + bowY, x1, y);
+      ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+
+    /* 3. the drift on the piece being pushed. Only while it is actually
+       airborne, because that is the only time the wind is doing anything. */
+    const b = Game.dropBody;
+    if (!b || b.plugin.contacted || !(Game.state === 'DROPPING' || Game.state === 'RESOLVING')) return;
+    const px = cw / 2 + (b.position.x - Camera.x) * Camera.zoom;
+    const py = ch / 2 + (b.position.y - Camera.y) * Camera.zoom;
+    const pr = b.plugin.r * Camera.zoom;
+    for (let i = 0; i < 5; i++) {
+      const off = (i - 2) * pr * 0.42;
+      const tail = (60 + i * 12) * g * Camera.zoom;
+      const cg = ctx.createLinearGradient(px - dir * tail, py + off, px, py + off);
+      cg.addColorStop(0, 'rgba(226,247,255,0)');
+      cg.addColorStop(1, `rgba(255,255,255,${(0.5 * g).toFixed(3)})`);
+      ctx.strokeStyle = cg;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(px - dir * tail, py + off);
+      ctx.quadraticCurveTo(px - dir * tail * 0.5, py + off - pr * 0.22, px - dir * pr * 0.75, py + off);
+      ctx.stroke();
     }
   },
 };
@@ -6267,6 +7051,28 @@ const UI = {
     el.classList.add('show');
     clearTimeout(this._hintT);
     this._hintT = setTimeout(() => el.classList.remove('show'), CONFIG.onboarding.hintFadeMs);
+  },
+  /* §21i The one card in the game that arrives unbidden. It is deliberately
+     not a shop pop-up and not a purchase prompt: it says what the player did to
+     deserve being shown this, names the thing, and gets out of the way. The
+     price is on it, because a gift you cannot afford yet is a goal, and a goal
+     is the point. */
+  offerCard(item) {
+    const el = $('offer-card');
+    if (!el || !item) return;
+    el.innerHTML =
+      '<span class="of-kicker">YOU HAVE OUTLASTED THE CROWN</span>' +
+      `<span class="of-name">${(item.name || '').toUpperCase()}</span>` +
+      '<span class="of-body">There was one more deck. It was never in the Collection ' +
+      'because nobody had earned the sight of it yet.</span>' +
+      `<span class="of-price">${fmt(item.price)}</span>`;
+    el.classList.remove('hidden', 'go');
+    void el.offsetWidth;
+    el.classList.add('go');
+    clearTimeout(this._offerT);
+    this._offerT = setTimeout(() => el.classList.add('hidden'), 9000);
+    FeedbackBus.emit('offer', { id: item.id });
+    trackEvent('offer_granted', { id: item.id });
   },
   toast(text) {
     const el = $('toast');
@@ -6491,11 +7297,12 @@ const UI = {
       const owned = Economy.owned(item.id);
       const equipped = owned && save.equipped[item.kind] === item.data;
       const el = document.createElement('button');
-      el.className = 'shop-item' + (owned ? ' owned' : ' locked') + (equipped ? ' equipped' : '');
+      el.className = 'shop-item' + (owned ? ' owned' : ' locked') + (equipped ? ' equipped' : '') + (item.mythic ? ' mythic' : '');
       const progress = owned ? 1 : item.price ? clamp(save.coins / item.price, 0, 1) : 1;
       el.innerHTML =
         `<div class="swatch" style="${this.swatchStyle(item)}"></div>` +
         `<div class="name">${item.name}</div>` +
+        (item.mythic ? '<div class="myth-tag">MYTHIC</div>' : '') +
         `<div class="kind">${item.kind === 'theme' ? 'shape pack' : item.kind}${item.power ? ' · <span class="power">' + item.power + '</span>' : ''}</div>` +
         (owned
           ? `<div class="price">${equipped ? 'EQUIPPED' : 'Tap to equip'}</div>`
@@ -6512,8 +7319,8 @@ const UI = {
     };
     const docks = $('shop-grid-docks'), themes = $('shop-grid-themes');
     docks.innerHTML = ''; themes.innerHTML = '';
-    SHOP_CATALOG.filter((i) => i.kind === 'dock').forEach((i) => docks.appendChild(renderItem(i)));
-    SHOP_CATALOG.filter((i) => i.kind === 'theme').forEach((i) => themes.appendChild(renderItem(i)));
+    SHOP_CATALOG.filter((i) => i.kind === 'dock' && Economy.visible(i)).forEach((i) => docks.appendChild(renderItem(i)));
+    SHOP_CATALOG.filter((i) => i.kind === 'theme' && Economy.visible(i)).forEach((i) => themes.appendChild(renderItem(i)));
     const powers = $('shop-powers');
     powers.innerHTML = '';
     for (const m of MILESTONES) {
@@ -6762,6 +7569,7 @@ function frame(t) {
   Particles.update(dt);
   Shake.update(rawDt / 1000);
   Camera.update(rawDt / 1000);
+  Reveal.tick();
   Overflow.tick();                 // before hudTick, which paints the number
   UI.hudTick(rawDt / 1000);
   Tutor.place();
@@ -6831,7 +7639,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { WORLD, Game, Stack, Director, Overflow, SPECIALS, TIERS, THEMES, CONFIG, __cat: SHOP_CATALOG, SPECIALS, TIERS, THEMES, __cat: SHOP_CATALOG, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, IdleShow, Audio2, Settings, FeedbackBus, UI, save, engine, Composite, Body };
+window.__overstack = { WORLD, Game, Stack, Director, Overflow, Reveal, Weather, DOCKS, SPECIALS, TIERS, THEMES, CONFIG, __cat: SHOP_CATALOG, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, IdleShow, Audio2, Settings, FeedbackBus, UI, save, engine, Composite, Body };
 window.__overstackCam = Camera;
 window.__shake = Shake;
 window.__drawDefIcon = drawDefIcon;   // debug handle: the NEXT-box icon, on any canvas
