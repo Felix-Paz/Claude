@@ -359,6 +359,12 @@ normal shape) and its own behavior:
 - DICE (pip-count = live tier, re-rolls each bounce, locks at rest)
 - LUCKY CHEST (opens on land: coins / giant / rainbow / magnet / bomb / curse)
 - JACKPOT DIAMOND (rare, ~every 5 min, absurd 8× payout)
+- **PHASE** (2×) — a violet gate with a turning iris and edges that will not
+  quite stay one colour. It falls like any other block, and the moment it lands
+  it stops being subject to weight: gravity is cancelled on it every frame and
+  its friction is absurd, so wherever it ends up is where it stays — including
+  places nothing else in the game could ever rest. Then it starts moving on its
+  own. See [walking the crest](#phase--a-block-that-will-not-stay-put).
 
 **World events** fire live (not blocks): BLACK HOLE (opens ON the tower and
 devours up to 3 pieces, paying coins for each — drawn as a true black disc
@@ -435,6 +441,85 @@ restart and so nothing that can fail to re-trigger. Every class the event does
 still use is cancelled with `getAnimations().cancel()` before being re-added,
 `reset()` puts every property back by hand rather than trusting a class to have
 been removed, and a hard backstop finishes the event however it is interrupted.
+
+### PHASE — a block that will not stay put
+
+A block that teleports is easy to describe and easy to get wrong: done badly it
+is just a piece that disappears and a different piece that appears, and the
+player reads it as a bug. Three rules keep it readable.
+
+**It falls like a block first.** No anti-gravity while it is dropping — you aim
+it and land it exactly as you would anything else, and only on first contact
+does weight stop applying. That is also the moment the player finds out what
+they just dropped.
+
+**It walks the crest, not the room.** `Stack.crestY(x)` is the skyline of the
+pile: for any column, the top of whatever piece is under it, or the deck if
+there is nothing there. Every destination is sampled off that one function and
+scored — it wants to be beside its own tier (so its wandering usually ends in a
+fusion rather than in the way), it prefers the high ground, it will not re-form
+inside something, and it will not make a jump too short to follow. Four jumps,
+then it holds its last spot.
+
+**You can see where it went.** The leaving and the arriving are the same object
+at different transforms — the block is sliced into bands and the *real* skin is
+drawn inside each one, exactly as the deck build-ups in FIRST LOOK are drawn in
+slices of the real deck. It collapses: bands shear apart, the edges split into
+cyan and magenta, everything flattens into a line of light and two rings fall
+inward after it. It arrives: the slit stabs open, the gate widens out of it with
+a back-eased overshoot, the bands snap back in from outside, and rings go out.
+Strung between the two points for the length of the arrival is a **corridor** —
+a feathered beam and three shrinking outlines of the block itself, so the eye is
+never asked to guess whether a new block appeared or the old one moved.
+
+At rest it is still not quite at rest: the iris turns, the edges keep separating
+and re-joining, and when the next jump is close the whole silhouette starts to
+slip a frame. If it is hanging over a gap, a dashed tether of light runs down to
+the crest under it — a block floating in mid-air has to read as *held*, not as
+broken. It is intangible for the whole trip (`collisionFilter.mask = 0`), so it
+can never shove the tower on its way through, and its own fall is never lethal.
+
+### AUREX × 2 — the strain
+
+Two AUREX on the same board is the rarest thing that can happen in a run, and
+until now, if they landed apart, **nothing happened**. The two most valuable
+blocks in the game sat there ignoring each other, and the player holding the
+single most valuable move available had no way of knowing it was there.
+
+So they acknowledge each other, and the whole effect is a function of one
+number: the gap between their surfaces.
+
+| Gap | What it looks like |
+|---|---|
+| 300 → 200 px | filaments start off both near faces and **visibly fall short**, guttering out in mid-air; a soft lens of light thickens in the space between them |
+| 200 → 120 px | the arcs get further each time, hot nodes swell on both faces, an ellipse closes on the pair and repeats |
+| 120 → 60 px | the far half of each block falls into amber shade while its near half blazes; concentric arcs march inward across the near faces; a starburst opens off the pair; the board begins to shake |
+| under 60 px | one white seam between them, the vignette closes in, the tone is nearly continuous — and the pull turns real and shuts the gap |
+
+The pull is deliberately almost nothing until the end (`CONFIG.strainForce`,
+scaled by `k³`): the player closes the gap, the game does not close it for them.
+Inside about a block's width a snap term takes over, because two bodies this
+heavy and this high-friction will otherwise stall half a pixel short of the
+payoff. The force is equal and opposite and always along the axis between them,
+so the pair's centre of mass never moves and neither block can be dragged
+outward.
+
+**Contrast, not more light.** The first version of the close-range effect got
+*less* visible as it got stronger, which is exactly backwards. An AUREX is
+already the whitest thing on the board, so adding light to it does nothing — the
+near face cannot get brighter than white, and at a twenty-pixel gap there is no
+room left between the two to draw anything in. So at close range the drama moves
+*out* to the pair, and the near faces are lit by pushing their far halves down
+into amber shadow instead. Everything is either soft-edged or clipped to a real
+silhouette: the earlier pass had gradient-filled trapezoids for the light cones
+and they read as sheets of paper laid over the board, so they are an ellipse
+stretched along the axis now, which has no edge to give away.
+
+You can also hear it. `Audio2.strain(k)` fires one tone whose **rate** is the
+reading — from about twice a second out at the edge of reach to nearly
+continuous at touching distance — with pitch, brightness and a second voice
+climbing with it, so you can tell how close they are with your eyes on the
+falling piece.
 
 ### FIRST LOOK — a deck, and a pack, arriving
 

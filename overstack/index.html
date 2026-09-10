@@ -1875,6 +1875,14 @@ const SPECIALS = {
   dice:     { label: 'DICE BLOCK',      coinMult: 2,   dice: true },
   chest:    { label: 'LUCKY CHEST',     noFuse: true,  chest: true },
   jackpot:  { label: 'JACKPOT DIAMOND', coinMult: 8,   sizeMult: 1.35, targetsFusable: true, jackpotBlock: true },
+  /* PHASE BLOCK. Gravity has no hold on it (§20c counteracts it every frame)
+     and its friction is off the scale, so wherever it re-forms is where it
+     stays — including places nothing else in the game could ever rest. It
+     spends its first few seconds walking the crest of the pile looking for its
+     own tier. `noGravity` and `grippy` are read by the physics; `phases` is
+     what turns on the whole jump machine. */
+  teleport: { label: 'PHASE BLOCK',     coinMult: 2,   targetsFusable: true, phases: true,
+              noGravity: true, friction: 1.9, restitution: 0, density: 0.0016, harmlessFall: true },
 };
 
 const WORLD = {
@@ -1905,7 +1913,8 @@ const CONFIG = {
   snapshotMinStability: 0.5,
   reviveGraceMs: 3_500,       // after a revive, a settling topple costs a piece, never the run
   loadingLoopDelayMs: 650,    // splash mark only animates if the wait is long enough to see
-  idleShow: {                 // the HUD wordmark's periodic piece of theatre
+  idleShow: {
+    rearmMs: 9_000,        // a wait that came due between runs re-arms short, not from scratch                 // the HUD wordmark's periodic piece of theatre
     firstMs: 45_000,          // never during the opening minute of a run
     minMs: 70_000, maxMs: 120_000,
     boredMinMs: 42_000, boredMaxMs: 72_000,
@@ -1938,7 +1947,23 @@ const CONFIG = {
     angryGraceMs: 2_500,             // same idea after an angry jump
   },
   magnetForce: 0.0014,        // magnet block pull on same-tier neighbours (per-mass)
+  /* How hard two AUREX pull on each other (§21e-b). Small on purpose — the
+     player closes the gap; this only stops the last few pixels stalling. */
+  strainForce: 0.0009,
   angryJumpDelayMs: 550,
+  /* PHASE BLOCK (§20c). It does not obey gravity and it does not stay put: it
+     walks the CREST of the pile in jumps, dissolving out of one place and
+     re-forming in another. Every number here is about readability — you have to
+     be able to SEE where it went, or the whole trick reads as a bug. */
+  phase: {
+    firstHopMs: 620,      // after it lands, the first jump comes quickly
+    hopGapMs: 1250,       // and then roughly this often
+    hopJitterMs: 420,
+    hops: 4,              // it jumps this many times, then holds its last spot
+    outMs: 300,           // dissolve
+    inMs: 460,            // re-form (deliberately longer — the arrival is the show)
+    minTravelPx: 90,      // a jump shorter than this is not worth watching
+  },
   // Invisible difficulty pressure — two triggers, both "harder, never cheating":
   difficulty: {
     wealthRampStart: 100_000,  // vault size where the game starts leaning harder
@@ -1975,6 +2000,7 @@ const CONFIG = {
 const PREVIEW_OVERSHOOT = {
   star: 1.15, bomb: 1.3, magnet: 1.05, jackpot: 1.8, chest: 1.35,
   angry: 1.1, heavy: 1.1, dice: 1.05, split: 1.1, unstable: 1.2, giant: 1,
+  teleport: 1.3,
 };
 
 const MILESTONES = [
@@ -2207,6 +2233,11 @@ const Haptics = {
     // stutters faster and faster, then one enormous hit for the blast
     ofCharge: { w: 5, p: [10, 90, 12, 78, 14, 66, 18, 54, 22, 42, 28, 30, 36] },
     ofBlast:  { w: 5, p: [190, 60, 40, 40, 30, 40, 24, 40, 18] },
+    // PHASE BLOCK: the leaving stutters out to nothing, the arriving snaps in
+    phOut:    { w: 3, p: [26, 22, 18, 26, 12, 30, 8] },
+    phIn:     { w: 4, p: [8, 30, 14, 26, 64] },
+    // two AUREX closing: one short tug, fired as often as the tone is
+    strain:   { w: 2, p: [16] },
   },
   _at: 0, _weight: 0,
   fire(name) {
@@ -2250,6 +2281,9 @@ FeedbackBus.on('overflowStep', () => haptic('fuseBig'));
 FeedbackBus.on('overflowLand', () => haptic('unlock'));
 FeedbackBus.on('revealPart', () => haptic('landSoft'));
 FeedbackBus.on('revealLand', (p) => haptic(p.tier >= 2 ? 'unlock' : 'bank'));
+FeedbackBus.on('phaseOut', () => haptic('phOut'));
+FeedbackBus.on('phaseIn', () => haptic('phIn'));
+FeedbackBus.on('strain', () => haptic('strain'));
 FeedbackBus.on('offer', () => haptic('unlock'));
 
 /* Five recorded one-shots, base64 MP3 so the file stays self-contained and so
@@ -2612,6 +2646,49 @@ const Audio2 = {
         peak: 0.085, attack: 0.005, decay: 1.1 + tier * 0.25, when: i * 0.05, verb: 0.6 }));
     if (tier >= 2) this.hiss({ peak: 0.07, decay: 0.9, from: 10000, to: 2600, verb: 0.6 });
   },
+  /* THE PHASE BLOCK, in two halves that have to be heard as one gesture: a
+     collapse inward that gets tighter and quieter, then an arrival that opens
+     out of nothing. The out-sound falls, the in-sound rises past where the
+     out-sound started — that inversion is what sells "the same object, over
+     there now" rather than "one thing died and another was born". */
+  /* Two AUREX reaching. One tick, fired faster and faster as the gap closes,
+     so the RATE is the reading — you can hear how close they are with your eyes
+     on the falling piece. Pitch and brightness climb with it too. */
+  strain(k) {
+    if (!this.on) return;
+    const e = clamp(k, 0, 1);
+    this.voice({ freq: this.note(0, -0.5 + e * 1.6), type: 'sine', fm: 1.1 + e * 1.6, fmRatio: 2.01,
+      peak: 0.03 + e * 0.075, attack: 0.004, decay: 0.18 + e * 0.5,
+      cutoff: 900 + e * 5200, q: 2 + e * 4, verb: 0.35 + e * 0.3 });
+    if (e > 0.5) {
+      this.voice({ freq: this.note(7, 0.5 + e), type: 'sine', fm: 1.2, fmRatio: 2.51,
+        peak: (e - 0.5) * 0.11, attack: 0.003, decay: 0.3 + e * 0.4, verb: 0.55, detune: 7 });
+    }
+    if (e > 0.75) this.hiss({ peak: (e - 0.75) * 0.16, decay: 0.28, from: 2600, to: 11000, type: 'bandpass', q: 1.4, verb: 0.5 });
+  },
+  phaseOut() {
+    if (!this.on) return;
+    // everything narrows: pitch down, filter down, air sucked into a point
+    this.voice({ freq: this.note(4, 0.5), type: 'sine', fm: 2.2, fmRatio: 1.5, peak: 0.1,
+      attack: 0.004, decay: 0.3, slideTo: this.note(0, -0.5),
+      cutoff: 5200, cutoffTo: 420, q: 5, verb: 0.4 });
+    this.voice({ freq: this.note(7, 0.5), type: 'triangle', peak: 0.05, attack: 0.003,
+      decay: 0.26, slideTo: this.note(0, -1), cutoff: 3600, cutoffTo: 300, q: 6, verb: 0.35, detune: -9 });
+    this.hiss({ peak: 0.075, decay: 0.3, from: 11000, to: 500, type: 'bandpass', q: 1.6, verb: 0.45 });
+  },
+  phaseIn() {
+    if (!this.on) return;
+    // and everything opens: a rise, a bright bell on top, and a soft body hit
+    this.voice({ freq: this.note(0, -0.5), type: 'triangle', fm: 2.0, fmRatio: 1.5, peak: 0.095,
+      attack: 0.16, decay: 0.22, slideTo: this.note(7, 1),
+      cutoff: 380, cutoffTo: 7000, q: 5, verb: 0.45 });
+    [0, 7, 12].forEach((s, i) =>
+      this.voice({ freq: this.note(s, 1), type: 'sine', fm: 1.25, fmRatio: 2.01, peak: 0.085,
+        attack: 0.003, decay: 0.7 + i * 0.15, when: 0.17 + i * 0.028, verb: 0.65 }));
+    this.voice({ freq: 92, type: 'sine', peak: 0.13, attack: 0.002, decay: 0.4,
+      slideTo: 40, cutoff: 900, cutoffTo: 90, q: 1.5, when: 0.17, verb: 0.18 });
+    this.hiss({ peak: 0.09, decay: 0.5, from: 900, to: 13000, type: 'bandpass', q: 1.3, verb: 0.55 });
+  },
   overflowCount(ms) {
     if (!this.on) return;
     // a ladder of bells that climbs for exactly as long as the number does
@@ -2826,6 +2903,8 @@ FeedbackBus.on('overflowStep', (p) => Audio2.overflowStep(p.n));
 FeedbackBus.on('overflowLand', () => Audio2.overflowLand());
 FeedbackBus.on('revealPart', (p) => Audio2.revealPart(p.n, p.of, p.tier));
 FeedbackBus.on('revealLand', (p) => Audio2.revealLand(p.tier));
+FeedbackBus.on('phaseOut', () => Audio2.phaseOut());
+FeedbackBus.on('phaseIn', () => Audio2.phaseIn());
 FeedbackBus.on('offer', () => Audio2.revealLand(3));
 
 /* ============================ §7 PERF MONITOR ============================= */
@@ -3581,6 +3660,22 @@ Events.on(engine, 'beforeUpdate', () => {
   for (const b of Composite.allBodies(engine.world)) {
     if (!b.plugin || !b.plugin.piece) continue;
     if (b.velocity.y > 12) Body.setVelocity(b, { x: b.velocity.x, y: 12 });
+    /* A PHASE BLOCK is not heavy — it is simply not subject to weight. Matter
+       has no per-body gravity scale, so the exact force gravity is about to add
+       this step is subtracted here instead. It still collides, still supports
+       whatever is stacked on it, still gets pushed around — it just never falls.
+       That is what lets it re-form on the crest of the pile and stay there. */
+    /* It falls exactly like every other block until the moment it lands —
+       a piece that hangs in the air on the way down is not a special block,
+       it is a broken one. Weight is only revoked on first contact, which is
+       also the moment the player finds out what they just dropped. */
+    if (b.plugin.special === 'teleport' && b.plugin.contacted) {
+      b.force.y -= b.mass * engine.gravity.y * engine.gravity.scale;
+      // and it holds its attitude: a floating block that slowly turns looks
+      // broken, not magic
+      if (Math.abs(b.angularVelocity) > 0.002) Body.setAngularVelocity(b, b.angularVelocity * 0.7);
+      Body.setVelocity(b, { x: b.velocity.x * 0.86, y: b.velocity.y * 0.9 });
+    }
     // pre-step velocity, so the shove an UNSTABLE block delivers can be
     // measured after the solver has run and handed straight back
     b.plugin.preVX = b.velocity.x; b.plugin.preVY = b.velocity.y; b.plugin.preAV = b.angularVelocity;
@@ -3876,13 +3971,74 @@ const Stack = {
     // An UNSTABLE block never stops moving — that is the whole point of it — so
     // it is excused from the settle check; waiting for it would put a 3-second
     // timeout in front of every single drop.
-    return this.pieces().every((b) => b.plugin.special === 'unstable'
+    return this.pieces().every((b) => b.plugin.special === 'unstable' || b.plugin.phase
       || b.isSleeping || Math.hypot(b.velocity.x, b.velocity.y) < WORLD.settleSpeed);
   },
   stackTopY() {
     let top = WORLD.platformY;
     for (const b of this.pieces()) top = Math.min(top, b.bounds.min.y);
     return top;
+  },
+  /* THE CREST — the skyline of the pile. For a given world x this is the
+     highest surface anything could sit on: the top of whatever piece is
+     directly under x, or the deck if there is nothing there. Everything the
+     PHASE BLOCK does is written against this one function, which is why it
+     always looks like it is walking the tower rather than being dropped into
+     it at random. */
+  crestY(x, ignore) {
+    let y = WORLD.platformY;
+    for (const b of this.pieces()) {
+      if (b === ignore || b.plugin.consumed) continue;
+      const half = (b.bounds.max.x - b.bounds.min.x) / 2;
+      // only pieces that genuinely span this column hold up the crest here
+      if (Math.abs(b.position.x - x) > half * 0.92) continue;
+      y = Math.min(y, b.bounds.min.y);
+    }
+    return y;
+  },
+  /* Where the PHASE BLOCK goes next. It samples the crest across the whole
+     deck and scores every column, then jumps to the best one. The scoring is
+     the block's personality: it WANTS to be next to its own tier (so its
+     wandering usually ends in a fusion rather than in the way), it prefers the
+     high ground, it will not re-form on top of itself, and it will not make a
+     jump so short the eye cannot follow it. */
+  phaseTarget(b) {
+    if (!this.platform) return null;
+    const hw = this.platform.plugin.halfW, cx = WORLD.width / 2;
+    const r = b.plugin.r;
+    const inset = Math.min(hw - r * 0.6, hw * 0.88);
+    if (inset <= 0) return null;
+    const mates = this.pieces().filter((o) => o !== b && !o.plugin.consumed
+      && (o.plugin.tier === b.plugin.tier || (SPECIALS[o.plugin.special] || {}).wild));
+    const N = 21;
+    let best = null;
+    for (let i = 0; i < N; i++) {
+      const x = cx - inset + (i / (N - 1)) * inset * 2;
+      const top = this.crestY(x, b);
+      const y = top - r * 0.92;
+      if (y < 60) continue;                       // never re-form off the top of the world
+      const travel = Math.hypot(x - b.position.x, y - b.position.y);
+      if (travel < CONFIG.phase.minTravelPx) continue;
+      // is anything already sitting exactly there? then that column is taken
+      let blocked = false;
+      for (const o of this.pieces()) {
+        if (o === b || o.plugin.consumed) continue;
+        if (Math.hypot(o.position.x - x, o.position.y - y) < (o.plugin.r + r) * 0.72) { blocked = true; break; }
+      }
+      if (blocked) continue;
+      let score = (WORLD.platformY - top) * 0.05;              // the high ground is interesting
+      if (mates.length) {                                       // but a match is the whole point
+        let near = 1e9;
+        for (const m of mates) near = Math.min(near, Math.hypot(m.position.x - x, m.position.y - y));
+        score += Math.max(0, 260 - near) * 0.22;
+      }
+      score += Math.min(travel, 420) * 0.03;                    // and a jump worth watching
+      if (top < WORLD.platformY - 4) score += 6;                // standing ON the pile beats standing beside it
+      score -= Math.pow(Math.abs(x - cx) / hw, 2) * 14;         // drifting to the rim helps nobody
+      score += Math.random() * 6;                               // never twice the same walk
+      if (!best || score > best.score) best = { x, y, score };
+    }
+    return best;
   },
   /* The bank-lockout fix: once a piece has left the dock's support and is
      past saving, the death is already written — banking must close. */
@@ -4027,6 +4183,7 @@ const Game = {
     this.spawnY = WORLD.platformY - WORLD.spawnClearance;
     Camera.reset();
     RiskFX.reset();
+    Strain.reset();
     Overflow.reset();
     Reveal.maybeStart();      // a deck or a pack you have never played arrives (§21h)
     this.spamHeat = 0; this.spamStreak = 0; this.lastDropAt = 0; this.spamWarned = false;
@@ -4147,6 +4304,66 @@ const Game = {
     } else if (sp === 'chest') {                // CHEST: open with a random outcome
       this.openChest(body);
     }
+  },
+
+  /* ===================== §20c THE PHASE BLOCK ============================
+     A block that will not stay where you put it. It lands, waits a beat, then
+     dissolves and re-forms somewhere else along the crest of the pile — four
+     times, each jump biased toward its own tier so the walk usually ends in a
+     fusion. It ignores gravity entirely and its friction is absurd, so the
+     place it picks is the place it stays, whether or not anything could
+     normally rest there.
+
+     The state machine is deliberately tiny — `out`, then `in`, then idle —
+     because everything expensive about this block is in the two animations,
+     and those read the same three numbers the physics does. */
+  phaseTick(b) {
+    const P = CONFIG.phase, t = now(), p = b.plugin;
+    if (p.phase === 'out') {
+      // it is leaving: frozen, intangible, and collapsing into its own centre
+      Sleeping.set(b, false);
+      Body.setVelocity(b, { x: 0, y: 0 });
+      Body.setAngularVelocity(b, 0);
+      if (t - p.phaseT >= P.outMs) {
+        const d = p.phaseTo;
+        p.phaseFrom = { x: b.position.x, y: b.position.y };
+        Body.setPosition(b, { x: d.x, y: d.y });
+        Body.setAngle(b, 0);
+        Body.setVelocity(b, { x: 0, y: 0 });
+        p.phase = 'in'; p.phaseT = t;
+        FeedbackBus.emit('phaseIn', { x: d.x, y: d.y });
+        Particles.burst(d.x, d.y, '#a9b6ff', 16, 260, 0.55);
+        Shake.impulse(0.12);
+      }
+      return;
+    }
+    if (p.phase === 'in') {
+      Sleeping.set(b, false);
+      Body.setVelocity(b, { x: 0, y: 0 });
+      if (t - p.phaseT >= P.inMs) {
+        p.phase = null;
+        b.collisionFilter.mask = p.phaseMask == null ? 0xFFFFFFFF : p.phaseMask;
+        p.nextHopAt = t + P.hopGapMs + rand(0, P.hopJitterMs);
+        Stack.wakeAll();
+      }
+      return;
+    }
+    if (!p.contacted && !p.landedAt) return;      // still falling in for the first time
+    if (p.hopsLeft === undefined) p.hopsLeft = P.hops;
+    if (!p.nextHopAt) p.nextHopAt = (p.landedAt || t) + P.firstHopMs;
+    if (p.hopsLeft <= 0 || t < p.nextHopAt) return;
+    if (Math.hypot(b.velocity.x, b.velocity.y) > 1.4) return;   // let it settle before it goes
+    const dest = Stack.phaseTarget(b);
+    if (!dest) { p.nextHopAt = t + 500; return; }               // nowhere worth going yet
+    p.hopsLeft--;
+    p.phase = 'out'; p.phaseT = t;
+    p.phaseTo = dest;
+    p.phaseFrom = { x: b.position.x, y: b.position.y };
+    // intangible for the whole trip: it must never shove the tower on the way
+    if (p.phaseMask == null) p.phaseMask = b.collisionFilter.mask;
+    b.collisionFilter.mask = 0;
+    Sleeping.set(b, false);
+    FeedbackBus.emit('phaseOut', { x: b.position.x, y: b.position.y });
   },
 
   onDiceBounce(body) {                          // DICE: re-roll tier each bounce until it rests
@@ -4366,8 +4583,13 @@ const Game = {
       } else if (sp === 'dice' && !b.plugin.diceLocked && b.isSleeping) {
         b.plugin.diceLocked = true;             // DICE: locks its tier once at rest
         UI.renderNextPreview();
+      } else if (sp === 'teleport') {
+        this.phaseTick(b);                      // PHASE: walks the crest (§20c)
       }
     }
+
+    // two AUREX on the same board start reaching for each other (§21e-b)
+    Strain.tick(dt);
 
     // spam heat cools once the player slows down and aims again
     if (this.spamHeat > 0) {
@@ -4666,11 +4888,11 @@ const EventDirector = {
   // ---- block-event weighting (delegated to the block injector) ----
   blockWeights() {
     const w = { golden: 3, giant: 2, bomb: 1.6, unstable: 1.6, rainbow: 1.2, star: 1.4, ice: 1.4,
-      magnet: 1.6, heavy: 1.6, split: 1.4, angry: 1.6, dice: 1.4, chest: 1.6 };
+      magnet: 1.6, heavy: 1.6, split: 1.4, angry: 1.6, dice: 1.4, chest: 1.6, teleport: 1.5 };
     const rt = Profile.riskTolerance;
     if (rt < 0.35) { w.golden += 2.5; w.rainbow += 1.5; w.star += 1; w.chest += 1; }
-    if (rt > 0.7) { w.bomb += 1; w.unstable += 1; w.heavy += 1; w.split += 1; }
-    if (Profile.goal === 'chaos') { w.bomb += 1.5; w.split += 1.5; w.angry += 1.5; w.dice += 1; }
+    if (rt > 0.7) { w.bomb += 1; w.unstable += 1; w.heavy += 1; w.split += 1; w.teleport += 0.8; }
+    if (Profile.goal === 'chaos') { w.bomb += 1.5; w.split += 1.5; w.angry += 1.5; w.dice += 1; w.teleport += 1.2; }
     if (save.powers.includes('power_goldrush')) w.golden *= 2;
     if (save.powers.includes('power_chromarush')) w.rainbow *= 2;
     w.golden += Economy.goldenBias;
@@ -5273,6 +5495,340 @@ function roundRect2(x, y, w, h, r) {
   ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
 
+/* ═══════════════ THE PHASE BLOCK — §21j ═══════════════════════════════════
+   Three drawings that have to read as one object: a gate at rest, the gate
+   collapsing into a line of light, and the gate opening out of nothing
+   somewhere else. The trick that ties them together is that all three call the
+   SAME body path at the same radius — only the transform around it changes —
+   plus a corridor drawn between where it left and where it arrived, so the eye
+   is never asked to guess whether a new block appeared or the old one moved. */
+const PH = {
+  core: '#ffffff', hot: '#e2daff', mid: '#8f7cff', deep: '#3b2a7a', edge: '#180f2e',
+  cyan: '#7fe9ff', mag: '#ff7be0',
+};
+// the block's own silhouette, in LOCAL space, so it can be transformed freely
+function phasePath(c, tier, r, rot) { polyPath(c, 0, 0, TIERS.sides[tier], r, rot); }
+
+/* The aperture — a slow outer ring, a fast counter-rotating inner triad, and a
+   pupil that breathes. This is the one thing that says "portal" rather than
+   "shiny block", and it is drawn at every stage of the block's life so the
+   thing that vanishes is visibly the thing that comes back. */
+function phaseIris(c, r, t, open, bright) {
+  const o = clamp(open, 0, 1);
+  if (o <= 0.01) return;
+  c.save();
+  c.globalAlpha = o;
+  // outer ring
+  c.strokeStyle = `rgba(226,218,255,${0.45 * bright})`;
+  c.lineWidth = Math.max(1, r * 0.05);
+  c.beginPath(); c.arc(0, 0, r * 0.62 * o, 0, Math.PI * 2); c.stroke();
+  // three blades, counter-rotating
+  c.strokeStyle = `rgba(143,124,255,${0.85 * bright})`;
+  c.lineWidth = Math.max(1.2, r * 0.075);
+  c.lineCap = 'round';
+  for (let i = 0; i < 3; i++) {
+    const a0 = -t * 0.0016 + i * 2.0944;
+    c.beginPath();
+    c.arc(0, 0, r * 0.42 * o, a0, a0 + 1.25);
+    c.stroke();
+  }
+  // pupil
+  const pulse = 0.5 + 0.5 * Math.sin(t * 0.006);
+  const pg = c.createRadialGradient(0, 0, 0, 0, 0, r * 0.3 * o);
+  pg.addColorStop(0, `rgba(255,255,255,${0.95 * bright})`);
+  pg.addColorStop(0.45, `rgba(190,175,255,${0.7 * bright})`);
+  pg.addColorStop(1, 'rgba(60,40,140,0)');
+  c.fillStyle = pg;
+  c.beginPath(); c.arc(0, 0, r * (0.18 + 0.09 * pulse) * o, 0, Math.PI * 2); c.fill();
+  c.restore();
+}
+
+/* The block itself, in LOCAL space, at a given radius. Everything that draws a
+   phase block anywhere — the world, the preview, a ghost, a slice mid-jump —
+   comes through here, which is why they can never drift apart. */
+function phaseFace(c, tier, r, t, opts) {
+  const o = opts || {};
+  const rot = o.rot || 0;
+  phasePath(c, tier, r, rot);
+  const g = c.createRadialGradient(-r * 0.2, -r * 0.28, r * 0.06, 0, 0, r * 1.25);
+  g.addColorStop(0, PH.hot);
+  g.addColorStop(0.34, PH.mid);
+  g.addColorStop(0.78, PH.deep);
+  g.addColorStop(1, PH.edge);
+  c.fillStyle = g;
+  c.fill();
+  // chromatic split — the outline drawn twice, a hair apart, in two colours
+  // that do not belong to the same object. It widens as the block destabilises.
+  const sp = o.split || 0;
+  if (sp > 0.02) {
+    const prev = c.globalCompositeOperation;
+    c.globalCompositeOperation = 'lighter';
+    c.globalAlpha = 0.55;
+    c.lineWidth = Math.max(1, r * 0.055);
+    c.strokeStyle = PH.cyan;
+    c.save(); c.translate(-sp, 0); phasePath(c, tier, r, rot); c.stroke(); c.restore();
+    c.strokeStyle = PH.mag;
+    c.save(); c.translate(sp, 0); phasePath(c, tier, r, rot); c.stroke(); c.restore();
+    c.globalAlpha = 1;
+    c.globalCompositeOperation = prev;
+  }
+  phasePath(c, tier, r, rot);
+  c.strokeStyle = 'rgba(226,218,255,0.85)';
+  c.lineWidth = Math.max(1.4, r * 0.07);
+  c.lineJoin = 'round';
+  c.stroke();
+  // an inner bevel line, so the face has depth rather than being a flat plate
+  c.strokeStyle = 'rgba(255,255,255,0.16)';
+  c.lineWidth = Math.max(1, r * 0.04);
+  phasePath(c, tier, r * 0.76, rot);
+  c.stroke();
+  phaseIris(c, r, t, o.iris == null ? 1 : o.iris, o.bright == null ? 1 : o.bright);
+}
+
+/* A slice of the block, offset. The clip is a horizontal band in local space
+   and the block is drawn whole inside it, so a slice is always a slice of the
+   real thing — the same reason the deck build-ups in §21h work. */
+function phaseBand(c, tier, r, t, i, n, dx, alpha, opts) {
+  const h = (r * 2.4) / n;
+  const y0 = -r * 1.2 + i * h;
+  c.save();
+  c.globalAlpha = alpha;
+  c.beginPath();
+  c.rect(-r * 2.2 + dx, y0, r * 4.4, h + 0.6);
+  c.clip();
+  c.translate(dx, 0);
+  phaseFace(c, tier, r, t, opts);
+  c.restore();
+}
+
+/* The slit: the thin vertical line of light the block collapses into and
+   climbs back out of. Soft at both ends, hot in the middle, and short enough
+   that it belongs to the block rather than cutting the board in half. */
+function phaseSlit(h, w, a) {
+  const g = ctx.createLinearGradient(0, -h, 0, h);
+  g.addColorStop(0, 'rgba(170,155,255,0)');
+  g.addColorStop(0.28, `rgba(190,175,255,${0.22 * a})`);
+  g.addColorStop(0.5, `rgba(255,255,255,${0.95 * a})`);
+  g.addColorStop(0.72, `rgba(190,175,255,${0.22 * a})`);
+  g.addColorStop(1, 'rgba(170,155,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(-w * 2.6, -h, w * 5.2, h * 2);      // a soft shoulder…
+  ctx.globalAlpha = 0.85;
+  ctx.fillRect(-w, -h, w * 2, h * 2);              // …and the hot core inside it
+  ctx.globalAlpha = 1;
+}
+
+/* A ring of light, not a drawn circle. A stroked arc at full alpha reads as a
+   UI element — a HUD radius — no matter what colour it is; the same arc drawn
+   three times, widening and dimming, reads as energy leaving something. Every
+   ring the phase block throws goes through here. */
+function phaseRing(rr, w, col, a) {
+  if (a <= 0.01 || rr <= 0) return;
+  for (let i = 0; i < 3; i++) {
+    ctx.strokeStyle = `rgba(${col},${a * [0.16, 0.34, 0.85][i]})`;
+    ctx.lineWidth = w * [3.4, 1.8, 0.65][i];
+    ctx.beginPath(); ctx.arc(0, 0, rr, 0, Math.PI * 2); ctx.stroke();
+  }
+}
+
+// the corridor: where it left, where it arrived, and the light still in between
+function phaseCorridor(x0, y0, x1, y1, r, k, tier, t) {
+  const a = 1 - clamp(k, 0, 1);
+  if (a <= 0.02) return;
+  const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy);
+  if (len < 1) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  // the beam, tapering from the departure point to the arrival
+  ctx.translate(x0, y0);
+  ctx.rotate(Math.atan2(dy, dx));
+  /* Feathered by drawing the same taper three times, wider and fainter each
+     pass — a single hard-edged quad looks like a piece of paper laid over the
+     board, and this has to look like something is still travelling down it. */
+  const w1 = r * 0.34 * (0.35 + 0.65 * a);
+  for (let i = 0; i < 3; i++) {
+    const spread = [3.2, 1.7, 0.7][i], al = [0.1, 0.22, 0.6][i] * a;
+    const bg = ctx.createLinearGradient(0, 0, len, 0);
+    bg.addColorStop(0, 'rgba(143,124,255,0)');
+    bg.addColorStop(0.3, `rgba(170,155,255,${al * 0.55})`);
+    bg.addColorStop(0.86, `rgba(240,235,255,${al})`);
+    bg.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = bg;
+    const a0 = r * 0.07 * spread, a1 = w1 * spread;
+    ctx.beginPath();
+    ctx.moveTo(0, -a0); ctx.lineTo(len, -a1); ctx.lineTo(len, a1); ctx.lineTo(0, a0);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+  // and the afterimages strung along it, each one a real outline of the block
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 1; i <= 3; i++) {
+    const f = i / 4;
+    const ga = a * (1 - f) * 0.5;
+    if (ga <= 0.02) continue;
+    ctx.save();
+    ctx.translate(x0 + dx * f, y0 + dy * f);
+    ctx.globalAlpha = ga;
+    // the further back down the corridor, the smaller and cooler the echo —
+    // it has to look like the block shrinking away behind itself
+    ctx.scale(0.34 + 0.5 * f, 0.34 + 0.5 * f);
+    phasePath(ctx, tier, r, 0);
+    ctx.strokeStyle = i % 2 ? PH.cyan : PH.mag;
+    ctx.lineWidth = Math.max(1.6, r * 0.16);
+    ctx.stroke();
+    ctx.strokeStyle = `rgba(255,255,255,${ga * 0.9})`;
+    ctx.lineWidth = Math.max(1, r * 0.07);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function drawPhaseBlock(b, t) {
+  const p = b.plugin, r = p.r, tier = p.tier;
+  const P = CONFIG.phase;
+  const x = b.position.x, y = b.position.y;
+  const lowFx = perf.tier === 'low';
+
+  // ---------- LEAVING ----------
+  if (p.phase === 'out') {
+    const k = clamp((t - p.phaseT) / P.outMs, 0, 1);
+    const e = k * k;                       // it accelerates into the vanish
+    ctx.save();
+    ctx.translate(x, y);
+    // the whole gate flattens toward a line while its bands are pulled apart
+    ctx.save();
+    ctx.scale(1 + e * 0.14, 1 - e * 0.9);
+    const n = lowFx ? 5 : 11;
+    for (let i = 0; i < n; i++) {
+      const dir = i % 2 ? 1 : -1;
+      const away = Math.abs(i - (n - 1) / 2) / ((n - 1) / 2);
+      const dx = dir * e * (16 + away * 52);
+      phaseBand(ctx, tier, r, t, i, n, dx, 1 - e * 0.7,
+        { split: e * 5, iris: 1 - e, bright: 1 + e * 1.4 });
+    }
+    ctx.restore();
+    // the slit it is collapsing into, blinding by the end
+    ctx.globalCompositeOperation = 'lighter';
+    phaseSlit(r * (0.85 + e * 0.6), Math.max(1.2, r * 0.3 * (1 - e * 0.7)), 0.3 + 0.7 * e);
+    // and two rings falling inward after it
+    phaseRing(r * (2.2 - e * 2.0), 1.6 + e * 2.4, '226,218,255', Math.sin(k * Math.PI) * 0.9);
+    phaseRing(r * (3.0 - e * 2.4), 1.2 + e * 1.6, '127,233,255', Math.sin(k * Math.PI) * 0.45);
+    ctx.restore();
+    // motes falling in
+    if (!lowFx && Math.random() < 0.9) {
+      const a = rand(0, 6.283), d = r * rand(1.6, 3.2);
+      Particles.spawn({ x: x + Math.cos(a) * d, y: y + Math.sin(a) * d,
+        vx: -Math.cos(a) * d * 3.6, vy: -Math.sin(a) * d * 3.6,
+        life: 0.28, maxLife: 0.28, size: rand(1.2, 2.6), color: pick([PH.hot, PH.cyan, PH.mid]), glow: true });
+    }
+    return;
+  }
+
+  // ---------- ARRIVING ----------
+  if (p.phase === 'in') {
+    const k = clamp((t - p.phaseT) / P.inMs, 0, 1);
+    const from = p.phaseFrom;
+    if (from) phaseCorridor(from.x, from.y, x, y, r, clamp(k / 0.62, 0, 1), tier, t);
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.globalCompositeOperation = 'lighter';
+    // 1. the slit stabs open — a hard vertical line of light, before anything else
+    const sk = clamp(k / 0.3, 0, 1);
+    const sf = 1 - clamp((k - 0.34) / 0.3, 0, 1);
+    if (sf > 0.01) phaseSlit(r * 1.7 * EASE.out5(sk), Math.max(1.4, r * 0.18 * sf), sf);
+    ctx.globalCompositeOperation = 'source-over';
+    // 2. the gate widens out of the slit, bands snapping in from outside
+    const wk = clamp((k - 0.2) / 0.62, 0, 1);
+    if (wk > 0) {
+      const w = EASE.back(wk);              // overshoots, then seats
+      ctx.save();
+      ctx.scale(0.05 + 0.95 * w, 0.35 + 0.65 * EASE.out3(wk));
+      const n = lowFx ? 5 : 11;
+      const conv = 1 - EASE.out5(wk);
+      for (let i = 0; i < n; i++) {
+        const dir = i % 2 ? 1 : -1;
+        const away = Math.abs(i - (n - 1) / 2) / ((n - 1) / 2);
+        phaseBand(ctx, tier, r, t, i, n, dir * conv * (14 + away * 46), 1,
+          { split: conv * 4.5, iris: EASE.out3(wk), bright: 1 + conv * 0.5 });
+      }
+      ctx.restore();
+    }
+    // 3. the shock going out
+    const rk = clamp((k - 0.24) / 0.72, 0, 1);
+    if (rk > 0 && rk < 1) {
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 2; i++) {
+        const kk = clamp(rk - i * 0.18, 0, 1);
+        if (kk <= 0) continue;
+        phaseRing(r * (0.45 + EASE.out5(kk) * 1.75), (1 - kk) * 3 + 0.7,
+          i ? '127,233,255' : '226,218,255', (1 - kk) * (i ? 0.5 : 0.85));
+      }
+    }
+    ctx.restore();
+    if (!lowFx && k < 0.5 && Math.random() < 0.85) {
+      const a = rand(0, 6.283);
+      Particles.spawn({ x, y, vx: Math.cos(a) * rand(90, 280), vy: Math.sin(a) * rand(90, 280),
+        life: 0.45, maxLife: 0.45, size: rand(1.4, 3.2), color: pick([PH.core, PH.hot, PH.cyan, PH.mag]), glow: true });
+    }
+    return;
+  }
+
+  // ---------- AT REST ----------
+  /* Even standing still it is not quite standing still: the iris turns, the
+     edges keep separating and re-joining, and every so often the whole
+     silhouette slips a frame — enough that you never stop believing it could
+     leave again, which is the entire point of the block. */
+  const settle = clamp((t - (p.phaseT || 0)) / 260, 0, 1);
+  const breathe = 0.5 + 0.5 * Math.sin(t * 0.0034 + (p.bornAt || 0));
+  // the tell: it is about to jump
+  const soon = p.nextHopAt && p.hopsLeft > 0
+    ? clamp(1 - (p.nextHopAt - t) / 460, 0, 1) : 0;
+  const jitter = soon * soon * 2.2;
+  ctx.save();
+  ctx.translate(x + rand(-jitter, jitter), y + rand(-jitter, jitter));
+  ctx.rotate(b.angle);
+  if (perf.tier !== 'low') {
+    ctx.shadowColor = '#9d8bff';
+    ctx.shadowBlur = 14 + breathe * 12 + soon * 22;
+  }
+  phaseFace(ctx, tier, r, t, {
+    rot: 0,
+    split: 0.7 + breathe * 1.1 + soon * 4,
+    iris: EASE.out3(settle),
+    bright: 1 + soon * 0.6,
+  });
+  ctx.shadowBlur = 0;
+  // the ground it is NOT touching: a faint tether of light straight down to the
+  // crest, so a block hanging in mid-air reads as held rather than as a bug
+  ctx.restore();
+  if (!lowFx) {
+    const crest = Stack.crestY(x, b);
+    const gap = crest - (y + r * 0.9);
+    if (gap > 4 && gap < 140) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const tg = ctx.createLinearGradient(0, y + r * 0.9, 0, crest);
+      tg.addColorStop(0, 'rgba(160,145,255,0.5)');
+      tg.addColorStop(1, 'rgba(160,145,255,0)');
+      ctx.strokeStyle = tg;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 6]);
+      ctx.lineDashOffset = -(t * 0.05) % 11;
+      ctx.beginPath(); ctx.moveTo(x, y + r * 0.9); ctx.lineTo(x, crest); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+    if (Math.random() < 0.16 + soon * 0.5) {
+      const a = rand(0, 6.283), d = r * rand(0.9, 1.5);
+      Particles.spawn({ x: x + Math.cos(a) * d, y: y + Math.sin(a) * d,
+        vx: rand(-14, 14), vy: rand(-34, -8), life: 0.6, maxLife: 0.6,
+        size: rand(1.2, 2.6), color: pick([PH.hot, PH.cyan, PH.mid]), glow: true });
+    }
+  }
+}
+
 function drawBody(b, glowStrength, t) {
   const sp = b.plugin.special;
   const r = b.plugin.r;
@@ -5284,6 +5840,7 @@ function drawBody(b, glowStrength, t) {
   if (sp === 'dice') { drawDice(b, glowStrength); return; }
   if (sp === 'chest') { drawChest(b, t); return; }
   if (sp === 'jackpot') { drawJackpot(b, t); return; }
+  if (sp === 'teleport') { drawPhaseBlock(b, t); return; }
 
   let color = themeColor(b.plugin.tier);
   /* GOLD, not yellow. The golden block used to be #ffd93a — a hair off the
@@ -5430,11 +5987,20 @@ function paintDock(hw, detail, slab) {
   const cx = WORLD.width / 2;
   ctx.save();
   if (slab) {
+    /* The transform is applied BEFORE the clip, so the slice travels with it:
+       a slab can be slid, spun, scaled or thrown and it stays a slice of this
+       deck rather than a rectangle cut out of a moving picture. Everything
+       below then draws the deck at its resting geometry and the slab decides
+       where that slice of it currently is. */
     ctx.globalAlpha = slab.a;
+    const mx = (slab.x0 + slab.x1) / 2, my = y0 + h / 2;
+    ctx.translate(mx + (slab.dx || 0), my + (slab.dy || 0));
+    if (slab.rot) ctx.rotate(slab.rot);
+    if (slab.sc && slab.sc !== 1) ctx.scale(slab.sc, slab.sc);
+    ctx.translate(-mx, -my);
     ctx.beginPath();
-    ctx.rect(slab.x0, y0 - 300, slab.x1 - slab.x0, h + 320);
+    ctx.rect(slab.x0, y0 - 340, slab.x1 - slab.x0, h + 380);
     ctx.clip();
-    ctx.translate(0, slab.dy);
   }
   /* The ambient glow is skipped on a slab: clipped to a slice it stops being a
      halo around a lit object and becomes a hot line down both cut edges, which
@@ -5623,10 +6189,14 @@ function paintWalls(k) {
   }
 }
 function drawDock(hw) {
+  // Bought but never played: the deck is a surprise, and a surprise sitting on
+  // the board behind the menu is not one. Nothing is drawn until it arrives.
+  if (Reveal.dockHidden()) return;
   const b = Reveal.dockSlabs(hw);
   if (!b) { paintDock(hw, 1, null); paintWalls(1); return; }
   for (const s of b.slabs) paintDock(hw, b.detail, s);
   paintWalls(b.wallK);
+  Reveal.drawDockFx(hw, b);
 }
 
 
@@ -5792,6 +6362,7 @@ function render(t) {
   }
   ctx.globalAlpha = 1;
 
+  Strain.draw(t);     // two AUREX reaching for each other — world space (§21e-b)
   Overflow.draw(t);   // the AUREX charge — world space, anchored to the two blocks
 
   // score popups — spring overshoot
@@ -5818,6 +6389,7 @@ function render(t) {
      able to reach the actual edges of the screen at any zoom. */
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   Weather.draw(t);
+  Strain.drawHud();
   Reveal.drawHud();
   Overflow.drawHud();
   ctx.globalAlpha = 1;
@@ -5937,6 +6509,24 @@ function drawDefIcon(c, def, x, y, r, t) {
     c.fillRect(x - r * 0.9, y - r * 0.14, r * 1.8, r * 0.12);
     c.fillRect(x - r * 0.14, y - r * 0.85, r * 0.28, r * 1.55);
     c.fillStyle = '#3a2408'; c.beginPath(); c.arc(x, y, r * 0.14, 0, Math.PI * 2); c.fill();
+  } else if (sp === 'teleport') {
+    /* The preview is the same gate the world draws, at preview scale, so what
+       is coming is unmistakable: violet body, bright iris, split edges — plus
+       a pair of arrival arcs the world block only shows mid-jump, because a
+       still frame has to say "this one MOVES" on its own. */
+    c.save();
+    c.translate(x, y);
+    phaseFace(c, tier, r, t || 0, { split: Math.max(0.7, r * 0.05), iris: 1, bright: 1 });
+    c.globalCompositeOperation = 'lighter';
+    c.strokeStyle = 'rgba(226,218,255,0.55)';
+    c.lineWidth = Math.max(1, r * 0.075);
+    c.lineCap = 'round';
+    for (const s of [-1, 1]) {
+      c.beginPath();
+      c.arc(0, 0, r * 1.28, -0.55 + (s < 0 ? Math.PI : 0), 0.55 + (s < 0 ? Math.PI : 0));
+      c.stroke();
+    }
+    c.restore();
   } else if (sp === 'jackpot') {
     const g = c.createLinearGradient(x - r, y - r, x + r, y + r);
     g.addColorStop(0, '#eaffff'); g.addColorStop(0.5, '#8be0ff'); g.addColorStop(1, '#ffd93a');
@@ -6223,6 +6813,330 @@ const Tutor = {
   },
 };
 
+/* ==================== §21e-b THE AUREX STRAIN ============================
+   Two AUREX in the same deck is the rarest thing that can happen on a board,
+   and until now, if they landed apart, NOTHING happened — the game just held
+   two enormous blocks that quietly refused to acknowledge each other, and the
+   player had no way of knowing that pushing them together was the single most
+   valuable move available.
+
+   So they acknowledge each other. From three hundred pixels out they begin to
+   reach: filaments of light that fall short, a haze between them, dust pulled
+   off their near faces. Every pixel closer makes all of it stronger — longer
+   arcs, hotter light, a rising tone, and finally a shake — until the gap
+   closes and §21f takes over. The whole module is a function of ONE number,
+   the surface gap, which is why it can never look out of step with the
+   physics: it IS the physics, drawn. */
+const Strain = {
+  REACH: 300,          // surface gap at which the two first feel each other
+  a: null, b: null,    // the pair, re-found every frame (either may vanish)
+  k: 0,                // 0..1 proximity — every layer below is driven by this
+  gap: 1e9,
+  lastTickAt: 0,
+  seed: Math.random() * 1000,
+
+  reset() { this.a = this.b = null; this.k = 0; this.gap = 1e9; },
+
+  // the closest pair of AUREX on the board, or nothing
+  find() {
+    const top = [];
+    for (const p of Stack.pieces()) {
+      if (p.plugin.tier === TIERS.count && !p.plugin.consumed && !p.plugin.phase) top.push(p);
+    }
+    if (top.length < 2) return null;
+    let best = null;
+    for (let i = 0; i < top.length; i++) {
+      for (let j = i + 1; j < top.length; j++) {
+        const d = Math.hypot(top[i].position.x - top[j].position.x, top[i].position.y - top[j].position.y);
+        if (!best || d < best.d) best = { a: top[i], b: top[j], d };
+      }
+    }
+    return best;
+  },
+
+  tick(dt) {
+    if (Overflow.active) { this.reset(); return; }
+    const f = this.find();
+    if (!f) { this.reset(); return; }
+    this.a = f.a; this.b = f.b;
+    this.gap = Math.max(0, f.d - (f.a.plugin.r + f.b.plugin.r));
+    const raw = clamp(1 - this.gap / this.REACH, 0, 1);
+    // ease toward the reading rather than snapping to it, so a piece jostling
+    // on the pile does not make the whole effect flicker
+    this.k += (raw - this.k) * Math.min(1, dt * 9);
+
+    if (this.k < 0.02) return;
+    /* THE PULL. Deliberately weak until the last stretch: the player closes
+       the gap, the game does not close it for them. Inside about a block's
+       width it turns real, so the final approach snaps shut instead of
+       stalling half a pixel short — which, with two bodies this heavy and this
+       high-friction, is exactly what used to happen. */
+    const ax = f.b.position.x - f.a.position.x, ay = f.b.position.y - f.a.position.y;
+    const d = Math.max(1, f.d);
+    const nx = ax / d, ny = ay / d;
+    const snap = clamp(1 - this.gap / 70, 0, 1);
+    const mag = CONFIG.strainForce * (Math.pow(this.k, 3) + snap * snap * 2.4);
+    Body.applyForce(f.a, f.a.position, { x: nx * mag * f.a.mass, y: ny * mag * f.a.mass });
+    Body.applyForce(f.b, f.b.position, { x: -nx * mag * f.b.mass, y: -ny * mag * f.b.mass });
+    if (this.k > 0.3) { Sleeping.set(f.a, false); Sleeping.set(f.b, false); }
+
+    // the board itself starts to feel it
+    if (this.k > 0.45) Shake.micro = Math.max(Shake.micro, Math.pow((this.k - 0.45) / 0.55, 2) * 3.4);
+
+    // a tone that climbs with the closing gap: the rate of the ticks IS the
+    // reading, so you can hear how close you are without looking
+    const every = 520 - this.k * 430;
+    if (now() - this.lastTickAt > every) {
+      this.lastTickAt = now();
+      Audio2.strain(this.k);
+      if (this.k > 0.6) FeedbackBus.emit('strain', { k: this.k });
+    }
+
+    // dust dragged off the near faces, falling up the axis toward the middle
+    if (perf.tier !== 'low' && Math.random() < this.k * 0.9) {
+      const from = Math.random() < 0.5 ? f.a : f.b;
+      const s = from === f.a ? 1 : -1;
+      const px = from.position.x + nx * s * from.plugin.r * rand(0.75, 1.0) + rand(-14, 14);
+      const py = from.position.y + ny * s * from.plugin.r * rand(0.75, 1.0) + rand(-14, 14);
+      Particles.spawn({
+        x: px, y: py, vx: nx * s * rand(70, 200), vy: ny * s * rand(70, 200),
+        life: 0.4, maxLife: 0.4, size: rand(1.2, 2.8 + this.k * 2),
+        color: pick(['#ffffff', '#fff3b0', '#ffd93a', '#e9f4ff']), glow: true,
+      });
+    }
+  },
+
+  /* One filament. A jittered polyline that only reaches as far as the pair's
+     proximity allows: at long range it gutters out in mid-air, which is the
+     whole idea — you can SEE that they are trying and failing. */
+  bolt(x0, y0, x1, y1, span, wob, col, w, a) {
+    const segs = 9;
+    ctx.beginPath();
+    for (let i = 0; i <= segs; i++) {
+      const f = (i / segs) * span;
+      const px = x0 + (x1 - x0) * f, py = y0 + (y1 - y0) * f;
+      const ox = -(y1 - y0), oy = (x1 - x0);
+      const L = Math.max(1, Math.hypot(ox, oy));
+      const bulge = Math.sin(f * Math.PI) * wob;
+      const jx = (ox / L) * bulge, jy = (oy / L) * bulge;
+      i === 0 ? ctx.moveTo(px + jx, py + jy) : ctx.lineTo(px + jx, py + jy);
+    }
+    ctx.strokeStyle = `rgba(${col},${a})`;
+    ctx.lineWidth = w;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  },
+
+  draw(t) {
+    const a = this.a, b = this.b;
+    if (!a || !b || this.k < 0.03 || Overflow.active) return;
+    if (a.plugin.consumed || b.plugin.consumed) return;
+    const k = this.k, ek = k * k;
+    const ax = a.position.x, ay = a.position.y, bx = b.position.x, by = b.position.y;
+    const d = Math.max(1, Math.hypot(bx - ax, by - ay));
+    const nx = (bx - ax) / d, ny = (by - ay) / d;
+    // the two near faces — everything is strung between THESE, not between the
+    // centres, so the reach reads against the visible gap
+    const sx = ax + nx * a.plugin.r * 0.94, sy = ay + ny * a.plugin.r * 0.94;
+    const ex = bx - nx * b.plugin.r * 0.94, ey = by - ny * b.plugin.r * 0.94;
+    const mx = (sx + ex) / 2, my = (sy + ey) / 2;
+    const gapLen = Math.max(1, Math.hypot(ex - sx, ey - sy));
+    const lowFx = perf.tier === 'low';
+    const R = a.plugin.r + b.plugin.r;
+
+    /* ---- the far half of the effect ------------------------------------
+       Everything here lives OUTSIDE the two blocks, and it is what carries the
+       moment once they are almost touching — at a twenty-pixel gap there is no
+       room left between them to draw anything in, so the drama has to move
+       out to the pair as a whole. Rings around both, rays off the pair, and
+       the near faces themselves catching light. */
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    if (k > 0.28) {
+      const c = (k - 0.28) / 0.72;
+      // rays off the pair, turning slowly, longest along the axis
+      if (!lowFx) {
+        /* A starburst off the pair. Two passes per spoke — one wide and faint,
+           one narrow and bright — because a single triangle at full strength is
+           a lens flare pasted on the board, and this has to look like it is
+           coming OUT of something. Short, too: they read as heat off the pair,
+           not as a sunrise behind it. */
+        const rays = 20;
+        ctx.save();
+        ctx.translate(mx, my);
+        for (let i = 0; i < rays; i++) {
+          const ang = (i / rays) * Math.PI * 2 + t * 0.00022;
+          const beat = 0.4 + 0.6 * Math.sin(t * 0.005 + i * 1.7) ** 2;
+          const len = R * (0.36 + c * 0.72) * beat;
+          ctx.save();
+          ctx.rotate(ang);
+          for (let j = 0; j < 2; j++) {
+            const w = (2.4 + c * 5) * beat * [2.6, 0.8][j];
+            const al = [0.055, 0.15][j] * c * beat;
+            const rg = ctx.createLinearGradient(0, 0, len, 0);
+            rg.addColorStop(0, `rgba(255,214,100,${al})`);
+            rg.addColorStop(0.45, `rgba(255,172,32,${al * 0.5})`);
+            rg.addColorStop(1, 'rgba(255,140,20,0)');
+            ctx.fillStyle = rg;
+            ctx.beginPath();
+            ctx.moveTo(0, -w); ctx.lineTo(len, 0); ctx.lineTo(0, w);
+            ctx.closePath(); ctx.fill();
+          }
+          ctx.restore();
+        }
+        ctx.restore();
+      }
+      // and the rings closing on the PAIR — the countdown you can see from
+      // across the board, tightening as the gap shuts
+      const per = 900 - c * 560;
+      for (let i = 0; i < 2; i++) {
+        const kk = (((t + i * per * 0.5) % per) / per);
+        const rr = R * (1.55 - kk * 0.62) + 4;
+        for (let j = 0; j < 3; j++) {
+          ctx.strokeStyle = `rgba(255,238,180,${kk * c * 0.55 * [0.18, 0.34, 0.8][j]})`;
+          ctx.lineWidth = (1 + kk * 3 * c) * [3.6, 1.9, 0.7][j];
+          ctx.beginPath(); ctx.ellipse(mx, my, rr * 1.12, rr, Math.atan2(ny, nx), 0, Math.PI * 2); ctx.stroke();
+        }
+      }
+    }
+
+    /* Both faces catch fire. An AUREX is already the whitest thing on the
+       board, so ADDING light to it does nothing — the near face cannot get
+       brighter than white. What reads instead is CONTRAST and STRUCTURE: the
+       far half of each block is pushed down toward amber shadow, the near half
+       carries hard concentric arcs that contract toward the gap, and the seam
+       between them is the only pure white left. Now the pair is legibly
+       charging on any board, on any deck, at any gap. */
+    ctx.restore();                       // out of 'lighter' for the shadow half
+    for (const [body, ox, oy, dir] of [[a, sx, sy, -1], [b, ex, ey, 1]]) {
+      ctx.save();
+      bodyPath(body);
+      ctx.clip();
+      const rr = body.plugin.r;
+      // the far half falls into amber shade
+      ctx.globalCompositeOperation = 'multiply';
+      const far = ctx.createLinearGradient(ox, oy, ox + nx * dir * rr * 2.1, oy + ny * dir * rr * 2.1);
+      far.addColorStop(0, 'rgb(255,255,255)');
+      far.addColorStop(0.45, `rgb(255,${(255 - ek * 44) | 0},${(255 - ek * 118) | 0})`);
+      far.addColorStop(1, `rgb(${(255 - ek * 42) | 0},${(255 - ek * 108) | 0},${(255 - ek * 190) | 0})`);
+      ctx.fillStyle = far;
+      ctx.fillRect(body.bounds.min.x - 4, body.bounds.min.y - 4,
+        body.bounds.max.x - body.bounds.min.x + 8, body.bounds.max.y - body.bounds.min.y + 8);
+      // arcs carved into the near face, contracting toward the seam
+      ctx.globalCompositeOperation = 'source-over';
+      const march = (t * 0.00028) % 1;
+      for (let i = 0; i < 4; i++) {
+        const f = ((i / 4) + march) % 1;
+        const arr = rr * (0.35 + f * 1.5);
+        const fade = Math.sin(f * Math.PI);
+        ctx.strokeStyle = `rgba(190,116,6,${fade * ek * 0.6})`;
+        ctx.lineWidth = 2 + ek * 5 * fade;
+        ctx.beginPath(); ctx.arc(ox, oy, arr, 0, Math.PI * 2); ctx.stroke();
+      }
+      // and the near face itself blazing back to white at the seam
+      ctx.globalCompositeOperation = 'lighter';
+      const near = ctx.createRadialGradient(ox, oy, 0, ox, oy, rr * (0.45 + k * 0.8));
+      near.addColorStop(0, `rgba(255,255,255,${0.3 + ek * 0.6})`);
+      near.addColorStop(0.4, `rgba(255,214,96,${0.14 + ek * 0.36})`);
+      near.addColorStop(1, 'rgba(255,180,40,0)');
+      ctx.fillStyle = near;
+      ctx.beginPath(); ctx.arc(ox, oy, rr * (0.45 + k * 0.8), 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    /* ---- the gap itself -------------------------------------------------
+       The reaching. This is the half that tells the player WHY nothing is
+       happening yet: the filaments visibly fall short, and every pixel closer
+       lets them get further. */
+    // the haze filling the space between the faces
+    const hzR = Math.max(20, gapLen * 0.7 + R * 0.18 * k);
+    const hz = ctx.createRadialGradient(mx, my, 0, mx, my, hzR);
+    hz.addColorStop(0, `rgba(255,250,225,${0.08 + ek * 0.42})`);
+    hz.addColorStop(0.45, `rgba(255,214,90,${0.04 + ek * 0.2})`);
+    hz.addColorStop(1, 'rgba(255,200,60,0)');
+    ctx.fillStyle = hz;
+    ctx.beginPath(); ctx.arc(mx, my, hzR, 0, Math.PI * 2); ctx.fill();
+
+    /* A lens down the axis instead of two wedges. The wedges were three
+       gradient-filled trapezoids, and no amount of feathering hid the fact
+       that a trapezoid has four straight sides — they read as sheets of paper
+       laid over the board. An ellipse stretched along the axis has no edge at
+       all and says the same thing: the space between these two is thick. */
+    ctx.save();
+    ctx.translate(mx, my);
+    ctx.rotate(Math.atan2(ny, nx));
+    const lensR = gapLen * 0.62 + R * 0.1;
+    ctx.scale(1, clamp((R * 0.34) / Math.max(lensR, 1), 0.28, 1.1));
+    const lens = ctx.createRadialGradient(0, 0, 0, 0, 0, lensR);
+    lens.addColorStop(0, `rgba(255,252,232,${0.1 + ek * 0.5})`);
+    lens.addColorStop(0.45, `rgba(255,214,90,${0.05 + ek * 0.26})`);
+    lens.addColorStop(1, 'rgba(255,180,40,0)');
+    ctx.fillStyle = lens;
+    ctx.beginPath(); ctx.arc(0, 0, lensR, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    // the filaments. Half start from each face, so BOTH blocks are visibly
+    // trying; how far any of them gets is the whole reading.
+    const n = lowFx ? 4 : 4 + Math.round(k * 6);
+    const span = clamp(0.2 + k * 1.05, 0.2, 1);
+    for (let i = 0; i < n; i++) {
+      const flip = i % 2 === 1;
+      const ph = t * (0.007 + i * 0.0017) + i * 2.4 + this.seed;
+      const wob = (Math.sin(ph) * 0.7 + Math.sin(ph * 2.3 + 1.1) * 0.3)
+        * gapLen * (0.2 - k * 0.15) + rand(-2, 2);
+      const sp = Math.min(1, span * (0.7 + Math.abs(Math.sin(ph * 2.1)) * 0.48));
+      const al = (0.3 + ek * 0.6) * (0.5 + 0.5 * Math.abs(Math.sin(ph * 1.3)));
+      const [x0, y0, x1, y1] = flip ? [ex, ey, sx, sy] : [sx, sy, ex, ey];
+      this.bolt(x0, y0, x1, y1, sp, wob, '255,244,205', 1.4 + k * 2.4, al);
+      this.bolt(x0, y0, x1, y1, sp, wob, '255,255,255', 0.7 + k * 1.0, al * 0.85);
+      // …and the tip that failed to reach, guttering out in mid-air
+      if (sp < 0.985 && !lowFx) {
+        const tx = x0 + (x1 - x0) * sp, ty = y0 + (y1 - y0) * sp;
+        ctx.fillStyle = `rgba(255,255,255,${al})`;
+        ctx.beginPath(); ctx.arc(tx, ty, 1.4 + k * 2.6, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    // the hot core running down the middle, only once they are genuinely close
+    if (k > 0.55) {
+      const c = (k - 0.55) / 0.45;
+      this.bolt(sx, sy, ex, ey, 1, Math.sin(t * 0.02) * 4 * (1 - c), '255,240,190', 3 + c * 7, c * 0.5);
+      this.bolt(sx, sy, ex, ey, 1, Math.sin(t * 0.02) * 4 * (1 - c), '255,255,255', 1.2 + c * 3.5, c * 0.95);
+    }
+
+    // the charge nodes on each face, breathing in time with each other
+    const pulse = 0.5 + 0.5 * Math.sin(t * (0.004 + k * 0.016));
+    for (const [ox, oy] of [[sx, sy], [ex, ey]]) {
+      const rr = (5 + k * 20) * (0.75 + 0.25 * pulse);
+      const ng = ctx.createRadialGradient(ox, oy, 0, ox, oy, rr);
+      ng.addColorStop(0, `rgba(255,255,255,${0.6 + ek * 0.4})`);
+      ng.addColorStop(0.4, `rgba(255,226,130,${0.4 + ek * 0.45})`);
+      ng.addColorStop(1, 'rgba(255,200,60,0)');
+      ctx.fillStyle = ng;
+      ctx.beginPath(); ctx.arc(ox, oy, rr, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  },
+  /* The vignette is screen-space — it has to close in on the PLAYER, not on a
+     point in the world — so it is painted with the HUD layer, after the camera
+     transform is gone. */
+  drawHud() {
+    if (this.k < 0.5 || Overflow.active) return;
+    const c = Math.pow((this.k - 0.5) / 0.5, 1.5);
+    const w = cw, h = ch;
+    const g = ctx.createRadialGradient(w / 2, h * 0.55, Math.min(w, h) * (0.46 - c * 0.2),
+      w / 2, h * 0.55, Math.max(w, h) * 0.74);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(0.55, `rgba(28,12,0,${c * 0.16})`);
+    g.addColorStop(1, `rgba(20,8,0,${c * 0.62})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+  },
+};
+
 /* ==================== §21f THE OVERFLOW ==================================
    AUREX sits at the top of the ladder and there is no tier 9, so two of them
    touching used to do precisely nothing: the two most valuable blocks in the
@@ -6264,30 +7178,40 @@ const Overflow = {
     const num = $('run-score-num');
     if (num) { num.style.transform = ''; num.style.textShadow = ''; num.style.color = ''; num.style.filter = ''; }
     const score = $('run-score');
-    if (score) { score.classList.remove('of-count'); this.cancelAnims(score); }
+    if (score) { score.classList.remove('of-count'); this.cancelAnims(score, 'of-'); }
     for (const id of ['of-orb', 'of-white']) {
       const el = $(id);
-      if (el) { el.classList.remove('go'); this.cancelAnims(el); }
+      if (el) { el.classList.remove('go'); this.cancelAnims(el, 'of-'); }
     }
     const bank = $('btn-bank');
-    if (bank) { bank.classList.remove('of-blow'); this.cancelAnims(bank); }
+    if (bank) { bank.classList.remove('of-blow'); this.cancelAnims(bank, 'of-'); }
     const brand = $('hud-brand');
-    if (brand) { brand.classList.remove('act-overflow'); this.cancelAnims(brand); }
+    if (brand) { brand.classList.remove('act-overflow'); this.cancelAnims(brand, 'of-brand'); }
     document.body.classList.remove('of-live');
   },
-  // a class re-added while its animation still exists does not restart it;
-  // cancelling first is the only way to be certain the show plays every time
-  cancelAnims(el) {
+  /* A class re-added while its animation still exists does not restart it, so
+     cancelling first is the only way to be certain the show plays every time.
+     But the cancel MUST be scoped by name: the wordmark is shared with the
+     run-open stack animation and with fifteen idle acts, and cancelling its
+     whole subtree — which is what this used to do — quietly killed all of them
+     from the moment an OVERFLOW module existed, whether or not one had played.
+     Nothing here ever touches an animation it did not start. */
+  cancelAnims(el, prefix) {
     if (!el || !el.getAnimations) return;
-    try { el.getAnimations({ subtree: true }).forEach((a) => a.cancel()); } catch (e) { /* older engine */ }
+    try {
+      el.getAnimations({ subtree: true }).forEach((a) => {
+        if (!prefix || (a.animationName || '').startsWith(prefix)) a.cancel();
+      });
+    } catch (e) { /* older engine */ }
   },
-  restart(el, cls) {
+  restartScoped(el, cls, prefix) {
     if (!el) return;
     el.classList.remove(cls);
-    this.cancelAnims(el);
+    this.cancelAnims(el, prefix);
     void el.offsetWidth;
     el.classList.add(cls);
   },
+  restart(el, cls) { this.restartScoped(el, cls, 'of-'); },
 
   start(a, b) {
     if (this.active) return;
@@ -6343,7 +7267,7 @@ const Overflow = {
       this.restart(orb, 'go');
     }
     this.restart($('of-white'), 'go');
-    this.restart($('hud-brand'), 'act-overflow');
+    this.restartScoped($('hud-brand'), 'act-overflow', 'of-brand');
     Shake.impulse(1);
     Camera.pushIn && Camera.pushIn(1.08, 1100);
     Particles.goldRain(this.x, this.y);
@@ -6575,6 +7499,65 @@ const Overflow = {
   },
 };
 
+/* ==================== §21h-b SEVENTEEN ARRIVALS ==========================
+   Every deck arrives the way its own material would. A plank of heartwood is
+   planed out from the middle; brushed steel is welded, seam by white-hot seam;
+   Carrara comes down as one block and cracks; porcelain is fired rather than
+   built and simply glazes into being; Liquid Glass is poured and settles with a
+   wobble; Basalt Forge erupts from underneath; the Reactor boots, scanline by
+   scanline; Bullion is struck like coin; the Bumper Deck lands and bounces;
+   Aurora condenses out of curtains of light; Nebula gathers out of a starfield;
+   Crimson Velvet unrolls; Vortex Core spirals in; Obsidian flies in as shards
+   and locks; the CROWN is a coronation; and ZENITH descends as light.
+
+   The vocabulary is deliberately small — a slab can be offset, spun, scaled and
+   faded, and a style can paint a flourish over the top — because the difference
+   between these has to come from choreography, not from seventeen renderers.
+   The price sets the scale: more parts, longer, and the top two get stages the
+   others do not have. */
+const DOCK_SHOWS = {
+  slab:      { style: 'drop',     parts: 3, ms: 190 },
+  oak:       { style: 'grow',     parts: 3, ms: 200 },
+  steel:     { style: 'weld',     parts: 4, ms: 180 },
+  marble:    { style: 'quarry',   parts: 4, ms: 90  },
+  porcelain: { style: 'kiln',     parts: 3, ms: 240 },
+  glass:     { style: 'pour',     parts: 5, ms: 150 },
+  basalt:    { style: 'erupt',    parts: 5, ms: 165 },
+  circuit:   { style: 'boot',     parts: 6, ms: 130 },
+  gold:      { style: 'mint',     parts: 5, ms: 195 },
+  bumper:    { style: 'bounce',   parts: 4, ms: 185 },
+  aurora:    { style: 'curtain',  parts: 5, ms: 175 },
+  nebula:    { style: 'gather',   parts: 6, ms: 165 },
+  velvet:    { style: 'unfurl',   parts: 6, ms: 140 },
+  vortex:    { style: 'spiral',   parts: 6, ms: 160 },
+  obsidian:  { style: 'shatter',  parts: 6, ms: 150 },
+  crown:     { style: 'crowning', parts: 7, ms: 165 },
+  zenith:    { style: 'ascend',   parts: 8, ms: 155 },
+};
+/* Packs introduce themselves as their own eight shapes, and how those shapes
+   behave is the pack's idea in motion: Noir arrives grey and then the blood
+   accent and the gold apex IGNITE; Abyss sinks in from above through water;
+   Inferno lights left to right like a fuse; Bloom opens; Sovereign is struck. */
+const PACK_SHOWS = {
+  noir:      'ignite',
+  abyss:     'sink',
+  inferno:   'fuse',
+  bloom:     'open',
+  sovereign: 'strike',
+};
+
+const EASE = {
+  out3: (k) => 1 - Math.pow(1 - k, 3),
+  out5: (k) => 1 - Math.pow(1 - k, 5),
+  back: (k) => { const c = 2.2; const t = k - 1; return 1 + (c + 1) * t * t * t + c * t * t; },
+  bounce: (k) => {
+    if (k < 0.55) return 1 - Math.pow(1 - k / 0.55, 2) * 1;
+    const b = (k - 0.55) / 0.45;
+    return 1 - Math.sin(b * Math.PI * 2.2) * 0.18 * (1 - b);
+  },
+  smooth: (k) => k * k * (3 - 2 * k),
+};
+
 /* ==================== §21h FIRST LOOK ====================================
    Buying a thing and then just... having it is the least interesting version
    of owning it. The first run on a deck you have never played, and the first
@@ -6599,6 +7582,7 @@ const Overflow = {
    a gold sweep and a held note. Price is the promise; this is the receipt. */
 const Reveal = {
   kind: null,          // 'dock' | 'pack'
+  marks: [],           // where and when each slab seated, for the flourishes
   item: null,          // the SHOP_CATALOG row
   t0: 0,
   tier: 0,             // 0..3, from the price
@@ -6612,12 +7596,19 @@ const Reveal = {
   get blocking() { return this.active && now() - this.t0 < this.buildMs(); },
 
   tierOf(price) { return price >= 5_000_000 ? 3 : price >= 700_000 ? 2 : price >= 200_000 ? 1 : 0; },
-  buildMs() { return this.kind === 'dock' ? 620 + this.slabs * 190 : 1500; },
-  cardMs() { return [1700, 2000, 2400, 3000][this.tier]; },
+  get show() { return DOCK_SHOWS[save.equipped.dock] || DOCK_SHOWS.slab; },
+  buildMs() {
+    if (this.kind !== 'dock') return 1500;
+    const sh = this.show;
+    // the crown and ZENITH open with a stage the others do not have
+    return this.lead() + sh.parts * sh.ms + 520;
+  },
+  lead() { const st = this.show.style; return st === 'crowning' ? 900 : st === 'ascend' ? 1050 : 260; },
+  cardMs() { return [1700, 2000, 2400, 3200][this.tier]; },
 
-  /* Called at the top of every run. A thing "debuts" once, the first time it
-     is actually played with — not when it is bought, and not when it is
-     equipped in the shop, because neither of those is the moment you see it. */
+  /* Called at the top of every run. A thing "debuts" once, the first time it is
+     actually played with — not when it is bought, and not when it is equipped
+     in the shop, because neither of those is the moment you see it. */
   maybeStart() {
     this.stop();
     if (Settings.reduceMotion) { this.markDebut(); return; }
@@ -6625,18 +7616,18 @@ const Reveal = {
       const id = kind === 'dock' ? 'dock_' + save.equipped.dock : 'theme_' + save.equipped.theme;
       const item = Economy.item(id);
       if (!item || (save.debuted || []).includes(id)) continue;
-      this.kind = kind === 'dock' ? 'dock' : 'pack';
+      this.kind = kind;
       this.item = item;
       this.tier = this.tierOf(item.price);
       this.t0 = now();
       this.landed = -1;
       this.done = false;
-      this.slabs = [3, 4, 5, 7][this.tier];
+      this.marks.length = 0;
       if (this.kind === 'pack') this.buildParade();
       save.debuted = (save.debuted || []).concat([id]);
       SaveStore.save();
       FeedbackBus.emit('revealStart', { kind: this.kind, tier: this.tier });
-      trackEvent('reveal', { id, kind: this.kind, tier: this.tier });
+      trackEvent('reveal', { id, kind: this.kind, tier: this.tier, style: this.kind === 'dock' ? this.show.style : this.packStyle });
       return;                                   // one arrival per run, never two
     }
   },
@@ -6647,46 +7638,365 @@ const Reveal = {
     for (const id of ids) if (Economy.item(id) && !save.debuted.includes(id)) { save.debuted.push(id); touched = true; }
     if (touched) SaveStore.save();
   },
+  /* The deck you have bought but never played is not drawn ANYWHERE until it
+     arrives — including on the board behind the menu, which is where it used to
+     sit in full view, spoiling itself, before vanishing and being rebuilt. */
+  dockHidden() {
+    if (Settings.reduceMotion) return false;
+    if (this.kind === 'dock') return false;                    // it is arriving right now
+    return !(save.debuted || []).includes('dock_' + save.equipped.dock);
+  },
   stop() {
-    this.kind = null; this.item = null; this.parade.length = 0; this.landed = -1;
+    this.kind = null; this.item = null; this.parade.length = 0;
+    this.landed = -1; this.marks.length = 0;
     const card = $('reveal-card');
     if (card) { card.className = 'hidden'; card.innerHTML = ''; }
   },
 
+  get packStyle() { return PACK_SHOWS[save.equipped.theme] || 'open'; },
   buildParade() {
     const pal = Economy.pack.colors;
+    const style = this.packStyle;
     this.parade = [];
     for (let i = 1; i <= 8; i++) {
-      this.parade.push({ tier: i, at: 120 + (i - 1) * 105, from: i % 2 ? -1 : 1, col: pal[i] });
+      this.parade.push({
+        tier: i, at: 120 + (i - 1) * (style === 'fuse' ? 130 : 105),
+        from: style === 'sink' ? 0 : (i % 2 ? -1 : 1),
+        col: pal[i], style,
+      });
+    }
+  },
+  /* Dust and sparks are the deck's own, because a plank does not throw the same
+     debris as a struck ingot or a block of quarried marble. */
+  dust() {
+    return {
+      grow: 'rgba(196,150,92,0.75)', weld: 'rgba(226,238,255,0.8)', quarry: 'rgba(246,244,238,0.85)',
+      pour: 'rgba(198,238,250,0.7)', erupt: 'rgba(255,150,70,0.75)', mint: 'rgba(255,214,110,0.85)',
+      bounce: 'rgba(255,206,90,0.75)', unfurl: 'rgba(210,110,140,0.6)', spiral: 'rgba(200,170,245,0.7)',
+      shatter: 'rgba(180,190,215,0.8)', crowning: 'rgba(255,214,110,0.8)', ascend: 'rgba(240,232,255,0.9)',
+    }[this.show.style] || 'rgba(226,232,246,0.75)';
+  },
+  spark() {
+    return {
+      erupt: '#ffb14a', mint: '#FFE9A8', crowning: '#ffd66e', ascend: '#ffffff',
+      spiral: '#cbb0ff', unfurl: '#ff8fae', weld: '#dff0ff',
+    }[this.show.style] || 'rgba(255,255,255,0.8)';
+  },
+
+  /* Where slab `i` is right now, in the language of its own deck. `k` is that
+     slab's own 0..1, `geom` carries the deck's resting rectangle. */
+  slabAt(style, i, n, k, geom) {
+    const e3 = EASE.out3(k), e5 = EASE.out5(k), sm = EASE.smooth(k);
+    const mid = (geom.x0 + geom.x1) / 2, sMid = geom.sx0 + (geom.sx1 - geom.sx0) / 2;
+    const a = Math.min(1, k * 2.4);
+    switch (style) {
+      case 'grow':      // heartwood: planed outward from the middle of the plank
+        return { dx: (mid - sMid) * (1 - EASE.out5(k)), dy: 0, a };
+      case 'weld':      // brushed steel: driven in from alternating sides and welded
+        return { dx: (i % 2 ? 1 : -1) * 340 * (1 - e5), dy: 0, a: Math.min(1, k * 3) };
+      case 'quarry':    // Carrara: one block down, then it cracks apart
+        return { dy: -230 * (1 - EASE.out3(k)), dx: (sMid - mid) * 0.06 * (1 - e3), a };
+      case 'kiln':      // porcelain is fired, not built: it simply comes into being
+        return { dy: 0, dx: 0, a: sm, sc: 0.965 + 0.035 * sm };
+      case 'pour':      // liquid glass rises into the mould and settles
+        return { dy: (geom.h + 16) * (1 - e3) + Math.sin(k * 11) * 7 * (1 - k), dx: 0, a };
+      case 'erupt':     // basalt comes UP, out of the heat
+        return { dy: 190 * (1 - e5), dx: 0, a, sc: 1 + 0.05 * (1 - e5) };
+      case 'boot':      // the reactor powers on, scanline by scanline
+        return { dy: 0, dx: 0, a: k < 0.18 ? 0 : 1, sc: 1 + 0.03 * (1 - EASE.out5(k)) };
+      case 'mint':      // bullion is STRUCK — fast, hard, with weight behind it
+        return { dy: -300 * (1 - Math.pow(k, 0.42)), dx: 0, a: Math.min(1, k * 4), sc: 1 + 0.2 * (1 - EASE.out5(k)) };
+      case 'bounce':    // the bumper deck lands like the bumper deck would
+        return { dy: -240 * (1 - EASE.bounce(k)), dx: 0, a };
+      case 'curtain':   // aurora condenses out of falling light
+        return { dy: -60 * (1 - e3), dx: 0, a: sm, sc: 0.98 + 0.02 * sm };
+      case 'gather':    // nebula gathers itself out of a starfield
+        return { dy: 0, dx: 0, a: sm, sc: 0.55 + 0.45 * EASE.back(clamp(k, 0, 1)) };
+      case 'unfurl':    // velvet rolls out, each slab out from under the last
+        return { dx: -(geom.sx1 - geom.sx0) * 1.1 * (1 - e5), dy: 0, a: Math.min(1, k * 3.5) };
+      case 'spiral': {  // vortex core: they come in around the eye
+        const ang = (1 - e3) * (3.1 + i * 0.5);
+        return { dx: Math.cos(ang) * 300 * (1 - e3), dy: Math.sin(ang) * 190 * (1 - e3), rot: (1 - e3) * 2.2, a };
+      }
+      case 'shatter': { // obsidian: shards fly in and lock
+        const s = ((i * 2654435761) % 1000) / 1000 - 0.5;
+        return { dx: s * 520 * (1 - e5), dy: (0.5 - Math.abs(s)) * -420 * (1 - e5), rot: s * 1.9 * (1 - e5), a };
+      }
+      case 'crowning':  // black glass settles under trim that is already there
+        return { dy: -70 * (1 - e5), dx: 0, a: sm, sc: 0.94 + 0.06 * EASE.back(clamp(k, 0, 1)) };
+      case 'ascend':    // ZENITH descends as light and becomes matter
+        return { dy: -520 * (1 - EASE.out5(k)), dx: 0, a: Math.min(1, k * 1.8), sc: 0.8 + 0.2 * EASE.back(clamp(k, 0, 1)) };
+      default:          // slab: honest, and first
+        return { dy: -180 * (1 - e3), dx: 0, a };
     }
   },
 
-  /* What drawDock should paint this frame: which slabs have landed, where the
-     one in the air is, how far up the detail and the walls have come. */
+  /* What drawDock should paint this frame: which slabs exist, where each one
+     is, how far up the detail and the walls have come. */
   dockSlabs(hw) {
     if (this.kind !== 'dock') return null;
     const el = now() - this.t0;
     const build = this.buildMs();
-    if (el >= build + 400) return null;             // finished: the ordinary renderer takes over
-    const x0 = WORLD.width / 2 - hw, w = hw * 2;
-    const per = w / this.slabs;
-    const out = { slabs: [], detail: clamp((el - build * 0.55) / (build * 0.5), 0, 1), wallK: clamp((el - build * 0.8) / 420, 0, 1) };
-    for (let i = 0; i < this.slabs; i++) {
-      // built from the middle outwards, so it grows into its own length
-      const order = i % 2 === 0 ? Math.floor(this.slabs / 2) + Math.floor(i / 2) : Math.floor(this.slabs / 2) - 1 - Math.floor(i / 2);
-      const startAt = 260 + i * 170;
-      const k = clamp((el - startAt) / 300, 0, 1);
+    if (el >= build + 420) return null;             // finished: the ordinary renderer takes over
+    const sh = this.show, n = sh.parts;
+    const x0 = WORLD.width / 2 - hw, w = hw * 2, h = WORLD.platformH + 26;
+    const per = w / n;
+    const lead = this.lead();
+    const span = n * sh.ms;
+    const out = {
+      slabs: [], style: sh.style, el, lead,
+      detail: clamp((el - lead - span * 0.55) / Math.max(span * 0.5, 260), 0, 1),
+      wallK: clamp((el - lead - span * 0.86) / 460, 0, 1),
+    };
+    for (let i = 0; i < n; i++) {
+      // built from the middle outwards, so a deck grows into its own length
+      const order = i % 2 === 0 ? Math.floor(n / 2) + Math.floor(i / 2) : Math.floor(n / 2) - 1 - Math.floor(i / 2);
+      // a quarried block comes down in one piece, so every slab shares a clock
+      const startAt = lead + (sh.style === 'quarry' ? 0 : i * sh.ms);
+      const k = clamp((el - startAt) / (sh.style === 'quarry' ? 520 : 340), 0, 1);
       if (k <= 0) continue;
-      if (k > this.landed / 1000) { /* noop: landing sounds are fired in tick() */ }
-      const e = 1 - Math.pow(1 - k, 3);
-      out.slabs.push({
-        x0: x0 + order * per - 0.5,
-        x1: x0 + (order + 1) * per + 0.5,
-        dy: -170 * (1 - e),
-        a: Math.min(1, k * 2.2),
-      });
+      const sx0 = x0 + order * per, sx1 = sx0 + per;
+      const t = this.slabAt(sh.style, i, n, k, { x0, x1: x0 + w, sx0, sx1, h });
+      out.slabs.push({ x0: sx0 - 0.5, x1: sx1 + 0.5, dx: t.dx || 0, dy: t.dy || 0,
+        rot: t.rot || 0, sc: t.sc || 1, a: t.a, k, i, order });
     }
     return out;
+  },
+
+  /* The flourish over the top: the part that is unmistakably THIS deck. Drawn
+     in world space, over the slabs, under the pieces. */
+  drawDockFx(hw, b) {
+    if (perf.tier === 'low') return;
+    const x0 = WORLD.width / 2 - hw, w = hw * 2, y0 = WORLD.platformY, h = WORLD.platformH + 26;
+    const cx = WORLD.width / 2, el = b.el, n = this.show.parts;
+    const skin = Economy.dock;
+    const N = now();
+    switch (b.style) {
+      case 'weld': {   // a white-hot seam at every joint, cooling as it sets
+        for (const m of this.marks) {
+          const age = (N - m.at) / 620;
+          if (age > 1) continue;
+          const px = m.x + (w / n) * 0.5;
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          const g = ctx.createLinearGradient(px, y0, px, y0 + h);
+          g.addColorStop(0, `rgba(255,255,255,${(1 - age) * 0.95})`);
+          g.addColorStop(0.5, `rgba(190,225,255,${(1 - age) * 0.8})`);
+          g.addColorStop(1, `rgba(120,180,255,${(1 - age) * 0.3})`);
+          ctx.fillStyle = g;
+          ctx.fillRect(px - 3 - (1 - age) * 4, y0, 6 + (1 - age) * 8, h);
+          ctx.restore();
+        }
+        break;
+      }
+      case 'quarry': {  // the crack that runs through the block as it splits
+        const k = clamp((el - this.lead() - 300) / 420, 0, 1);
+        if (k <= 0 || k >= 1) break;
+        ctx.strokeStyle = `rgba(255,255,255,${(1 - k) * 0.9})`;
+        ctx.lineWidth = 1 + (1 - k) * 2;
+        for (let i = 1; i < n; i++) {
+          const px = x0 + (w / n) * i;
+          ctx.beginPath();
+          ctx.moveTo(px, y0);
+          for (let s = 1; s <= 4; s++) ctx.lineTo(px + rand(-3, 3), y0 + (h / 4) * s);
+          ctx.stroke();
+        }
+        break;
+      }
+      case 'kiln': {   // the glaze runs across the surface as it is fired
+        const k = clamp((el - this.lead()) / (n * this.show.ms + 300), 0, 1);
+        const gx = x0 - w * 0.4 + k * w * 1.8;
+        ctx.save(); roundRect(x0, y0, w, h, 14); ctx.clip();
+        const g = ctx.createLinearGradient(gx - w * 0.3, 0, gx + w * 0.3, 0);
+        g.addColorStop(0, 'rgba(255,255,255,0)');
+        g.addColorStop(0.5, `rgba(255,252,244,${0.75 * Math.sin(k * Math.PI)})`);
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = g; ctx.fillRect(x0, y0, w, h);
+        ctx.restore();
+        break;
+      }
+      case 'pour': {   // the meniscus of the liquid as it finds its level
+        const lastK = b.slabs.length ? b.slabs[b.slabs.length - 1].k : 1;
+        if (lastK >= 1) break;
+        const lvl = y0 + (h + 16) * (1 - EASE.out3(lastK));
+        ctx.strokeStyle = `rgba(226,250,255,${0.85 * (1 - lastK)})`;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let px = x0; px <= x0 + w; px += 8) {
+          const yy = lvl + Math.sin(px * 0.08 + N * 0.012) * 3 * (1 - lastK);
+          px === x0 ? ctx.moveTo(px, yy) : ctx.lineTo(px, yy);
+        }
+        ctx.stroke();
+        break;
+      }
+      case 'erupt': {  // heat under the deck, escaping between the slabs
+        const k = clamp(1 - (el - this.lead()) / (n * this.show.ms + 400), 0, 1);
+        if (k <= 0) break;
+        const g = ctx.createLinearGradient(0, y0 + h, 0, y0 - 40);
+        g.addColorStop(0, `rgba(255,120,40,${0.5 * k})`);
+        g.addColorStop(1, 'rgba(255,60,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(x0 - 12, y0 - 40, w + 24, h + 60);
+        break;
+      }
+      case 'boot': {   // the scanline that switches each section on
+        const k = clamp((el - this.lead()) / (n * this.show.ms), 0, 1);
+        const sx = x0 + k * w;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const g = ctx.createLinearGradient(sx - 26, 0, sx + 26, 0);
+        g.addColorStop(0, 'rgba(60,230,170,0)');
+        g.addColorStop(0.5, `rgba(120,255,205,${k < 1 ? 0.9 : 0})`);
+        g.addColorStop(1, 'rgba(60,230,170,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(sx - 26, y0 - 16, 52, h + 32);
+        ctx.restore();
+        for (const m of this.marks) {
+          const age = (N - m.at) / 520;
+          if (age > 1) continue;
+          ctx.strokeStyle = `rgba(120,255,205,${(1 - age) * 0.8})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(m.x - 14, y0 + h * 0.5); ctx.lineTo(m.x + 14, y0 + h * 0.5); ctx.stroke();
+        }
+        break;
+      }
+      case 'mint': {   // the shock ring of each strike
+        for (const m of this.marks) {
+          const age = (N - m.at) / 520;
+          if (age > 1) continue;
+          ctx.strokeStyle = `rgba(255,226,150,${(1 - age) * 0.85})`;
+          ctx.lineWidth = (1 - age) * 5 + 1;
+          ctx.beginPath(); ctx.ellipse(m.x, y0 + h * 0.5, 20 + age * 150, 8 + age * 52, 0, 0, Math.PI * 2); ctx.stroke();
+        }
+        break;
+      }
+      case 'curtain': { // aurora falls, and condenses into the deck
+        const k = clamp((el - this.lead()) / (n * this.show.ms + 300), 0, 1);
+        if (k >= 1) break;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < 5; i++) {
+          const px = x0 + (w / 5) * (i + 0.5) + Math.sin(N * 0.001 + i) * 18;
+          const top = y0 - 300 + k * 260;
+          const g = ctx.createLinearGradient(0, top, 0, y0 + 8);
+          g.addColorStop(0, 'rgba(140,240,205,0)');
+          g.addColorStop(0.6, `rgba(140,240,205,${0.35 * (1 - k)})`);
+          g.addColorStop(1, `rgba(90,190,255,${0.5 * (1 - k)})`);
+          ctx.fillStyle = g;
+          ctx.fillRect(px - 26, top, 52, y0 + 8 - top);
+        }
+        ctx.restore();
+        break;
+      }
+      case 'gather': {  // the starfield being pulled in
+        const k = clamp((el - this.lead()) / (n * this.show.ms), 0, 1);
+        if (k >= 1) break;
+        if (Math.random() < 0.9) {
+          const a = rand(0, 6.283), d = rand(150, 420);
+          Particles.spawn({ x: cx + Math.cos(a) * d, y: y0 + h / 2 + Math.sin(a) * d * 0.6,
+            vx: -Math.cos(a) * d * 1.5, vy: -Math.sin(a) * d * 0.9,
+            life: 0.5, maxLife: 0.5, size: rand(1, 2.8), color: pick(['#b9a6ff', '#ffffff', '#8ad6ff']), glow: true, drag: 1 });
+        }
+        break;
+      }
+      case 'unfurl': {  // the rolling edge of the cloth
+        const k = clamp((el - this.lead()) / (n * this.show.ms), 0, 1);
+        if (k >= 1) break;
+        const ex = x0 + k * w;
+        const g = ctx.createLinearGradient(ex - 30, 0, ex + 14, 0);
+        g.addColorStop(0, 'rgba(0,0,0,0)');
+        g.addColorStop(0.7, 'rgba(0,0,0,0.45)');
+        g.addColorStop(1, `rgba(255,190,215,${0.55})`);
+        ctx.fillStyle = g;
+        ctx.fillRect(ex - 30, y0 - 4, 44, h + 8);
+        break;
+      }
+      case 'spiral': {  // the eye of the vortex the slabs are coming out of
+        const k = clamp(1 - (el - this.lead()) / (n * this.show.ms), 0, 1);
+        if (k <= 0) break;
+        ctx.strokeStyle = `rgba(200,170,245,${0.55 * k})`;
+        for (let i = 0; i < 3; i++) {
+          ctx.lineWidth = 2 - i * 0.5;
+          ctx.beginPath();
+          for (let a = 0; a < 6.3; a += 0.25) {
+            const r = 16 + a * (16 + i * 8) * k;
+            const px = cx + Math.cos(a + N * 0.004 + i) * r, py = y0 + h / 2 + Math.sin(a + N * 0.004 + i) * r * 0.55;
+            a === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+        }
+        break;
+      }
+      case 'shatter': { // the flash as each shard locks home
+        for (const m of this.marks) {
+          const age = (N - m.at) / 380;
+          if (age > 1) continue;
+          ctx.strokeStyle = `rgba(255,255,255,${(1 - age) * 0.9})`;
+          ctx.lineWidth = (1 - age) * 3 + 0.5;
+          for (let i = 0; i < 3; i++) {
+            const a = (m.i * 1.7 + i * 2.1);
+            ctx.beginPath();
+            ctx.moveTo(m.x, y0 + h / 2);
+            ctx.lineTo(m.x + Math.cos(a) * 46 * age, y0 + h / 2 + Math.sin(a) * 30 * age);
+            ctx.stroke();
+          }
+        }
+        break;
+      }
+      case 'crowning': { // the trim draws itself first, then the glass fills in
+        const k = clamp(el / this.lead(), 0, 1);
+        if (k < 1) {
+          ctx.strokeStyle = `rgba(255,214,110,${0.35 + 0.65 * k})`;
+          ctx.lineWidth = 2;
+          const run = w * EASE.out3(k);
+          ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + 8); ctx.lineTo(x0 + 8 + run, y0 + 8); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x0 + w - 8, y0 + h - 8); ctx.lineTo(x0 + w - 8 - run, y0 + h - 8); ctx.stroke();
+          if (perf.tier !== 'low' && Math.random() < 0.6) {
+            Particles.spawn({ x: x0 + 8 + run, y: y0 + 8, vx: rand(-30, 30), vy: rand(-40, 10),
+              life: 0.5, maxLife: 0.5, size: rand(1, 2.6), color: '#ffd66e', glow: true, drag: 0.6 });
+          }
+        }
+        const g = ctx.createRadialGradient(cx, y0 + h / 2, 4, cx, y0 + h / 2, w * 0.5);
+        g.addColorStop(0, `rgba(255,214,110,${0.30 * (1 - Math.min(1, el / (this.lead() + 900)))})`);
+        g.addColorStop(1, 'rgba(255,214,110,0)');
+        ctx.fillStyle = g; ctx.fillRect(x0 - 40, y0 - 90, w + 80, h + 130);
+        break;
+      }
+      case 'ascend': {  // ZENITH: a column of light, and matter condensing in it
+        const k = clamp(el / this.lead(), 0, 1);
+        const fade = clamp(1 - (el - this.lead()) / 900, 0, 1);
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const colW = (26 + 150 * (1 - k)) * Math.max(fade, k < 1 ? 1 : 0);
+        if (colW > 1) {
+          const col = ctx.createLinearGradient(cx - colW, 0, cx + colW, 0);
+          col.addColorStop(0, 'rgba(226,214,255,0)');
+          col.addColorStop(0.5, `rgba(255,255,255,${0.5 * (k < 1 ? k : fade)})`);
+          col.addColorStop(1, 'rgba(226,214,255,0)');
+          ctx.fillStyle = col;
+          ctx.fillRect(cx - colW, -640, colW * 2, y0 + 660);
+        }
+        // the spectrum runs the length of the deck as it becomes solid
+        if (k >= 1) {
+          for (let i = 0; i < 7; i++) {
+            const bx = x0 + ((i / 7) * w + ((N * 0.06) % (w / 7)));
+            const bg = ctx.createLinearGradient(bx, 0, bx + w / 7, 0);
+            bg.addColorStop(0, 'rgba(255,255,255,0)');
+            bg.addColorStop(0.5, `hsla(${(i * 51 + N * 0.05) % 360}, 95%, 74%, ${0.5 * fade})`);
+            bg.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = bg;
+            ctx.fillRect(bx, y0 - 6, w / 7, h + 12);
+          }
+        }
+        ctx.restore();
+        if (k < 1 && Math.random() < 0.9) {
+          Particles.spawn({ x: cx + rand(-colW, colW), y: y0 + rand(-200, 20),
+            vx: rand(-20, 20), vy: -rand(60, 220), life: 0.9, maxLife: 0.9,
+            size: rand(1.2, 3), color: pick(['#ffffff', '#e2d6ff', '#FFE9A8']), glow: true, drag: 0.5 });
+        }
+        break;
+      }
+    }
   },
 
   tick() {
@@ -6695,23 +8005,38 @@ const Reveal = {
     const build = this.buildMs();
     if (this.kind === 'dock') {
       // one thud per slab, at the moment it seats
-      const seated = Math.floor((el - 260 - 300) / 170) + 1;
-      if (seated > this.landed && seated <= this.slabs) {
+      const sh = this.show, n = sh.parts;
+      const seated = Math.floor((el - this.lead() - 340) / sh.ms) + 1;
+      if (seated > this.landed && seated <= n) {
         this.landed = seated;
         const hw = Stack.platform ? Stack.platform.plugin.halfW : 130;
-        const per = (hw * 2) / this.slabs;
-        const order = (this.landed - 1) % 2 === 0
-          ? Math.floor(this.slabs / 2) + Math.floor((this.landed - 1) / 2)
-          : Math.floor(this.slabs / 2) - 1 - Math.floor((this.landed - 1) / 2);
+        const per = (hw * 2) / n;
+        const idx = this.landed - 1;
+        const order = idx % 2 === 0 ? Math.floor(n / 2) + Math.floor(idx / 2) : Math.floor(n / 2) - 1 - Math.floor(idx / 2);
         const px = WORLD.width / 2 - hw + (order + 0.5) * per;
-        Shake.impulse(0.1 + this.tier * 0.04);
-        Particles.burst(px, WORLD.platformY + 4, 'rgba(226,232,246,0.75)', 14, 190, 0.62);
-        for (let d = 0; d < 5; d++) {
-          Particles.spawn({ x: px + rand(-per * 0.45, per * 0.45), y: WORLD.platformY + rand(0, 8),
-            vx: rand(-70, 70), vy: -rand(20, 90), life: 0.5, maxLife: 0.5,
-            size: rand(1.5, 3.4), color: 'rgba(255,255,255,0.8)', glow: true, drag: 0.6 });
+        this.marks.push({ x: px, at: now(), i: idx });
+        /* Each material lands like itself. A weld is a flash and a hiss, a
+           strike is a shock and a shower of gold, a firing has no impact at
+           all — so the deck that is arriving decides what a landing IS. */
+        const st = sh.style;
+        if (st !== 'kiln' && st !== 'curtain' && st !== 'gather' && st !== 'boot') {
+          Shake.impulse((st === 'mint' || st === 'quarry' ? 0.24 : 0.1) + this.tier * 0.04);
+          Particles.burst(px, WORLD.platformY + 4, this.dust(), 14, 190, 0.62);
+          for (let d = 0; d < 5; d++) {
+            Particles.spawn({ x: px + rand(-per * 0.45, per * 0.45), y: WORLD.platformY + rand(0, 8),
+              vx: rand(-70, 70), vy: -rand(20, 90), life: 0.5, maxLife: 0.5,
+              size: rand(1.5, 3.4), color: this.spark(), glow: true, drag: 0.6 });
+          }
         }
-        FeedbackBus.emit('revealPart', { n: this.landed, of: this.slabs, tier: this.tier });
+        if (st === 'mint') Particles.goldRain(px, WORLD.platformY - 30);
+        if (st === 'erupt') {
+          for (let d = 0; d < 10; d++) {
+            Particles.spawn({ x: px + rand(-per * 0.4, per * 0.4), y: WORLD.platformY + 20,
+              vx: rand(-40, 40), vy: -rand(90, 260), life: 0.9, maxLife: 0.9,
+              size: rand(1.4, 3), color: pick(['#ff8a3c', '#ffd24a', '#ff4d2e']), glow: true, drag: 0.5 });
+          }
+        }
+        FeedbackBus.emit('revealPart', { n: this.landed, of: n, tier: this.tier, style: st });
       }
     }
     if (!this.done && el >= build) {
@@ -6741,24 +8066,55 @@ const Reveal = {
 
   /* The pack's arrival: the room runs the whole ladder while the eight shapes
      fly in and line up. Drawn in screen space so it owns the viewport. */
+  /* A pack introduces itself as its own eight shapes, and HOW they arrive is
+     the pack's idea in motion. Noir comes in grey and then the blood accent and
+     the gold apex ignite; Abyss sinks from above through water; Inferno lights
+     left to right like a fuse; Bloom opens; Sovereign is struck like coin. */
   drawHud() {
     if (this.kind !== 'pack' || perf.tier === 'low') return;
     const el = now() - this.t0;
     const midY = ch * 0.44;
     const span = Math.min(cw * 0.86, 720);
+    const style = this.packStyle;
     for (const s of this.parade) {
-      const k = clamp((el - s.at) / 420, 0, 1);
+      const k = clamp((el - s.at) / (style === 'sink' ? 540 : 420), 0, 1);
       if (k <= 0) continue;
       const out = clamp((el - (this.buildMs() + 260)) / 420, 0, 1);   // then they scatter
       const e = 1 - Math.pow(1 - k, 4);
       const restX = cw / 2 + (s.tier - 4.5) * (span / 8);
-      const x = restX + s.from * cw * 0.75 * (1 - e) + s.from * cw * 0.6 * out * out;
-      const r = (13 + s.tier * 2.6) * (1 + 0.5 * (1 - e)) * (1 - out * 0.4);
-      const a = (1 - out) * Math.min(1, k * 3);
+      let x = restX, y = midY, r = 13 + s.tier * 2.6, a = Math.min(1, k * 3), rot = -Math.PI / 2, col = s.col;
+      switch (style) {
+        case 'ignite':   // monochrome first, then the accents catch
+          x = restX + s.from * cw * 0.7 * (1 - e);
+          r *= 1 + 0.4 * (1 - e);
+          if (k < 0.72) { const g = 150; col = `rgb(${g},${g},${g + 6})`; }
+          break;
+        case 'sink':     // straight down, slowed as if through water
+          y = midY - 420 * (1 - EASE.out3(k)) + Math.sin(el * 0.003 + s.tier) * 4;
+          r *= 1 + 0.15 * (1 - e);
+          break;
+        case 'fuse':     // a fuse burning along the row, left to right
+          x = restX;
+          a = Math.min(1, k * 4);
+          r *= 0.55 + 0.45 * EASE.back(clamp(k, 0, 1));
+          break;
+        case 'strike':   // struck: they come DOWN hard and ring
+          y = midY - 320 * (1 - Math.pow(k, 0.4));
+          r *= 1 + 0.32 * (1 - EASE.out5(k));
+          break;
+        default:         // bloom: they open outward
+          x = restX + (restX - cw / 2) * 0.9 * (1 - e);
+          r *= 0.35 + 0.65 * EASE.back(clamp(k, 0, 1));
+          rot += (1 - e) * 1.6;
+      }
+      x += s.from * cw * 0.6 * out * out;
+      r *= (1 - out * 0.4);
+      a *= (1 - out);
       ctx.globalAlpha = a;
-      ctx.fillStyle = s.col;
-      if (perf.tier !== 'low') { ctx.shadowColor = s.col; ctx.shadowBlur = 16 + s.tier * 3; }
-      polyPath(ctx, x, midY + Math.sin(el * 0.004 + s.tier) * 5, TIERS.sides[s.tier], r, -Math.PI / 2 + (1 - e) * 3);
+      ctx.fillStyle = col;
+      ctx.shadowColor = col;
+      ctx.shadowBlur = (16 + s.tier * 3) * (style === 'fuse' && k > 0.6 ? 2.2 : 1);
+      polyPath(ctx, x, y + (style === 'sink' ? 0 : Math.sin(el * 0.004 + s.tier) * 5), TIERS.sides[s.tier], r, rot + (1 - e) * (style === 'strike' ? 0 : 3));
       ctx.fill();
       ctx.shadowBlur = 0;
       ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1.6;
@@ -6946,12 +8302,21 @@ const IdleShow = {
     { n: 'flip', ms: 3000 }, { n: 'stamp', ms: 2900 },
     { n: 'split', ms: 3100 },
   ],
-  bag: [], last: '', playing: false, nextAt: 0, earliestAt: 0, endsAt: 0,
+  bag: [], last: '', playing: false, nextAt: 0, earliestAt: 0, endsAt: 0, armed: false,
 
+  /* The wait belongs to the SESSION, not to the run. Re-arming the full
+     45 seconds at the top of every run meant that a player whose runs were
+     shorter than that never saw a single act in their life — the clock was put
+     back to the start before it had ever run out. Now it carries across runs:
+     the first one is the long wait, an act that came due while nobody was
+     playing re-arms short, and a wait already in progress simply keeps
+     counting where it was. */
   reset() {
     this.stop();
-    this.nextAt = now() + CONFIG.idleShow.firstMs;
-    this.earliestAt = this.nextAt;
+    const C = CONFIG.idleShow;
+    if (!this.armed) { this.armed = true; this.nextAt = now() + C.firstMs; }
+    else if (this.nextAt <= now()) this.nextAt = now() + C.rearmMs;
+    this.earliestAt = Math.min(this.nextAt, now() + C.floorMs);
   },
   stop() {
     this.playing = false;
@@ -7010,9 +8375,21 @@ const IdleShow = {
 
 /* ==================== §22 UI ============================================== */
 const UI = {
-  playWordmark(el) {          // restart the stacking animation on a wordmark
+  /* Restart the stacking animation on a wordmark. Removing the class and
+     re-adding it is not enough on its own: if the animation object is still
+     alive the browser keeps it, and if the element is display:none at the time
+     the class never takes at all. So the old animations are cancelled by name
+     first, and the caller is expected to have made the screen visible. */
+  playWordmark(el) {
     if (!el) return;
-    el.classList.remove('play');
+    el.classList.remove('play', 'loop');
+    if (el.getAnimations) {
+      try {
+        el.getAnimations({ subtree: true }).forEach((a) => {
+          if ((a.animationName || '').startsWith('wm-')) a.cancel();
+        });
+      } catch (e) { /* older engine */ }
+    }
     void el.offsetWidth;
     el.classList.add('play');
   },
@@ -7022,15 +8399,18 @@ const UI = {
   showGame() {
     this.hideScreens();
     $('hud').classList.remove('hidden');
+    // played AFTER the HUD is visible: an animation added to a display:none
+    // element never starts, which is why this used to fire only once a session
     this.playWordmark($('hud-brand'));    // the mark stacks itself as the run opens
     this.syncStats();
   },
   showMenu() {
     Audio2.toMenuMusic();
     $('hud').classList.add('hidden');
-    this.playWordmark(document.querySelector('#menu .wordmark'));
     document.body.classList.remove('chase');
     this.show('menu');
+    // and only now, with #menu actually on screen, does the mark stack itself
+    this.playWordmark(document.querySelector('#menu .wordmark'));
     $('ms-best').textContent = fmt(save.best);
     $('ms-coins').textContent = fmt(save.coins);
     $('ms-streak').textContent = String(Streak.days || 0);
@@ -7639,10 +9019,10 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { WORLD, Game, Stack, Director, Overflow, Reveal, Weather, DOCKS, SPECIALS, TIERS, THEMES, CONFIG, __cat: SHOP_CATALOG, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, IdleShow, Audio2, Settings, FeedbackBus, UI, save, engine, Composite, Body };
+window.__overstack = { WORLD, Game, Stack, Director, Overflow, Strain, Reveal, Weather, DOCKS, SPECIALS, TIERS, THEMES, CONFIG, __cat: SHOP_CATALOG, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, IdleShow, Audio2, Settings, FeedbackBus, UI, save, engine, Composite, Body };
 window.__overstackCam = Camera;
 window.__shake = Shake;
-window.__drawDefIcon = drawDefIcon;   // debug handle: the NEXT-box icon, on any canvas
+Object.defineProperty(window, '__perfTier', { get: () => perf.tier });
 window.__drawDefIcon = drawDefIcon;   // debug handle: the NEXT-box icon, on any canvas
 window.__tierColors = themePalette();
 
