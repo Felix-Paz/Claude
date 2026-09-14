@@ -338,7 +338,9 @@ pull the same levers docks do (`slowFall`, `comboBonusMs`, `forgiveness`,
 save still wearing a retired pack is migrated back to Signal on load.
 
 **Special blocks** each have their own unmistakable skin (never disguised as a
-normal shape) and its own behavior:
+normal shape), its own behavior, and — since none of that was ever explained
+anywhere — [one line saying what it does](#what-that-block-actually-does) the
+moment it is announced in NEXT:
 - GOLDEN (3× coins) — **gold, not yellow**. It used to be `#ffd93a`, a hair off
   the palette's own tier-3 yellow, so on half the boards it read as an ordinary
   block that happened to sparkle. Now it is deep struck metal that falls off to
@@ -413,14 +415,17 @@ would sit side by side, inert, and the player who had built them both got no
 answer at all. Now the tower cashes itself in — **+500,000 coins, flat**, and a
 clean deck.
 
-It is four beats, and each one has a job:
+It is **five** beats, and each one has a job:
 
 | Beat | ~ms | What happens | Why |
 |---|---|---|---|
-| **CHARGE** | 0–780 | light builds *between* the two blocks and rings tighten **inward** — the light is being gathered, not spent — arcs jump the gap, dust is pulled in, the shake ramps all the way up and BANK detonates into pulses | the player has to know something is coming before it lands, or the blast is a jump-scare instead of a payoff |
-| **BLAST** | 780 | white, everywhere, out of that exact point — full-screen. Three shockwaves cross the whole world, a column of light stands where the blocks were, and the deck is emptied underneath the flash | the board is simply *gone* when the light lifts, rather than visibly deleted |
-| **COUNT** | 1350–4150 | the number climbs to +500,000 on a smootherstep curve while growing to **3.1×** (2.15× on a phone) — and **every hundred thousand it crosses, it takes a hit**: a scale kick, a flash, a shockwave off the figure itself, a bell climbing the scale | a smooth ramp reads as a progress bar; a ramp that keeps getting punched reads as a number that will not stop |
-| **SETTLE** | 4150–5050 | the figure does not shrink politely, it **slams** back through its resting size and settles, with a last shockwave and a low boom | a moment only reads as big if the game goes back to normal afterwards |
+| **CHARGE** | 0–1500 | light builds *between* the two blocks and rings tighten **inward** — the light is being gathered, not spent — arcs jump the gap, dust is pulled in, the shake ramps all the way up and BANK detonates into pulses | the player has to know something is coming before it lands, or the blast is a jump-scare instead of a payoff |
+| **BLAST** | 1500 | white, everywhere, out of that exact point — full-screen. A bloom travels outward, a column of light stands where the blocks were, and the deck is emptied underneath the flash | the board is simply *gone* when the light lifts, rather than visibly deleted |
+| **COUNT** | 2500–6700 | the number climbs to +500,000 on a smootherstep curve while growing to **3.1×** (2.15× on a phone) — and **every hundred thousand it crosses, it takes a hit**: a scale kick, a flash, a wash of light off the figure itself, a bell climbing the scale | a smooth ramp reads as a progress bar; a ramp that keeps getting punched reads as a number that will not stop |
+| **HOLD** | 6700–7700 | nothing. The figure has landed on its number and simply stands there at full size, over one held chord | every crescendo needs a bar of rest after it, or the ear never registers that it peaked |
+| **SETTLE** | 7700–9100 | the figure does not shrink politely, it **slams** back through its resting size and settles, with a low boom | a moment only reads as big if the game goes back to normal afterwards |
+
+**It was too fast, and it was drawn with circles.** The whole event used to be over in five seconds, and the parts that are supposed to *be* the payoff went past before they could land — so every beat is now roughly half again as long, with a held beat added between the climb and the slam. The shockwaves are gone too: three stroked circles thrown out from the blast, and more off the figure at every milestone, read as exactly what they were — circles, drawn on top of the game. What a blast actually looks like is light with no edge, so they are soft radial falloffs now, three of them at slightly different speeds, with nothing to outline.
 
 Nothing can be interrupted and nothing can kill you inside it: drops and banking
 are refused for the duration, every live world event is cleared, the event timer
@@ -530,12 +535,41 @@ item, the first time it is actually **played** with — not when it is bought an
 not when it is equipped in the shop, because neither of those is the moment you
 see it (`save.debuted`).
 
-**A deck builds itself.** The deck is not there when the run opens. Then slabs
-drop in from above and lock together, built from the middle outwards so it grows
-into its own length, each landing with a thud, a puff of dust and a knock that
-climbs a little with every piece. When the last one seats, the surface light runs
-across it, the deck's signature detail fades up out of the material, and — if it
-has them — the bumper walls rise out of the ends. Every frame of it is drawn by
+**And it is a different arrival every time.** The first version of this gave all
+seventeen decks the same sentence with different adjectives — parts fall in,
+parts assemble, the deck is there. Different dust, same choreography, and
+choreography is what the eye actually reads. So a deck now chooses three things,
+not one:
+
+- **style** — what a part does on its way in
+- **order** — which part goes first: out from the middle, along the deck, from
+  the ends inward, all at once, or in no order at all (six orderings, every one
+  a real permutation, so no slab is ever visited twice or skipped)
+- **whole** — whether there are parts at all. A deck marked `whole` arrives as
+  **one object on one clock**; the slabs are still slices of the real deck, they
+  just never move independently.
+
+That last one is what makes the Bumper Deck read as a single springy body and
+OBSIDIAN CROWN as a single gesture — an enormous thing lowered onto the board
+over a second and a quarter, turning a few degrees straight as it comes — rather
+than as seven planks landing in a row. `Reveal.rigid()` solves the whole deck's
+motion for each slab's own centre and hands back the translation that puts it
+exactly where a rigid body would, because `paintDock` spins and scales each slab
+about *itself*: handing the deck a rotation directly shears it into a fan.
+
+Whole-deck gestures also needed an ease that is actually slow. `out5` puts ninety
+per cent of its travel in the first fifth of the clock — right for a slab being
+driven into place, completely wrong for a coronation, which simply appeared, sat
+still and waited out its own animation. `EASE.glide` keeps moving the whole way
+and only eases at the very end.
+
+**A deck builds itself.** The deck is not there when the run opens. Then it
+arrives as itself — each landing with a thud, a puff of dust and a knock that
+climbs a little with every piece, and a whole-deck arrival landing **once**,
+at the end of its travel, instead of ringing a metronome seven times for a
+single object. When the last one seats, the surface light runs across it, the
+deck's signature detail fades up out of the material, and — if it has them —
+the bumper walls rise out of the ends. Every frame of it is drawn by
 the **same renderer that draws the finished deck**, in slices: `paintDock()`
 takes a slab, clips the paint to a horizontal slice and offsets it, so a build-up
 can never drift out of step with the real thing because it *is* the real thing.
@@ -543,9 +577,30 @@ can never drift out of step with the real thing because it *is* the real thing.
 stops being a halo and becomes a hot line down both cut edges, which is exactly
 what makes an assembly read as stripes instead of one deck.)
 
-**A pack arrives as its shapes.** The room runs up the pack's whole ladder in
-about a second, tier by tier, while the eight shapes fly in from alternating
-sides and line up across the middle; then they scatter and the room settles.
+**A pack arrives as its shapes — and each pack builds a different shape in
+space.** This was also one row of eight with five ways of sliding into it. A
+pack's idea *is* a ladder of some kind, so the arrival is that ladder being
+built in front of you, and the resting layout changes as much as the entry does:
+
+| Pack | The arrival |
+|---|---|
+| **Noir** | a flat row that arrives grey, then catches fire along its own length until the gold apex flares |
+| **Abyss** | a descent — each shape sinks to its own depth, so the row ends up a slope going down into the dark |
+| **Inferno** | a burning fuse: nothing exists ahead of the flame, and everything behind it is still glowing |
+| **Bloom** | a fan — they start stacked in one place and open outward into an arc (normalised so the ends of the fan land exactly where the ends of a plain row would, and it still fits a 390px phone) |
+| **Sovereign** | a stack being struck, **apex first**: the most valuable thing lands before anything else, hammered down onto the line |
+
+The room still runs up the pack's whole ladder underneath it, tier by tier,
+while it happens.
+
+**Two ways an arrival used to go missing.** The debut was spent the instant the
+reveal was *chosen* — so a run abandoned in its first second burned the one
+showing a deck or a pack ever gets. It is spent when the thing has finished
+arriving now; showing it twice because the tab reloaded mid-arrival is a far
+smaller failure than never showing it at all. And the pack parade was gated on
+the performance tier, so a whole class of device silently never saw one while
+still spending the debut on it — it is eight filled polygons and no particles,
+so it runs anywhere.
 
 **Then the name lands, and how hard it lands is what it cost.** Four grades on
 the same three elements, so the difference is choreography rather than clutter —
@@ -560,6 +615,75 @@ which is what makes the expensive one feel expensive:
 
 Play is refused while the thing is still arriving, and not a moment longer — the
 name card is only a look, so the deck is playable underneath it.
+
+### Nothing stands on its own corner
+
+A square falls, rolls, and comes to rest standing on one of its corners — a
+diamond balanced on a point, held there by nothing. It stays like that until
+something else touches it, and then it instantly topples, which is the tell: the
+pose was never stable, the solver had just stopped looking at it.
+
+Two things put a piece there. A rigid-body solver will happily find an exact
+equilibrium on a single contact point, because with the contact normal running
+through the centre of mass there is no torque to tip it; and Matter's sleeping
+then freezes that pose permanently, so the infinitesimal nudge that would topple
+it in the real world never arrives.
+
+So `Balance` delivers the nudge. Every settled piece is measured against the
+horizontal span of its own active contacts — that span **is** its base, and a
+piece whose base has collapsed to a point is standing on nothing. It gets a
+little angular velocity in the direction it is already leaning (dead centre, the
+perfect balance that started all this, is the one case with no answer, and there
+a coin toss is exactly right), and gravity finishes the job.
+
+What it must never do is tidy up the tower, and two things keep it honest. A
+block wedged against a neighbour, a plank bridging two others, a deliberate lean
+— all of those have contacts at two separated places and a wide base, so none of
+them qualifies. And Matter will sometimes report a *single* contact point for a
+face lying flat on the deck, so acting on the contact span alone would topple
+perfectly stable blocks; a second, purely geometric test asks the body's own
+vertices instead — a piece resting on a face has two at its lowest extent, a
+piece standing on a corner has one. Only a piece that fails **both** is ever
+touched. Measured: a square balanced on a point falls over 12 times out of 12,
+while a real dropped tower and a plank bridge drift **0px** and are never nudged.
+
+### What that block actually does
+
+Fourteen special blocks shipped with their own physics, their own payouts and
+their own skins, and nothing anywhere that said what any of them were. You could
+play for an hour without working out that the dice block re-rolls its own tier,
+or that a bomb never merges with anything.
+
+So the moment a special is announced in NEXT, it says what it is: one line, in
+the same column every other live notice uses, up early enough to plan around and
+gone before it is in the way. It never lands on top of the tour, an OVERFLOW, or
+a deck still arriving.
+
+The part that matters is that **"what it merges with" is drawn rather than
+written**. A sentence naming the partner tier makes the player learn a second
+vocabulary — the names — on top of the one they already read fluently, which is
+the shapes themselves. So the pill just shows the shape, at 14 pixels, using the
+same `drawDefIcon` the NEXT box and the aim ghost use: a wild card gets a little
+run of partners instead of one, and a block that never merges says so in words
+with no partner shape at all.
+
+### The meteor is on fire
+
+The ball was already right — a hot core falling off to a charred rim — so it is
+untouched. What is new is everything around it, and all of it hangs off one piece
+of state: the trail of positions the rock has actually occupied. Drawing the fire
+along the real path rather than straight back along the velocity is the
+difference between a rock burning through air and a rock wearing a cone.
+
+Three passes run that path — a wide dark-orange body, a narrower bright one and
+a thin white heart, each narrowing and cooling toward the tail, each segment
+guttering on its own clock. Two more run it offset *across* the axis by a
+travelling wave, so the silhouette ripples and tears. A bow shock stands just off
+the leading edge where the air is piling up; smoke drawn with the normal operator
+sits behind and under the fire, because a trail made only of additive light has
+no weight; molten cracks turn across the rock as it tumbles; and it sheds embers
+hard the whole way down. (The first attempt drew the flame licks as polylines and
+they read as wire — everything here is soft-edged now, with no stroke in it.)
 
 ### PAST THE CROWN — a trial, and something you are given
 
