@@ -1606,8 +1606,113 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   #menu-stats > span { padding: 11px 16px; }
 }
 </style>
+<style id="dev-css">
+/* ======================= OVERSTACK — DEV BUILD ===========================
+   The same game, byte for byte, with a window cut into the side of it. The
+   game is wrapped in #game-shell, which carries a transform — that makes it
+   the containing block for every `position: fixed` element inside it, so the
+   entire game lays out inside the left column without a single one of its own
+   rules being touched. window.innerWidth/innerHeight are shadowed to match, so
+   the canvas measures the shell rather than the window. */
+html, body { overflow: hidden; }
+#game-shell {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  right: var(--devw, 480px);
+  transform: translateZ(0);            /* containing block for fixed children */
+  overflow: hidden;
+  background: #0b0b0f;
+}
+body.dev-collapsed #game-shell { right: 34px; }
+
+#dev {
+  position: fixed; top: 0; right: 0; bottom: 0; width: var(--devw, 480px);
+  display: flex; flex-direction: column;
+  background: #0d0e13; color: #cfd4e4; z-index: 9999;
+  border-left: 1px solid #262a38;
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  user-select: none;
+}
+body.dev-collapsed #dev { width: 34px; }
+body.dev-collapsed #dev > :not(#dev-bar) { display: none; }
+body.dev-collapsed #dev-bar { flex-direction: column; gap: 10px; padding: 8px 0; }
+body.dev-collapsed #dev-title, body.dev-collapsed #dev-fps { display: none; }
+
+#dev-bar {
+  display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+  background: #12141c; border-bottom: 1px solid #262a38; flex: 0 0 auto;
+}
+#dev-title { font-weight: 700; letter-spacing: 0.13em; color: #7fe9ff; font-size: 10px; }
+#dev-fps { margin-left: auto; color: #6f7686; }
+#dev-collapse {
+  background: #1d2130; color: #cfd4e4; border: 1px solid #2e3446; border-radius: 4px;
+  cursor: pointer; padding: 2px 7px; font: inherit;
+}
+#dev-tabs { display: flex; flex: 0 0 auto; background: #12141c; border-bottom: 1px solid #262a38; }
+#dev-tabs button {
+  flex: 1; background: none; border: 0; border-bottom: 2px solid transparent;
+  color: #6f7686; padding: 8px 4px; cursor: pointer; font: inherit;
+  letter-spacing: 0.1em; font-weight: 700;
+}
+#dev-tabs button.on { color: #7fe9ff; border-bottom-color: #7fe9ff; background: #171a24; }
+.dev-pane { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 0 0 40px; }
+.dev-pane.off { display: none; }
+.dev-pane::-webkit-scrollbar { width: 9px; }
+.dev-pane::-webkit-scrollbar-thumb { background: #2a3044; border-radius: 5px; }
+
+.dg { border-bottom: 1px solid #1c2030; }
+.dg > h4 {
+  margin: 0; padding: 7px 10px; background: #161925; color: #ffd700;
+  font-size: 10px; letter-spacing: 0.13em; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+}
+.dg > h4 .caret { color: #4a5268; font-size: 9px; }
+.dg > .note { padding: 5px 10px 2px; color: #5f6678; font-size: 10px; font-style: italic; }
+.dg > .body { padding: 4px 10px 9px; }
+.dg.shut > .body, .dg.shut > .note { display: none; }
+
+.r { display: flex; align-items: center; gap: 8px; padding: 1.5px 0; min-height: 18px; }
+.r .k { flex: 1 1 auto; color: #8a93a8; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.r .v { flex: 0 0 auto; color: #eaeefb; font-variant-numeric: tabular-nums; }
+.r .v.hot { color: #7fe9ff; }
+.r .v.warn { color: #ffb454; }
+.r .v.bad { color: #ff7b95; }
+.r input[type=number], .r input[type=text], .r select {
+  flex: 0 0 96px; background: #171b27; color: #eaeefb; border: 1px solid #2b3145;
+  border-radius: 3px; padding: 2px 5px; font: inherit; text-align: right;
+}
+.r select { text-align: left; flex-basis: 128px; }
+.r input:focus, .r select:focus { outline: 1px solid #7fe9ff; border-color: #7fe9ff; }
+.r input[type=checkbox] { accent-color: #7fe9ff; }
+.r .k.sub { padding-left: 12px; color: #6a7286; }
+
+.btns { display: flex; flex-wrap: wrap; gap: 5px; padding: 4px 0 2px; }
+.btns button {
+  background: #1d2130; color: #cfd4e4; border: 1px solid #2e3446; border-radius: 4px;
+  padding: 4px 9px; cursor: pointer; font: inherit;
+}
+.btns button:hover { background: #262c3e; border-color: #3d4560; color: #fff; }
+.btns button.go { border-color: #2f6b52; color: #9df0c4; }
+.btns button.go:hover { background: #1b3529; }
+.btns button.hot { border-color: #6b4a2f; color: #ffcf8a; }
+.btns button.hot:hover { background: #35271b; }
+.btns button.on { background: #17323c; border-color: #7fe9ff; color: #b6f2ff; }
+.btns button.wide { flex: 1 1 100%; }
+
+.btns.skins button.skin { display: flex; align-items: center; gap: 5px; padding: 3px 7px 3px 4px; }
+.btns.skins button.skin canvas { display: block; }
+
+#dev-log { padding: 0 10px 10px; }
+#dev-log .e { display: flex; gap: 7px; padding: 1px 0; border-bottom: 1px solid #141723; }
+#dev-log .e .t { color: #4a5268; flex: 0 0 52px; }
+#dev-log .e .n { color: #9df0c4; flex: 0 0 auto; }
+#dev-log .e .n.bus { color: #c3a6ff; }
+#dev-log .e .p { color: #6f7686; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dev-empty { color: #4a5268; padding: 6px 0; }
+</style>
+
 </head>
-<body>
+<body class="devmode">
+<div id="game-shell">
 <canvas id="game"></canvas>
 <div id="flash"></div>
 <div id="chase-vignette"></div>
@@ -1770,6 +1875,21 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
     <button id="btn-ad-skip" class="btn btn-ghost">Cancel (forfeit reward)</button>
   </div>
 </div>
+</div>
+<div id="dev">
+  <div id="dev-bar">
+    <button id="dev-collapse" title="Collapse / expand the panel">&#9654;</button>
+    <span id="dev-title">OVERSTACK DEV</span>
+    <span id="dev-fps">—</span>
+  </div>
+  <div id="dev-tabs">
+    <button data-tab="core" class="on">CORE ENGINE</button>
+    <button data-tab="test">TESTING</button>
+  </div>
+  <div id="dev-core" class="dev-pane"></div>
+  <div id="dev-test" class="dev-pane off"></div>
+</div>
+
 <script>
 /*!
  * matter-js 0.20.0 by @liabru
@@ -9720,6 +9840,620 @@ window.__shake = Shake;
 Object.defineProperty(window, '__perfTier', { get: () => perf.tier });
 window.__drawDefIcon = drawDefIcon;   // debug handle: the NEXT-box icon, on any canvas
 window.__tierColors = themePalette();
+/* ==================== §99 THE DEV PANEL (dev.html only) ===================
+   This block exists ONLY in overstack/dev.html. The game above it is the
+   shipping game, character for character — this is appended inside the same
+   IIFE so it can reach every module directly, and it never calls into the game
+   except through the same entry points the game uses on itself.
+
+   Two tabs, because there are two different questions a developer asks:
+
+     CORE ENGINE   what is the machine measuring about this player, what has it
+                   concluded, and what is it doing about it — live, and editable,
+                   so you can set a state and watch the game react to it
+     TESTING       make anything happen on demand
+
+   Nothing here is load-bearing. Deleting this whole block leaves the game. */
+(function devPanel() {
+  const D = (id) => document.getElementById(id);
+  const el = (tag, cls, txt) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt != null) n.textContent = txt;
+    return n;
+  };
+  const n1 = (v) => (typeof v === 'number' ? (Math.abs(v) >= 1000 ? Math.round(v).toLocaleString() : +v.toFixed(3)) : v);
+  const pc = (v) => (v == null ? '—' : (v * 100).toFixed(0) + '%');
+  const ms = (v) => (v == null ? '—' : v <= 0 ? '0.0s' : (v / 1000).toFixed(1) + 's');
+  const yn = (v) => (v ? 'YES' : 'no');
+
+  /* ---------- the shell: the game lays out inside the left column --------- */
+  const shell = D('game-shell');
+  const panel = D('dev');
+  /* Telling the game its new size means firing a resize event at it — and the
+     game's own handler re-sizes the canvas, which CLEARS the backing store.
+     So this must fire exactly once per real size change: a version that
+     re-entered on its own synthetic event cleared the canvas after every
+     render, and the game ran perfectly while drawing to nothing at all. */
+  let lastW = -1, lastH = -1, syncing = false;
+  function sizeGame() {
+    const w = shell.clientWidth, h = shell.clientHeight;
+    if (w === lastW && h === lastH) return;
+    lastW = w; lastH = h;
+    try {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, get: () => w });
+      Object.defineProperty(window, 'innerHeight', { configurable: true, get: () => h });
+    } catch (e) { /* older engine: the game just uses the real window */ }
+    syncing = true;
+    window.dispatchEvent(new Event('resize'));
+    syncing = false;
+  }
+
+  /* ---------- a tiny declarative row builder ------------------------------
+     Every row is one of: a readout, a readout with an editable value, a
+     dropdown, a checkbox, or a strip of buttons. Readouts re-poll on a timer;
+     inputs write straight back into the live object, which is the whole point
+     of the CORE tab — set a state, watch the machine react. */
+  const live = [];                          // [{node, get, cls}] re-read each tick
+
+  function row(parent, label, opts = {}) {
+    const r = el('div', 'r');
+    r.appendChild(el('span', 'k' + (opts.sub ? ' sub' : ''), label));
+    if (opts.set && opts.options) {
+      const sel = el('select');
+      for (const o of opts.options) {
+        const op = el('option', null, String(o));
+        op.value = String(o);
+        sel.appendChild(op);
+      }
+      sel.onchange = () => opts.set(sel.value);
+      live.push({ node: sel, get: opts.get, apply: (v) => { if (document.activeElement !== sel) sel.value = String(v); } });
+      r.appendChild(sel);
+    } else if (opts.set && opts.bool) {
+      const cb = el('input');
+      cb.type = 'checkbox';
+      cb.onchange = () => opts.set(cb.checked);
+      live.push({ node: cb, get: opts.get, apply: (v) => { if (document.activeElement !== cb) cb.checked = !!v; } });
+      r.appendChild(cb);
+    } else if (opts.set) {
+      const inp = el('input');
+      inp.type = 'number';
+      if (opts.step != null) inp.step = opts.step;
+      const push = () => { const v = parseFloat(inp.value); if (!Number.isNaN(v)) opts.set(v); };
+      inp.onchange = push;
+      inp.onkeydown = (e) => { if (e.key === 'Enter') { push(); inp.blur(); } };
+      live.push({ node: inp, get: opts.get, apply: (v) => { if (document.activeElement !== inp) inp.value = typeof v === 'number' ? +v.toFixed(4) : v; } });
+      r.appendChild(inp);
+    } else {
+      const v = el('span', 'v');
+      live.push({ node: v, get: opts.get, fmt: opts.fmt, cls: opts.cls,
+        apply: (val) => { v.textContent = opts.fmt ? opts.fmt(val) : n1(val); if (opts.cls) v.className = 'v ' + opts.cls(val); } });
+      r.appendChild(v);
+    }
+    parent.appendChild(r);
+    return r;
+  }
+
+  function group(pane, title, note) {
+    const g = el('div', 'dg');
+    const h = el('h4');
+    const caret = el('span', 'caret', '▼');
+    h.appendChild(caret);
+    h.appendChild(el('span', null, title));
+    h.onclick = () => { g.classList.toggle('shut'); caret.textContent = g.classList.contains('shut') ? '▶' : '▼'; };
+    g.appendChild(h);
+    if (note) g.appendChild(el('div', 'note', note));
+    const body = el('div', 'body');
+    g.appendChild(body);
+    pane.appendChild(g);
+    return body;
+  }
+
+  function buttons(parent, defs) {
+    const bar = el('div', 'btns');
+    for (const [label, fn, cls] of defs) {
+      const b = el('button', cls || null, label);
+      b.onclick = () => { try { fn(b); } catch (e) { console.error('[dev]', e); flash(b, '#ff7b95'); } };
+      bar.appendChild(b);
+    }
+    parent.appendChild(bar);
+    return bar;
+  }
+  function flash(b, col) {
+    const old = b.style.borderColor;
+    b.style.borderColor = col || '#9df0c4';
+    setTimeout(() => { b.style.borderColor = old; }, 260);
+  }
+
+  /* ====================================================================== */
+  /*  TAB 1 — CORE ENGINE                                                    */
+  /* ====================================================================== */
+  function buildCore(pane) {
+    // ---------------------------------------------------- the run, right now
+    let b = group(pane, 'THIS RUN', 'What the game is doing this instant.');
+    row(b, 'state', { get: () => Game.state, cls: (v) => (v === 'RESULTS' ? 'bad' : 'hot') });
+    row(b, 'coins this run', { get: () => Game.runCoins });
+    row(b, 'shown on screen', { get: () => Math.round(Game.displayCoins) });
+    row(b, 'GREED multiplier', { get: () => Greed.value, fmt: (v) => '×' + v.toFixed(2), cls: (v) => (v > 2 ? 'warn' : '') });
+    row(b, 'pieces on the deck', { get: () => Stack.pieces().length });
+    row(b, 'stability', { get: () => Stack.stability(), fmt: pc, cls: (v) => (v < 0.4 ? 'bad' : v < 0.65 ? 'warn' : '') });
+    row(b, 'past saving (doomed)', { get: () => Stack.isDoomed(), fmt: yn, cls: (v) => (v ? 'bad' : '') });
+    row(b, 'drops this run', { get: () => Game.droppedCount });
+    row(b, 'fusions this run', { get: () => Game.fusionsThisRun });
+    row(b, 'best tier reached', { get: () => Game.maxTierThisRun, fmt: (v) => v + ' · ' + TIERS.names[v] });
+    row(b, 'chain / combo', { get: () => Game.chainCount + ' / ' + Game.comboIdx });
+    row(b, 'spam heat', { get: () => Game.spamHeat, fmt: (v) => v.toFixed(2), cls: (v) => (v > 0.4 ? 'warn' : '') });
+    row(b, 'revives used', { get: () => Game.revivesUsedThisRun });
+
+    // ------------------------------------------------------ the flow director
+    b = group(pane, 'FLOW DIRECTOR — how hard the game is being',
+      'flowScore is computed every roll from the player model below. The band it lands in picks the weights that decide what shape comes next. Edit the score to force a band and watch the queue change.');
+    row(b, 'flow score  · recomputed every roll', { get: () => Director.flowScore, fmt: (v) => v.toFixed(3) });
+    row(b, 'band', { get: () => Director.flowBand + (bandPin ? '  (PINNED)' : ''), cls: (v) => (/STRUGGLING/.test(v) ? 'bad' : /BORED/.test(v) ? 'warn' : 'hot') });
+    row(b, 'hold it in a band', { get: () => bandPin || 'off', set: (v) => { bandPin = v === 'off' ? '' : v; Director.band(); },
+      options: ['off', 'STRUGGLING', 'LOW', 'TARGET', 'HIGH', 'BORED'] });
+    row(b, 'seconds in this band', { get: () => (now() - Director.bandEnteredAt) / 1000, fmt: (v) => v.toFixed(0) + 's' });
+    const th = () => { let t = SessionArc.thresholds(); if (Churn.active && Churn.active.difficultyOverride) t = { ...t, ...Churn.active.difficultyOverride }; return t; };
+    row(b, 'thresholds', { sub: true, get: () => { const t = th(); return [t.struggling, t.low, t.target, t.high ?? 0.85].map((x) => x.toFixed(2)).join(' / '); } });
+    row(b, 'weights forced by phase', { get: () => (SessionArc.phase === 'HOOK' ? 'YES — HOOK ignores the band' : 'no'),
+      cls: (v) => (v === 'no' ? '' : 'warn') });
+    const W = () => Director.weights();
+    row(b, 'guaranteed fusable', { sub: true, get: () => W().guaranteedFusable, fmt: yn, cls: (v) => (v ? 'hot' : '') });
+    row(b, 'fusable bias', { sub: true, get: () => W().fusableBias || 0, fmt: (v) => v.toFixed(2) });
+    row(b, 'odd-shape chance', { sub: true, get: () => W().oddShapeChance || 0, fmt: pc });
+    row(b, 'size variance', { sub: true, get: () => W().sizeVariance || 0, fmt: (v) => v.toFixed(2) });
+    row(b, 'friction / restitution', { sub: true, get: () => { const w = W(); return (w.friction ?? 0.85).toFixed(2) + ' / ' + (w.restitution ?? 0.04).toFixed(2); } });
+    row(b, 'pressure · wealth', { sub: true, get: () => Director.pressure().wealth, fmt: (v) => v.toFixed(2) });
+    row(b, 'pressure · spam', { sub: true, get: () => Director.pressure().spam, fmt: (v) => v.toFixed(2) });
+    row(b, 'pressure · total', { sub: true, get: () => Director.pressure().total, fmt: (v) => v.toFixed(2), cls: (v) => (v > 0.5 ? 'warn' : '') });
+
+    // ------------------------------------------------------- the player model
+    b = group(pane, 'PLAYER MODEL — what it measures about you',
+      'Every one of these is an exponential moving average sampled during play. They are the only inputs to flowScore. All editable.');
+    const psv = [
+      ['fusion rate', 'fusionRateEMA', 'fuses per drop'],
+      ['stability', 'stabilityEMA', 'how steady the tower is kept'],
+      ['collapse streak', 'collapseStreakCount', 'runs lost back to back'],
+      ['decision latency', 'decisionLatencyEMA', 'ms spent choosing'],
+      ['└ baseline', 'decisionLatencyBaseline', 'what is normal for this player'],
+      ['drop precision', 'dropPrecisionEMA', 'px from where they aimed'],
+      ['input jitter', 'inputJitter', 'how shaky the aim is'],
+      ['session pace', 'sessionPaceEMA', 'runs per minute'],
+      ['└ baseline', 'sessionPaceBaseline', ''],
+      ['runs this session', 'runsThisSession', ''],
+    ];
+    for (const [label, key, hint] of psv) {
+      row(b, label + (hint ? '  · ' + hint : ''), { get: () => PSV[key], set: (v) => { PSV[key] = v; }, step: 0.05, sub: label.startsWith('└') });
+    }
+
+    // ------------------------------------------------------------ the profile
+    b = group(pane, 'PLAYER PROFILE — what it has decided you are',
+      'Derived from how you actually play: banking early vs pushing on, chasing the board, buying, causing chaos.');
+    row(b, 'risk tolerance', { get: () => Profile.riskTolerance, fmt: (v) => v.toFixed(2) + (v > 0.7 ? '  (gambler)' : v < 0.35 ? '  (banker)' : '') });
+    row(b, 'inferred goal', { get: () => Profile.goal, cls: () => 'hot' });
+    row(b, 'style title', { get: () => Profile.styleTitle });
+    for (const k of Object.keys(Profile)) {
+      if (typeof Profile[k] === 'number' && !['riskTolerance'].includes(k)) {
+        row(b, k, { sub: true, get: () => Profile[k], set: (v) => { Profile[k] = v; }, step: 1 });
+      }
+    }
+
+    // -------------------------------------------------------- session + churn
+    b = group(pane, 'SESSION ARC — where you are in this sitting',
+      'HOOK makes the opening runs kind; the later phases loosen off. A retention save is the one-time rescue when a session is going badly.');
+    row(b, 'phase', { get: () => SessionArc.phase, cls: () => 'hot' });
+    row(b, 'retention save fired', { get: () => SessionArc.retentionSaveFired, fmt: yn, set: (v) => { SessionArc.retentionSaveFired = v; }, bool: true });
+    row(b, 'runs this session', { get: () => PSV.runsThisSession, set: (v) => { PSV.runsThisSession = v; }, step: 1 });
+    row(b, 'session length', { get: () => Date.now() - PSV.sessionStartTimestamp, fmt: ms });
+
+    b = group(pane, 'CHURN WATCH — is this player about to leave',
+      'Evaluated at the end of every run. When it fires it can soften difficulty, queue a gift, or widen what counts as a near miss.');
+    row(b, 'intervention active', { get: () => (Churn.active ? (Churn.active.id || 'yes') : 'none'), cls: (v) => (v === 'none' ? '' : 'warn') });
+    row(b, 'difficulty override', { sub: true, get: () => (Churn.active && Churn.active.difficultyOverride ? JSON.stringify(Churn.active.difficultyOverride) : '—') });
+    row(b, 'gift queued for next piece', { get: () => Churn.giftPending, fmt: yn, set: (v) => { Churn.giftPending = v; }, bool: true });
+    row(b, 'near-miss threshold', { get: () => Churn.nearMissThreshold, fmt: pc });
+
+    b = group(pane, 'ADS', 'When the game is allowed to interrupt.');
+    row(b, 'interstitials this session', { get: () => AdManager.interstitialsShownThisSession, set: (v) => { AdManager.interstitialsShownThisSession = v; }, step: 1 });
+    row(b, 'since last interstitial', { get: () => (AdManager.lastInterstitialTimestamp ? Date.now() - AdManager.lastInterstitialTimestamp : 0), fmt: ms });
+    row(b, 'consecutive "drop again"', { get: () => AdManager.consecutiveDropAgains, set: (v) => { AdManager.consecutiveDropAgains = v; }, step: 1 });
+    row(b, 'would show one now', { get: () => AdManager.canShowInterstitial(), fmt: yn, cls: (v) => (v ? 'warn' : '') });
+
+    // ------------------------------------------------------- what you're wearing
+    b = group(pane, 'EQUIPPED — what the deck and pack are actually doing',
+      'Every one of these is read live by the physics and the economy. They are getters, so they follow whatever is equipped.');
+    row(b, 'deck', { get: () => save.equipped.dock });
+    row(b, 'pack', { get: () => save.equipped.theme });
+    const ECO = ['dockLengthMult', 'edgeForgiveness', 'dockSlowFall', 'greedRate', 'salvageMult', 'dockWalls', 'trial', 'comboWindowMs', 'coinMult', 'greedStart', 'goldenBias', 'packBonus'];
+    // a couple of these are objects (a pack's bonus is a bag of perks), so the
+    // formatter has to say what is in them rather than "[object Object]"
+    const showVal = (v) => {
+      if (v == null) return '—';
+      if (typeof v === 'number') return String(+v.toFixed(3));
+      if (typeof v === 'object') {
+        const e = Object.entries(v).map(([k2, v2]) => k2 + ' ' + (typeof v2 === 'number' ? +v2.toFixed(2) : v2));
+        return e.length ? e.join('  ') : '{}';
+      }
+      return String(v);
+    };
+    for (const k of ECO) row(b, k, { sub: true, get: () => Economy[k], fmt: showVal });
+    row(b, 'superpowers', { get: () => (save.powers && save.powers.length ? save.powers.map((p) => p.replace('power_', '')).join(', ') : 'none') });
+
+    // ------------------------------------------------------- the world events
+    b = group(pane, 'EVENT DIRECTOR — what the world is about to do',
+      'Every 45–75s it fires: either a live world event or an injected special block. The weights below are the block table, tilted by risk tolerance and by what you say you are playing for.');
+    row(b, 'next event in', { get: () => EventDirector.nextAt - now(), fmt: ms, cls: (v) => (v < 3000 ? 'warn' : '') });
+    row(b, 'grace (nothing can kill you)', { get: () => Math.max(0, EventDirector.graceUntil - now()), fmt: ms, cls: (v) => (v > 0 ? 'hot' : '') });
+    row(b, 'curse', { get: () => (EventDirector.curse ? EventDirector.curse.type : 'none'), cls: (v) => (v === 'none' ? '' : 'bad') });
+    row(b, 'black hole', { get: () => (EventDirector.blackhole ? EventDirector.blackhole.eaten + '/' + EventDirector.blackhole.max + ' eaten' : 'none') });
+    row(b, 'meteor', { get: () => (EventDirector.meteor ? 'falling' : 'none') });
+    row(b, 'wind', { get: () => (EventDirector.wind ? 'gusting · ' + (EventDirector.wind.drops || 0) + '/' + CONFIG.events.windDrops + ' landed' : 'none') });
+    row(b, 'huge-block charges', { get: () => EventDirector.hugeCharges, set: (v) => { EventDirector.hugeCharges = v; }, step: 1 });
+    row(b, 'block weights', { get: () => { const w = EventDirector.blockWeights(); const t = Object.values(w).reduce((a, c) => a + c, 0); return Object.entries(w).sort((x, y) => y[1] - x[1]).slice(0, 4).map(([k, v]) => k + ' ' + Math.round(v / t * 100) + '%').join('  '); } });
+
+    // ---------------------------------------------------------------- the save
+    b = group(pane, 'THE SAVE — everything kept between sessions');
+    const SAVEK = ['coins', 'lifetimeBanked', 'best', 'runsTotal', 'streakDays', 'crownRuns', 'tutorialRuns'];
+    for (const k of SAVEK) row(b, k, { get: () => save[k], set: (v) => { save[k] = v; }, step: 1 });
+    row(b, 'tutorial done', { get: () => save.tutorialDone, fmt: yn, set: (v) => { save.tutorialDone = v; }, bool: true });
+    row(b, 'owned', { get: () => (save.owned || []).length + ' items' });
+    row(b, 'debuted (arrival seen)', { get: () => (save.debuted || []).join(', ') || 'none' });
+
+    // ------------------------------------------------------------- the log
+    b = group(pane, 'EVENT LOG — everything the machine fires',
+      'Both streams: trackEvent (analytics, green) and the FeedbackBus (audio / haptics / visuals, violet). Newest first.');
+    const log = el('div');
+    log.id = 'dev-log';
+    b.appendChild(log);
+    buttons(b, [['clear', () => { busLog.length = 0; seenTrack = (window.__overstackEvents || []).length; renderLog(); }]]);
+  }
+
+  /* ---------------- the two event streams, merged and tailed -------------- */
+  const busLog = [];
+  let seenTrack = 0;
+  const origEmit = FeedbackBus.emit.bind(FeedbackBus);
+  FeedbackBus.emit = function (name, payload) {
+    busLog.push({ t: Date.now(), name, payload, bus: true });
+    if (busLog.length > 200) busLog.shift();
+    return origEmit(name, payload);
+  };
+  function renderLog() {
+    const host = D('dev-log');
+    if (!host) return;
+    const track = (window.__overstackEvents || []).slice(-120).map((e) => ({ t: e.t, name: e.name, payload: e, bus: false }));
+    const all = track.concat(busLog).sort((a, c) => c.t - a.t).slice(0, 60);
+    host.textContent = '';
+    if (!all.length) { host.appendChild(el('div', 'dev-empty', 'nothing yet — play a little')); return; }
+    const t0 = Date.now();
+    for (const e of all) {
+      const r = el('div', 'e');
+      r.appendChild(el('span', 't', '-' + ((t0 - e.t) / 1000).toFixed(1) + 's'));
+      r.appendChild(el('span', 'n' + (e.bus ? ' bus' : ''), e.name));
+      let p = '';
+      try {
+        const o = { ...e.payload };
+        delete o.t; delete o.name;
+        p = Object.entries(o).map(([k, v]) => k + '=' + (typeof v === 'number' ? +v.toFixed(2) : v)).join(' ');
+      } catch (err) { p = ''; }
+      r.appendChild(el('span', 'p', p));
+      host.appendChild(r);
+    }
+  }
+
+  /* ====================================================================== */
+  /*  TAB 2 — TESTING                                                        */
+  /* ====================================================================== */
+  let godMode = false;
+  /* Fusions frozen. A board laid out to be LOOKED at — every special, one of
+     each tier — merges itself into two pieces before you can read it, because
+     matching shapes touching is the entire game. The inspection templates turn
+     this on for you; it is a visible switch so it is never a mystery why
+     nothing is merging. */
+  let noFuse = false;
+  const realCanFuse = Stack.canFuse.bind(Stack);
+  Stack.canFuse = function (a, b) { return noFuse ? false : realCanFuse(a, b); };
+  const realCollapse = Game.collapse.bind(Game);
+  Game.collapse = function (culprit) {
+    if (godMode) { Stack.wakeAll(); return; }
+    return realCollapse(culprit);
+  };
+
+  /* Director.band() recomputes flowScore from the player model on every roll,
+     so typing a score into the panel is gone again a moment later. To actually
+     hold the game in a band you have to hold the band, which is what this does
+     — and it reports itself in the readout so nobody is fooled into thinking
+     the machine got there on its own. */
+  let bandPin = '';
+  const realBand = Director.band.bind(Director);
+  Director.band = function () {
+    const b = realBand();
+    if (!bandPin) return b;
+    if (Director.flowBand !== bandPin) { Director.flowBand = bandPin; Director.bandEnteredAt = now(); }
+    return bandPin;
+  };
+
+  function ensureRun() {
+    if (!Game.inPlay()) { save.tutorialDone = true; Game.startRun(); return true; }
+    return false;
+  }
+  function clearDeck() { Stack.clearPieces(); Game.droppedCount = 0; }
+  // the usable half-width of the deck that is actually equipped, so a template
+  // never lays pieces down past the edge of a short one and loses them
+  const hw = () => (Stack.platform ? Stack.platform.plugin.halfW : 130);
+  const fit = (i, n, r) => { const room = Math.max(10, hw() - r); return n < 2 ? 0 : -room + (i / (n - 1)) * room * 2; };
+  /* Templates are LAID, not placed. Spawning a dozen bodies into the same
+     instant puts them inside one another, and the solver answers by throwing
+     half of them off the deck — which is how the first version of "tall tower"
+     reliably produced six pieces. Each one is dropped from just above whatever
+     is already there and given a moment, so what you get is a board the physics
+     actually agreed to. */
+  let layT = 0;
+  function lay(defs, gap = 110) {
+    clearTimeout(layT);
+    let i = 0;
+    const step = () => {
+      if (i >= defs.length) return;
+      const d = defs[i++];
+      const r = TIERS.radii[d.tier] * (d.rScale || 1) * ((SPECIALS[d.special] || {}).sizeMult || 1);
+      const x = WORLD.width / 2 + d.dx;
+      const top = Stack.crestY ? Stack.crestY(x) : WORLD.platformY;
+      const p = Stack.spawnPiece({ tier: d.tier, kind: d.kind || 'poly', rScale: d.rScale || 1, special: d.special || null },
+        x, top - r - 26);
+      Body.setVelocity(p, { x: 0, y: 0 });
+      layT = setTimeout(step, gap);
+    };
+    step();
+  }
+  // place a piece by its CENTRE, in world coordinates, resting on the deck
+  function put(tier, dx, up, opts = {}) {
+    const p = Stack.spawnPiece(Object.assign({ tier, kind: 'poly', rScale: 1, special: null }, opts),
+      WORLD.width / 2 + dx, WORLD.platformY - up);
+    Body.setVelocity(p, { x: 0, y: 0 });
+    return p;
+  }
+
+  function buildTest(pane) {
+    // ------------------------------------------------------------ next piece
+    let b = group(pane, 'WHAT DROPS NEXT',
+      'Rewrites the queue in place. The NEXT box re-reads it immediately, so what you see is what you get.');
+    const nx = { tier: 2, kind: 'poly', special: '', rScale: 1 };
+    row(b, 'tier', { get: () => nx.tier, set: (v) => { nx.tier = Math.round(v); }, step: 1 });
+    row(b, 'special', { get: () => nx.special, set: (v) => { nx.special = v; },
+      options: [''].concat(Object.keys(SPECIALS)) });
+    row(b, 'shape', { get: () => nx.kind, set: (v) => { nx.kind = v; }, options: ['poly', 'plank'] });
+    row(b, 'size ×', { get: () => nx.rScale, set: (v) => { nx.rScale = v; }, step: 0.1 });
+    const applyNext = (slot) => {
+      const def = { tier: clamp(nx.tier, 1, TIERS.count), kind: nx.kind, rScale: nx.rScale,
+        special: nx.special || null, friction: 0.95, restitution: 0.02 };
+      Director.queue[slot] = def;
+      UI.renderNextPreview();
+    };
+    buttons(b, [
+      ['set THIS piece', () => applyNext(0), 'go'],
+      ['set NEXT piece', () => applyNext(1), 'go'],
+      ['both', () => { applyNext(0); applyNext(1); }, 'go'],
+    ]);
+    buttons(b, [['announce it (Surprise)', () => { if (nx.special) { Surprise.force(nx.special); FeedbackBus.emit('surprise', { type: nx.special }); } }, 'hot']]);
+    /* One button per special, each wearing its own skin. The board cannot be
+       used as a gallery — a bomb goes off, a chest opens, a split shatters, and
+       five of them vanish rather than fall — so the catalogue lives here, drawn
+       by the same renderer the NEXT box uses. One click queues it. */
+    const sbar = el('div', 'btns skins');
+    for (const k of Object.keys(SPECIALS)) {
+      const btn = el('button', 'skin');
+      const c = document.createElement('canvas');
+      const px = 26, dpr = Math.min(window.devicePixelRatio || 1, 3);
+      c.width = px * dpr; c.height = px * dpr;
+      c.style.width = px + 'px'; c.style.height = px + 'px';
+      const cx = c.getContext('2d');
+      cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawDefIcon(cx, { tier: 3, kind: 'poly', rScale: 1, special: k }, px / 2, px / 2,
+        (px / 2 - 1) / (PREVIEW_OVERSHOOT[k] || 1), now());
+      btn.appendChild(c);
+      btn.appendChild(el('span', null, SPECIALS[k].label.replace(' BLOCK', '')));
+      btn.title = SPECIALS[k].hint || '';
+      btn.onclick = () => { nx.special = k; applyNext(1); flash(btn); };
+      sbar.appendChild(btn);
+    }
+    b.appendChild(sbar);
+
+    // --------------------------------------------------------- world events
+    b = group(pane, 'WORLD EVENTS', 'Fired exactly the way the Event Director fires them.');
+    buttons(b, [
+      ['meteor', () => { ensureRun(); EventDirector.startMeteor(); }],
+      ['black hole', () => { ensureRun(); EventDirector.startBlackhole(); }],
+      ['wind', () => { ensureRun(); EventDirector.startWind(); }],
+      ['curse (random)', () => { ensureRun(); EventDirector.startCurse(); }],
+      ['jackpot block', () => { ensureRun(); Surprise.force('jackpot'); FeedbackBus.emit('surprise', { type: 'jackpot' }); }, 'hot'],
+      ['roll an event now', () => { ensureRun(); EventDirector.fire(); }, 'go'],
+      ['clear everything', () => { EventDirector.clearCurse(); EventDirector.endWind(); EventDirector.blackhole = null; EventDirector.meteor = null; }],
+    ]);
+    row(b, 'hold events off', { get: () => EventDirector.nextAt - now() > 3.6e6, fmt: yn,
+      set: (v) => { EventDirector.nextAt = v ? now() + 3.6e6 : now() + 3000; }, bool: true });
+
+    // ------------------------------------------------------------ set pieces
+    b = group(pane, 'SET PIECES', 'The big scripted moments, on demand.');
+    buttons(b, [
+      ['THE OVERFLOW', () => {
+        ensureRun(); clearDeck();
+        Game.runCoins = Math.max(Game.runCoins, 12000); Game.displayCoins = Game.runCoins; Game.droppedCount = 3;
+        const a = put(TIERS.count, -58, 90), c = put(TIERS.count, 58, 90);
+        setTimeout(() => { if (!Overflow.active) Overflow.start(a, c); }, 60);
+      }, 'hot'],
+      ['AUREX strain (far apart)', () => {
+        ensureRun(); clearDeck();
+        put(TIERS.count, -150, 90); put(TIERS.count, 150, 90);
+      }],
+      ['phase block on a pile', () => {
+        ensureRun(); clearDeck();
+        for (let i = 0; i < 6; i++) put(1, (i % 3 - 1) * 44, 40 + i * 28);
+        setTimeout(() => put(6, -60, 300, { special: 'teleport' }), 900);
+      }],
+      ['revive screen', () => { Game.collapse(Stack.pieces()[0] || null); }],
+    ]);
+    const deckSel = el('select');
+    for (const k of Object.keys(DOCKS)) { const o = el('option', null, k); o.value = k; deckSel.appendChild(o); }
+    const packSel = el('select');
+    for (const k of Object.keys(THEMES)) { const o = el('option', null, k); o.value = k; packSel.appendChild(o); }
+    const rr = el('div', 'r'); rr.appendChild(el('span', 'k', 'replay an arrival')); rr.appendChild(deckSel); rr.appendChild(packSel);
+    b.appendChild(rr);
+    buttons(b, [
+      ['show deck arrival', () => {
+        save.owned = (save.owned || []).concat(['dock_' + deckSel.value]);
+        save.equipped.dock = deckSel.value;
+        save.debuted = (save.debuted || []).filter((x) => x !== 'dock_' + deckSel.value);
+        Reveal.stop(); Game.startRun();
+      }, 'go'],
+      ['show pack arrival', () => {
+        save.owned = (save.owned || []).concat(['theme_' + packSel.value]);
+        save.equipped.theme = packSel.value;
+        save.debuted = (save.debuted || []).filter((x) => x !== 'theme_' + packSel.value);
+        // a deck still owing an arrival would win the race, so settle that first
+        save.debuted = (save.debuted || []).concat(['dock_' + save.equipped.dock]);
+        Reveal.stop(); Game.startRun();
+      }, 'go'],
+      ['equip without the show', () => {
+        save.equipped.dock = deckSel.value; save.equipped.theme = packSel.value;
+        save.debuted = (save.debuted || []).concat(['dock_' + deckSel.value, 'theme_' + packSel.value]);
+        Reveal.stop(); Game.startRun();
+      }],
+    ]);
+
+    // ---------------------------------------------------------------- money
+    b = group(pane, 'MONEY', 'Run coins are what BANK would pay; the vault is what the shop spends.');
+    buttons(b, [
+      ['+1k run', () => { Game.runCoins += 1000; }],
+      ['+10k run', () => { Game.runCoins += 10000; }],
+      ['+100k run', () => { Game.runCoins += 100000; }],
+      ['bank it', () => { if (Game.inPlay()) Game.bank(); }, 'go'],
+    ]);
+    buttons(b, [
+      ['+100k vault', () => { save.coins += 100000; save.lifetimeBanked += 100000; UI.syncHud && UI.syncHud(); }],
+      ['+1M vault', () => { save.coins += 1e6; save.lifetimeBanked += 1e6; UI.syncHud && UI.syncHud(); }],
+      ['+50M vault', () => { save.coins += 5e7; save.lifetimeBanked += 5e7; UI.syncHud && UI.syncHud(); }, 'hot'],
+      ['vault = 0', () => { save.coins = 0; UI.syncHud && UI.syncHud(); }],
+    ]);
+    buttons(b, [
+      ['UNLOCK EVERYTHING', () => {
+        save.coins = 99e6; save.lifetimeBanked = Math.max(save.lifetimeBanked, 99e6);
+        save.owned = (SHOP_CATALOG || []).map((i) => i.id);
+        save.powers = MILESTONES.map((m) => m.id);
+        save.offers = (SHOP_CATALOG || []).filter((i) => i.offer).map((i) => i.offer);
+        UI.syncHud && UI.syncHud();
+      }, 'go wide'],
+    ]);
+    row(b, 'vault', { get: () => save.coins, set: (v) => { save.coins = v; UI.syncHud && UI.syncHud(); }, step: 1000 });
+    row(b, 'lifetime banked (unlocks powers)', { get: () => save.lifetimeBanked, set: (v) => { save.lifetimeBanked = v; }, step: 1000 });
+    row(b, 'GREED', { get: () => Greed.value, set: (v) => { Greed.value = v; }, step: 0.1 });
+
+    // -------------------------------------------------------------- physics
+    b = group(pane, 'PHYSICS', 'Straight into the solver. Gravity 0 makes everything float; time scale slows the whole world.');
+    row(b, 'gravity y', { get: () => engine.gravity.y, set: (v) => { engine.gravity.y = v; }, step: 0.1 });
+    row(b, 'gravity scale', { get: () => engine.gravity.scale, set: (v) => { engine.gravity.scale = v; }, step: 0.0005 });
+    row(b, 'time scale', { get: () => engine.timing.timeScale, set: (v) => { engine.timing.timeScale = v; }, step: 0.1 });
+    row(b, 'position iterations', { get: () => engine.positionIterations, set: (v) => { engine.positionIterations = Math.round(v); }, step: 1 });
+    row(b, 'sleeping enabled', { get: () => engine.enableSleeping, fmt: yn, set: (v) => { engine.enableSleeping = v; if (!v) Stack.wakeAll(); }, bool: true });
+    buttons(b, [
+      ['normal gravity', () => { engine.gravity.y = 1; engine.gravity.scale = 0.001; }],
+      ['zero g', () => { engine.gravity.y = 0; Stack.wakeAll(); }],
+      ['wake all', () => Stack.wakeAll()],
+      ['shove the tower', () => { for (const p of Stack.pieces()) { Sleeping.set(p, false); Body.applyForce(p, p.position, { x: rand(-0.05, 0.05) * p.mass, y: -0.02 * p.mass }); } }],
+    ]);
+    buttons(b, [
+      ['corner-balance test', () => {
+        ensureRun(); clearDeck();
+        const p = put(2, 0, 90);
+        Body.setAngle(p, Math.PI / 4); Body.setAngularVelocity(p, 0);
+      }, 'hot'],
+      ['shake', () => Shake.impulse(0.8)],
+      ['slow-mo 2s', () => SlowMo.trigger(0.3, 2000)],
+    ]);
+
+    // ------------------------------------------------------------ templates
+    b = group(pane, 'TOWER TEMPLATES',
+      'Laid one piece at a time and allowed to settle, so what you get is a board the physics agreed to. The three inspection layouts freeze fusions first, or they would merge themselves into two pieces before you could read them.');
+    row(b, 'freeze fusions', { get: () => noFuse, fmt: yn, set: (v) => { noFuse = v; }, bool: true });
+    const T = (fn, freeze) => () => {
+      ensureRun();
+      if (freeze) noFuse = true;
+      clearDeck();
+      setTimeout(fn, 40);
+    };
+    buttons(b, [
+      ['empty deck', T(() => {})],
+      ['low pile (6)', T(() => lay(Array.from({ length: 6 }, (_, i) => ({ tier: 1 + (i % 2), dx: (i % 3 - 1) * Math.min(44, hw() * 0.32) }))))],
+      ['tall tower (12)', T(() => lay(Array.from({ length: 12 }, (_, i) => ({ tier: 1 + (i % 3), dx: i % 2 ? 11 : -11 }))))],
+      ['near collapse', T(() => lay(Array.from({ length: 7 }, (_, i) => ({ tier: 2 + (i % 2), dx: 14 + i * Math.min(13, hw() * 0.1) }))))],
+      ['fuse ladder', T(() => { const o = Math.min(60, hw() * 0.45); const d = []; for (let t = 1; t <= 6; t++) { d.push({ tier: t, dx: -o }); d.push({ tier: t, dx: o }); } lay(d); })],
+      ['one of each tier', T(() => lay(Array.from({ length: TIERS.count }, (_, i) => ({ tier: i + 1, dx: fit(i, TIERS.count, TIERS.radii[i + 1]) })), 150), true)],
+      ['every special (they will act)', T(() => {
+        // fifteen of them will not stand side by side on any deck, so they are
+        // laid across it and allowed to pile up wherever they land
+        const ks = Object.keys(SPECIALS);
+        lay(ks.map((s, i) => ({ tier: 3, special: s, dx: fit(i % 5, 5, 30) })), 150);
+      }, true)],
+      /* Not a gallery: half of these consume themselves the moment they land —
+         a bomb goes off, a chest opens, a split shatters, and the harmless-fall
+         ones vanish instead of dying. That IS the test. */
+      ['planks', T(() => lay(Array.from({ length: 5 }, (_, i) => ({ tier: 3, kind: 'plank', dx: i % 2 ? 18 : -18 }))))],
+      ['wide base', T(() => lay(Array.from({ length: 4 }, (_, i) => ({ tier: 4, dx: fit(i, 4, TIERS.radii[4] + 4) })), 160), true)],
+    ]);
+
+    // ------------------------------------------------------------ the flags
+    b = group(pane, 'FLAGS');
+    row(b, 'GOD MODE (no collapse)', { get: () => godMode, fmt: yn, set: (v) => { godMode = v; }, bool: true });
+    row(b, 'freeze fusions', { get: () => noFuse, fmt: yn, set: (v) => { noFuse = v; }, bool: true });
+    row(b, 'sound', { get: () => Settings.sound, fmt: yn, set: (v) => { Settings.sound = v; }, bool: true });
+    row(b, 'music', { get: () => Settings.music, fmt: yn, set: (v) => { Settings.music = v; }, bool: true });
+    row(b, 'haptics', { get: () => Settings.haptics, fmt: yn, set: (v) => { Settings.haptics = v; }, bool: true });
+    row(b, 'reduce motion', { get: () => Settings.reduceMotion, fmt: yn, set: (v) => { Settings.reduceMotion = v; document.body.classList.toggle('reduce-motion', !!v); }, bool: true });
+    row(b, 'perf tier', { get: () => perf.tier, set: (v) => { perf.tier = v; }, options: ['low', 'mid', 'high'] });
+    buttons(b, [
+      ['restart run', () => { save.tutorialDone = true; Game.startRun(); }, 'go'],
+      ['back to menu', () => UI.showMenu()],
+      ['replay the tour', () => { save.tutorialDone = false; save.tutorialRuns = 0; Game.startRun(); }],
+      ['wipe the save', () => { localStorage.clear(); location.reload(); }, 'hot'],
+    ]);
+  }
+
+  /* ------------------------------ wiring --------------------------------- */
+  buildCore(D('dev-core'));
+  buildTest(D('dev-test'));
+
+  for (const tb of panel.querySelectorAll('#dev-tabs button')) {
+    tb.onclick = () => {
+      for (const o of panel.querySelectorAll('#dev-tabs button')) o.classList.toggle('on', o === tb);
+      D('dev-core').classList.toggle('off', tb.dataset.tab !== 'core');
+      D('dev-test').classList.toggle('off', tb.dataset.tab !== 'test');
+    };
+  }
+  D('dev-collapse').onclick = () => {
+    document.body.classList.toggle('dev-collapsed');
+    D('dev-collapse').innerHTML = document.body.classList.contains('dev-collapsed') ? '&#9664;' : '&#9654;';
+    requestAnimationFrame(sizeGame);
+  };
+  window.addEventListener('resize', () => { if (!syncing) requestAnimationFrame(sizeGame); });
+
+  /* The readouts re-poll on their own timer rather than on the frame loop, so
+     a panel full of live numbers can never be what makes the game drop one. */
+  let fpsT = performance.now(), fpsN = 0, fps = 0;
+  (function fpsTick() { fpsN++; const t = performance.now(); if (t - fpsT > 500) { fps = Math.round(fpsN * 1000 / (t - fpsT)); fpsN = 0; fpsT = t; } requestAnimationFrame(fpsTick); })();
+
+  setInterval(() => {
+    if (document.body.classList.contains('dev-collapsed')) return;
+    D('dev-fps').textContent = fps + ' fps · ' + Stack.pieces().length + ' bodies';
+    for (const w of live) {
+      if (!w.node.isConnected || !w.node.offsetParent) continue;   // in a shut group
+      let v;
+      try { v = w.get(); } catch (e) { v = '—'; }
+      w.apply(v);
+    }
+    renderLog();
+  }, 180);
+
+  sizeGame();
+  setTimeout(sizeGame, 400);
+})();
 
 })();
 </script>

@@ -649,7 +649,7 @@ while a real dropped tower and a plank bridge drift **0px** and are never nudged
 
 ### What that block actually does
 
-Fourteen special blocks shipped with their own physics, their own payouts and
+Fifteen special blocks shipped with their own physics, their own payouts and
 their own skins, and nothing anywhere that said what any of them were. You could
 play for an hour without working out that the dice block re-rolls its own tier,
 or that a bomb never merges with anything.
@@ -832,6 +832,78 @@ title like THE GAMBLER / THE BANKER / THE COLLECTOR) drives:
   death, or a block that is impossible to place.
 - Any piece resting on a fused/removed/shrunk support is woken so it falls (no
   frozen floating blocks).
+
+## The dev build
+
+`overstack/dev.html` is the same game with a window cut into the side of it.
+Open it instead of `index.html`; everything else about it is identical.
+
+**It really is the same game.** The panel is appended *inside* the game's own
+IIFE, after the last line of it — so it can reach every module directly while
+not one character above it changes. The build asserts that: strip the `§99` block
+out of `dev.html` and the remaining script is byte-for-byte `index.html`.
+
+**How it fits on screen.** The game is wrapped in `#game-shell`, which carries a
+transform — that makes it the containing block for every `position: fixed`
+element inside it, so the whole game lays out inside the left column without a
+single one of its own rules being touched. `window.innerWidth/innerHeight` are
+shadowed to the shell's size so the canvas measures the column rather than the
+window. (Telling the game its new size means firing a resize event at it, and the
+game's handler re-sizes the canvas, which clears the backing store. A first
+version re-entered on its own synthetic event and cleared the canvas after every
+render: the game ran perfectly while drawing to nothing at all. It fires exactly
+once per real size change now.)
+
+### CORE ENGINE — what the machine knows, and what it is doing about it
+
+Every group is live, and almost every row is editable, so you can set a state and
+watch the game react to it:
+
+- **This run** — state, coins, GREED, stability, whether the tower is already
+  past saving, chain and combo, spam heat
+- **Flow director** — the flow score, the band it lands in, the thresholds, and
+  the six weights the band hands to the piece roll, plus wealth and spam
+  pressure. `Director.band()` recomputes the score from the player model every
+  roll, so typing a score in would be thrown away a moment later — instead there
+  is a **band pin** that holds the game in a band, and a row that tells you when
+  the session's opening phase is overriding the band anyway
+- **Player model** — all ten exponential moving averages, the only inputs to the
+  flow score
+- **Player profile** — risk tolerance, inferred goal, style title, and every
+  counter behind them
+- **Session arc**, **churn watch** (including whether a gift is queued for the
+  next piece) and **ads**
+- **Equipped** — every perk the deck and the pack are actually applying
+- **Event director** — the countdown to the next event, the grace window, every
+  live event, and the current block-injection odds
+- **The save**
+- **Event log** — both streams, newest first: `trackEvent` (analytics) and the
+  FeedbackBus (audio / haptics / visuals)
+
+### TESTING — make anything happen
+
+- **What drops next** — tier, special, shape and size into either queue slot,
+  plus one button per special wearing its own skin (the board cannot be used as a
+  gallery: a bomb goes off, a chest opens, a split shatters, and five of them
+  vanish rather than fall)
+- **World events** — meteor, black hole, wind, curse, jackpot, roll one at
+  random, clear everything, or hold events off entirely
+- **Set pieces** — THE OVERFLOW, two AUREX left far apart to strain at each
+  other, a phase block on a pile, the revive screen, and any deck or pack
+  arrival replayed on demand
+- **Money** — run coins, vault, GREED, and UNLOCK EVERYTHING
+- **Physics** — gravity, time scale, solver iterations, sleeping, zero-g, a shove,
+  slow-mo, and the corner-balance case
+- **Tower templates** — nine of them, laid one piece at a time and allowed to
+  settle, so what you get is a board the physics agreed to rather than a dozen
+  bodies spawned inside one another and thrown off the deck. The three
+  *inspection* layouts freeze fusions first, or they would merge themselves into
+  two pieces before you could read them
+- **Flags** — god mode, freeze fusions, sound, music, haptics, reduced motion,
+  performance tier, restart, replay the tour, wipe the save
+
+Verified by `test_dev.js`: 48 assertions that press the actual buttons and check
+the game moved.
 
 ## 404
 
