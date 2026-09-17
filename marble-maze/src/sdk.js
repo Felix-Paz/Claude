@@ -11,13 +11,13 @@ export function setGameHooks(h) { hooks = { ...hooks, ...h }; }
 
 let gdRewardWatched = noop;
 let pausedByAd = false;
-let gdFailed = false;
+let sdkFailed = false;
 let adPauseSeen = false;
 let adResumed = noop;
 
 function portalEvent(event) {
   if (!event || !event.name) return;
-  if (event.name === 'SDK_ERROR') gdFailed = true;
+  if (event.name === 'SDK_ERROR') sdkFailed = true;
   else if (event.name === 'SDK_GAME_PAUSE') { adPauseSeen = true; hooks.hardMute(true); pausedByAd = !!hooks.pause(); }
   else if (event.name === 'SDK_GAME_START') {
     hooks.hardMute(false);
@@ -49,14 +49,15 @@ async function gamePixAd(request) {
 }
 
 function gdCanShow() { return !!(window.gdsdk && typeof window.gdsdk.showAd === 'function'); }
+function gmCanShow() { return !!(window.sdk && typeof window.sdk.showBanner === 'function'); }
 
-function gdWaitReady(ms) {
+function waitReady(canShow, ms) {
   return new Promise((resolve) => {
-    if (gdCanShow()) { resolve(true); return; }
+    if (canShow()) { resolve(true); return; }
     const t0 = Date.now();
     const tick = () => {
-      if (gdCanShow()) { resolve(true); return; }
-      if (gdFailed || Date.now() - t0 >= ms) { resolve(false); return; }
+      if (canShow()) { resolve(true); return; }
+      if (sdkFailed || Date.now() - t0 >= ms) { resolve(false); return; }
       setTimeout(tick, 80);
     };
     setTimeout(tick, 80);
@@ -185,13 +186,16 @@ export function clearLevelContext() {
   if (provider === 'crazygames') { try { window.CrazyGames?.SDK?.game?.clearGameContext?.(); } catch (e) {} }
 }
 
-export function requiresPlayGate() { return provider === 'gamedistribution'; }
+export function requiresPlayGate() { return provider === 'gamedistribution' || provider === 'gamemonetize'; }
 export function midrollOnUi() { return provider === 'gamedistribution'; }
 
 export async function preroll() {
-  if (provider !== 'gamedistribution' || adInProgress) return;
+  if (!requiresPlayGate() || adInProgress) return;
   adInProgress = true; onAdStateChange(true, 'ad');
-  try { if (await gdWaitReady(2500)) await gdShowAd(); } catch (e) { }
+  try {
+    if (provider === 'gamedistribution') { if (await waitReady(gdCanShow, 2500)) await gdShowAd(); }
+    else if (provider === 'gamemonetize') { if (await waitReady(gmCanShow, 2500)) await gmShowBanner(); }
+  } catch (e) { }
   adInProgress = false; onAdStateChange(false, 'ad');
 }
 

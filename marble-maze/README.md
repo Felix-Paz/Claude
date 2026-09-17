@@ -92,8 +92,12 @@ portal's rules:
   Replay, Retry, Restart and Menu. The GD SDK regulates the actual ad
   interval, so those calls are made on every press. Audio is muted and the
   game is paused for the duration via the SDK's pause/start events.
-- **Poki, CrazyGames, GameMonetize and GamePix** keep the instant-play boot
-  (no pre-roll) and take an interstitial only every few completed levels.
+- **GameMonetize** also opens on the menu and shows its first ad when the
+  player presses PLAY, so an ad runs right after the game loads. Later ads
+  keep the default cadence — one interstitial every few completed levels
+  rather than one per button.
+- **Poki, CrazyGames and GamePix** keep the instant-play boot (no pre-roll)
+  and take an interstitial only every few completed levels.
 
 Rewarded ads (revive, double coins, skip level) use each platform's rewarded
 call where one exists. GameMonetize exposes only `sdk.showBanner()`, so its
