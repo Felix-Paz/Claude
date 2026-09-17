@@ -45,11 +45,45 @@ window["SDK_OPTIONS"] = {
 </script>
 `;
 
+const Y8_SNIPPET = `<script src="https://cdn.y8.com/minimal-sdk/2-0/y8.min.js" async></script>
+<script>
+window.__y8 = { appId: "6aabd15425b1d17038e6416c", gameId: "283597" };
+let y8Sdk;
+
+window.addEventListener("y8sdk.ready", function () {
+  y8Sdk = y8.sdk();
+  window.__y8Sdk = y8Sdk;
+
+  y8Sdk.init(
+    { appId: window.__y8.appId, autoLogin: true },
+    {
+      gameId: window.__y8.gameId,
+      preloadAdBreaks: "on",
+      sound: "on",
+      onReady: function () { window.__y8AdsReady = true; }
+    }
+  );
+
+  y8Sdk.onAuth(function (user, error) {
+    if (error) {
+      window.__y8AuthError = error.message ?? error;
+      console.warn("[y8] sign-in unavailable, continuing as guest:", window.__y8AuthError);
+      return;
+    }
+    window.__y8User = user;
+  });
+}, { once: true });
+
+if (window.y8 && window.y8.emitReadyEvent) { window.y8.emitReadyEvent(); }
+</script>
+`;
+
 const PLATFORMS = {
   poki: (html) => html.replace(SDK_BLOCK, '<script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>\n'),
   crazygames: (html) => html.replace(SDK_BLOCK, '<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>\n'),
   gamedistribution: (html) => html.replace(SDK_BLOCK, GD_SNIPPET),
   gamemonetize: (html) => html.replace(SDK_BLOCK, GM_SNIPPET),
+  y8: (html) => html.replace(SDK_BLOCK, Y8_SNIPPET),
   gamepix: (html) => html
     .replace(SDK_BLOCK, '')
     .replace('<head>', '<head>\n<script src="https://integration.gamepix.com/sdk/v3/gamepix.sdk.js"></script>'),

@@ -38,6 +38,31 @@ async function gmShowBanner() {
   });
 }
 
+function y8CanShow() { return !!(window.__y8Sdk && typeof window.__y8Sdk.showAd === 'function'); }
+
+async function y8ShowAd(opts) {
+  if (!y8CanShow()) return false;
+  return await new Promise((resolve) => {
+    let done = false, wasPlaying = false, viewed = false;
+    const release = () => {
+      hooks.hardMute(false);
+      if (wasPlaying) { wasPlaying = false; hooks.resume(); }
+    };
+    const finish = () => { if (done) return; done = true; release(); resolve(viewed); };
+    try {
+      window.__y8Sdk.showAd({
+        ...opts,
+        beforeAd: () => { wasPlaying = !!hooks.pause(); hooks.hardMute(true); },
+        afterAd: () => release(),
+        adViewed: () => { viewed = true; },
+        adDismissed: () => { viewed = false; },
+        adBreakDone: () => finish(),
+      });
+    } catch (e) { finish(); return; }
+    setTimeout(finish, 60000);
+  });
+}
+
 async function gamePixAd(request) {
   const wasPlaying = !!hooks.pause();
   hooks.hardMute(true);
@@ -124,6 +149,9 @@ export async function init() {
       window.__gdHandler = portalEvent;
       (window.__gdEvents || []).forEach(portalEvent);
       window.__gdEvents = [];
+      ready = true;
+    } else if (window.__y8 || window.__y8Sdk) {
+      provider = 'y8';
       ready = true;
     } else if (window.SDK_OPTIONS || (window.sdk && typeof window.sdk.showBanner === 'function')) {
       provider = 'gamemonetize';
@@ -220,6 +248,8 @@ export async function commercialBreak() {
       await gdShowAd();
     } else if (provider === 'gamemonetize') {
       await gmShowBanner();
+    } else if (provider === 'y8') {
+      if (await waitReady(y8CanShow, 2500)) await y8ShowAd({ type: 'next', name: 'level-complete' });
     } else if (provider === 'gamepix') {
       await gamePixAd(() => window.GamePix.interstitialAd());
     }
@@ -260,6 +290,9 @@ export async function rewardedBreak() {
     } else if (provider === 'gamemonetize') {
       await gmShowBanner();
       success = true;
+    } else if (provider === 'y8') {
+      success = !!(await waitReady(y8CanShow, 2500)) &&
+        !!(await y8ShowAd({ type: 'reward', name: 'reward', beforeReward: (show) => { try { show(); } catch (e) { } } }));
     } else {
       success = true;
     }

@@ -80,6 +80,8 @@ platform's own SDK:
   baked into its `index.html`
 - `marble-maze-gamemonetize.zip` — replace `PUT-YOUR-GAMEMONETIZE-GAME-ID-HERE`
   in its `index.html` with the game id from your GameMonetize control panel
+- `marble-maze-y8.zip` — the Y8 app id and game id are already baked into its
+  `index.html`
 - `marble-maze-gamepix.zip`
 
 ### Ad placement
@@ -96,8 +98,8 @@ portal's rules:
   player presses PLAY, so an ad runs right after the game loads. Later ads
   keep the default cadence — one interstitial every few completed levels
   rather than one per button.
-- **Poki, CrazyGames and GamePix** keep the instant-play boot (no pre-roll)
-  and take an interstitial only every few completed levels.
+- **Poki, CrazyGames, Y8 and GamePix** keep the instant-play boot (no
+  pre-roll) and take an interstitial only every few completed levels.
 
 Rewarded ads (revive, double coins, skip level) use each platform's rewarded
 call where one exists. GameMonetize exposes only `sdk.showBanner()`, so its
@@ -109,6 +111,13 @@ Platform-specific handling:
   `SDK_GAME_START`. Because `showBanner()` is fire-and-forget, the ad is
   treated as finished on `SDK_GAME_START`, with a short fallback so an
   unsold slot never leaves the player waiting.
+- **Y8** loads `y8.min.js` asynchronously and initializes on `y8sdk.ready`,
+  keeping the `emitReadyEvent()` fallback for when the SDK wins the load
+  race. Ads go through `showAd()` as AdSense-for-Games placements — a
+  `next` break between levels and a `reward` break for rewarded moments —
+  pausing and muting on `beforeAd` and releasing on `adBreakDone`, which
+  also fires when nothing was sold. `autoLogin` is on, but the game needs
+  no account: a failed sign-in is recorded and play continues as a guest.
 - **GamePix** pauses and mutes around `interstitialAd()` and `rewardAd()`,
   pauses on tab switch, blocks page scrolling from the arrow keys, space and
   the wheel (scrollable panels keep their own scrolling), and saves through
