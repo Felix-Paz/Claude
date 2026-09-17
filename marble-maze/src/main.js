@@ -42,7 +42,10 @@ class App {
     const provider = await SDK.init(); this.ui.setProvider(provider);
     SDK.loadingStart();
 
-    S.load(); const st = S.get();
+    if (SDK.hasRemoteStorage()) { S.setRemote(SDK.remoteStorage); await S.loadRemote(); }
+    else S.load();
+    try { document.documentElement.lang = SDK.language(); } catch (e) { }
+    const st = S.get();
     Audio.setEnabled({ sound: st.settings.sound, music: st.settings.music });
     this.input.setMode(st.settings.control); this.input.setSensitivity(st.settings.tiltSensitivity);
     this.input.attach(); this.input.bindTouchSurface(this.canvas);
@@ -197,6 +200,8 @@ class App {
       setTimeout(() => this.ui.surprise('🎉 LUCKY DROP', '+' + amt + ' coins'), 700);
     }
     if (plan && plan.churn && plan.churn.zone === 'panic') { clearTimeout(this._gT); this._gT = setTimeout(() => this.game.forceGoldRush(), 1700); }
+
+    SDK.gameReady();
   }
 
   pause() { if (this.game.state !== 'playing') return; this.director.notePause(); this.game.pause(); Audio.stopMusic(); SDK.gameplayStop(); this.ui.showOverlay('pause'); }
@@ -257,7 +262,7 @@ class App {
   }
 
   _onDie(reason, info) {
-    SDK.gameplayStop(); Audio.stopMusic(); S.bump('deaths'); this.deathsThisStage++;
+    SDK.gameplayStop(); SDK.reportLevelFail(this.stage); Audio.stopMusic(); S.bump('deaths'); this.deathsThisStage++;
     this.director.noteDeathNow();
     if (info?.nearFinish) this.director.noteNearMiss();
     this.director.recordLoss({ difficulty: this.lastDifficulty, timeMs: this.game.clockMs, deathSpot: info, nearFinish: info?.nearFinish });

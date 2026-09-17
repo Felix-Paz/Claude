@@ -42,17 +42,22 @@ const DEFAULT = () => ({
 
 let state = DEFAULT();
 
+let remote = null;
+let remoteT = null;
+export function setRemote(r) { remote = r; }
+
+function hydrate(parsed) {
+  state = deepMerge(DEFAULT(), parsed);
+  const def = DEFAULT();
+  for (const id of def.ownedSkins) if (!state.ownedSkins.includes(id)) state.ownedSkins.push(id);
+  for (const id of def.ownedTrails) if (!state.ownedTrails.includes(id)) state.ownedTrails.push(id);
+}
+
 export function load() {
   try {
     const ls = backend();
     const raw = ls && ls.getItem(KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      state = deepMerge(DEFAULT(), parsed);
-      const def = DEFAULT();
-      for (const id of def.ownedSkins) if (!state.ownedSkins.includes(id)) state.ownedSkins.push(id);
-      for (const id of def.ownedTrails) if (!state.ownedTrails.includes(id)) state.ownedTrails.push(id);
-    }
+    if (raw) hydrate(JSON.parse(raw));
   } catch (e) {
     console.warn('[storage] load failed, resetting', e);
     state = DEFAULT();
@@ -60,7 +65,26 @@ export function load() {
   return state;
 }
 
+export async function loadRemote() {
+  try {
+    const raw = await remote.get(KEY);
+    if (raw) hydrate(typeof raw === 'string' ? JSON.parse(raw) : raw);
+  } catch (e) {
+    console.warn('[storage] remote load failed, starting fresh', e);
+    state = DEFAULT();
+  }
+  return state;
+}
+
 export function save() {
+  if (remote) {
+    if (remoteT) return;
+    remoteT = setTimeout(() => {
+      remoteT = null;
+      try { Promise.resolve(remote.set(KEY, JSON.stringify(state))).catch(() => { }); } catch (e) { }
+    }, 1000);
+    return;
+  }
   try { const ls = backend(); if (ls) ls.setItem(KEY, JSON.stringify(state)); }
   catch (e) { }
 }

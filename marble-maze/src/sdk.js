@@ -38,6 +38,88 @@ async function gmShowBanner() {
   });
 }
 
+let pgAudioAllowed = true;
+let pgPaused = false;
+let pgAdHold = 0;
+let pgGameReadySent = false;
+
+function pgApplyMute() { hooks.hardMute(!pgAudioAllowed || pgPaused || pgAdHold > 0); }
+
+function initPlaygama() {
+  const b = window.bridge, EV = b.EVENT_NAME, p = b.platform;
+  try {
+    pgAudioAllowed = p.isAudioEnabled !== false;
+    pgPaused = !!p.isPaused;
+    pgApplyMute();
+    p.on(EV.AUDIO_STATE_CHANGED, (on) => { pgAudioAllowed = !!on; pgApplyMute(); });
+    p.on(EV.PAUSE_STATE_CHANGED, (paused) => {
+      pgPaused = !!paused;
+      pgApplyMute();
+      if (pgPaused) pausedByAd = !!hooks.pause();
+      else if (pausedByAd) { pausedByAd = false; hooks.resume(); }
+    });
+  } catch (e) { }
+}
+
+function pgMsg(name, options) {
+  if (provider !== 'playgama') return;
+  try { Promise.resolve(window.bridge.platform.sendMessage(name, options)).catch(() => { }); } catch (e) { }
+}
+
+async function pgAd(rewarded, placement) {
+  const b = window.bridge, EV = b.EVENT_NAME, ad = b.advertisement;
+  if (rewarded ? !ad.isRewardedSupported : !ad.isInterstitialSupported) return false;
+  const evName = rewarded ? EV.REWARDED_STATE_CHANGED : EV.INTERSTITIAL_STATE_CHANGED;
+
+  pgAdHold++; pgApplyMute();
+  const wasPlaying = !!hooks.pause();
+
+  const earned = await new Promise((resolve) => {
+    let done = false, got = false, closeT = null;
+    function finish() {
+      if (done) return;
+      done = true; clearTimeout(closeT);
+      try { ad.off(evName, onState); } catch (e) { }
+      resolve(got);
+    }
+    function onState(state) {
+      if (rewarded && state === 'rewarded') {
+        got = true;
+        clearTimeout(closeT); closeT = setTimeout(finish, 1500);
+      } else if (state === 'closed' || state === 'failed') finish();
+    }
+    try { ad.on(evName, onState); } catch (e) { finish(); return; }
+    try { if (rewarded) ad.showRewarded(placement); else ad.showInterstitial(placement); }
+    catch (e) { finish(); return; }
+    setTimeout(finish, 60000);
+  });
+
+  pgAdHold--; pgApplyMute();
+  if (wasPlaying) hooks.resume();
+  return earned;
+}
+
+export function hasRemoteStorage() { return provider === 'playgama'; }
+export const remoteStorage = {
+  get: (k) => window.bridge.storage.get(k),
+  set: (k, v) => window.bridge.storage.set(k, v),
+};
+
+export function language() {
+  if (provider === 'playgama') { try { return window.bridge.platform.language || 'en'; } catch (e) { } }
+  return 'en';
+}
+
+export function gameReady() {
+  if (provider !== 'playgama' || pgGameReadySent) return;
+  pgGameReadySent = true;
+  pgMsg('game_ready');
+}
+
+export function reportLevelFail(level) {
+  pgMsg('level_failed', { level: String(level) });
+}
+
 function y8CanShow() { return !!(window.__y8Sdk && typeof window.__y8Sdk.showAd === 'function'); }
 
 async function y8ShowAd(opts) {
@@ -135,7 +217,13 @@ function initGamePix() {
 
 export async function init() {
   try {
-    if (window.GamePix) {
+    // Bridge loads the host platform's own scripts, so it must be detected first.
+    if (window.bridge && typeof window.bridge.initialize === 'function') {
+      provider = 'playgama';
+      await window.bridge.initialize().catch(() => { });
+      initPlaygama();
+      ready = true;
+    } else if (window.GamePix) {
       provider = 'gamepix';
       initGamePix();
       ready = true;
@@ -188,22 +276,27 @@ export function loadingFinished() {
 export function gameplayStart() {
   if (provider === 'poki') window.PokiSDK?.gameplayStart?.();
   if (provider === 'crazygames') window.CrazyGames?.SDK?.game?.gameplayStart?.();
+  pgMsg('gameplay_started');
 }
 export function gameplayStop() {
   if (provider === 'poki') window.PokiSDK?.gameplayStop?.();
   if (provider === 'crazygames') window.CrazyGames?.SDK?.game?.gameplayStop?.();
+  pgMsg('gameplay_stopped');
 }
 export function happyMoment() {
   if (provider === 'poki') window.PokiSDK?.happyTime?.(0.7);
   if (provider === 'crazygames') window.CrazyGames?.SDK?.game?.happytime?.();
   if (provider === 'gamepix') { try { window.GamePix.happyMoment?.(); } catch (e) {} }
+  pgMsg('player_got_achievement');
 }
 
 export function reportLevelStart(level) {
   if (provider === 'gamepix') { try { window.GamePix.updateLevel?.(level); } catch (e) {} }
   if (provider === 'crazygames') { try { window.CrazyGames?.SDK?.game?.setGameContext?.({ level: String(level) }); } catch (e) {} }
+  pgMsg('level_started', { level: String(level) });
 }
 export function reportWin({ maxLevel, score } = {}) {
+  pgMsg('level_completed', maxLevel != null ? { level: String(maxLevel) } : undefined);
   if (provider === 'gamepix' && score != null) { try { window.GamePix.updateScore?.(Math.round(score)); } catch (e) {} }
   if (provider === 'crazygames' && maxLevel != null) {
     const pct = Math.max(0, Math.min(100, Math.round((maxLevel / 30) * 100)));
@@ -236,7 +329,9 @@ export async function commercialBreak() {
   if (adInProgress) return;
   adInProgress = true; onAdStateChange(true, 'ad');
   try {
-    if (provider === 'poki') {
+    if (provider === 'playgama') {
+      await pgAd(false, 'level_completed');
+    } else if (provider === 'poki') {
       await window.PokiSDK.commercialBreak();
     } else if (provider === 'crazygames') {
       await new Promise((res) => {
@@ -262,7 +357,9 @@ export async function rewardedBreak() {
   adInProgress = true; onAdStateChange(true, 'reward');
   let success = false;
   try {
-    if (provider === 'poki') {
+    if (provider === 'playgama') {
+      success = await pgAd(true, 'reward');
+    } else if (provider === 'poki') {
       success = await window.PokiSDK.rewardedBreak();
     } else if (provider === 'crazygames') {
       success = await new Promise((res) => {

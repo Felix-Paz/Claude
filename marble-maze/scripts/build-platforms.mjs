@@ -78,12 +78,28 @@ if (window.y8 && window.y8.emitReadyEvent) { window.y8.emitReadyEvent(); }
 </script>
 `;
 
+const PG_CONFIG = JSON.stringify({
+  platforms: {
+    game_distribution: { gameId: '500476821acf49d89fcdb425cbf48b81' },
+  },
+  advertisement: {
+    minimumDelayBetweenInterstitial: 60,
+    interstitial: { placements: [{ id: 'level_completed' }] },
+    rewarded: { placements: [{ id: 'reward' }] },
+  },
+}, null, 2) + '\n';
+
+const EXTRA_FILES = {
+  playgama: { 'playgama-bridge-config.json': PG_CONFIG },
+};
+
 const PLATFORMS = {
   poki: (html) => html.replace(SDK_BLOCK, '<script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>\n'),
   crazygames: (html) => html.replace(SDK_BLOCK, '<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>\n'),
   gamedistribution: (html) => html.replace(SDK_BLOCK, GD_SNIPPET),
   gamemonetize: (html) => html.replace(SDK_BLOCK, GM_SNIPPET),
   y8: (html) => html.replace(SDK_BLOCK, Y8_SNIPPET),
+  playgama: (html) => html.replace(SDK_BLOCK, '<script src="https://bridge.playgama.com/v2/stable/playgama-bridge.js"></script>\n'),
   gamepix: (html) => html
     .replace(SDK_BLOCK, '')
     .replace('<head>', '<head>\n<script src="https://integration.gamepix.com/sdk/v3/gamepix.sdk.js"></script>'),
@@ -110,6 +126,9 @@ for (const [name, patch] of Object.entries(PLATFORMS)) {
     .replace(IMPORTMAP, '')
     .replace(MODULE_TAG, '<script src="./game.js" defer></script>');
   fs.writeFileSync(path.join(out, 'index.html'), html);
+  for (const [file, body] of Object.entries(EXTRA_FILES[name] || {})) {
+    fs.writeFileSync(path.join(out, file), body);
+  }
   const zip = path.join(DIST, `marble-maze-${name}.zip`);
   execSync(`cd "${out}" && zip -rq "${zip}" .`);
   console.log('built', zip);

@@ -82,6 +82,8 @@ platform's own SDK:
   in its `index.html` with the game id from your GameMonetize control panel
 - `marble-maze-y8.zip` — the Y8 app id and game id are already baked into its
   `index.html`
+- `marble-maze-playgama.zip` — also contains `playgama-bridge-config.json`,
+  which Bridge loads from next to `index.html`
 - `marble-maze-gamepix.zip`
 
 ### Ad placement
@@ -98,8 +100,8 @@ portal's rules:
   player presses PLAY, so an ad runs right after the game loads. Later ads
   keep the default cadence — one interstitial every few completed levels
   rather than one per button.
-- **Poki, CrazyGames, Y8 and GamePix** keep the instant-play boot (no
-  pre-roll) and take an interstitial only every few completed levels.
+- **Poki, CrazyGames, Y8, Playgama and GamePix** keep the instant-play boot
+  (no pre-roll) and take an interstitial only every few completed levels.
 
 Rewarded ads (revive, double coins, skip level) use each platform's rewarded
 call where one exists. GameMonetize exposes only `sdk.showBanner()`, so its
@@ -118,6 +120,14 @@ Platform-specific handling:
   pausing and muting on `beforeAd` and releasing on `adBreakDone`, which
   also fires when nothing was sold. `autoLogin` is on, but the game needs
   no account: a failed sign-in is recorded and play continues as a guest.
+- **Playgama** runs on Bridge, which is detected first because it loads the
+  host platform's own scripts. The game waits for `bridge.initialize()`,
+  reports `game_ready` on the first playable frame plus the level lifecycle
+  messages, mutes and pauses from the platform audio and pause events, and
+  shows interstitials through the `level_completed` placement and rewarded
+  ads through `reward`. Progress goes through `bridge.storage` rather than
+  `localStorage`, as Bridge requires, so it reaches cloud saves; writes are
+  debounced to avoid saving on every change.
 - **GamePix** pauses and mutes around `interstitialAd()` and `rewardAd()`,
   pauses on tab switch, blocks page scrolling from the arrow keys, space and
   the wheel (scrollable panels keep their own scrolling), and saves through
