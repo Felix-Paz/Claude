@@ -71,11 +71,16 @@ U.go = function(name, arg){
   U.$$('.nav-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.v === name); });
   var v = U.views[name] || U.views.dash;
   var host = U.$('#view');
+  document.body.classList.remove('in-session');
+  document.body.classList.toggle('onboarding', name === 'onboard');
+  if(FCE.feel) FCE.feel.combo(0);
   var mount = function(){
     host.classList.remove('leaving');
     host.innerHTML = '';
-    host.appendChild(v(arg));
+    var node = v(arg);
+    host.appendChild(node);
     window.scrollTo(0,0);
+    if(FCE.feel){ FCE.feel.enter(node); FCE.feel.animateNumbers(node); }
   };
   if(host.childNodes.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
     host.classList.add('leaving');           // soft exit: fade, lift, blur
@@ -111,38 +116,209 @@ var MEMO_TIPS = [
   'In the real exam, never leave a blank. A guess has expected value; a blank has none.',
 ];
 
-/* ---------------- onboarding ---------------- */
+/* ---------------- onboarding: the first impression ----------------
+   One question per screen, nothing hurried, everything reacting. The point is
+   that within twenty seconds the app has already demonstrated how it behaves. */
 U.views.onboard = function(){
-  var v = el(
-  '<div class="onb">'+
-    '<div style="display:flex;justify-content:center">'+U.wordmark(true)+'</div>'+
-    '<p class="onb-tag">Your personal war-room for B2 First <em>Use of English</em>.<br>An on-device engine learns exactly how you fail — then makes those failures impossible to repeat.</p>'+
-    '<div class="field"><label>Your name</label><input id="ob-name" placeholder="e.g. Felix" maxlength="24"></div>'+
-    '<div class="field"><label>Exam date <span style="text-transform:none;letter-spacing:0">(optional — powers the countdown & Emergency Mode)</span></label><input id="ob-date" type="date"></div>'+
-    '<div class="card" style="margin-top:20px;text-align:left"><h3>First: a 14-question scan</h3>'+
-    '<p class="diag-intro">Two minutes across all four parts. It seeds your <b>mastery map</b> so every later session is yours alone. Answer honestly — the engine reads how you answer, not just what.</p></div>'+
-    '<button class="btn primary block" id="ob-go" style="margin-top:18px;font-size:15px;padding:14px">Start the scan ▸</button>'+
-    '<button class="btn ghost block small" id="ob-skip" style="margin-top:10px">Skip for now</button>'+
-    '<p class="tiny" style="margin-top:18px">100% offline · no account · no API · your data never leaves this browser</p>'+
-  '</div>');
-  function saveBasics(){
-    var st = E().state;
-    st.name = U.$('#ob-name', v).value.trim() || 'Student';
-    st.examDate = U.$('#ob-date', v).value || '';
+  var feel = FCE.feel, eng = E();
+  var data = {name:'', date:'', goal:'C'};
+  var v = el('<div class="onb-stage"><div id="onb-slot"></div><div class="onb-dots" id="onb-dots"></div></div>');
+  var idx = 0, STEPS;
+
+  function save(){
+    var st = eng.state;
+    st.name = data.name || 'Student';
+    st.examDate = data.date || '';
+    st.settings.goal = data.goal;
     st.onboarded = true;
-    E().save();
+    eng.save();
   }
-  U.$('#ob-go', v).addEventListener('click', function(){ saveBasics(); FCE.practice.start({mode:'diagnostic'}); });
-  U.$('#ob-skip', v).addEventListener('click', function(){
-    saveBasics(); E().award('first'); E().save();
-    U.toast('Welcome aboard, '+U.esc(E().state.name)+'. The engine calibrates with every answer.');
-    U.go('dash');
-  });
+  function dots(){
+    U.$('#onb-dots', v).innerHTML = STEPS.map(function(_, i){
+      return '<i class="'+(i === idx ? 'on' : '')+'"></i>';
+    }).join('');
+  }
+  function go(n){
+    var slot = U.$('#onb-slot', v);
+    var cur = slot.firstChild;
+    var paint = function(){
+      idx = n;
+      slot.innerHTML = '<div class="onb-step">'+STEPS[n].html()+'</div>';
+      dots();
+      if(feel){ feel.enter(slot); feel.dot.think(); }
+      if(STEPS[n].wire) STEPS[n].wire(slot);
+      var nx = U.$('#onb-next', slot);
+      if(nx) nx.addEventListener('click', function(){ if(feel) feel.sfx.select(); go(n+1); });
+    };
+    if(cur && feel && !feel.calm()){ cur.classList.add('leaving'); setTimeout(paint, 380); }
+    else paint();
+  }
+
+  STEPS = [
+    { /* 0 — the curtain */
+      html: function(){
+        return '<div class="onb-logo-draw" style="display:flex;justify-content:center">'+U.wordmark(true)+'</div>'+
+          '<p class="onb-p" style="margin-top:26px">A war-room for the one paper most candidates lose marks on.<br>'+
+          'It runs entirely on this device — <b>no internet, no account, no AI</b> — and it learns exactly how <em>you</em> fail.</p>'+
+          '<button class="btn primary" id="onb-next" style="font-size:15px;padding:14px 34px">Begin ▸</button>'+
+          '<p class="tiny" style="margin-top:26px;opacity:.75">782 exercises · 12 full mock papers · one adaptive engine</p>';
+      },
+      wire: function(){ if(feel){ feel.sfx.start(); feel.dot.say('Welcome.'); } }
+    },
+    { /* 1 — name */
+      html: function(){
+        return '<div class="onb-kicker">01 · who is training</div>'+
+          '<h2 class="onb-h">What should I <em>call you?</em></h2>'+
+          '<input class="onb-big-input" id="ob-name" placeholder="your name" maxlength="24" autocomplete="off">'+
+          '<div class="onb-preview" id="ob-prev"></div>'+
+          '<div style="margin-top:34px"><button class="btn primary" id="onb-next" style="padding:13px 30px">Continue ▸</button></div>';
+      },
+      wire: function(slot){
+        var inp = U.$('#ob-name', slot), prev = U.$('#ob-prev', slot);
+        setTimeout(function(){ inp.focus(); }, 420);
+        inp.addEventListener('input', function(){
+          data.name = inp.value.trim();
+          if(data.name){
+            var h = new Date().getHours();
+            prev.innerHTML = '<div class="serif" style="font-size:20px">'+(h<12?'Good morning':h<19?'Good afternoon':'Good evening')+', <em style="color:var(--red)">'+U.esc(data.name)+'</em>.</div>'+
+              '<div class="tiny" style="margin-top:4px">That is how every session will open.</div>';
+            prev.classList.add('on');
+          } else prev.classList.remove('on');
+        });
+      }
+    },
+    { /* 2 — exam date */
+      html: function(){
+        return '<div class="onb-kicker">02 · the deadline</div>'+
+          '<h2 class="onb-h">When is the <em>exam?</em></h2>'+
+          '<p class="onb-p">This powers the countdown, the pacing, and Emergency Mode — the engine changes its whole strategy inside the final week.</p>'+
+          '<input class="onb-big-input" id="ob-date" type="date" style="font-size:22px">'+
+          '<div class="onb-preview" id="ob-dprev"></div>'+
+          '<div style="margin-top:34px"><button class="btn primary" id="onb-next" style="padding:13px 30px">Continue ▸</button>'+
+          '<button class="btn ghost small" id="ob-nodate" style="margin-left:8px">I don’t have a date yet</button></div>';
+      },
+      wire: function(slot){
+        var inp = U.$('#ob-date', slot), prev = U.$('#ob-dprev', slot);
+        inp.addEventListener('change', function(){
+          data.date = inp.value;
+          var d = Math.ceil((new Date(inp.value+'T00:00:00') - new Date()) / 86400000);
+          if(!isNaN(d)){
+            prev.innerHTML = d < 0 ? '<div class="serif" style="font-size:19px">That date has passed — you can change it later in Settings.</div>'
+              : '<div class="serif" style="font-size:22px"><b style="color:var(--red)">'+d+'</b> day'+(d===1?'':'s')+' to build the paper.</div>'+
+                '<div class="tiny" style="margin-top:4px">'+(d<=7?'Emergency Mode will arm itself automatically.':'Enough runway to fix every weakness you have.')+'</div>';
+            prev.classList.add('on');
+            if(feel) feel.sfx.select();
+          }
+        });
+        var nd = U.$('#ob-nodate', slot);
+        if(nd) nd.addEventListener('click', function(){ data.date = ''; go(3); });
+      }
+    },
+    { /* 3 — ambition */
+      html: function(){
+        var opts = [
+          ['C','🎯','Pass it','Scale 160+. Safe, solid, done.'],
+          ['B','🏅','Strong pass (B)','Scale 173+. Margin for a bad day.'],
+          ['A','👑','Grade A','Scale 180+. C1 on a B2 certificate.']
+        ];
+        return '<div class="onb-kicker">03 · the target</div>'+
+          '<h2 class="onb-h">What are we <em>aiming at?</em></h2>'+
+          '<p class="onb-p">Nothing is locked. It just tells the coach how much margin to build.</p>'+
+          '<div class="onb-pick">'+opts.map(function(o){
+            return '<button class="onb-opt'+(o[0]==='C'?' sel':'')+'" data-g="'+o[0]+'"><span class="oi">'+o[1]+'</span><span><b>'+o[2]+'</b><span class="od">'+o[3]+'</span></span></button>';
+          }).join('')+'</div>'+
+          '<div style="margin-top:30px"><button class="btn primary" id="onb-next" style="padding:13px 30px">Continue ▸</button></div>';
+      },
+      wire: function(slot){
+        U.$$('.onb-opt', slot).forEach(function(b){
+          b.addEventListener('click', function(){
+            U.$$('.onb-opt', slot).forEach(function(x){ x.classList.remove('sel'); });
+            b.classList.add('sel'); data.goal = b.dataset.g;
+            if(feel){ feel.sfx.select(); feel.burst(b, {n:8, power:60, size:4}); }
+          });
+        });
+      }
+    },
+    { /* 4 — the build moment */
+      html: function(){
+        return '<div class="onb-kicker">04 · preparing</div>'+
+          '<h2 class="onb-h">Building <em>your</em> engine.</h2>'+
+          '<div class="onb-build" id="ob-build">'+
+            ['Loading 782 hand-written exercises','Indexing 24 exam skills and 12 mock papers',
+             'Creating your mastery map','Setting every skill to “unknown” — honestly']
+            .map(function(t){ return '<div class="bl"><span class="tick">✓</span><span>'+t+'</span></div>'; }).join('')+
+          '</div>'+
+          '<div class="onb-preview" id="ob-ready" style="margin-top:26px"></div>';
+      },
+      wire: function(slot){
+        save();
+        var lines = U.$$('.bl', slot), i = 0;
+        var step = function(){
+          if(i < lines.length){
+            lines[i].classList.add('on');
+            if(feel) feel.sfx.tick();
+            i++; setTimeout(step, feel && feel.calm() ? 60 : 340);
+          } else {
+            var r = U.$('#ob-ready', slot);
+            r.innerHTML = '<p class="onb-p" style="margin-bottom:18px">Ready. First, a <b>14-question scan</b> across all four parts — two minutes, and every session after it is built from your data alone.</p>'+
+              '<button class="btn primary" id="ob-go" style="font-size:15px;padding:14px 32px">Start the scan ▸</button>'+
+              '<div><button class="btn ghost small" id="ob-skip" style="margin-top:12px">Skip — take me to the app</button></div>';
+            r.classList.add('on');
+            if(feel){
+              feel.sfx.done(); feel.dot.proud('Your engine is live.');
+              feel.burst(U.$('.onb-h', slot), {n:18, power:130});
+              setTimeout(function(){ U.toast('🔊 Sound and motion are on — mute either from the speaker in the top bar, or Setup → Feel.'); }, 900);
+            }
+            U.$('#ob-go', slot).addEventListener('click', function(){ FCE.practice.start({mode:'diagnostic'}); });
+            U.$('#ob-skip', slot).addEventListener('click', function(){
+              eng.award('first'); eng.save();
+              U.go('dash');
+            });
+          }
+        };
+        setTimeout(step, 420);
+      }
+    }
+  ];
+
+  setTimeout(function(){ go(0); }, 0);
   v.addEventListener('keydown', function(ev){
-    if(ev.key === 'Enter'){ ev.preventDefault(); saveBasics(); FCE.practice.start({mode:'diagnostic'}); }
+    if(ev.key !== 'Enter') return;
+    ev.preventDefault();
+    var nx = U.$('#onb-next', v) || U.$('#ob-go', v);
+    if(nx) nx.click();
   });
   return v;
 };
+
+
+/* fourteen days of evidence that something is being built */
+function momentumCard(){
+  var st = E().state, goal = st.settings.dailyGoal || 20;
+  var byDay = {};
+  st.log.forEach(function(l){ byDay[new Date(l.t).toISOString().slice(0,10)] = (byDay[new Date(l.t).toISOString().slice(0,10)]||0) + 1; });
+  var days = [], peak = goal;
+  for(var i=13;i>=0;i--){
+    var key = new Date(Date.now() - i*86400000).toISOString().slice(0,10);
+    var n = byDay[key] || 0;
+    if(n > peak) peak = n;
+    days.push({key:key, n:n, i:13-i});
+  }
+  var active = days.filter(function(d){ return d.n > 0; }).length;
+  var total = days.reduce(function(a,d){ return a + d.n; }, 0);
+  var line = active === 0 ? 'Nothing here yet — today’s bar is the first one.'
+    : active >= 12 ? 'Almost unbroken. This is what passing looks like from the inside.'
+    : active >= 7 ? 'More days on than off. The curve is on your side.'
+    : 'Every bar is a day you chose to show up.';
+  return '<div class="card sp4"><h3>Momentum <span class="grow"></span><span class="chip'+(active>=7?' ok':'')+'">'+active+' / 14 days</span></h3>'+
+    '<div class="mom-row">'+days.map(function(d){
+      var h = d.n === 0 ? 9 : Math.max(22, Math.round(100 * Math.min(1, d.n / peak)));
+      var cls = d.n === 0 ? ' empty' : (d.n >= goal ? ' full' : '');
+      return '<i class="mom-bar'+cls+'" style="--h:'+h+'%;--d:'+(d.i*38)+'ms" title="'+d.key+' · '+d.n+' answer'+(d.n===1?'':'s')+'"></i>';
+    }).join('')+'</div>'+
+    '<div class="tiny" style="margin-top:10px"><b data-count="'+total+'">0</b> answers in 14 days. '+line+'</div>'+
+  '</div>';
+}
 
 /* ---------------- dashboard (bento) ---------------- */
 U.views.dash = function(){
@@ -237,10 +413,11 @@ U.views.dash = function(){
   '</div>'+
 
   '<div class="bento">'+
-    '<div class="card sp6"><h3>'+ch.ch.name+' <span class="grow"></span><span class="chip '+(ch.done?'ok':'acc')+'">'+ch.prog+' / '+ch.ch.n+'</span></h3>'+
+    momentumCard()+
+    '<div class="card sp4"><h3>'+ch.ch.name+' <span class="grow"></span><span class="chip '+(ch.done?'ok':'acc')+'">'+ch.prog+' / '+ch.ch.n+'</span></h3>'+
       '<div class="muted" style="margin-bottom:10px">'+ch.ch.desc+' — this week’s challenge.</div>'+
-      '<div class="bar"><i class="gold" style="width:'+Math.round(100*ch.prog/ch.ch.n)+'%"></i></div></div>'+
-    '<div class="card memo-tip sp6"><div class="row" style="align-items:flex-start;gap:14px">'+U.mascot('normal',56)+
+      '<div class="bar"><i class="gold" data-w="'+Math.round(100*ch.prog/ch.ch.n)+'" style="width:0%"></i></div></div>'+
+    '<div class="card memo-tip sp4"><div class="row" style="align-items:flex-start;gap:14px">'+U.mascot('normal',56)+
       '<div style="flex:1"><h3 style="margin-bottom:6px">✦ Field notes</h3><div class="serif" style="font-size:14.5px;line-height:1.65">'+tip+'</div></div></div></div>'+
   '</div>';
 
@@ -777,6 +954,18 @@ U.views.settings = function(){
       '<button class="btn" id="set-how">ⓘ How the engine works</button>'+
       (st.reports.length?'<p class="tiny" style="margin-top:12px">You have reported '+st.reports.length+' answer dispute'+(st.reports.length>1?'s':'')+' — they’re stored in your backup file and your answers are now accepted for those items.</p>':'')+
     '</div>'+
+    '<div class="card" style="margin-bottom:16px"><h3>Feel</h3>'+
+      '<p class="muted" style="margin-bottom:12px">Mastery reacts to you: a sound on every answer, motion that celebrates progress, a dot in the corner that reads how you are doing. Turn either down if you are working somewhere quiet.</p>'+
+      '<div class="grid g2">'+
+      '<div><label class="tiny lab">SOUND</label><select class="ans-input slim" id="set-sound">'+
+        '<option value="on"'+(st.settings.sound!==false?' selected':'')+'>On — soft feedback tones</option>'+
+        '<option value="off"'+(st.settings.sound===false?' selected':'')+'>Off — silent</option>'+
+      '</select></div>'+
+      '<div><label class="tiny lab">MOTION</label><select class="ans-input slim" id="set-motion">'+
+        '<option value="full"'+(st.settings.motion!=='calm'?' selected':'')+'>Full — animation and celebration</option>'+
+        '<option value="calm"'+(st.settings.motion==='calm'?' selected':'')+'>Calm — minimal movement</option>'+
+      '</select></div>'+
+      '</div></div>'+
     '<div class="card" style="margin-bottom:16px"><h3>Backup</h3>'+
       '<div class="row wrap">'+
       '<button class="btn" id="set-export">⬇ Export progress</button>'+
@@ -795,6 +984,19 @@ U.views.settings = function(){
     eng.save(); FCE.app.buildNav(); U.toast('Saved ✓'); U.go('dash');
   });
   U.$('#set-how', v).addEventListener('click', U.howModal);
+  var snd = U.$('#set-sound', v);
+  if(snd) snd.addEventListener('change', function(){
+    eng.state.settings.sound = snd.value === 'on'; eng.save();
+    if(FCE.app) FCE.app.buildTopbar();
+    if(FCE.feel && snd.value === 'on') FCE.feel.sfx.ok();
+    U.toast(snd.value === 'on' ? '🔊 Sound on' : '🔇 Sound off');
+  });
+  var mot = U.$('#set-motion', v);
+  if(mot) mot.addEventListener('change', function(){
+    eng.state.settings.motion = mot.value; eng.save();
+    document.documentElement.setAttribute('data-motion', mot.value);
+    U.toast(mot.value === 'calm' ? 'Calm motion on — animations minimised.' : 'Full motion restored.');
+  });
   U.$('#set-export', v).addEventListener('click', function(){
     var blob = new Blob([eng.export()], {type:'application/json'});
     var a = document.createElement('a');

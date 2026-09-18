@@ -6,6 +6,7 @@ FCE.practice = (function(){
 var P = {};
 var U = function(){ return FCE.ui; };
 var E = function(){ return FCE.engine; };
+var FEEL = function(){ return FCE.feel || null; };
 var TYPE_LABEL = {kwt:'Part 4 · Transformation', cloze:'Part 2 · Open Cloze', wf:'Part 3 · Word Formation', mcc:'Part 1 · Multiple Choice'};
 
 /* ---------- behaviour tracker ---------- */
@@ -70,12 +71,17 @@ P.start = function(cfg){
   if(!queue.length){ U().toast('No questions available for that filter yet.'); return; }
   S = {queue:queue, idx:0, ok:0, run:0, mode:endless?'endless':(cfg.mode||'smart'), cfg:cfg,
        tag:cfg.tag||'', t0:Date.now(), selOpt:-1, conf:'', graded:false, results:[],
-       skippedIds:{}, requeued:{}, planned:queue.length, summarySaved:false, paused:false, levelBefore:eng.level()};
+       skippedIds:{}, requeued:{}, planned:queue.length, summarySaved:false, paused:false, levelBefore:eng.level(),
+       bestAccBefore:eng.state.records.bestAcc || 0, bestRunBefore:eng.state.records.bestRun || 0, idleStop:null};
+  document.body.classList.add('in-session');
+  var f = FEEL();
+  if(f){ f.sfx.start(); f.combo(0); f.dot.think(cfg.mode === 'diagnostic' ? 'Let’s find out where you really are.' : 'Ten questions. Go.'); }
   render();
 };
 
 function render(){
   var host = U().$('#view');
+  if(S && S.idleStop){ S.idleStop(); S.idleStop = null; }
   host.innerHTML = '';
   if(S.mode !== 'endless' && S.idx >= S.queue.length){ host.appendChild(summaryView()); }
   else {
@@ -129,7 +135,7 @@ function qView(){
     '<div class="q-top">'+
       '<button class="btn small ghost" id="q-quit">✕ End</button>'+
       '<button class="btn small ghost" id="q-pause" title="Pause — the clock stops">⏸</button>'+
-      '<div class="q-progress"><div class="bar"><i style="width:'+(endless?100:Math.round(100*S.idx/S.queue.length))+'%"></i></div></div>'+
+      '<div class="q-progress'+(S.idx>0?' grew':'')+'"><div class="bar"><i style="width:'+(endless?100:Math.round(100*S.idx/S.queue.length))+'%"></i></div></div>'+
       '<span class="tiny mono">'+(endless ? (S.results.length+1)+' ∞' : (S.idx+1)+' / '+S.queue.length)+'</span>'+
       (S.run >= 3 ? '<span class="chip gold">🔥 ×'+S.run+'</span>' : '')+
       '<span class="q-timer" id="q-timer">0:00</span>'+
@@ -144,7 +150,7 @@ function qView(){
       '</div>'+
       body+
       '<div class="conf-row">'+
-        '<span class="conf-label">Optional — how sure are you? <span style="text-transform:none;letter-spacing:0">(skip it and the engine reads your behaviour instead)</span></span>'+
+        '<span class="conf-label">How sure are you? <span style="text-transform:none;letter-spacing:0">optional — skip it and I read your behaviour instead</span></span>'+
         ['g','f','s'].map(function(k){
           return '<button class="conf" data-c="'+k+'">'+FCE.CONF[k].icon+' '+FCE.CONF[k].name+'</button>';
         }).join('')+
@@ -190,6 +196,7 @@ function qView(){
       if(tr.firstOpt < 0) tr.firstOpt = +b.dataset.i;
       u.$$('.opt', v).forEach(function(x){ x.classList.remove('sel'); });
       b.classList.add('sel'); S.selOpt = +b.dataset.i; canCheck();
+      var f = FEEL(); if(f) f.sfx.select();
     });
   });
   var inp = u.$('#ans', v);
@@ -217,6 +224,14 @@ function qView(){
   u.$('#q-quit', v).addEventListener('click', function(){ finishSession(true); });
   u.$('#q-pause', v).addEventListener('click', function(){ pauseOverlay(tr); });
 
+  var fi = FEEL();
+  if(fi){
+    S.idleStop = fi.idle(26000, function(){
+      if(!S || S.graded || S.paused) return;
+      fi.dot.think('Stuck? Commit to a guess — it costs nothing here, and the feedback sticks better.');
+      var cb2 = u.$('#q-check', v); if(cb2 && !cb2.disabled) cb2.classList.add('breathe');
+    });
+  }
   setKeys(function(ev){
     if(ev.key !== 'Enter' || S.paused) return;
     if(S && S.graded){
@@ -294,7 +309,9 @@ function grade(v, it, gaveUp){
     var ie = u.$('#ans', v); if(ie) ie.disabled = true;
   }
   S.graded = true;
+  if(S.idleStop){ S.idleStop(); S.idleStop = null; }
   var cbtn = u.$('#q-check', v);
+  if(cbtn) cbtn.classList.remove('breathe');
   if(cbtn){ cbtn.disabled = true; cbtn.classList.add('spent'); cbtn.textContent = 'Checked'; }
   var tEl = u.$('#q-timer', v); if(tEl) tEl.classList.add('done');
   var idkB = u.$('#q-idk', v); if(idkB) idkB.disabled = true;
@@ -310,6 +327,29 @@ function grade(v, it, gaveUp){
 
   if(ok){ S.ok++; S.run++; if(S.run > eng.state.records.bestRun) eng.state.records.bestRun = S.run; }
   else S.run = 0;
+
+  /* ---- emotional feedback: instant, physical, never harsh ---- */
+  var f = FEEL();
+  var near = !ok && (kwtScore === 1 || (diag && diag.code === 'spell'));
+  var card = v.querySelector('.q-card');
+  var fastNow = !!(ms < eng.par(it.type, q.diff) * 700);
+  if(f){
+    if(ok){
+      if(fastNow) f.sfx.okFast(); else f.sfx.ok();
+      f.haptic(12);
+      f.flash(card, 'ok');
+      f.burst(cbtn || card, {n: S.run >= 5 ? 22 : 14, power: S.run >= 5 ? 150 : 100, up:true, size:5});
+      f.combo(S.run);
+      if(S.run >= 3){ f.sfx.combo(S.run); }
+      f.dot.happy(S.run >= 5 ? '×'+S.run+'. You are on a run.' : '');
+    } else if(near){
+      f.sfx.near(); f.haptic(18); f.flash(card, 'near'); f.combo(0);
+      f.dot.sad('So close — the idea was right.');
+    } else {
+      f.sfx.miss(); f.haptic([12, 60, 12]); f.flash(card, 'bad'); f.shake(card); f.combo(0);
+      f.dot.sad(gaveUp ? 'Honest. That’s worth more than a lucky guess.' : '');
+    }
+  }
   var autoCause = gaveUp ? 'gap' : (diag && diag.code==='spell' ? 'spell' : '');
   var xpBefore = eng.state.xp;
   var res = eng.record(q, it.type, ok, S.conf, ms, userTxt, autoCause, {runStreak:S.run, beh:beh, diag:diag||undefined});
@@ -331,7 +371,12 @@ function grade(v, it, gaveUp){
   S.results.push({id:q.id, ok:ok});
   if(eng.level() > S.levelBefore){
     S.levelBefore = eng.level();
-    u.toast('🎓 <b>Level '+eng.level()+'!</b> The engine raises its expectations accordingly.', 'gold');
+    if(f && !f.calm()) setTimeout(function(){ f.levelUp(eng.level()); }, 620);
+    else u.toast('🎓 <b>Level '+eng.level()+'!</b> The engine raises its expectations accordingly.', 'gold');
+  }
+  if(xpGain > 0){
+    var tl = document.querySelector('.tb-level');
+    if(tl){ tl.classList.remove('gained'); void tl.offsetWidth; tl.classList.add('gained'); }
   }
 
   var ansText = it.type==='mcc' ? q.opts[q.cor] : q.ans.join('  ·  ');
@@ -351,7 +396,9 @@ function grade(v, it, gaveUp){
   var fb;
   if(ok){
     fb = '<div class="feedback ok">'+
-      '<div class="fb-head">✓ Correct'+(kwtScore===2?' — full 2 marks':'')+' <span class="chip ok" style="margin-left:auto">+XP</span></div>'+
+      '<div class="fb-head">✓ Correct'+(kwtScore===2?' — full 2 marks':'')+
+        '<span class="fb-voice">'+(f ? f.voice(res.fast ? 'okFast' : (q.diff>=4 ? 'okHard' : 'ok')) : '')+'</span>'+
+        '<span class="grow"></span></div>'+
       (q.ans && q.ans.length>1 && it.type!=='mcc' ? '<div class="fb-ans">Also accepted: <code>'+u.esc(q.ans.slice(1).join(' · '))+'</code></div>' : '')+
       '<div class="fb-exp">'+u.esc(q.exp||'')+'</div>'+
       (pattern ? '<div class="fb-pattern">⭐ <b>'+u.esc(pattern.name)+'</b> — real-paper frequency <span class="stars">'+'★'.repeat(pattern.freq)+'</span></div>' : '')+
@@ -360,7 +407,9 @@ function grade(v, it, gaveUp){
     '</div>';
   } else {
     fb = '<div class="feedback bad">'+
-      '<div class="fb-head">'+(gaveUp ? 'Here it is:' : '✗ Not this time'+(kwtScore===1?' — 1 of 2 marks':''))+'</div>'+
+      '<div class="fb-head">'+(gaveUp ? 'Here it is:' : (near ? '≈ Nearly'+(kwtScore===1?' — 1 of 2 marks':'') : '✗ Not this time'))+
+        (gaveUp ? '' : '<span class="fb-voice">'+(f ? f.voice(near ? ((diag&&diag.code==='spell') ? 'spell' : 'near') : 'miss') : '')+'</span>')+
+      '</div>'+
       '<div class="big-answer">'+u.esc(ansText)+'</div>'+
       (diag && diag.msg ? '<div class="fb-diag">'+u.esc(diag.msg)+'</div>' : '')+
       '<div class="fb-exp">'+u.esc(q.exp||'')+'</div>'+
@@ -395,12 +444,14 @@ function grade(v, it, gaveUp){
   if(wantB) wantB.addEventListener('click', function(){
     eng.addWant(q.id);
     wantB.disabled = true; wantB.textContent = '🎯 On your Mastery List';
+    if(f){ f.sfx.unlock(); f.burst(wantB, {n:12, power:70, size:4}); }
     u.toast('🎯 Noted. Expect this concept — in many disguises — until you own it.');
   });
   var rightB = u.$('#fb-right', v);
   if(rightB) rightB.addEventListener('click', function(){
     if(eng.amend(q.id)){
       S.ok++; S.results[S.results.length-1].ok = true;
+      if(f){ f.sfx.ok(); f.dot.happy('Noted — your stats are repaired.'); }
       var fbEl = u.$('.feedback', v);
       fbEl.className = 'feedback ok';
       fbEl.innerHTML = '<div class="fb-head">✓ Accepted — thank you</div>'+
@@ -449,19 +500,6 @@ function finishSession(early){
   render();
 }
 
-function confettiBurst(host){
-  var colors = ['#0e5e64','#c9a227','#a3c1ad','#b5474d','#20303a'];
-  for(var i=0;i<26;i++){
-    var c = document.createElement('i');
-    c.className = 'confetti';
-    c.style.left = (8+Math.random()*84)+'%';
-    c.style.background = colors[i%colors.length];
-    c.style.animationDelay = (Math.random()*0.5)+'s';
-    c.style.transform = 'rotate('+Math.random()*360+'deg)';
-    host.appendChild(c);
-  }
-}
-
 function summaryView(){
   var u = U(), eng = E();
   setKeys(null);
@@ -485,15 +523,17 @@ function summaryView(){
   });
   if(S.run >= 5){ eng.state.xp += 15; eng.save(); if(FCE.app) FCE.app.buildTopbar(); }
   var boostsNow = Object.keys(eng.state.boost).length;
+  var isBest = n >= 5 && acc > (S.bestAccBefore || 0) && acc >= 0.6;
   var v = u.el(
     '<div class="q-shell"><div class="q-card session-done" style="position:relative;overflow:hidden">'+
       '<div id="confetti-zone"></div>'+
       '<div class="emoji">'+(acc>=0.8?'🏆':acc>=0.5?'💪':'🧗')+'</div>'+
       '<h2 class="serif" style="margin:12px 0 4px;font-size:28px">'+(S.mode==='diagnostic'?'Diagnostic complete':'Session complete')+'</h2>'+
       '<p class="muted" style="max-width:430px;margin:0 auto">'+msg+'</p>'+
+      (isBest ? '<div class="pb-ribbon">★ personal best · '+Math.round(acc*100)+'% accuracy</div>' : '')+
       '<div class="ring-stats">'+
-        FCE.charts.ring(acc, Math.round(acc*100)+'%', 'accuracy', acc>=0.7?'#2E7D4F':acc>=0.45?'#C98A2D':'#C2371F')+
-        FCE.charts.ring(Math.min(1,n/10), String(S.results.length), 'questions', '#1B1C21')+
+        FCE.charts.ring(acc, Math.round(acc*100)+'%', 'accuracy', acc>=0.7?'#2E7D4F':acc>=0.45?'#C98A2D':'#C2371F', {count:Math.round(acc*100), suffix:'%'})+
+        FCE.charts.ring(Math.min(1,n/10), String(S.results.length), 'questions', '#1B1C21', {count:S.results.length})+
         FCE.charts.ring(Math.max(0,Math.min(1,(pr.scale-122)/68)), pr.grade, 'predicted grade', '#C98A2D')+
       '</div>'+
       (S.run >= 5 ? '<div class="chip gold" style="margin-bottom:10px">🔥 combo ×'+S.run+' — +15 bonus XP</div>' : '')+
@@ -507,7 +547,25 @@ function summaryView(){
       '<div class="tiny" style="margin-top:14px;opacity:.8">Tomorrow, 10 minutes on '+u.esc((eng.coach()[0]||{}).name||'your weakest skill')+' would be worth ≈ '+((Math.round((eng.coach()[0]||{cost:0}).cost*2)/2)||1).toFixed(1)+' marks. Deal?</div>'+
     '</div></div>'
   );
-  if(acc >= 0.7) confettiBurst(u.$('#confetti-zone', v));
+  var f = FEEL();
+  if(f){
+    f.enter(v);
+    f.animateNumbers(v, 340);
+    u.$$('.ring-stats > div', v).forEach(function(el, i){ el.style.setProperty('--d', (140 + i*130)+'ms'); });
+    setTimeout(function(){
+      if(acc >= 0.7){
+        f.sfx.done(); f.rain({n: isBest ? 54 : 34});
+        f.burst(u.$('.ring-stats', v) || v, {n:20, power:150, up:true});
+        f.dot.proud(isBest ? 'A personal best. Genuinely.' : 'Strong session.');
+      } else {
+        f.sfx.near();
+        f.dot.say(f.voice('back'));
+      }
+      if(isBest) f.haptic([16,60,16,60,26]);
+    }, 520);
+  }
+  document.body.classList.remove('in-session');
+  if(f) f.combo(0);
   u.$('#ss-again', v).addEventListener('click', function(){ P.start(S.cfg.mode==='diagnostic'?{mode:'smart'}:S.cfg); });
   u.$('#ss-dash', v).addEventListener('click', function(){ FCE.ui.go('dash'); });
   setKeys(function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); setKeys(null); P.start(S.cfg.mode==='diagnostic'?{mode:'smart'}:S.cfg); } });
@@ -613,6 +671,12 @@ function gymQ(){
     var ok = eng.norm(inp.value) === item.w;
     if(ok) G.ok++; else G.missed.push(item.w);
     eng.recordSpell(item.w, ok);
+    var gf = FEEL();
+    if(gf){
+      var gcard = v.querySelector('.q-card');
+      if(ok){ gf.sfx.ok(); gf.haptic(12); gf.flash(gcard,'ok'); gf.burst(checkBtn || gcard, {n:12, power:90, up:true}); gf.dot.happy(); }
+      else { gf.sfx.miss(); gf.haptic([10,50,10]); gf.flash(gcard,'bad'); gf.shake(gcard); gf.dot.sad('Letters, not grammar. Fixable tonight.'); }
+    }
     inp.disabled = true;
     checkBtn.style.display = 'none';                  // no dead button after checking
     var fbEl = u.$('#g-fb', v);
@@ -642,6 +706,11 @@ function gymQ(){
 function gymDone(){
   var u = U(), eng = E();
   setKeys(null);
+  var gdf = FEEL();
+  if(gdf) setTimeout(function(){
+    if(G.ok >= G.set.length - 1){ gdf.sfx.done(); gdf.rain({n:34}); gdf.dot.proud('Spelling is no longer your problem.'); }
+    else { gdf.sfx.near(); gdf.dot.say('Those words come back until they stick.'); }
+  }, 420);
   if(G.ok === G.set.length) eng.award('speller');
   eng.save();
   var rep = eng.spellReport();
@@ -737,6 +806,12 @@ function vocabQ(){
     VB.graded = true;
     if(ok) VB.ok++;
     eng.recordVocab(item, ok);
+    var vf = FEEL();
+    if(vf){
+      var vcard = v.querySelector('.q-card');
+      if(ok){ vf.sfx.ok(); vf.haptic(12); vf.flash(vcard,'ok'); vf.burst(vcard, {n:10, power:80, up:true}); vf.dot.happy(); }
+      else { vf.sfx.near(); vf.flash(vcard,'near'); vf.dot.sad(); }
+    }
     if(FCE.app && FCE.app.buildTopbar) FCE.app.buildTopbar();
     u.$('#vb-fb', v).innerHTML = '<div class="feedback '+(ok?'ok':'bad')+'">'+
       (ok ? '<div class="fb-head">✓ '+u.esc(item.up[0])+(mode!=='choose'?' — produced from memory':'')+'</div>'
@@ -811,6 +886,9 @@ P.mock = function(paperN){
   host.innerHTML = '';
   host.appendChild(mockView());
   window.scrollTo(0,0);
+  document.body.classList.add('in-session');
+  var mf0 = FEEL();
+  if(mf0){ mf0.sfx.start(); mf0.dot.think('Exam conditions. Clock is running.'); }
 };
 
 function mockView(){
@@ -936,7 +1014,7 @@ function gradeMock(v){
   host.appendChild(u.el(
     '<div class="q-shell"><div class="q-card session-done">'+
       '<div class="emoji">'+(score>=30?'🏆':score>=22?'🎯':'🧗')+'</div>'+
-      '<div class="mock-result-score">'+score+'<span style="font-size:26px;color:var(--ink3)"> / 36</span></div>'+
+      '<div class="mock-result-score"><span data-count="'+score+'" data-dur="1200">0</span><span style="font-size:26px;color:var(--ink3)"> / 36</span></div>'+
       '<p class="muted" style="margin-top:6px">Paper '+s.paper.n+(isCh?' · <b style="color:var(--red)">Challenge</b>':'')+' · ≈ Cambridge scale <b>'+scale+'</b> · '+(scale>=180?'Grade A':scale>=173?'Grade B':scale>=160?'Grade C — pass':'below pass')+' on this paper</p>'+
       (isCh ?
         '<div class="card" style="text-align:left;margin:14px auto 0;max-width:560px;background:var(--glass3)">'+
@@ -971,6 +1049,15 @@ function gradeMock(v){
       '<button class="btn" id="mk-again">New mock</button>'+
     '</div></div>'
   ));
+  var mf = FEEL();
+  if(mf){
+    mf.animateNumbers(host, 300);
+    setTimeout(function(){
+      if(score >= 22){ mf.sfx.done(); mf.rain({n: score >= 30 ? 60 : 34}); mf.dot.proud(score >= 30 ? 'That is an A-grade paper.' : 'A pass, under exam conditions.'); }
+      else { mf.sfx.near(); mf.dot.say('Every mark here is a mark you now know how to win.'); }
+    }, 480);
+  }
+  document.body.classList.remove('in-session');
   u.$('#mk-dash').addEventListener('click', function(){ FCE.ui.go('dash'); });
   u.$('#mk-again').addEventListener('click', function(){ P.mock(); });
   window.scrollTo(0,0);

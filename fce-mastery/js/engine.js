@@ -12,7 +12,7 @@ var DAY = 86400000;
 E.blank = function(){
   return {
     v:2, name:'', examDate:'', createdAt:Date.now(), onboarded:false,
-    settings:{dailyGoal:20, emergency:false, lite:'auto'},
+    settings:{dailyGoal:20, emergency:false, lite:'auto', sound:true, motion:'full'},
     xp:0, streak:{count:0, last:''}, badges:[], records:{bestRun:0, bestAcc:0, total:0},
     week:{id:'', counts:{}},
     ability:{kwt:1150, cloze:1150, wf:1150, mcc:1150},
@@ -45,6 +45,8 @@ E.load = function(){
   if(!E.state.spell) E.state.spell = {pat:{}, words:{}};
   if(!E.state.reports) E.state.reports = [];
   if(!E.state.settings.lite) E.state.settings.lite = 'auto';
+  if(E.state.settings.sound === undefined) E.state.settings.sound = true;
+  if(!E.state.settings.motion) E.state.settings.motion = 'full';
   return E.state;
 };
 E.save = function(){ try{ localStorage.setItem(KEY, JSON.stringify(E.state)); }catch(e){} };
@@ -459,7 +461,10 @@ E.award = function(id){
   if(E.state.badges.indexOf(id) !== -1) return false;
   E.state.badges.push(id);
   var b = FCE.BADGES.filter(function(x){return x.id===id;})[0];
-  if(b && FCE.ui && FCE.ui.toast) FCE.ui.toast(b.icon+' Badge earned: <b>'+b.name+'</b>', 'gold');
+  if(b){
+    if(FCE.feel && FCE.feel.badgeUnlock) FCE.feel.badgeUnlock(b);
+    else if(FCE.ui && FCE.ui.toast) FCE.ui.toast(b.icon+' Badge earned: <b>'+b.name+'</b>', 'gold');
+  }
   return true;
 };
 E.checkBadges = function(runStreak){

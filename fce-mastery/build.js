@@ -5,7 +5,7 @@ const path = require('path');
 const root = __dirname;
 const read = f => fs.readFileSync(path.join(root, f), 'utf8');
 
-const css = read('css/styles.css');
+const css = ['css/styles.css', 'css/feel.css'].map(read).join('\n');
 const js = [
   'js/data-core.js',
   'js/data-bank1.js',
@@ -24,6 +24,7 @@ const js = [
   'js/data-vocab2.js',
   'js/engine.js',
   'js/charts.js',
+  'js/feel.js',
   'js/views.js',
   'js/practice.js',
   'js/app.js',
@@ -31,7 +32,8 @@ const js = [
 
 let html = read('index.html');
 // replacer functions: a plain replacement string would mangle $-sequences ($$, $&, $') inside the code
-html = html.replace(/<link rel="stylesheet"[^>]*>/, () => '<style>\n' + css + '\n</style>');
+html = html.replace(/\s*<link rel="stylesheet"[^>]*>/g, () => '');
+html = html.replace('</head>', () => '<style>\n' + css + '\n</style>\n</head>');
 html = html.replace(/(\s*<script src="[^"]+"><\/script>)+/, () => '\n<script>\n' + js.replace(/<\/script>/g, '<\\/script>') + '\n</script>\n');
 
 const out = path.join(root, '..', 'dist');

@@ -18,6 +18,7 @@ require('../js/data-vocab.js');
 require('../js/data-vocab2.js');
 require('../js/engine.js');
 require('../js/charts.js');
+require('../js/feel.js');
 
 const E = FCE.engine;
 let fails = 0;
@@ -235,7 +236,29 @@ ok(E.state.papersDone[1] && E.state.papersDone[9], 'papers marked done');
 ok(E.pickPaper(9).retake === true && E.nextPaper().paper.n !== 9, 'retake flag + nextPaper skips completed papers');
 ok(E.patternFor('is being built'), 'pattern intelligence matches');
 ok(FCE.charts.gauge(165, 8).indexOf('<svg') === 0, 'gauge renders');
-ok(FCE.charts.spark([0.4,0.6,0.7]).indexOf('<svg') === 0, 'spark renders');
+const sparkHTML = FCE.charts.spark([0.4,0.6,0.7]);
+ok(sparkHTML.indexOf('chart-tactile') !== -1 && sparkHTML.indexOf('<svg') !== -1, 'spark renders as a scrubbable chart');
+ok(FCE.charts.ring(0.5, '50%', 'x', '#000', {count:50, suffix:'%'}).indexOf('data-count="50"') !== -1, 'ring exposes a countable number');
+
+console.log('— the feel layer —');
+ok(typeof FCE.feel === 'object' && typeof FCE.feel.init === 'function', 'feel layer loads');
+['ok','okFast','near','miss','combo','levelUp','unlock','done','start','tick','select'].forEach(k => {
+  if(typeof FCE.feel.sfx[k] !== 'function') fails++;
+});
+ok(typeof FCE.feel.sfx.ok === 'function', 'sound palette complete (11 cues)');
+ok(typeof FCE.feel.voice('ok') === 'string' && FCE.feel.voice('miss').length > 0, 'encouragement copy varies');
+ok(FCE.feel.levelTitle(1) === 'First Draft' && FCE.feel.levelTitle(40).indexOf('Master') === 0, 'level identities resolve');
+ok(E.state.settings.sound === true && E.state.settings.motion === 'full', 'feel preferences default on');
+E.state.settings.motion = 'calm';
+ok(FCE.feel.calm() === true, 'calm mode disables motion');
+E.state.settings.motion = 'full';
+E.state.settings.sound = false;
+ok(FCE.feel.soundOn() === false, 'sound can be muted');
+E.state.settings.sound = true;
+// headless safety: none of these may touch a DOM that is not there
+FCE.feel.init(); FCE.feel.burst(null); FCE.feel.rain(); FCE.feel.combo(5);
+FCE.feel.dot.happy('x'); FCE.feel.levelUp(3); FCE.feel.badgeUnlock({icon:'x',name:'y'});
+ok(true, 'feel layer is safe without a DOM');
 const story1 = E.studentStory();
 ok(story1.length > 150 && story1.indexOf('<b>') !== -1, 'coach’s read: data-rich profile composes');
 ok(!/undefined|NaN/.test(story1), 'coach’s read: no broken values');

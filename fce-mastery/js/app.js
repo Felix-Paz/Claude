@@ -85,12 +85,30 @@ A.buildTopbar = function(){
   var tb = document.getElementById('topbar');
   if(!tb) return;
   var eng = FCE.engine, st = eng.state;
+  var feel = FCE.feel, sfxOn = feel ? feel.soundOn() : true;
   tb.innerHTML =
     '<div class="tb-logo">'+FCE.ui.wordmark()+'</div>'+
+    '<span class="tb-dot is-idle" id="tb-dot" title="Mastery is listening. This dot reacts to how you answer."></span>'+
+    '<span class="tb-say" id="tb-say"></span>'+
     '<div class="tb-spacer"></div>'+
+    '<button class="tb-sfx'+(sfxOn?'':' off')+'" id="tb-sfx" title="'+(sfxOn?'Sound on — click to mute':'Sound off — click to unmute')+'">'+(sfxOn?'🔊':'🔇')+'</button>'+
     '<div class="tb-level" title="XP = effort made visible. Levels grow on a square-root curve — each costs more work, and the engine raises its expectations as you climb."><span class="lvl">LVL '+eng.level()+'</span><div class="bar thin"><i class="shimmer" style="width:'+Math.round(eng.levelProgress()*100)+'%"></i></div><span class="lvl">'+st.xp+' XP</span></div>'+
-    '<span class="tb-chip flame" title="Consecutive days practised. Habit is the best predictor of passing — protect the flame."><span class="fl">🔥</span>'+st.streak.count+'</span>';
+    '<span class="tb-chip flame'+(st.streak.count>=3?' combo-chip':'')+'" title="Consecutive days practised. Habit is the best predictor of passing — protect the flame."><span class="fl">🔥</span>'+st.streak.count+'</span>';
+  var sb = document.getElementById('tb-sfx');
+  if(sb && feel) sb.addEventListener('click', function(){ feel.toggleSound(); });
+  var dot = document.getElementById('tb-dot');
+  if(dot && feel) dot.addEventListener('click', function(){
+    feel.dot.happy(); feel.sfx.select();
+    feel.dot.say(DOT_LINES[Math.floor(Math.random()*DOT_LINES.length)]);
+  });
 };
+var DOT_LINES = [
+  'Still here. Still counting.',
+  'Every answer moves your rating.',
+  'I read how you answer, not just what.',
+  'Ten minutes today beats an hour on Sunday.',
+  'Your weakest skill is one session from being stronger.',
+];
 
 A.buildNav = function(){
   var sb = document.querySelector('.sidebar');
@@ -116,8 +134,18 @@ function boot(){
     d.className = 'blob '+c;
     document.body.appendChild(d);
   });
+  if(FCE.feel){
+    FCE.feel.init();
+    document.documentElement.setAttribute('data-motion', FCE.engine.state.settings.motion || 'full');
+  }
   A.buildNav();
   FCE.ui.go(FCE.engine.state.onboarded ? 'dash' : 'onboard');
+  if(FCE.feel && FCE.engine.state.onboarded){
+    setTimeout(function(){
+      var h = new Date().getHours();
+      FCE.feel.dot.say(h < 12 ? 'Morning. Let’s make today count.' : h < 19 ? 'Good to see you back.' : 'Evening session — the best kind.');
+    }, 1100);
+  }
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();

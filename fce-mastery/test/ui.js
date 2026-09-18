@@ -16,9 +16,24 @@ const path = require('path');
   await page.waitForTimeout(700);
   await shot('01-onboarding');
 
+  // staged onboarding: curtain → name → exam date → target → build
+  await page.click('#onb-next');                       // begin
+  await page.waitForSelector('#ob-name');
   await page.fill('#ob-name', 'Felix');
+  await page.waitForTimeout(250);
+  await shot('01b-onboarding-name');
+  await page.click('#onb-next');
+  await page.waitForSelector('#ob-date');
   const exam = new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10);
   await page.fill('#ob-date', exam);
+  await page.waitForTimeout(250);
+  await page.click('#onb-next');
+  await page.waitForSelector('.onb-opt');
+  await page.click('.onb-opt[data-g="B"]');
+  await page.click('#onb-next');
+  await page.waitForSelector('#ob-go', { timeout: 8000 });
+  await page.waitForTimeout(300);
+  await shot('01c-onboarding-build');
   await page.click('#ob-go');
   await page.waitForSelector('.q-card');
   await shot('02-question');
@@ -48,6 +63,7 @@ const path = require('path');
     await page.waitForTimeout(110);
   }
   await page.waitForSelector('.session-done');
+  await page.waitForTimeout(1400);
   await shot('04-summary');
   await page.click('#ss-dash');
   await page.waitForSelector('.grade-card');
@@ -146,8 +162,16 @@ const path = require('path');
   const mob = await browser.newPage({ viewport: { width: 390, height: 800 } });
   mob.on('pageerror', e => errors.push('mobile pageerror: ' + e.message));
   await mob.goto(file);
-  await mob.waitForTimeout(500);
+  await mob.waitForTimeout(600);
+  await mob.click('#onb-next');                 // curtain
+  await mob.waitForSelector('#ob-name');
   await mob.fill('#ob-name', 'Felix');
+  await mob.click('#onb-next');                 // name → date
+  await mob.waitForSelector('#ob-nodate');
+  await mob.click('#ob-nodate');                // skip the date
+  await mob.waitForSelector('.onb-opt');
+  await mob.click('#onb-next');                 // target → build
+  await mob.waitForSelector('#ob-skip', { timeout: 8000 });
   await mob.click('#ob-skip');
   await mob.waitForSelector('.lite-home');
   await mob.waitForTimeout(400);

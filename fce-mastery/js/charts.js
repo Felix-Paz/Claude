@@ -20,7 +20,7 @@ C.gauge = function(scale, ci){
   var zones = [
     [122,140,T.bad],[140,160,T.warn],[160,173,T.sage],[173,180,T.ok],[180,190,T.gold]
   ];
-  var s = '<svg viewBox="0 0 260 158" style="width:100%;max-width:280px">';
+  var s = '<svg class="gauge-in" viewBox="0 0 260 158" style="width:100%;max-width:280px">';
   zones.forEach(function(z){
     s += '<path d="'+arc(z[0],z[1],R)+'" stroke="'+z[2]+'" stroke-width="13" fill="none" stroke-linecap="butt" opacity=".22"/>';
   });
@@ -28,8 +28,8 @@ C.gauge = function(scale, ci){
   s += '<path d="'+arc(lo,hi,R)+'" stroke="url(#ggrad)" stroke-width="13" fill="none" stroke-linecap="round"/>';
   s += '<defs><linearGradient id="ggrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+T.teal+'"/><stop offset="1" stop-color="'+T.teal2+'"/></linearGradient></defs>';
   var np = pt(Math.max(min,Math.min(max,scale)), R-22);
-  s += '<line x1="'+cx+'" y1="'+cy+'" x2="'+np[0].toFixed(1)+'" y2="'+np[1].toFixed(1)+'" stroke="'+T.ink+'" stroke-width="2.5" stroke-linecap="round"/>';
-  s += '<circle cx="'+cx+'" cy="'+cy+'" r="5" fill="'+T.ink+'"/>';
+  s += '<g class="g-needle"><line x1="'+cx+'" y1="'+cy+'" x2="'+np[0].toFixed(1)+'" y2="'+np[1].toFixed(1)+'" stroke="'+T.ink+'" stroke-width="2.5" stroke-linecap="round"/>'+
+       '<circle cx="'+cx+'" cy="'+cy+'" r="5" fill="'+T.ink+'"/></g>';
   [[140,'140'],[160,'160 pass'],[180,'180 A']].forEach(function(t){
     var p = pt(t[0], R+15);
     s += '<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" font-size="8.5" fill="'+T.faint+'" text-anchor="middle">'+t[1]+'</text>';
@@ -66,7 +66,7 @@ C.radar = function(data){
   for(var k=0;k<N;k++){
     var v2 = Math.max(0.06, data[k].val);
     var pp = pt(k, R*v2);
-    s += '<circle cx="'+pp[0].toFixed(1)+'" cy="'+pp[1].toFixed(1)+'" r="3.4" fill="'+T.teal+'"/>';
+    s += '<circle class="radar-seg" cx="'+pp[0].toFixed(1)+'" cy="'+pp[1].toFixed(1)+'" r="5.2" fill="'+T.teal+'"><title>'+esc(data[k].name)+' — '+Math.round(v2*100)+'% mastered</title></circle>';
     var lp = pt(k, R+24);
     var anchor = Math.abs(lp[0]-cx)<12 ? 'middle' : (lp[0]>cx ? 'start' : 'end');
     var nm = data[k].name.length > 15 ? data[k].name.slice(0,14)+'…' : data[k].name;
@@ -105,7 +105,7 @@ C.calibration = function(rows){
   return s;
 };
 
-/* Accuracy trend sparkline */
+/* Accuracy trend sparkline — drag or hover to scrub the history */
 C.spark = function(data, w, h){
   w = w||300; h = h||56;
   if(data.length < 2) return '<div class="tiny">Complete two or more sessions to see your trend.</div>';
@@ -114,25 +114,31 @@ C.spark = function(data, w, h){
     return [(pad + i*(w-2*pad)/(n-1)).toFixed(1), (h-pad - v*(h-2*pad)).toFixed(1)];
   });
   var d = pts.map(function(p,i){ return (i?'L':'M')+p[0]+' '+p[1]; }).join('');
-  var s = '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%">';
+  var s = '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;display:block">';
   s += '<path d="'+d+' L'+pts[pts.length-1][0]+' '+(h-2)+' L'+pts[0][0]+' '+(h-2)+'Z" fill="rgba(224,73,47,.10)" stroke="none"/>';
   s += '<path d="'+d+'" fill="none" stroke="'+T.teal+'" stroke-width="2.2" stroke-linecap="round"/>';
   var last = pts[pts.length-1];
+  s += '<line class="ct-rule" x1="0" y1="0" x2="0" y2="'+h+'" stroke="'+T.teal+'" stroke-width="1" opacity="0"/>';
   s += '<circle cx="'+last[0]+'" cy="'+last[1]+'" r="3.4" fill="'+T.ink+'"/>';
+  s += '<circle class="ct-dot" cx="0" cy="0" r="5.4" fill="'+T.teal+'" stroke="#FFFBF1" stroke-width="2" opacity="0"/>';
   s += '</svg>';
-  return s;
+  return '<div class="chart-tactile" data-spark="'+encodeURIComponent(JSON.stringify(data))+'" data-sw="'+w+'" data-sh="'+h+'">'+s+'<div class="ct-tip"></div></div>';
 };
 
-/* Progress ring */
-C.ring = function(frac, label, sub, color){
+/* Progress ring — draws itself in; pass opt.count to make the number climb */
+C.ring = function(frac, label, sub, color, opt){
   frac = Math.max(0, Math.min(1, frac||0));
+  opt = opt || {};
   var R=34, CIRC=2*Math.PI*R;
+  var cAttr = (opt.count != null)
+    ? ' data-count="'+opt.count+'" data-suffix="'+(opt.suffix||'')+'" data-dur="1100"'
+    : '';
   return '<div style="text-align:center">'+
-    '<svg viewBox="0 0 84 84" style="width:84px;height:84px">'+
+    '<svg class="ring-draw" viewBox="0 0 84 84" style="width:84px;height:84px;--circ:'+CIRC.toFixed(1)+'">'+
     '<circle cx="42" cy="42" r="'+R+'" fill="none" stroke="rgba(27,28,33,.12)" stroke-width="7"/>'+
-    '<circle cx="42" cy="42" r="'+R+'" fill="none" stroke="'+(color||T.teal)+'" stroke-width="7" stroke-linecap="round" '+
+    '<circle class="val" cx="42" cy="42" r="'+R+'" fill="none" stroke="'+(color||T.teal)+'" stroke-width="7" stroke-linecap="round" '+
     'stroke-dasharray="'+CIRC.toFixed(1)+'" stroke-dashoffset="'+(CIRC*(1-frac)).toFixed(1)+'" transform="rotate(-90 42 42)" style="transition:stroke-dashoffset 1s cubic-bezier(.22,.9,.26,1)"/>'+
-    '<text x="42" y="47" font-size="17" font-weight="700" fill="'+T.ink+'" text-anchor="middle" font-family="Iowan Old Style,Palatino,Georgia,serif">'+esc(label)+'</text>'+
+    '<text x="42" y="47" font-size="17" font-weight="700" fill="'+T.ink+'" text-anchor="middle" font-family="Iowan Old Style,Palatino,Georgia,serif"'+cAttr+'>'+esc(label)+'</text>'+
     '</svg>'+
     '<div class="tiny" style="margin-top:2px">'+esc(sub||'')+'</div></div>';
 };

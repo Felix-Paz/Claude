@@ -34,11 +34,15 @@ node fce-mastery/test/ui.js        # Playwright walk-through (needs chromium)
 | Focus search | Type anything — "had better", "provided that", inversions — and the engine floods future sessions with it |
 | Essay Vocab Lab | 130 basic→band-boosting upgrades inside real essay frames, Leitner-spaced ladder: recognise → cued recall (letter skeleton) → full production |
 | The coach's read | A daily-fresh, fully tailored prose profile of the student on Home — trend, instincts, spelling cost, calibration, part contrast — composed by salience-ranking live observations (deterministic, no AI) |
+| Emotional design | A dedicated **feel layer**: synthesised sound (no audio assets — a warm two-note rise for a hit, a soft paper thud for a miss), haptics, particle bursts, ripples, pointer tilt with a glare that follows the cursor, count-up numbers, staggered entrances, and an **ink dot** in the top bar that breathes, thinks, cheers and flinches — the app as a character, no mascot |
+| Celebration | Level-up takeover with its own identity per level (First Draft → Master of the Paper), badge unlocks that pop, personal-best ribbons, combo atmosphere that warms the whole screen at ×3/×5/×8, paper-fall on a strong finish |
+| Momentum | A 14-day activity strip on the dashboard, spring-filled progress bars, rings that draw themselves — proof that something is being built |
+| Respect | Everything above dies instantly under `prefers-reduced-motion` or **Setup → Feel → Calm**; sound mutes from the top bar in one click |
 | Telemetry, in the open | Every captured signal (keystrokes, hesitation, typing time, rewrites, abandoned right answers…) displayed in Progress → Habits |
 
 ## Brand — "Red Ink on Paper"
 
-Modern liquid-glass paper: warm beige (`#F4EDDF`), deep ink (`#1B1C21`), vermilion red signal (`#E0492F`). Frosted glass cards over drifting warm light blobs + paper grain, sturdy Georgia/Charter display type (no hairline fonts), bold sans exercise text, a text lockup logo (Mastery · FCE tab · USE OF ENGLISH), red-dot rail navigation, live XP topbar, bento dashboard, XP floats, combo flames.
+Modern liquid-glass paper: warm beige (`#F4EDDF`), deep ink (`#1B1C21`), vermilion red signal (`#E0492F`). Frosted glass cards over drifting warm light blobs + paper grain, sturdy Georgia/Charter display type (no hairline fonts), bold sans exercise text, a text lockup logo (Mastery · FCE tab · USE OF ENGLISH), red-dot rail navigation, live XP topbar, bento dashboard, XP floats, combo flames. Motion is part of the identity: a five-step cinematic onboarding, blur-and-lift page transitions, cards that tilt into depth under the pointer, and charts you can scrub with a finger.
 
 ## Benchmarks
 
@@ -65,7 +69,9 @@ fce-mastery/
   js/data-papers.js  the 12 fixed mock papers (+72 exclusive KWTs)
   js/data-vocab.js   essay vocab upgrades (58 + 72 in data-vocab2.js)
   js/engine.js       the adaptive engine
-  js/charts.js       dependency-free SVG charts
+  js/charts.js       dependency-free SVG charts (animated + scrubbable)
+  js/feel.js         the feel layer: sound, haptics, particles, character, celebration
+  css/feel.css       motion & celebration styles
   js/views.js        all screens + Quill
   js/practice.js     sessions, spelling gym, mock
   js/app.js          nav & boot (full + lite)
