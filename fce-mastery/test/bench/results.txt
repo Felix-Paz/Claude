@@ -1,0 +1,9 @@
+ENGINE BENCHMARK — 10 synthetic students × 120 questions each
+                                                V1          V3          V4
+Weakness found in top-3 after (questions, ↓)    1.3         2.0         2.2
+Weak-skill targeting share (↑)                  30.2%       33.4%       38.9%
+Skill coverage by Q60 (↑)                       98.0%       93.2%       87.6%
+Part imbalance, first 40 Q (↓)                  21.5        5.6         8.3
+Missed concept re-served within (Q, ↓)          4.6         5.0         5.4
+Final true skill on weaknesses (↑)              59.4%       61.3%       63.0%
+Prediction error |pred − true| (↓)              16.1 pts%   9.3 pts%    5.6 pts%
