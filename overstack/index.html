@@ -1043,8 +1043,8 @@ body.cursed #risk-vignette { background: radial-gradient(78% 68% at 50% 52%, tra
   position: fixed; inset: 0; background: #fff;
   opacity: 0; pointer-events: none; z-index: 37;
 }
-#of-orb.go   { animation: of-orb 1.5s cubic-bezier(.12,.72,.3,1) forwards; }
-#of-white.go { animation: of-white 1.5s ease-out forwards; }
+#of-orb.go   { animation: of-orb 1.9s cubic-bezier(.12,.72,.3,1) forwards; }
+#of-white.go { animation: of-white 2.4s ease-out forwards; }
 @keyframes of-orb {
   0%   { opacity: 0;    transform: translate(-50%,-50%) scale(0.04); }
   8%   { opacity: 1;    transform: translate(-50%,-50%) scale(0.55); }
@@ -1053,8 +1053,12 @@ body.cursed #risk-vignette { background: radial-gradient(78% 68% at 50% 52%, tra
   70%  { opacity: 0.55; transform: translate(-50%,-50%) scale(3.4); }
   100% { opacity: 0;    transform: translate(-50%,-50%) scale(3.8); }
 }
+/* The screen holds FULLY white for about nine hundred milliseconds now, where
+   it used to hold for two hundred and fifty. At a quarter of a second the blast
+   read as a flicker; held, it becomes a beat — the board is gone, and you are
+   waiting to find out what is there instead. */
 @keyframes of-white {
-  0% { opacity: 0; } 9% { opacity: 1; } 26% { opacity: 1; } 100% { opacity: 0; }
+  0% { opacity: 0; } 5% { opacity: 1; } 42% { opacity: 1; } 100% { opacity: 0; }
 }
 
 /* The number owns the screen while it climbs. It grows from its own top edge so
@@ -1158,7 +1162,15 @@ body.of-live #hud-score-wrap { transform: translateX(-50%) translateY(18px); tra
 }
 #reveal-card .rv-name {
   display: flex; font-weight: 800; line-height: 1;
-  font-size: clamp(2rem, 9vw, 4.1rem); letter-spacing: 0.02em; color: #fff;
+  font-size: var(--rv-size, clamp(2.4rem, 11vw, 5.4rem));
+  letter-spacing: 0.01em; color: #fff; white-space: nowrap;
+  text-shadow: 0 10px 40px rgba(0,0,0,0.45);
+}
+/* …and it leaves as deliberately as it arrived, rather than being deleted */
+#reveal-card.bye { animation: rv-bye 0.42s cubic-bezier(.45,0,.75,0) forwards; }
+@keyframes rv-bye {
+  from { opacity: 1; transform: translate(-50%,-50%) scale(1); filter: blur(0); }
+  to   { opacity: 0; transform: translate(-50%,-50%) scale(1.14); filter: blur(7px); }
 }
 #reveal-card .rv-name i { font-style: normal; display: inline-block; }
 #reveal-card .rv-power {
@@ -1337,10 +1349,6 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
    Three beats, each anchored to the thing you actually touch, each dismissed by
    doing the thing rather than by tapping a button. It never blocks input and it
    never appears again. */
-#hap-box, #hap-tick {
-  position: fixed; bottom: 0; left: 0; width: 1px; height: 1px;
-  opacity: 0; pointer-events: none; z-index: -1; appearance: none; border: 0; margin: 0;
-}
 #tutor { position: fixed; inset: 0; z-index: 34; pointer-events: none; opacity: 0; transition: opacity 0.3s ease; }
 #tutor.show { opacity: 1; }
 #tutor-ring {
@@ -1357,7 +1365,10 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   50%     { transform: scale(1.07); }
 }
 #tutor-tip {
+  /* left/top are both driven from Tutor.placeTip(); the translate is cleared
+     there, so this pair is only the pre-placement default */
   position: absolute; left: 50%; transform: translateX(-50%);
+  transition: left 0.22s cubic-bezier(.2,.9,.3,1), top 0.22s cubic-bezier(.2,.9,.3,1);
   /* max-content escapes the shrink-to-fit box a left:50% anchor would give it */
   width: max-content; max-width: min(78vw, 318px);
   padding: 11px 18px 13px; text-align: center;
@@ -1367,6 +1378,56 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   box-shadow: 0 20px 46px -22px rgba(0,0,0,0.75);
 }
 #tutor-tip b { color: var(--gold); }
+
+/* ---------- PRIVACY POLICY + TERMS -------------------------------------
+   Every portal this game is published through — Y8, GameDistribution,
+   GameMonetize, GamePix — expects one, and the ad kits they wrap the game in
+   set storage and serve adverts under rules (GDPR, ePrivacy, COPPA) that only
+   work if the player has somewhere to read what is happening. It lives behind
+   one line in Settings rather than on a splash: nobody should have to dismiss
+   a legal notice to play a stacking game, and anybody who wants it should be
+   able to find it in one place. */
+#btn-legal {
+  margin-top: 16px; width: 100%; font-size: 0.62rem; letter-spacing: 0.14em;
+  opacity: 0.72;
+}
+#btn-legal:hover { opacity: 1; }
+#legal-card {
+  position: relative; padding: 26px 26px 22px; width: min(94vw, 620px);
+  max-height: min(86vh, 760px); display: flex; flex-direction: column;
+}
+#legal-tabs { display: flex; gap: 6px; margin: 14px 0 6px; flex: 0 0 auto; }
+.lg-tab {
+  flex: 1; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.55);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: var(--r-chip);
+  padding: 8px 6px; cursor: pointer; font: inherit;
+  font-size: 0.56rem; font-weight: 800; letter-spacing: 0.16em;
+}
+.lg-tab.on { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.28); }
+#legal-body {
+  flex: 1 1 auto; overflow-y: auto; scrollbar-width: thin;
+  text-align: left; padding-right: 10px; margin-top: 6px;
+  font-size: 0.72rem; line-height: 1.62; color: rgba(255,255,255,0.74);
+}
+#legal-body::-webkit-scrollbar { width: 8px; }
+#legal-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 4px; }
+#legal-body h3 {
+  margin: 18px 0 6px; font-size: 0.6rem; letter-spacing: 0.18em;
+  color: var(--gold); font-weight: 800;
+}
+#legal-body h3:first-of-type { margin-top: 4px; }
+#legal-body p { margin: 0 0 9px; }
+#legal-body ul { margin: 0 0 10px; padding-left: 17px; }
+#legal-body li { margin-bottom: 4px; }
+#legal-body b { color: rgba(255,255,255,0.94); }
+#legal-body .lg-date {
+  font-size: 0.58rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.4);
+  margin-bottom: 12px;
+}
+@media (max-width: 759px) {
+  #legal-card { padding: 22px 18px 18px; }
+  #legal-body { font-size: 0.68rem; }
+}
 #tutor-step { display: block; font-size: 0.46rem; letter-spacing: 0.3em; color: rgba(255,255,255,0.5); margin-bottom: 7px; }
 .reduce-motion #tutor-ring { animation: none; }
 
@@ -1650,8 +1711,6 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   <ol id="p-board"></ol>
 </div>
 
-<!-- iOS's only haptic surface: toggling a switch input via its label -->
-<input type="checkbox" switch id="hap-box" tabindex="-1" aria-hidden="true"><label for="hap-box" id="hap-tick" aria-hidden="true"></label>
 <div id="tutor"><div id="tutor-ring"></div><div id="tutor-tip"><span id="tutor-step"></span><span id="tutor-text"></span></div></div>
 <div id="hint" class="chip"></div>
 <div id="toast" class="chip"></div>
@@ -1718,8 +1777,140 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
     <h2>SETTINGS</h2>
     <div class="setting-row"><span>Sound effects</span><button class="toggle" id="tgl-sound"></button></div>
     <div class="setting-row"><span>Music</span><button class="toggle" id="tgl-music"></button></div>
-    <div class="setting-row" id="row-haptics"><span>Haptics</span><button class="toggle" id="tgl-haptics"></button></div>
     <div class="setting-row"><span>Reduce motion / low power</span><button class="toggle" id="tgl-motion"></button></div>
+    <button class="btn btn-ghost" id="btn-legal">Privacy policy &amp; terms of use</button>
+  </div>
+</div>
+
+<div id="legal" class="screen hidden">
+  <div id="legal-card" class="glass">
+    <button class="card-x" id="legal-x"></button>
+    <h2>PRIVACY &amp; TERMS</h2>
+    <div id="legal-tabs">
+      <button class="lg-tab on" data-lg="privacy">PRIVACY POLICY</button>
+      <button class="lg-tab" data-lg="terms">TERMS OF USE</button>
+    </div>
+    <div id="legal-body">
+      <section id="lg-privacy">
+        <p class="lg-date">Last updated: <b data-legal-date></b></p>
+
+        <h3>The short version</h3>
+        <p>OVERSTACK does not ask you for your name, your email address or any other
+        personal detail, and it has no accounts to sign in to. Your progress is kept
+        on your own device. The game itself does not send anything about you anywhere.</p>
+        <p>The site you are playing on, and any advertising shown around or inside the
+        game, are run by other companies and have their own privacy policies. Those are
+        described below.</p>
+
+        <h3>What the game stores on your device</h3>
+        <p>OVERSTACK saves one record in your browser's local storage so that closing the
+        tab does not wipe your progress. It contains:</p>
+        <ul>
+          <li>your coins, vault, best run and lifetime totals;</li>
+          <li>which decks and shape packs you own and have equipped;</li>
+          <li>your daily-streak dates and whether you have seen the tutorial;</li>
+          <li>your settings — sound, music and reduced motion.</li>
+        </ul>
+        <p>This record stays on your device. It is not an account, it is not sent to us,
+        and it cannot be used to identify you. Clearing your browser's site data for this
+        page deletes all of it permanently, including your progress.</p>
+
+        <h3>What the game does not do</h3>
+        <ul>
+          <li>It does not collect your name, email, address or phone number.</li>
+          <li>It does not ask for your location, camera, microphone or contacts.</li>
+          <li>It does not build a profile of you or sell data about you.</li>
+          <li>It does not contact any server of ours while you play.</li>
+        </ul>
+
+        <h3>Portals and advertising</h3>
+        <p>OVERSTACK is distributed through game portals and advertising networks. When
+        the game is embedded in one of those sites, or served through one of their
+        software kits, that company may collect information such as your IP address,
+        device and browser type, approximate region, and how you interact with adverts —
+        and may use cookies or similar storage to do so. That processing is theirs, under
+        their own privacy policies, and we have no access to it.</p>
+        <p>Where the law requires it, those networks present their own consent notice
+        before any non-essential storage is used, and honour the choice you make there.
+        Rewarded video — the optional advert you can watch to revive a run or double a
+        reward — is always your choice; declining it costs you only that reward.</p>
+
+        <h3>Children</h3>
+        <p>OVERSTACK is suitable for a general audience and is not directed at children
+        under 13. Where a portal identifies an audience as child-directed, advertising is
+        expected to be served in a non-personalised, contextual form in line with COPPA,
+        the GDPR and the equivalent rules in other jurisdictions.</p>
+
+        <h3>Your choices</h3>
+        <ul>
+          <li>Delete everything the game has stored by clearing site data for this page
+          in your browser settings.</li>
+          <li>Block storage entirely in your browser; the game will still run, but it
+          will forget your progress each time you leave.</li>
+          <li>Manage advertising preferences through the notice the portal or network
+          shows you, or through your device's advertising settings.</li>
+        </ul>
+
+        <h3>Changes</h3>
+        <p>If this policy changes, the date at the top of this page changes with it.</p>
+
+        <h3>Contact</h3>
+        <p>Questions about this policy can be sent to
+        <b data-legal-contact></b>.</p>
+      </section>
+
+      <section id="lg-terms" hidden>
+        <p class="lg-date">Last updated: <b data-legal-date></b></p>
+
+        <h3>Playing the game</h3>
+        <p>You may play OVERSTACK for your own personal entertainment, free of charge, on
+        the sites where it is published. You may not sell it, re-host it, embed it
+        commercially, or present it as your own work without written permission.</p>
+
+        <h3>What you may not do</h3>
+        <ul>
+          <li>Modify, decompile or reverse engineer the game, or interfere with how it
+          runs, in order to alter scores, currency or progression.</li>
+          <li>Use automated tools to play it, or to generate traffic or advert
+          impressions.</li>
+          <li>Use the game in any way that breaks the law, or the rules of the site you
+          are playing on.</li>
+        </ul>
+
+        <h3>Coins, vaults and everything else in the game</h3>
+        <p>Coins, decks, shape packs and every other item in OVERSTACK exist only inside
+        the game. They have no monetary value, cannot be bought with real money, cannot
+        be exchanged for money or goods, and cannot be transferred between devices or
+        people. Nothing in the game is sold to you, so nothing in it is refundable.</p>
+        <p>Because your progress lives in your browser's storage, it can be lost — by
+        clearing site data, by private browsing, by a browser update, or by playing on a
+        different device or browser. Lost progress cannot be restored, and no compensation
+        is offered for it. Treat everything in the game as temporary.</p>
+
+        <h3>Advertising</h3>
+        <p>The game may show adverts, and may offer you an optional advert in exchange for
+        a reward. Those adverts are supplied by third parties and their content is not
+        ours. Declining an optional advert only forgoes that reward.</p>
+
+        <h3>Availability</h3>
+        <p>The game is provided as it is, without any warranty. We do not promise that it
+        will always be available, that it will run correctly on every device, or that it
+        will be free of faults. It may be changed, updated or withdrawn at any time.</p>
+
+        <h3>Limitation of liability</h3>
+        <p>To the fullest extent the law allows, we are not liable for any loss arising
+        from your use of the game, including lost progress or lost in-game items. Nothing
+        here limits any liability that cannot lawfully be limited.</p>
+
+        <h3>These terms</h3>
+        <p>If part of these terms turns out to be unenforceable, the rest still stands.
+        These terms are governed by the laws of <b data-legal-law></b>. If the terms
+        change, the date at the top of this page changes with them.</p>
+
+        <h3>Contact</h3>
+        <p>Questions about these terms can be sent to <b data-legal-contact></b>.</p>
+      </section>
+    </div>
   </div>
 </div>
 
@@ -1902,9 +2093,9 @@ const DOCKS = {
    ("merges with a Gem") would just be a second thing to learn. */
 const SPECIALS = {
   golden:   { label: 'GOLDEN BLOCK',    coinMult: 3, targetsFusable: true,
-              hint: 'Worth 3× coins when it merges', pairs: 'same' },
+              hint: 'Worth 3× coins when it merges', pairs: 'obvious' },
   giant:    { label: 'GIANT BLOCK',     coinMult: 3, sizeMult: 1.55, targetsFusable: true, cameraKick: true,
-              hint: 'Oversized, and worth 3× coins', pairs: 'same' },
+              hint: 'Oversized, and worth 3× coins', pairs: 'obvious' },
   rainbow:  { label: 'RAINBOW BLOCK',   coinMult: 2.5, wild: true,
               hint: 'Wild — 2.5× coins, and it merges with', pairs: 'any' },
   unstable: { label: 'UNSTABLE BLOCK',  coinMult: 2, friction: 0.95, jitter: true, density: 0.00008, harmlessFall: true,
@@ -1922,7 +2113,7 @@ const SPECIALS = {
   split:    { label: 'SPLIT BLOCK',     noFuse: true,  splits: 4,
               hint: 'Shatters into four smaller blocks on impact', pairs: 'none' },
   angry:    { label: 'ANGRY BLOCK',     coinMult: 2,   targetsFusable: true, jumps: true, harmlessFall: true,
-              hint: '2× coins — jumps once after it lands', pairs: 'same' },
+              hint: '2× coins — it will not stop jumping', pairs: 'same' },
   dice:     { label: 'DICE BLOCK',      coinMult: 2,   dice: true,
               hint: '2× coins — its tier re-rolls on every bounce', pairs: 'same' },
   chest:    { label: 'LUCKY CHEST',     noFuse: true,  chest: true,
@@ -1984,7 +2175,9 @@ const CONFIG = {
   chase: { startRatio: 0.85 }, // within 15% of best bank → gold-chase mode
   // EventDirector — every 45–75s the game asks "what crazy thing happens now?"
   events: {
-    minGapMs: 45_000, maxGapMs: 75_000,
+    // a little more often than it was (45-75s): long enough that an event is
+    // still an event, short enough that a run reliably sees a few
+    minGapMs: 33_000, maxGapMs: 54_000,
     firstEventDelayMs: 30_000,       // let the player breathe before the first surprise
     worldEventChance: 0.35,          // vs. injecting a special block
     jackpotEveryMs: 5 * 60_000,      // the rare huge diamond
@@ -1997,7 +2190,8 @@ const CONFIG = {
     meteorWarnMs: 1200,
     windMs: 9_000,                   // a FLOOR, not a timer — the gust also needs windDrops landings
     windDrops: 3,                    // you cannot wait wind out; you have to drop through it
-    windForce: 0.0035,               // pushes the FALLING block sideways — landing always clamped over the dock
+    windForce: 0.0028,               // pushes the FALLING block sideways — landing always clamped over the dock
+    windMaxDrift: 2.1,               // …and a terminal sideways speed, so it drifts instead of being launched
     meteorGraceMs: 4_000,            // after impact, knocked-off pieces vanish instead of killing
     angryGraceMs: 2_500,             // same idea after an angry jump
   },
@@ -2005,7 +2199,8 @@ const CONFIG = {
   /* How hard two AUREX pull on each other (§21e-b). Small on purpose — the
      player closes the gap; this only stops the last few pixels stalling. */
   strainForce: 0.0009,
-  angryJumpDelayMs: 550,
+  angryJumpDelayMs: 550,       // first jump, after it lands
+  angryJumpGapMs: 1250,        // and then it keeps going, roughly this often
   /* PHASE BLOCK (§20c). It does not obey gravity and it does not stay put: it
      walks the CREST of the pile in jumps, dissolving out of one place and
      re-forming in another. Every number here is about readability — you have to
@@ -2059,7 +2254,7 @@ const CONFIG = {
    real draw functions. The NEXT preview divides its cap by this so nothing is
    ever sliced off by the edge of the box. */
 const PREVIEW_OVERSHOOT = {
-  star: 1.15, bomb: 1.3, magnet: 1.05, jackpot: 1.8, chest: 1.35,
+  star: 1, bomb: 1.3, magnet: 1.05, jackpot: 1.8, chest: 1.35,
   angry: 1.1, heavy: 1.1, dice: 1.05, split: 1.1, unstable: 1.2, giant: 1,
   teleport: 1.3,
 };
@@ -2193,7 +2388,7 @@ const SaveStore = {
       hints: { fusion: false, bank: false, safe: false },
       tutorialDone: false,              // the four-beat first-run tour, shown once ever
       tutorialRuns: 0,                  // runs it has opened on, so it cannot nag forever
-      settings: { sound: true, music: true, haptics: true, reduceMotion: false },
+      settings: { sound: true, music: true, reduceMotion: false },
       baselines: { decisionLatency: 0, decisionLatencySamples: [], sessionPace: 0, sessionMinutes: 0, sessions: 0 },
       profile: { // persisted play-style stats — surfaced as a style title
         greedAtBank: 1.6, banks: 0, collapses: 0,
@@ -2244,11 +2439,19 @@ const FeedbackBus = {
   emit(name, payload) { (this.handlers[name] || []).forEach((fn) => fn(payload)); },
 };
 
-/* ============================ §5 SETTINGS + HAPTICS ======================= */
+/* The publishing details the privacy policy and terms refer to. FILL THESE IN
+   before the game goes to a portal: they are what turn a template into a
+   document that actually binds anybody. */
+const LEGAL = {
+  updated: '19 September 2026',
+  contact: 'support@example.com',       // <- a real contact address
+  law: 'your jurisdiction',             // <- e.g. 'England and Wales'
+};
+
+/* ============================ §5 SETTINGS ================================ */
 const Settings = {
   get sound() { return save.settings.sound; },
   get music() { return save.settings.music !== false; },   // older saves predate the split
-  get haptics() { return save.settings.haptics; },
   get reduceMotion() { return save.settings.reduceMotion; },
   toggle(key) {
     save.settings[key] = !save.settings[key];
@@ -2261,91 +2464,6 @@ function applyMotionClass() {
   document.body.classList.toggle('reduce-motion', Settings.reduceMotion || perf.tier === 'low');
   document.body.classList.toggle('low-fx', perf.tier === 'low');
 }
-/* Haptics are a percussion section, not a rumble pack. Every cue is a shaped
-   beat — a soft pre-tick into a strong hit, or a run of taps that resolves —
-   rather than one flat buzz, and the whole thing runs on a budget so it can
-   never turn into continuous noise: nothing fires within 70ms of the last cue
-   unless it is heavier than what is already playing. Weight doubles as the
-   dramatic scale, so a collapse always cuts through a landing. */
-const Haptics = {
-  // Checked lazily, not at parse time: some browsers only expose vibrate once
-  // the page has been interacted with.
-  get supported() { return typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'; },
-  cues: {
-    tap:      { w: 1, p: 7 },
-    drop:     { w: 1, p: 11 },
-    landSoft: { w: 1, p: 9 },
-    landHard: { w: 2, p: [16, 26, 12] },
-    fuse:     { w: 2, p: [12, 26, 18] },
-    fuseBig:  { w: 3, p: [16, 34, 24, 34, 46] },
-    chain:    { w: 3, p: [10, 26, 10, 26, 10, 26, 34] },
-    greed:    { w: 2, p: [8, 60, 8] },
-    danger:   { w: 2, p: [14, 90, 14] },
-    incoming: { w: 3, p: [26, 70, 26, 70, 40] },
-    revive:   { w: 3, p: [10, 50, 18, 50, 34] },
-    nearMiss: { w: 4, p: [44, 70, 20] },
-    jackpot:  { w: 4, p: [14, 30, 14, 30, 14, 30, 72] },
-    blast:    { w: 4, p: [80, 40, 40] },
-    best:     { w: 4, p: [20, 40, 20, 40, 62] },
-    bank:     { w: 5, p: [24, 44, 78] },
-    unlock:   { w: 5, p: [18, 40, 18, 40, 18, 40, 92] },
-    collapse: { w: 5, p: [76, 54, 118] },
-    // THE OVERFLOW — the only cue allowed to run over a second: the charge
-    // stutters faster and faster, then one enormous hit for the blast
-    ofCharge: { w: 5, p: [10, 90, 12, 78, 14, 66, 18, 54, 22, 42, 28, 30, 36] },
-    ofBlast:  { w: 5, p: [190, 60, 40, 40, 30, 40, 24, 40, 18] },
-    // PHASE BLOCK: the leaving stutters out to nothing, the arriving snaps in
-    phOut:    { w: 3, p: [26, 22, 18, 26, 12, 30, 8] },
-    phIn:     { w: 4, p: [8, 30, 14, 26, 64] },
-    // two AUREX closing: one short tug, fired as often as the tone is
-    strain:   { w: 2, p: [16] },
-  },
-  _at: 0, _weight: 0,
-  fire(name) {
-    if (!Settings.haptics) return;
-    const cue = this.cues[name];
-    if (!cue) return;
-    const t = Date.now();
-    if (t - this._at < 70 && cue.w <= this._weight) return;
-    this._at = t; this._weight = cue.w;
-    if (this.supported) {
-      try { if (navigator.vibrate(cue.p) !== false) return; } catch (e) { /* fall through */ }
-    }
-    this.iosTick();
-  },
-  // iOS has no Vibration API at all. Safari does, however, produce a real
-  // system tick when a <input type="checkbox" switch> is toggled by clicking
-  // its label — one fixed light tap, no patterns, but it is the difference
-  // between haptics and no haptics on an iPhone.
-  iosTick() {
-    const l = document.getElementById('hap-tick');
-    if (!l) return;
-    try { l.click(); } catch (e) { /* nothing more to try */ }
-  },
-  // fired when the switch is turned on, so the player gets an answer
-  confirm() { this._at = 0; this._weight = 0; this.fire('bank'); },
-};
-function haptic(name) { Haptics.fire(name); }
-FeedbackBus.on('drop', () => haptic('drop'));
-FeedbackBus.on('land', (p) => haptic(p.impact > 0.55 ? 'landHard' : 'landSoft'));
-FeedbackBus.on('fusion', (p) => haptic(p.tier >= 5 ? 'fuseBig' : 'fuse'));
-FeedbackBus.on('chain', () => haptic('chain'));
-FeedbackBus.on('surprise', () => haptic('incoming'));
-FeedbackBus.on('newBest', () => haptic('best'));
-FeedbackBus.on('jackpot', () => haptic('jackpot'));
-FeedbackBus.on('explosion', () => haptic('blast'));
-FeedbackBus.on('bank', () => haptic('bank'));
-FeedbackBus.on('collapse', () => haptic('collapse'));
-FeedbackBus.on('overflowCharge', () => haptic('ofCharge'));
-FeedbackBus.on('overflowBlast', () => haptic('ofBlast'));
-FeedbackBus.on('overflowStep', () => haptic('fuseBig'));
-FeedbackBus.on('overflowLand', () => haptic('unlock'));
-FeedbackBus.on('revealPart', () => haptic('landSoft'));
-FeedbackBus.on('revealLand', (p) => haptic(p.tier >= 2 ? 'unlock' : 'bank'));
-FeedbackBus.on('phaseOut', () => haptic('phOut'));
-FeedbackBus.on('phaseIn', () => haptic('phIn'));
-FeedbackBus.on('strain', () => haptic('strain'));
-FeedbackBus.on('offer', () => haptic('unlock'));
 
 /* Five recorded one-shots, base64 MP3 so the file stays self-contained and so
    every browser can decode them (Ogg Vorbis is Safari 17+ only). ~29 KB.
@@ -2760,16 +2878,35 @@ const Audio2 = {
       slideTo: 40, cutoff: 900, cutoffTo: 90, q: 1.5, when: 0.17, verb: 0.18 });
     this.hiss({ peak: 0.09, decay: 0.5, from: 900, to: 13000, type: 'bandpass', q: 1.3, verb: 0.55 });
   },
+  /* THE COUNTER. This was a ladder of FM bells climbing a minor pentatonic
+     scale for four seconds, and a rising minor scale under a number going up is
+     a lament — it read as sad at the single most triumphant moment in the game.
+
+     It is a mechanical counter now: short, dry, low clicks, one per fixed
+     increment of the figure. Because the number moves on a smootherstep the
+     clicks fall sparse, then fast, then sparse again entirely on their own,
+     which is the sound of a wheel spinning up and settling — the clicking IS
+     the number moving rather than a tune laid over it. */
   overflowCount(ms) {
     if (!this.on) return;
-    // a ladder of bells that climbs for exactly as long as the number does
     const total = (ms || 2400) / 1000;
-    const steps = 22;
-    for (let i = 0; i < steps; i++) {
-      const k = i / (steps - 1);
-      this.voice({ freq: this.note(i % 5 + (i > 12 ? 2 : 0), 0.5 + k * 1.6), type: 'sine',
-        fm: 1.1, fmRatio: 2.01, peak: 0.035 + k * 0.055, attack: 0.003,
-        decay: 0.35 + k * 0.4, when: Math.pow(k, 1.35) * total, verb: 0.5 });
+    const steps = 48;
+    let want = 1 / steps, i = 0;
+    for (let n = 0; n <= 480 && i < steps; n++) {
+      const t = n / 480;
+      const v = t * t * t * (t * (t * 6 - 15) + 10);   // the figure's own curve
+      while (v >= want && i < steps) {
+        const k = i / (steps - 1);
+        const when = t * total;
+        // the click: a low knock with the body cut off almost immediately
+        this.voice({ freq: 94 + k * 44 + (i % 3) * 3, type: 'triangle',
+          peak: 0.05 + k * 0.035, attack: 0.001, decay: 0.05 + k * 0.02,
+          slideTo: 60 + k * 26, cutoff: 1300 + k * 1000, cutoffTo: 280, q: 1.2, verb: 0.1, when });
+        // and the tick of the mechanism on top of it
+        this.hiss({ peak: 0.014 + k * 0.012, decay: 0.028, from: 4800, to: 1100,
+          type: 'bandpass', q: 2.2, verb: 0.08, when });
+        i++; want = (i + 1) / steps;
+      }
     }
     // the landing
     [0, 4, 7, 12].forEach((s, i) =>
@@ -3817,6 +3954,19 @@ Events.on(engine, 'afterUpdate', () => {
   }
 });
 
+/* The angle at which an n-gon built by Matter rests on a face.
+
+   Bodies.polygon puts its vertices at (i + 0.5) * 2π/n, so the FACE midpoints
+   land on multiples of 2π/n. Down is +π/2 in canvas space, so a face is on the
+   floor when the body's angle folds π/2 onto one of those steps. That is 0° for
+   a square, -30° for a triangle, +18° for a pentagon — never simply zero. */
+function restAngle(n) {
+  if (!n || n < 3) return 0;
+  const th = (Math.PI * 2) / n;
+  const u = (((Math.PI / 2) % th) + th) % th;
+  return u <= th / 2 ? u : u - th;
+}
+
 const Stack = {
   platform: null,
   walls: null,
@@ -3878,15 +4028,27 @@ const Stack = {
       density: meta.density || 0.001,           // Heavy Block is far denser
       frictionAir: Economy.dockSlowFall || 0,   // Liquid Glass dock → slow-fall
     };
-    let body;
-    if (def.kind === 'plank') body = Bodies.rectangle(x, y, r * 2.7, r * 0.95, { ...common, chamfer: { radius: r * 0.18 } });
-    else if (def.special === 'bomb') body = Bodies.polygon(x, y, 12, r * 0.94, { ...common, chamfer: { radius: r * 0.45 } }); // near-round bomb
-    else if (def.special === 'star') body = Bodies.polygon(x, y, 5, r, { ...common, chamfer: { radius: r * 0.12 } });
-    else if (def.special === 'chest' || def.special === 'heavy') body = Bodies.rectangle(x, y, r * 1.7, r * 1.6, { ...common, chamfer: { radius: r * 0.14 } });
-    else if (def.special === 'jackpot') body = Bodies.polygon(x, y, 4, r * 1.2, { ...common, chamfer: { radius: r * 0.1 } });
-    else if (def.special === 'dice') body = Bodies.rectangle(x, y, r * 1.7, r * 1.7, { ...common, chamfer: { radius: r * 0.22 } });
-    else body = Bodies.polygon(x, y, TIERS.sides[def.tier], r, { ...common, chamfer: { radius: r * 0.2 } });
-    Body.setAngle(body, (def.special === 'star' || def.special === 'jackpot') ? 0 : rand(-0.25, 0.25));
+    let body, sides = TIERS.sides[def.tier];
+    if (def.kind === 'plank') { body = Bodies.rectangle(x, y, r * 2.7, r * 0.95, { ...common, chamfer: { radius: r * 0.18 } }); sides = 4; }
+    else if (def.special === 'bomb') { body = Bodies.polygon(x, y, 12, r * 0.94, { ...common, chamfer: { radius: r * 0.45 } }); sides = 12; } // near-round bomb
+    else if (def.special === 'star') { body = Bodies.polygon(x, y, 5, r, { ...common, chamfer: { radius: r * 0.12 } }); sides = 5; }
+    else if (def.special === 'chest' || def.special === 'heavy') { body = Bodies.rectangle(x, y, r * 1.7, r * 1.6, { ...common, chamfer: { radius: r * 0.14 } }); sides = 4; }
+    else if (def.special === 'jackpot') { body = Bodies.polygon(x, y, 4, r * 1.2, { ...common, chamfer: { radius: r * 0.1 } }); sides = 4; }
+    else if (def.special === 'dice') { body = Bodies.rectangle(x, y, r * 1.7, r * 1.7, { ...common, chamfer: { radius: r * 0.22 } }); sides = 4; }
+    else body = Bodies.polygon(x, y, sides, r, { ...common, chamfer: { radius: r * 0.2 } });
+    /* A fresh drop is born with a few degrees of tilt on it, because a piece
+       that tumbles in looks alive and a piece that arrives perfectly square
+       looks placed. A MERGED piece is a different thing: it appears already
+       sitting in a gap, so that same random tilt is not a tumble, it is just a
+       crooked block — and with static friction this high, nothing is ever going
+       to rock it flat again. Merges are born square.
+
+       Square does NOT mean angle 0. Matter puts a polygon's face midpoints at
+       multiples of 2π/n from its angle, so a pentagon at 0 is resting 18° off
+       its own bottom face — it is standing on a corner. The angle that actually
+       puts a face on the floor is π/2 folded into one face-step. */
+    Body.setAngle(body, (def.flat || def.special === 'star' || def.special === 'jackpot')
+      ? restAngle(sides) : rand(-0.25, 0.25));
     body.plugin = {
       piece: true, tier: def.tier, kind: def.kind || 'poly', rScale: def.rScale || 1, r,
       special: def.special || null, giftNote: !!def.giftNote,
@@ -3974,7 +4136,7 @@ const Stack = {
       Composite.remove(engine.world, a);
       Composite.remove(engine.world, b);
       removed = true;
-      const merged = this.spawnPiece({ tier: newTier, kind: 'poly', rScale: 1 }, clamp(mx, 40, WORLD.width - 40), my);
+      const merged = this.spawnPiece({ tier: newTier, kind: 'poly', rScale: 1, flat: true }, clamp(mx, 40, WORLD.width - 40), my);
       merged.plugin.fusedAt = now();
       Body.setVelocity(merged, { x: 0, y: -0.6 });
       Game.onFusion(merged, mult, specials);
@@ -4222,6 +4384,9 @@ const Balance = {
   MIN_BASE: 0.20,        // base narrower than this fraction of the piece's width = a point
   GRACE_MS: 240,         // how long it has to sit like that before we believe it
   MAX_NUDGES: 14,        // and a ceiling, so nothing can be nudged forever
+  FLAT_MIN: 0.075,       // ~4.3°: below this it is flat enough for anyone
+  FLAT_WAIT: 200,        // let it actually stop moving before deciding it is stuck
+  FLAT_MAX_MS: 1400,     // and never push on one piece longer than this
 
   /* The second opinion, and the one that makes this safe. Matter will sometimes
      report a SINGLE contact point for a face lying flat on the deck, and acting
@@ -4253,7 +4418,7 @@ const Balance = {
       for (const body of [pair.bodyA, pair.bodyB]) {
         if (!body.plugin || !body.plugin.piece) continue;
         let e = out.get(body);
-        if (!e) { e = { min: Infinity, max: -Infinity, n: 0 }; out.set(body, e); }
+        if (!e) { e = { min: Infinity, max: -Infinity, n: 0, under: 0, side: 0, level: true }; out.set(body, e); }
         for (let i = 0; i < pair.contactCount; i++) {
           const c = pair.contacts[i];
           if (!c || !c.vertex) continue;
@@ -4261,9 +4426,71 @@ const Balance = {
           e.max = Math.max(e.max, c.vertex.x);
           e.n++;
         }
+        /* Which WAY each contact pushes, as well as where it is. The pair
+           normal runs bodyA -> bodyB, so flip it when we are looking at A. A
+           piece held up from below and a piece leaning on a neighbour are the
+           same shape with completely different rights, and the normal is what
+           tells them apart. */
+        if (pair.collision && pair.collision.normal) {
+          const s = body === pair.bodyA ? -1 : 1;
+          const ny = pair.collision.normal.y * s, nx = pair.collision.normal.x * s;
+          if (ny < -0.6) { e.under++; if (Math.abs(nx) > 0.22) e.level = false; }
+          else e.side++;
+        }
       }
     }
     return out;
+  },
+
+  /* The shortest rotation that would put a face flat on the ground, signed.
+     Matter builds an n-gon with its faces centred on the body angle plus
+     multiples of one full turn over n, so "a face is down" is a modular
+     condition on the angle and nothing more. Planks are rectangles: quarter
+     turns, so they can settle on a long face or on an end. */
+  toFlat(b) {
+    const p = b.plugin;
+    const n = (p.kind === 'plank' || p.special === 'chest' || p.special === 'heavy' || p.special === 'dice'
+      || p.special === 'jackpot') ? 4
+      : p.special === 'bomb' ? 12
+        : p.special === 'star' ? 5 : TIERS.sides[p.tier];
+    if (!n || n < 3) return 0;
+    const th = (Math.PI * 2) / n;
+    const u = (((restAngle(n) - b.angle) % th) + th) % th;
+    return u <= th / 2 ? u : u - th;
+  },
+
+  /* THE SETTLE ASSIST. A block that lands on top of another one very often
+     stops 10 to 25 degrees off flat and simply stays there — not sunk into
+     anything, not balanced on a point, just tipped. The cause is friction: this
+     game runs static friction far above the engine's default so towers do not
+     slide themselves apart, and the side effect is that there is not enough
+     torque left to rock a tipped piece down onto its face. Drop the next piece
+     and the impulse breaks the lock and it falls flat, which is exactly what
+     the player sees and reads as a glitch.
+
+     So the torque is supplied here — and it is deliberately WEAK, which is what
+     makes it safe. It only runs on a piece that is held up from underneath by
+     something roughly level, and then it pushes about as hard as gravity would
+     have. Against friction-lock that is enough to rock the piece down onto its
+     face; against a real constraint — wedged against a neighbour, bridging a
+     gap, leaning for a reason — the neighbour simply holds it and nothing
+     happens. The physics arbitrates, rather than this deciding which leans are
+     allowed. An earlier version refused to touch anything with a side contact
+     at all, which in a real tower is very nearly every piece on the board, so
+     it never fired once outside a laboratory. */
+  flatten(b, e) {
+    const p = b.plugin;
+    if (!e || !e.under || !e.level) { p.flatAt = 0; return; }
+    const err = this.toFlat(b);
+    if (Math.abs(err) < this.FLAT_MIN) { p.flatAt = 0; p.flatFor = 0; return; }
+    if (!p.flatAt) { p.flatAt = now(); return; }
+    if (now() - p.flatAt < this.FLAT_WAIT) return;
+    if ((p.flatFor || 0) > this.FLAT_MAX_MS) return;     // it has had its chance
+    p.flatFor = (p.flatFor || 0) + 16;
+    Sleeping.set(b, false);
+    // eased, never snapped: the piece rocks down onto its face over a few
+    // frames the way it would have if friction had let it
+    Body.setAngularVelocity(b, b.angularVelocity + Math.sign(err) * Math.min(Math.abs(err), 0.4) * 0.05);
   },
 
   tick() {
@@ -4282,6 +4509,7 @@ const Balance = {
         || Math.abs(b.angularVelocity) > 0.035;
       if (moving) { p.pointAt = 0; continue; }               // still sorting itself out
 
+      this.flatten(b, e);
       const w = b.bounds.max.x - b.bounds.min.x;
       const base = e.max - e.min;
       if (!(base < w * this.MIN_BASE) || !this.onOneVertex(b)) { p.pointAt = 0; p.nudges = 0; continue; }
@@ -4398,7 +4626,6 @@ const Game = {
 
   beginAim(x) {
     if (this.state !== 'DECISION') return;
-    haptic('tap');
     this.set('AIMING');
     this.aimX = this.clampAim(x);
   },
@@ -4694,8 +4921,8 @@ const Game = {
     Audio2.setTension(clamp((Greed.value - 1) / 5 + (this.runCoins > 0 ? 0.1 : 0), 0, 1));
 
     const gm = Math.floor(Greed.value);
-    if (gm > this.greedMark) { this.greedMark = gm; haptic('greed'); Audio2.greed(); }
-    if (RiskFX.level > 0.8 && !this.dangerRung) { this.dangerRung = true; haptic('danger'); Audio2.danger(); }
+    if (gm > this.greedMark) { this.greedMark = gm; Audio2.greed(); }
+    if (RiskFX.level > 0.8 && !this.dangerRung) { this.dangerRung = true; Audio2.danger(); }
     else if (RiskFX.level < 0.5) this.dangerRung = false;
 
     if (!save.hints.bank && Greed.value >= 1.6 && this.runCoins > 0) {
@@ -4763,12 +4990,24 @@ const Game = {
           const d = Math.hypot(dx, dy);
           if (d > 1 && d < 220) { const f = CONFIG.magnetForce * o.mass * (1 - d / 220) / Math.max(d, 8); Body.applyForce(o, o.position, { x: dx * f, y: dy * f }); Sleeping.set(o, false); }
         }
-      } else if (sp === 'angry' && b.plugin.landedAt && !b.plugin.jumped && now() - b.plugin.landedAt > CONFIG.angryJumpDelayMs) {
-        b.plugin.jumped = true;                 // ANGRY: one chaotic jump after landing
-        EventDirector.graceUntil = Math.max(EventDirector.graceUntil, now() + CONFIG.events.angryGraceMs); // its chaos never kills directly
-        Body.setVelocity(b, { x: rand(-3, 3), y: -rand(6, 9) });
+      } else if (sp === 'angry' && b.plugin.landedAt && now() >= (b.plugin.nextJumpAt || (b.plugin.landedAt + CONFIG.angryJumpDelayMs))) {
+        /* ANGRY does not have a tantrum and then settle down — it stays angry.
+           One jump read as a scripted beat you watched once; a block that keeps
+           going, on a short and slightly irregular clock, is a live hazard you
+           have to keep planning around. Each jump is a little smaller than the
+           last so it never launches itself into orbit, and the grace window is
+           re-armed every time: its chaos can cost you blocks, never the run. */
+        const n = (b.plugin.jumps || 0) + 1;
+        b.plugin.jumps = n;
+        b.plugin.jumped = true;
+        b.plugin.nextJumpAt = now() + CONFIG.angryJumpGapMs + rand(-220, 320);
+        EventDirector.graceUntil = Math.max(EventDirector.graceUntil, now() + CONFIG.events.angryGraceMs);
+        const fade = clamp(1 - (n - 1) * 0.11, 0.45, 1);
+        // and it hops back toward the middle rather than walking itself off
+        const pull = Stack.platform ? clamp((b.position.x - WORLD.width / 2) / Stack.platform.plugin.halfW, -1, 1) : 0;
+        Body.setVelocity(b, { x: clamp(rand(-2.6, 2.6) - pull * 2.4, -3.4, 3.4), y: -rand(5, 8) * fade });
         Body.setAngularVelocity(b, rand(-0.3, 0.3));
-        UI.react('GRR!', '#ff8a3c');
+        if (n === 1 || Math.random() < 0.3) UI.react('GRR!', '#ff8a3c');
         Stack.wakeAll();
       } else if (sp === 'dice' && !b.plugin.diceLocked && b.isSleeping) {
         b.plugin.diceLocked = true;             // DICE: locks its tier once at rest
@@ -4878,7 +5117,6 @@ const Game = {
     this.afterRunBookkeeping('bank');
     UI.showResults('bank', { coins, isBest, newPowers });
     for (const m of newPowers) {
-      haptic('unlock');
       UI.react('SUPERPOWER!', 'var(--mint)');
       UI.toast(`${m.name} UNLOCKED — ${m.desc}`);
       Particles.goldRain(WORLD.width / 2, WORLD.platformY - 200);
@@ -4900,7 +5138,6 @@ const Game = {
       UI.toast(nm.message);
       trackEvent('near_miss', { intensity: +nm.intensity.toFixed(2), flowScore: Director.flowScore, band: Director.flowBand, arcPhase: SessionArc.phase });
       delay = nm.slowMoDurationMs + 800;
-      setTimeout(() => haptic('nearMiss'), 900);   // the ache lands after the crash, not under it
     }
     const lostCoins = Math.round(this.runCoins);
     setTimeout(() => this.finishCollapse(lostCoins), delay);
@@ -4992,7 +5229,6 @@ const Game = {
     EventDirector.hugeCharges = 0;
     EventDirector.schedule();                         // no event for another 45s+
     EventDirector.graceUntil = now() + CONFIG.reviveGraceMs;   // a settling topple costs a piece, not the run
-    haptic('revive');
     Audio2.revive();
     Surprise.forced = null;
     this.dropBody = null;
@@ -5163,7 +5399,7 @@ const EventDirector = {
     const banner = $('curse-banner');
     if (banner) { banner.textContent = label; banner.classList.remove('hidden'); }
     UI.react('CURSED!', 'var(--hot)');
-    UI.toast(label);
+    // no toast: it stood next to the badge repeating it word for word
     Shake.impulse(0.3); flashScreen();
     trackEvent('curse_start', { type });
   },
@@ -5292,6 +5528,13 @@ const EventDirector = {
     // only while the drop is airborne (pre-contact)
     if (b && !b.plugin.contacted && (Game.state === 'DROPPING' || Game.state === 'RESOLVING')) {
       Body.applyForce(b, b.position, { x: w.dir * gust * CONFIG.events.windForce, y: 0 });
+      /* A terminal sideways speed. The force accumulates over a whole fall, and
+         a block that arrives travelling fast enough sideways does not land in
+         the tower, it BOWLS THROUGH it — which is how a gust ended up clearing
+         the entire deck. Capping the drift keeps wind a problem of aim rather
+         than a wrecking ball; the clamp below still stops it leaving the deck. */
+      const cap = CONFIG.events.windMaxDrift;
+      if (Math.abs(b.velocity.x) > cap) Body.setVelocity(b, { x: Math.sign(b.velocity.x) * cap, y: b.velocity.y });
       // never let the wind carry it past the dock's support
       const hw = Stack.platform.plugin.halfW, cx2 = WORLD.width / 2;
       const safe = hw - b.plugin.r * 0.6 - 6;
@@ -5429,18 +5672,35 @@ function angleLerp(a, b, k) {
    GIANT-block drop and the near-miss push. */
 const Camera = {
   x: WORLD.width / 2, y: 560, zoom: 1,
-  pushScale: 1, pushUntil: 0, frameTop: null,
+  pushScale: 1, pushUntil: 0, frameTop: null, returning: false,
   pushIn(scale, ms) { this.pushScale = scale; this.pushUntil = now() + ms; },
-  reset() { this.frameTop = null; },
+  reset() { this.frameTop = null; this.returning = false; },
   update(dt) {
     const viewBottom = WORLD.platformY + 132; // table plane below the deck
     const baseTop = WORLD.platformY - 430;                 // fixed default frame
     const climbTop = Math.min(Game.spawnY - 60, baseTop);  // only rises when the tower is tall
     if (this.frameTop == null) this.frameTop = climbTop;
-    // Deadzone + slow ease: ordinary drops never nudge the frame; a genuinely
-    // taller tower eases the view up; a shrunk stack eases back down gently.
-    if (climbTop < this.frameTop - 4) this.frameTop = lerp(this.frameTop, climbTop, Math.min(dt * 1.4, 1));
-    else if (climbTop > this.frameTop + 150) this.frameTop = lerp(this.frameTop, climbTop, Math.min(dt * 0.6, 1));
+    /* Deadzone + slow ease: ordinary drops never nudge the frame; a genuinely
+       taller tower eases the view up; a shrunk stack eases back down gently.
+
+       The coming-back-down half used to be written as one condition evaluated
+       every frame — ease only while more than 150px from home — which meant the
+       ease STOPPED the instant it reached the edge of its own deadzone, 150px
+       short, and stayed there. A meteor scattered the tower, the camera pulled
+       out to take it all in, and then it just never came back. So the threshold
+       now only decides when the return BEGINS; once it has begun it runs all
+       the way home. Wide to start, narrow to stop. */
+    if (climbTop < this.frameTop - 4) {
+      this.frameTop = lerp(this.frameTop, climbTop, Math.min(dt * 1.4, 1));
+      this.returning = false;
+    } else if (climbTop > this.frameTop + 150) {
+      this.returning = true;
+    }
+    if (this.returning) {
+      this.frameTop = lerp(this.frameTop, climbTop, Math.min(dt * 1.2, 1));
+      // an exponential ease never actually arrives; close enough IS home
+      if (climbTop - this.frameTop < 3) { this.frameTop = climbTop; this.returning = false; }
+    }
     const neededH = viewBottom - this.frameTop;
     // Phones frame the DECK; desktop frames the world. Fitting all 480 world px
     // across a narrow screen left the dock at barely half the width with dead
@@ -5507,6 +5767,14 @@ function lighten(hex, amt) {
 }
 
 // slow parallax geometry floating behind the tower — depth + brand
+
+/* How big the drawn five-point star is relative to the piece radius.
+
+   The body under it is a pentagon with chamfer r*0.12, and chamfering pulls the
+   real hull INSIDE r — so drawing points at r meant the star's tips hung in
+   space and passed visibly through the deck and through other blocks. 0.92
+   keeps every tip on or inside the hull it actually collides with. */
+const STAR_R = { outer: 0.92, inner: 0.42 };
 
 function starPath(cx, cy, rOuter, rInner, pts, rot) {
   ctx.beginPath();
@@ -5651,10 +5919,26 @@ function drawAngry(b, glow, t) {
 function drawDice(b, glow) {
   const x = b.position.x, y = b.position.y, r = b.plugin.r;
   ctx.save(); ctx.translate(x, y); ctx.rotate(b.angle);
-  if (perf.tier !== 'low') { ctx.shadowColor = b.plugin.diceLocked ? '#ffd166' : '#ffffff'; ctx.shadowBlur = glow; }
+  /* The die's whole point is that its tier keeps changing, and a white block
+     with a white edge gave you no way to read what it currently IS without
+     counting pips mid-bounce. The edge wears the colour of the tier it would
+     merge with right now, so the answer is the same glance you use for every
+     other block on the board. It brightens when the roll locks. */
+  const tierCol = themeColor(clamp(b.plugin.tier, 1, TIERS.count));
+  if (perf.tier !== 'low') { ctx.shadowColor = tierCol; ctx.shadowBlur = glow + (b.plugin.diceLocked ? 10 : 0); }
   const g = ctx.createLinearGradient(-r, -r, r, r); g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#cdd3e0');
   ctx.fillStyle = g; roundRect2(-r * 0.85, -r * 0.85, r * 1.7, r * 1.7, r * 0.28); ctx.fill(); ctx.shadowBlur = 0;
-  ctx.strokeStyle = b.plugin.diceLocked ? '#ffd166' : '#8892a8'; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.strokeStyle = tierCol;
+  ctx.lineWidth = b.plugin.diceLocked ? 4 : 3;
+  ctx.stroke();
+  // still rolling? a second, fainter ring just outside, so "not settled yet"
+  // reads even when the tier happens not to change on a bounce
+  if (!b.plugin.diceLocked) {
+    ctx.globalAlpha = 0.4 + 0.25 * Math.sin(now() * 0.012);
+    ctx.strokeStyle = tierCol; ctx.lineWidth = 1.6;
+    roundRect2(-r * 0.97, -r * 0.97, r * 1.94, r * 1.94, r * 0.32); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
   const n = clamp(b.plugin.tier, 1, 6);
   const pip = (px, py) => { ctx.beginPath(); ctx.arc(px * r * 0.44, py * r * 0.44, r * 0.13, 0, Math.PI * 2); ctx.fillStyle = '#1a1f2e'; ctx.fill(); };
   const P = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]] }[n];
@@ -6188,7 +6472,15 @@ function drawBody(b, glowStrength, t) {
   // ---- shape path: star gets a real star, everything else uses its polygon body ----
   const isStar = sp === 'star';
   if (isStar) {
-    starPath(b.position.x, b.position.y, r * 1.12, r * 0.5, 5, b.angle);
+    /* The star's POINTS have to end where the collision hull ends. It used to
+       be drawn at 1.12× the body radius on top of a plain pentagon, so the five
+       points stuck out past everything that could touch them — they slid into
+       the deck and through neighbouring blocks, and the whole piece read as a
+       ghost. The star is drawn inside its own hull now: the outer points land
+       exactly on the pentagon's corners (hence the +π/2+π/5 to line the two up)
+       and every notch is further in, so nothing it looks like it is touching is
+       somewhere it is not. */
+    starPath(b.position.x, b.position.y, r * STAR_R.outer, r * STAR_R.inner, 5, b.angle + Math.PI / 2 + Math.PI / 5);
   } else {
     const verts = b.vertices;
     ctx.beginPath();
@@ -6247,7 +6539,7 @@ function drawBody(b, glowStrength, t) {
     }
   }
   if (sp === 'star') { // twinkle
-    ctx.beginPath(); ctx.arc(b.position.x - r * 0.25, b.position.y - r * 0.28, r * 0.14, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(b.position.x - r * 0.22, b.position.y - r * 0.24, r * 0.12, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill();
   }
   if (sp === 'golden') { // MILLED RIM — the reeded edge of a struck coin
@@ -6650,11 +6942,12 @@ function render(t) {
   }
 
   // ghost + aim line
-  if ((Game.state === 'DECISION' || Game.state === 'AIMING') && Director.current()) {
+  const ghostK = Reveal.ghostFade();
+  if ((Game.state === 'DECISION' || Game.state === 'AIMING') && Director.current() && ghostK > 0.01) {
     const def = Director.current();
     const r = TIERS.radii[def.tier] * def.rScale * ((SPECIALS[def.special] && SPECIALS[def.special].sizeMult) || 1);
     // one clean dashed line from the piece down to the deck
-    ctx.globalAlpha = 0.45;
+    ctx.globalAlpha = 0.45 * ghostK;
     ctx.setLineDash([6, 8]);
     ctx.strokeStyle = 'rgba(255,255,255,0.55)';
     ctx.lineWidth = 1.5;
@@ -6663,6 +6956,7 @@ function render(t) {
     ctx.lineTo(Game.aimX, WORLD.platformY);
     ctx.stroke();
     ctx.setLineDash([]);
+    ctx.globalAlpha = ghostK;
     drawGhost(def, Game.aimX, Game.spawnY, r);
     ctx.globalAlpha = 1;
   }
@@ -6770,7 +7064,7 @@ function drawDefIcon(c, def, x, y, r, t) {
   } else if (sp === 'star') {
     c.beginPath();
     for (let i = 0; i < 10; i++) {
-      const rr = i % 2 ? r * 0.5 : r * 1.12, a = -Math.PI / 2 + i * Math.PI / 5;
+      const rr = i % 2 ? r * STAR_R.inner : r * STAR_R.outer, a = -Math.PI / 2 + i * Math.PI / 5;
       const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr;
       i === 0 ? c.moveTo(px, py) : c.lineTo(px, py);
     }
@@ -7129,11 +7423,62 @@ const Tutor = {
     ring.style.top = (at.cy - at.rh) + 'px';
     ring.style.width = (at.rw * 2) + 'px';
     ring.style.height = (at.rh * 2) + 'px';
-    // The bubble goes above the ring by preference — below would land it on the
-    // deck, and the deck is the one thing the player needs to keep watching.
-    const tipH = tip.offsetHeight || 64;
-    const above = at.cy - at.rh - 16 - tipH;
-    tip.style.top = (above > 76 ? above : Math.min(at.cy + at.rh + 16, ch - tipH - 14)) + 'px';
+    this.placeTip(tip, at);
+  },
+
+  /* Where the words go. This used to set a `top` and nothing else: the bubble
+     stayed pinned to the centre of the screen horizontally and picked above or
+     below by a single rule of thumb, which regularly parked it across the NEXT
+     box, the coin counter or the thing it was pointing at.
+
+     It is chosen now. Eight positions around the ring are scored on how much
+     they overlap the ring itself, how much they overlap anything else on the
+     HUD, and how far they sit from what they are describing — and the best one
+     wins. The result is a bubble that is beside its subject, in clear space. */
+  occupied() {
+    const out = [];
+    for (const id of ['hud-next', 'run-score-wrap', 'btn-bank', 'greed-pill',
+      'panel-left', 'panel-right', 'hud-brand', 'banner-rail', 'btn-menu', 'vault-chip']) {
+      const n = $(id);
+      if (!n || n.classList.contains('hidden')) continue;
+      const b = n.getBoundingClientRect();
+      if (b.width > 4 && b.height > 4) out.push(b);
+    }
+    return out;
+  },
+  placeTip(tip, at) {
+    const tw = tip.offsetWidth || 260, th = tip.offsetHeight || 64;
+    const M = 14, GAP = 16;
+    const blocks = this.occupied();
+    const overlap = (x, y, w, h, r) => {
+      const ox = Math.min(x + w, r.right) - Math.max(x, r.left);
+      const oy = Math.min(y + h, r.bottom) - Math.max(y, r.top);
+      return ox > 0 && oy > 0 ? ox * oy : 0;
+    };
+    const ring = { left: at.cx - at.rw, right: at.cx + at.rw, top: at.cy - at.rh, bottom: at.cy + at.rh };
+    let best = null;
+    const tryAt = (x, y, bias) => {
+      x = clamp(x, M, cw - tw - M);
+      y = clamp(y, M, ch - th - M);
+      // the ring's own area counts several times over: covering the thing you
+      // are pointing at is the one failure that makes the bubble actively wrong
+      let cost = overlap(x, y, tw, th, ring) * 4 + bias;
+      for (const b of blocks) cost += overlap(x, y, tw, th, b);
+      // and, all else equal, sit near what you are talking about
+      cost += Math.hypot(x + tw / 2 - at.cx, y + th / 2 - at.cy) * 0.6;
+      if (!best || cost < best.cost) best = { x, y, cost };
+    };
+    tryAt(at.cx - tw / 2, at.cy - at.rh - GAP - th, 0);        // above
+    tryAt(at.cx - tw / 2, at.cy + at.rh + GAP, 40);            // below
+    tryAt(at.cx - at.rw - GAP - tw, at.cy - th / 2, 20);       // left
+    tryAt(at.cx + at.rw + GAP, at.cy - th / 2, 20);            // right
+    tryAt(at.cx - at.rw - GAP - tw, at.cy - at.rh - GAP - th, 60);
+    tryAt(at.cx + at.rw + GAP, at.cy - at.rh - GAP - th, 60);
+    tryAt(at.cx - at.rw - GAP - tw, at.cy + at.rh + GAP, 80);
+    tryAt(at.cx + at.rw + GAP, at.cy + at.rh + GAP, 80);
+    tip.style.left = best.x + 'px';
+    tip.style.top = best.y + 'px';
+    tip.style.transform = 'none';
   },
 };
 
@@ -7969,10 +8314,27 @@ const Reveal = {
   parade: [],
   done: false,
   pendingId: '',
+  ghostAt: 0,
+  bye: false,
 
   get active() { return !!this.kind; },
-  // play is held only while the thing is still arriving, never for the card
-  get blocking() { return this.active && now() - this.t0 < this.buildMs(); },
+  /* Play is held for the WHOLE show now — the deck assembling and the name
+     landing on top of it — because the name is the payoff of the arrival, not
+     a caption running alongside the start of the run. The deck finishes, the
+     name arrives, the name leaves, and then the game starts. */
+  get blocking() { return this.active && now() - this.t0 < this.buildMs() + this.cardMs() + 300; },
+  /* How far the aim ghost has faded back in. During an arrival there must be
+     no piece hanging over the board: a drop preview sitting in the middle of a
+     deck building itself is the one thing on screen that does not belong to
+     the moment. It comes back on its own, easing up, once the show is over. */
+  ghostFade() {
+    // it starts coming back the moment play is handed over, not when the last
+    // frame of the card finishes — otherwise there is a beat where you can drop
+    // a piece you cannot see
+    if (this.active) return this.blocking ? 0 : clamp((now() - this.ghostAt) / 460, 0, 1);
+    if (!this.ghostAt) return 1;
+    return clamp((now() - this.ghostAt) / 460, 0, 1);
+  },
 
   tierOf(price) { return price >= 5_000_000 ? 3 : price >= 700_000 ? 2 : price >= 200_000 ? 1 : 0; },
   get show() { return DOCK_SHOWS[save.equipped.dock] || DOCK_SHOWS.slab; },
@@ -8001,6 +8363,9 @@ const Reveal = {
       this.t0 = now();
       this.landed = -1;
       this.done = false;
+      this.bye = false;
+      // when the ghost is allowed back: the instant play is handed over
+      this.ghostAt = this.t0 + this.buildMs() + this.cardMs() + 300;
       this.marks.length = 0;
       if (this.kind === 'pack') this.buildParade();
       /* The debut used to be spent HERE, the instant the reveal was chosen —
@@ -8033,8 +8398,9 @@ const Reveal = {
   stop() {
     // an arrival cut short never counted, so it will introduce itself next run
     this.pendingId = '';
+    if (this.kind && !this.ghostAt) this.ghostAt = now();
     this.kind = null; this.item = null; this.parade.length = 0;
-    this.landed = -1; this.marks.length = 0;
+    this.landed = -1; this.marks.length = 0; this.bye = false;
     const card = $('reveal-card');
     if (card) { card.className = 'hidden'; card.innerHTML = ''; }
   },
@@ -8540,7 +8906,16 @@ const Reveal = {
       FeedbackBus.emit('revealLand', { tier: this.tier });
       this.showCard();
     }
-    if (el > build + this.cardMs() + 200) this.stop();
+    /* The name leaves as deliberately as it arrived. It used to be deleted —
+       className set to hidden, innerHTML emptied — so a title that had just
+       slammed in letter by letter simply blinked out of existence. */
+    const cardEnd = build + this.cardMs();
+    if (this.done && !this.bye && el > cardEnd) {
+      this.bye = true;
+      const c = $('reveal-card');
+      if (c) c.classList.add('bye');
+    }
+    if (el > cardEnd + 430) this.stop();
   },
 
   showCard() {
@@ -8555,6 +8930,21 @@ const Reveal = {
       `<span class="rv-name">${letters}</span>` +
       (this.item.power ? `<span class="rv-power">${this.item.power}</span>` : '');
     card.className = `t${this.tier}` + (this.item.mythic ? ' mythic' : '');
+    /* Size it to fit. The name wants to be as big as the screen allows, and
+       "as big as the screen allows" is a different number for ZENITH than it is
+       for OBSIDIAN CROWN — a single clamp() sized for one of them runs the
+       other straight off both edges. So it starts at the largest size the
+       viewport would ever justify and steps down until the whole name is on
+       screen, which is a handful of reflows, once, on a run that already
+       stopped to watch a deck build itself. */
+    const nameEl = card.querySelector('.rv-name');
+    const room = Math.min(cw * 0.9, 920);
+    let size = Math.min(cw * 0.115, 86);
+    card.style.setProperty('--rv-size', size.toFixed(1) + 'px');
+    for (let guard = 0; guard < 28 && size > 20 && nameEl.scrollWidth > room; guard++) {
+      size *= 0.92;
+      card.style.setProperty('--rv-size', size.toFixed(1) + 'px');
+    }
     void card.offsetWidth;
     card.classList.add('go');
   },
@@ -8977,7 +9367,18 @@ const IdleShow = {
    vocabulary — the names — on top of the one they already read fluently, which
    is the shapes themselves. So the pill just shows the shape, at 14 pixels. */
 const BlockHint = {
-  key: '', el: null, hideT: 0, outT: 0,
+  /* Timing, and it is the whole of the redesign. The hint used to fire when a
+     special entered the NEXT box and disappear 4.6 seconds later — which meant
+     it was gone by the time you were actually holding the thing, and it was
+     explaining a block you could not yet do anything about.
+
+     It now appears when the special becomes the piece you are ABOUT to drop,
+     and it stays up while that piece exists. If the block merges, falls off,
+     explodes, opens, shatters or is otherwise gone, the hint goes with it —
+     an explanation still sitting there for a block that left is worse than no
+     explanation at all. */
+  MAX_MS: 11000,       // and a ceiling, for a piece nobody ever drops
+  def: null, body: null, special: '', shownAt: 0, el: null, outT: 0, poll: 0,
 
   node() { return this.el || (this.el = $('block-hint')); },
 
@@ -8996,26 +9397,55 @@ const BlockHint = {
     return c;
   },
 
-  hide(now_) {
+  hide() {
     const el = this.node();
     if (!el || el.classList.contains('hidden')) return;
     el.classList.add('out');
     clearTimeout(this.outT);
     this.outT = setTimeout(() => { el.classList.add('hidden'); el.classList.remove('out'); }, 300);
   },
+  clear() { this.def = null; this.body = null; this.special = ''; this.hide(); },
 
-  /* Called from the NEXT preview, which is the one place that always knows
-     what is coming. Keyed on the special AND its tier, so the same block at a
-     new tier introduces itself again — the partner shape has changed. */
+  // is the piece this hint is about still on the board?
+  alive(b) {
+    if (!b || !b.plugin || b.plugin.consumed) return false;
+    return Composite.allBodies(engine.world).indexOf(b) >= 0;
+  },
+
+  /* Run every frame. Up to the moment it is dropped the hint belongs to a queue
+     entry; after that it belongs to a body, and it outlives neither. */
+  tick() {
+    if (!this.def) return;
+    const t = now();
+    if (t - this.shownAt > this.MAX_MS) { this.clear(); return; }
+    if (this.body) {
+      if (t - this.poll < 120) return;          // no need to sweep the world every frame
+      this.poll = t;
+      if (!this.alive(this.body)) this.clear();
+      return;
+    }
+    // still in hand?
+    if (Director.current() === this.def) return;
+    // it has left the queue, so it is the piece in flight — adopt it
+    const d = Game.dropBody;
+    if (d && d.plugin && d.plugin.special === this.special) { this.body = d; this.poll = t; return; }
+    this.clear();                                // gone some other way
+  },
+
+  /* Keyed on the queue entry ITSELF, not on its type, so it introduces each
+     individual block once — two golden blocks in a row are two explanations,
+     because they are two decisions. */
   consider(def) {
-    if (!def || !def.special) { this.key = ''; return; }
+    if (!def || !def.special) return;
+    if (def === this.def) return;
     const meta = SPECIALS[def.special];
     if (!meta || !meta.hint) return;
-    const k = def.special + ':' + def.tier;
-    if (k === this.key) return;
-    this.key = k;
     // never on top of the tour, the OVERFLOW, or a deck still arriving
     if (Tutor.active || Overflow.active || Reveal.active) return;
+    this.def = def;
+    this.body = null;
+    this.special = def.special;
+    this.shownAt = now();
     this.show(def, meta);
   },
 
@@ -9024,7 +9454,7 @@ const BlockHint = {
     if (!el) return;
     el.classList.remove('hidden', 'out');
     el.innerHTML = '';
-    clearTimeout(this.hideT); clearTimeout(this.outT);
+    clearTimeout(this.outT);
 
     el.appendChild(this.chip(def, 30));
 
@@ -9041,7 +9471,13 @@ const BlockHint = {
        "so what do I put next to it". */
     const pair = document.createElement('span');
     pair.className = 'bh-pair';
-    if (meta.pairs === 'none') {
+    if (meta.pairs === 'obvious') {
+      // GIANT and GOLDEN are ordinary blocks wearing a coat: saying what they
+      // merge with is telling the player something they can already see
+      pair.remove();
+      this.shownAt = now();
+      return;
+    } else if (meta.pairs === 'none') {
       const n = document.createElement('span');
       n.className = 'bh-never';
       n.textContent = '· NEVER MERGES';
@@ -9054,16 +9490,14 @@ const BlockHint = {
       pair.appendChild(this.chip({ tier: def.tier, kind: def.kind, rScale: 1 }, 22));
     }
     el.appendChild(pair);
-
-    // long enough to read the line and look back at the board
-    this.hideT = setTimeout(() => this.hide(), 4600);
+    this.shownAt = now();
   },
 
   reset() {
-    this.key = '';
+    this.def = null; this.body = null; this.special = ''; this.shownAt = 0;
     const el = this.node();
     if (el) { el.classList.add('hidden'); el.classList.remove('out'); }
-    clearTimeout(this.hideT); clearTimeout(this.outT);
+    clearTimeout(this.outT);
   },
 };
 
@@ -9087,7 +9521,7 @@ const UI = {
     void el.offsetWidth;
     el.classList.add('play');
   },
-  screens: ['loading', 'menu', 'results', 'shop', 'settings', 'board', 'daily'],
+  screens: ['loading', 'menu', 'results', 'shop', 'settings', 'board', 'daily', 'legal'],
   hideScreens() { this.screens.forEach((s) => $(s).classList.add('hidden')); },
   show(id) { this.hideScreens(); $(id).classList.remove('hidden'); },
   showGame() {
@@ -9148,6 +9582,18 @@ const UI = {
     FeedbackBus.emit('offer', { id: item.id });
     trackEvent('offer_granted', { id: item.id });
   },
+  /* The one place the game admits it is a published product. LEGAL holds the
+     three things that have to be filled in before it ships anywhere — who is
+     publishing it, how to reach them, and under whose law the terms sit — so
+     they are stated once here rather than buried in three places in the copy. */
+  showLegal() {
+    for (const el of document.querySelectorAll('[data-legal-date]')) el.textContent = LEGAL.updated;
+    for (const el of document.querySelectorAll('[data-legal-contact]')) el.textContent = LEGAL.contact;
+    for (const el of document.querySelectorAll('[data-legal-law]')) el.textContent = LEGAL.law;
+    $('legal-body').scrollTop = 0;
+    this.show('legal');          // show() hides every other screen first
+  },
+
   toast(text) {
     const el = $('toast');
     el.textContent = text;
@@ -9211,7 +9657,8 @@ const UI = {
     nctx.clearRect(0, 0, S, S);
     const def = Director.next();   // queue[1] — finalized at roll time, so this is exactly what drops next
     if (!def) return;
-    BlockHint.consider(def);       // and say what it is, if it is a special (§21k)
+    // the hint is about the piece IN HAND, not the one after it (§21k)
+    BlockHint.consider(Director.current());
     const sp = def.special;
     // TRUE size: the same world radius the piece will really have (1 world px
     // ≈ 1 preview px), only clamped when a monster block outgrows the box.
@@ -9453,7 +9900,6 @@ const UI = {
   syncToggles() {
     $('tgl-sound').classList.toggle('on', Settings.sound);
     $('tgl-music').classList.toggle('on', Settings.music);
-    $('tgl-haptics').classList.toggle('on', Settings.haptics);
     $('tgl-motion').classList.toggle('on', Settings.reduceMotion);
   },
   hudTick(dt) {
@@ -9565,6 +10011,7 @@ const Input = {
       } else if (e.code === 'Escape') {
         if (open('confirm-dialog')) $('confirm-dialog').classList.add('hidden');
         else if (open('shop')) closeShop();
+        else if (open('legal')) { UI.syncToggles(); UI.show('settings'); }
         else if (open('settings') || open('board') || open('daily')) UI.showMenu();
         else if (Game.state === 'RESULTS' || Game.inPlay()) Game.toMenu();
       }
@@ -9608,8 +10055,17 @@ const Input = {
     $('confirm-dialog').addEventListener('click', (e) => { if (e.target === $('confirm-dialog')) $('confirm-dialog').classList.add('hidden'); });
     bind('tgl-sound', () => { Settings.toggle('sound'); Audio2.muteCheck(); UI.syncToggles(); });
     bind('tgl-music', () => { Settings.toggle('music'); Audio2.muteCheck(); UI.syncToggles(); });
-    bind('tgl-haptics', () => { if (Settings.toggle('haptics')) Haptics.confirm(); UI.syncToggles(); });
     bind('tgl-motion', () => { Settings.toggle('reduceMotion'); UI.syncToggles(); });
+    bind('btn-legal', () => UI.showLegal());
+    bind('legal-x', () => { UI.syncToggles(); UI.show('settings'); });
+    for (const t of document.querySelectorAll('.lg-tab')) {
+      t.onclick = () => {
+        for (const o of document.querySelectorAll('.lg-tab')) o.classList.toggle('on', o === t);
+        $('lg-privacy').hidden = t.dataset.lg !== 'privacy';
+        $('lg-terms').hidden = t.dataset.lg !== 'terms';
+        $('legal-body').scrollTop = 0;
+      };
+    }
   },
 };
 
@@ -9645,6 +10101,7 @@ function frame(t) {
   Shake.update(rawDt / 1000);
   Camera.update(rawDt / 1000);
   Reveal.tick();
+  BlockHint.tick();                // the hint never outlives the block it explains
   Overflow.tick();                 // before hudTick, which paints the number
   UI.hudTick(rawDt / 1000);
   Tutor.place();
@@ -9714,11 +10171,12 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { WORLD, Game, Stack, Director, Overflow, Strain, Reveal, Weather, Balance, BlockHint, __DOCK_SHOWS: DOCK_SHOWS, DOCKS, SPECIALS, TIERS, THEMES, CONFIG, __cat: SHOP_CATALOG, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, Haptics, IdleShow, Audio2, Settings, FeedbackBus, UI, save, engine, Composite, Body };
+window.__overstack = { WORLD, Game, Stack, Director, Overflow, Strain, Reveal, Weather, Balance, BlockHint, __DOCK_SHOWS: DOCK_SHOWS, DOCKS, SPECIALS, TIERS, THEMES, CONFIG, __cat: SHOP_CATALOG, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, IdleShow, Audio2, Settings, FeedbackBus, UI, save, engine, Composite, Body };
 window.__overstackCam = Camera;
 window.__shake = Shake;
 Object.defineProperty(window, '__perfTier', { get: () => perf.tier });
 window.__drawDefIcon = drawDefIcon;   // debug handle: the NEXT-box icon, on any canvas
+window.__starR = STAR_R;
 window.__tierColors = themePalette();
 
 })();

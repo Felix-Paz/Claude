@@ -286,27 +286,13 @@ than fighting it, and the whole bed sits at about a tenth of full scale: it is a
 room, not a performance, and the effects have to cut through it. **Sound effects and music are separate switches**, because
 they are separate things: the effects are information, the music is a room.
 
-**Haptics are a percussion section, not a rumble pack.** Eighteen named cues,
-almost all of them shaped patterns — a soft pre-tick into a strong hit, or a run
-of taps that resolves — rather than one flat buzz: the tap as you take aim, the
-drop, a soft or hard landing, an ordinary fusion against a five-beat one for
-tier 5 and up, chains, each whole number of GREED, the moment the tower is
-genuinely about to go, an event announcing itself, a revive, a near miss (which
-lands *after* the crash rather than under it), jackpots, blasts, a new best, the
-bank, a superpower, the collapse.
-
-Every cue carries a weight, and weight is the dramatic scale: nothing fires
-within 70ms of the last cue unless it is heavier than what is already playing,
-so a collapse always cuts through a landing and the game can never settle into
-continuous noise.
-
-**iOS has no Vibration API at all**, so on an iPhone the whole vocabulary would
-otherwise be silence. Safari does produce a real system tick when a
-`<input type="checkbox" switch>` is toggled by clicking its label, so that is the
-fallback: one fixed light tap, no patterns, but the difference between haptics
-and none. Support is re-checked at call time rather than at parse time, the
-switch is offered on every device, and turning it on fires a cue immediately so
-the answer is unambiguous.
+**There are no haptics.** There were — eighteen shaped cues, a weight scale, an
+iOS fallback built on the system tick a `<input type="checkbox" switch>` makes.
+It is all gone. On a phone held in one hand the vibration motor is a blunt
+instrument next to the audio, and a cue that fires on every landing stops being
+information within about a minute. The whole vocabulary was cut rather than
+tuned down, along with its setting: one fewer switch, one fewer thing to get
+wrong on a device that does not implement the API the way its vendor documents.
 
 ## Shapes
 
@@ -833,6 +819,118 @@ title like THE GAMBLER / THE BANKER / THE COLLECTOR) drives:
 - Any piece resting on a fused/removed/shrunk support is woken so it falls (no
   frozen floating blocks).
 
+## Privacy and terms
+
+Settings has a **Privacy policy and terms** button, and behind it two documents
+on a tabbed screen. This is not decoration: Y8, GameDistribution, GameMonetize
+and GamePix all require a reachable privacy policy before they will take a build,
+and a game that keeps a save, plays ads and measures anything needs to say so.
+
+The policy covers what the game stores (a single `localStorage` key, on the
+device, never transmitted), what it does not collect (no account, no name, no
+email, no location, no contacts, no cross-site tracking), what an embedded
+portal and its ad partners may collect independently of the game, how to erase
+everything (Reset progress, or clearing site data), children's-privacy posture
+under COPPA and GDPR-K, and the rights a reader has under GDPR and CCPA. The
+terms cover the licence, acceptable use, virtual goods having no cash value, the
+absence of a warranty, limitation of liability, and termination.
+
+Three fields at the top of `LEGAL` in §5 are marked placeholders and must be
+filled before the build is submitted anywhere: `contact` (a real address a
+person reads), `law` (the governing jurisdiction), and `updated`. They are
+deliberately obvious rather than plausible-looking, so a build cannot ship with
+a fake contact address by accident.
+
+## The tuning pass
+
+Small things, mostly, and a few that were bugs wearing the costume of a
+preference.
+
+**A curse says it once.** The red badge stays; the toast that repeated its exact
+words next to it is gone.
+
+**The special-block hint waits for the block.** It used to fire when a special
+entered the NEXT box and vanish 4.6 seconds later — which meant it explained a
+block you could not yet act on and was gone by the time you held it. It now
+appears when that block becomes the piece you are about to drop, and it lives
+exactly as long as the block does: through the aim, through the fall, and out
+the moment the piece merges, explodes, opens, shatters or leaves the deck. An
+explanation still sitting there for a block that left is worse than none. The
+hint tracks the queue entry itself rather than its type, so two golden blocks in
+a row get two explanations, because they are two decisions.
+
+**Giant and golden no longer spell out the obvious.** "Merges with its own kind"
+under a block that plainly is its own kind is noise; those two now show the
+block and the line and nothing else. Wild cards and the blocks that never merge
+still show their partners, because there the rule is not obvious.
+
+**Blocks lie flat.** Three separate causes, all of them real:
+
+- *A merged piece was born crooked.* A fusion spawns already sitting in a gap,
+  and it was inheriting the same random ±14° tilt a fresh drop gets to make it
+  look like it tumbled in. With friction this high, nothing rocks it flat again.
+- *"Flat" was the wrong angle.* Matter puts a polygon's face midpoints at
+  multiples of 2π/n from the body angle, so a pentagon at angle 0 is standing
+  18° off its own bottom face — on a corner, not on a side. Every piece that
+  asked to be born square was being born crooked, including the star. There is
+  now one `restAngle(n)` that answers "which angle puts a face on the floor",
+  and both the spawner and the settle assist read it.
+- *Static friction locked the rest.* A block that lands on another very often
+  stops 10–25° off flat and simply stays there — not sunk, not balanced on a
+  point, just tipped, until the next drop knocks it loose (which is exactly what
+  you were seeing). The settle assist watches any piece that is held up from
+  below, on a level contact, more than ~4.3° off flat for longer than 200ms, and
+  adds a torque proportional to the error — capped, and never for more than
+  1.4 seconds on one piece, so it cannot fight the physics or spin anything.
+
+  On a fixed seeded game, mean resting tilt went from 6.4° to 3.1°, and pieces
+  more than 8° off flat from 4 in 13 to 1 in 13.
+
+**The star is a star-shaped hole, not a ghost.** Its collision body is a
+chamfered pentagon, and chamfering pulls the real hull *inside* the radius — so
+points drawn at full radius hung in empty space and passed visibly through the
+deck. The drawn star now sits at 0.92 of the radius, inside the hull it actually
+collides with, from one `STAR_R` constant both the board and the NEXT box read.
+
+**The angry block keeps being angry.** It jumped once and went quiet. It now
+jumps on an interval (`CONFIG.angryJumpGapMs`), each hop a little weaker than
+the last and pulled slightly inward so it works its way toward the middle of the
+pile rather than off the side.
+
+**The camera comes home.** It framed out to show a scattered tower and then
+stayed there. The pull-out is unchanged; there is now a return: once the real
+top of the climb sits well below the frame, the camera eases back and stops
+exactly at home rather than in the dead zone that was holding it out.
+
+**Wind has a terminal speed.** It was occasionally throwing the whole deck off.
+The force is slightly lower, and drift is now capped (`windMaxDrift`) — a gust
+can slide a tower, but it cannot accelerate one off the edge.
+
+**The dice block wears the tier it will merge with.** Its outline takes the
+colour of the tier it is currently showing — red on 1, orange on 2 — and pulses
+while the roll is still live, going solid when it locks.
+
+**The OVERFLOW counter stopped sounding like a funeral.** The climb was 22
+minor-scale bells. It is now 48 low mechanical clicks, placed by inverting the
+counter's own easing so they land with the digits: a counter being counted, not
+a lament. The landing chord is unchanged. And the white flash at the merge holds
+fully white for a real beat before it lets the world back in.
+
+**A deck arrives, says its name, and then the game starts.** The name lands in
+large type once the deck is whole, with its own in-and-out transition and a
+shrink-to-fit pass so long names like OBSIDIAN CROWN never overflow the screen.
+The drop preview is held back through all of it and fades in once the card is
+gone — no aim line hanging over a deck that is still assembling.
+
+**The tour talks next to what it is talking about.** Each step's tip is now
+placed by scoring eight candidate positions against everything already on
+screen, so it lands in empty space beside its subject instead of on top of it.
+
+**Events and specials come a little more often** — the gap between world events
+is 33–54s rather than 45–75s.
+
+**Haptics are gone entirely**, along with their setting. See [On a phone](#on-a-phone).
+
 ## The dev build
 
 `overstack/dev.html` is the same game with a window cut into the side of it.
@@ -878,7 +976,7 @@ watch the game react to it:
   live event, and the current block-injection odds
 - **The save**
 - **Event log** — both streams, newest first: `trackEvent` (analytics) and the
-  FeedbackBus (audio / haptics / visuals)
+  FeedbackBus (audio / visuals)
 
 ### TESTING — make anything happen
 
@@ -899,7 +997,7 @@ watch the game react to it:
   bodies spawned inside one another and thrown off the deck. The three
   *inspection* layouts freeze fusions first, or they would merge themselves into
   two pieces before you could read them
-- **Flags** — god mode, freeze fusions, sound, music, haptics, reduced motion,
+- **Flags** — god mode, freeze fusions, sound, music, reduced motion,
   performance tier, restart, replay the tour, wipe the save
 
 Verified by `test_dev.js`: 48 assertions that press the actual buttons and check
