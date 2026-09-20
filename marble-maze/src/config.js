@@ -117,26 +117,26 @@ export function mechanicsForLevel(level) {
 export function newMechanicAt(level) { return MECHANIC_UNLOCKS.find(m => m.level === level) || null; }
 
 export const POWERUPS = {
-  magnet:    { id:'magnet',    name:'Coin Magnet',  color:0xffcf3a, dur:7,  icon:'🧲', timed:true,  blurb:'Pulls coins in' },
-  x2:        { id:'x2',        name:'2× Coins',     color:0xffe14d, dur:9,  icon:'✨', timed:true,  blurb:'Double coins' },
-  speed:     { id:'speed',     name:'Speed Surge',  color:0x49d0ff, dur:5,  icon:'⚡', timed:true,  blurb:'Go faster' },
-  slowmo:    { id:'slowmo',    name:'Slow-Mo',      color:0xb98aff, dur:5,  icon:'🐢', timed:true,  blurb:'Slow time' },
-  shield:    { id:'shield',    name:'Shield',       color:0x4dffa3, dur:10, icon:'🛡️', timed:true,  blurb:'Survive one hit' },
-  bigfinish: { id:'bigfinish', name:'Big Finish',   color:0x7affd0, dur:10, icon:'🎯', timed:true,  blurb:'Bigger goal' },
-  shrink:    { id:'shrink',    name:'Mini Marble',  color:0x9affff, dur:8,  icon:'🔽', timed:true,  blurb:'Squeeze through' },
-  patchHoles:{ id:'patchHoles',name:'Hole Patch',   color:0x6be3ff, dur:7,  icon:'🩹', timed:true,  blurb:'Seals RED holes' },
-  ghost:     { id:'ghost',     name:'Ghost',        color:0xd6e4ff, dur:5,  icon:'👻', timed:true,  blurb:'Pass through walls' },
-  freeze:    { id:'freeze',    name:'Time Freeze',  color:0x8fefff, dur:4,  icon:'❄️', timed:true,  blurb:'Hazards freeze' },
+  magnet:    { id:'magnet',    name:'Coin Magnet',  color:0xffcf3a, dur:7,  icon:'', timed:true,  blurb:'Pulls coins in' },
+  x2:        { id:'x2',        name:'2× Coins',     color:0xffe14d, dur:9,  icon:'', timed:true,  blurb:'Double coins' },
+  speed:     { id:'speed',     name:'Speed Surge',  color:0x49d0ff, dur:5,  icon:'', timed:true,  blurb:'Go faster' },
+  slowmo:    { id:'slowmo',    name:'Slow-Mo',      color:0xb98aff, dur:5,  icon:'', timed:true,  blurb:'Slow time' },
+  shield:    { id:'shield',    name:'Shield',       color:0x4dffa3, dur:10, icon:'', timed:true,  blurb:'Survive one hit' },
+  bigfinish: { id:'bigfinish', name:'Big Finish',   color:0x7affd0, dur:10, icon:'', timed:true,  blurb:'Bigger goal' },
+  shrink:    { id:'shrink',    name:'Mini Marble',  color:0x9affff, dur:8,  icon:'', timed:true,  blurb:'Squeeze through' },
+  patchHoles:{ id:'patchHoles',name:'Hole Patch',   color:0x6be3ff, dur:7,  icon:'', timed:true,  blurb:'Seals RED holes' },
+  ghost:     { id:'ghost',     name:'Ghost',        color:0xd6e4ff, dur:5,  icon:'', timed:true,  blurb:'Pass through walls' },
+  freeze:    { id:'freeze',    name:'Time Freeze',  color:0x8fefff, dur:4,  icon:'', timed:true,  blurb:'Hazards freeze' },
 };
 export const POWERUP_POOL = Object.keys(POWERUPS);
 
 export const GOLD_RUSH = { fraction: 0.85, minFast: 12, windowSec: 3.0, durationSec: 6, fillCount: 60 };
 
 export const PERKS = {
-  shield:   { icon:'🛡️', label:'Extra Life', blurb:'Start each level shielded' },
-  magnet:   { icon:'🧲', label:'Coin Pull',  blurb:'Gentle passive coin magnet' },
-  headstart:{ icon:'⚡', label:'Headstart',  blurb:'+8% top speed' },
-  lucky:    { icon:'🍀', label:'Lucky',      blurb:'+15% coins earned' },
+  shield:   { icon:'', label:'Extra Life', blurb:'Start each level shielded' },
+  magnet:   { icon:'', label:'Coin Pull',  blurb:'Gentle passive coin magnet' },
+  headstart:{ icon:'', label:'Headstart',  blurb:'+8% top speed' },
+  lucky:    { icon:'', label:'Lucky',      blurb:'+15% coins earned' },
 };
 
 export const RARITY = {

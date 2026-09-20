@@ -133,16 +133,16 @@ export class UI {
     const cells = [];
     for (let i = 0; i < 9; i++) {
       const cell = document.createElement('button'); cell.className = 'chest-cell';
-      cell.innerHTML = '<span class="chest-emoji">🎁</span>';
+      cell.innerHTML = '<span class="chest-emoji">?</span>';
       cell.onclick = () => {
         if (picks <= 0 || cell.classList.contains('opened')) return;
         cell.classList.add('opened'); total += rewards[i]; picks--;
-        cell.innerHTML = `<span class="chest-emoji pop">💰</span><b>+${rewards[i]}</b>`;
+        cell.innerHTML = `<span class="chest-emoji pop">+</span><b>+${rewards[i]}</b>`;
         this.h.sfx?.('powerup');
         if (picks > 0) info.textContent = 'Pick 1 more!';
         else {
-          info.innerHTML = `You won <b>${total}</b> coins! 🎉`; collect.classList.remove('hidden');
-          cells.forEach((cc, j) => { if (!cc.classList.contains('opened')) { cc.classList.add('revealed'); cc.innerHTML = `<span class="chest-emoji">🎁</span><small>+${rewards[j]}</small>`; } });
+          info.innerHTML = `You won <b>${total}</b> coins`; collect.classList.remove('hidden');
+          cells.forEach((cc, j) => { if (!cc.classList.contains('opened')) { cc.classList.add('revealed'); cc.innerHTML = `<span class="chest-emoji">?</span><small>+${rewards[j]}</small>`; } });
         }
       };
       grid.appendChild(cell); cells.push(cell);
@@ -152,7 +152,7 @@ export class UI {
 
   goldRush(on) {
     document.body.classList.toggle('goldrush', on);
-    if (on) this.banner('🔥 GOD MODE 🔥', 'GOLD RUSH!');
+    if (on) this.banner('GOD MODE', 'GOLD RUSH');
   }
 
   enterGame() {
@@ -166,21 +166,18 @@ export class UI {
   setPerk(perk) {
     const el = $('perkChip'); if (!el) return;
     if (!perk || !PERKS[perk]) { el.classList.add('hidden'); return; }
-    el.innerHTML = `<span class="pk-ico">${PERKS[perk].icon}</span><span>${PERKS[perk].label}</span>`;
+    el.innerHTML = `<span>${PERKS[perk].label}</span>`;
     el.classList.remove('hidden');
   }
-  setControlHint(text) { const e = $('controlHint'); e.textContent = text; }
-  fadeControlHint() { const e = $('controlHint'); e.style.opacity = '0'; }
-  showControlHint() { const e = $('controlHint'); e.style.opacity = ''; }
   showBoostButton(on) { $('boostBtn').classList.toggle('hidden', !on); }
 
   powerups(list) {
     const wrap = $('powerupChips'); wrap.innerHTML = '';
     for (const p of list) {
-      const def = p.def || POWERUPS[p.id] || { icon: '★', name: p.id, dur: 1 };
+      const def = p.def || POWERUPS[p.id] || { name: p.id, dur: 1 };
       const el = document.createElement('div'); el.className = 'pu-chip';
       const frac = Math.max(0, Math.min(1, p.t / (def.dur || 1)));
-      el.innerHTML = `<span class="ico">${def.icon || '★'}</span><span>${(def.name || p.id)}</span>
+      el.innerHTML = `<span>${(def.name || p.id)}</span>
         <span class="bar" style="width:${frac * 100}%;background:${hex(def.color || 0x21f3ff)}"></span>`;
       wrap.appendChild(el);
     }
@@ -196,7 +193,7 @@ export class UI {
     }
     $('winCoins').textContent = '+' + data.coinsAwarded;
     $('winTime').textContent = (data.timeMs / 1000).toFixed(1) + 's';
-    $('winTimeNote').textContent = data.beatPar ? 'time ⏱ medal!' : 'time';
+    $('winTimeNote').textContent = data.beatPar ? 'time · medal' : 'time';
     $('winMissionRow').classList.toggle('hidden', !opts.missionDone);
     if (opts.missionDone) $('winMission').textContent = opts.missionLabel || 'Mission complete!';
     const cb = $('chestBtn');
@@ -302,19 +299,19 @@ export class UI {
       const claimed = i < d.dayInCycle || (!d.claimable && i <= d.dayInCycle);
       if (isToday) cell.classList.add('today');
       else if (claimed) cell.classList.add('claimed');
-      cell.innerHTML = `Day ${i + 1}<b>${isChest ? '🎁' : '+' + ECON.daily[i]}</b>`;
+      cell.innerHTML = `Day ${i + 1}<b>${isChest ? 'Chest' : '+' + ECON.daily[i]}</b>`;
       grid.appendChild(cell);
     }
     const btn = $('claimBtn');
     btn.disabled = !d.claimable;
-    btn.textContent = d.claimable ? `Claim +${d.reward}${d.isChest ? ' 🎁' : ''}` : 'Come back tomorrow';
+    btn.textContent = d.claimable ? `Claim +${d.reward}${d.isChest ? ' + chest' : ''}` : 'Come back tomorrow';
     btn.style.opacity = d.claimable ? '1' : '.5';
     btn.onclick = () => {
       if (!d.claimable) return;
       this.h.sfx?.('powerup');
       const res = this.h.claimDaily?.();
       this.refreshMenu();
-      if (res) { this.toast(`+${res.reward} coins! Streak ${res.nextStreak} 🔥`); }
+      if (res) { this.toast(`+${res.reward} coins · streak ${res.nextStreak}`); }
       this.showDaily();
     };
   }
@@ -330,30 +327,72 @@ export class UI {
     this.setSeg('setDifficulty', st.settings.difficulty || 'normal');
   }
 
+  // instant = a new notice is taking the slot, so the old one must go at once
+  // instead of cross-fading with it. On natural expiry it fades out.
+  _hideNotices(instant) {
+    for (const id of ['toast', 'banner', 'tutHint', 'comboPop']) {
+      const el = $(id); if (!el) continue;
+      el.classList.remove('show');
+      if (instant) el.classList.add('hidden');
+    }
+    const ch = $('controlHint');
+    if (ch) { ch.style.opacity = '0'; if (instant) ch.classList.add('hidden'); }
+  }
+
+  // Only one notice is ever on screen. A more important one takes the slot;
+  // anything less important is dropped rather than stacked.
+  _notice(kind, prio, dur, render) {
+    if (this._nKind && prio < this._nPrio) return false;
+    clearTimeout(this._nT); this._nT = 0;
+    this._hideNotices(true);
+    this._nKind = kind; this._nPrio = prio;
+    render();
+    if (dur > 0) this._nT = setTimeout(() => this.clearNotice(kind), dur);
+    return true;
+  }
+  clearNotice(kind) {
+    if (kind && this._nKind !== kind) return;
+    clearTimeout(this._nT); this._nT = 0;
+    this._hideNotices(false);
+    this._nKind = null; this._nPrio = 0;
+  }
+
   tutorialHint(show, text) {
-    const el = $('tutHint'); if (!el) return;
-    if (show) { el.textContent = text || ''; el.classList.remove('hidden'); requestAnimationFrame(() => el.classList.add('show')); }
-    else { el.classList.remove('show'); setTimeout(() => el.classList.add('hidden'), 300); }
+    if (!show) { this.clearNotice('tut'); return; }
+    this._notice('tut', 4, 0, () => {
+      const el = $('tutHint'); if (!el) return;
+      el.textContent = text || ''; el.classList.remove('hidden');
+      requestAnimationFrame(() => el.classList.add('show'));
+    });
   }
 
   toast(msg, dur = 1800) {
-    const t = $('toast'); t.textContent = msg; t.classList.remove('hidden');
-    requestAnimationFrame(() => t.classList.add('show'));
-    clearTimeout(this._tT);
-    this._tT = setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.classList.add('hidden'), 300); }, dur);
+    this._notice('toast', 2, dur, () => {
+      const t = $('toast'); t.textContent = msg; t.classList.remove('hidden');
+      requestAnimationFrame(() => t.classList.add('show'));
+    });
   }
   banner(newLabel, title) {
-    const b = $('banner');
-    b.innerHTML = `<div class="b-new">${newLabel}</div><div class="b-title">${title}</div>`;
-    b.classList.remove('hidden'); requestAnimationFrame(() => b.classList.add('show'));
-    clearTimeout(this._bT);
-    this._bT = setTimeout(() => { b.classList.remove('show'); setTimeout(() => b.classList.add('hidden'), 350); }, 1900);
+    this._notice('banner', 3, 1900, () => {
+      const b = $('banner');
+      b.innerHTML = `<div class="b-new">${newLabel}</div><div class="b-title">${title}</div>`;
+      b.classList.remove('hidden'); requestAnimationFrame(() => b.classList.add('show'));
+    });
+  }
+  controlHint(text, dur = 3400) {
+    return this._notice('hint', 1, dur, () => {
+      const e = $('controlHint'); if (!e) return;
+      e.textContent = text; e.classList.remove('hidden');
+      requestAnimationFrame(() => { e.style.opacity = '1'; });
+    });
   }
   combo(n) {
     if (n < 3) return;
-    const c = $('comboPop'); c.textContent = `Combo ×${n}!`;
-    c.style.fontSize = Math.min(48, 22 + n * 2) + 'px';
-    c.classList.remove('hidden', 'show'); void c.offsetWidth; c.classList.add('show');
+    this._notice('combo', 1, 800, () => {
+      const c = $('comboPop'); c.textContent = `Combo ×${n}`;
+      c.style.fontSize = Math.min(48, 22 + n * 2) + 'px';
+      c.classList.remove('hidden', 'show'); void c.offsetWidth; c.classList.add('show');
+    });
   }
   adCurtain(on, kind) {
     const el = $('adCurtain'); if (!el) return;

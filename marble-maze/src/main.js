@@ -116,12 +116,14 @@ class App {
   _skinDef() { return SKINS.find(s => s.id === S.get().skin) || SKINS[0]; }
   _trailDef() { return TRAILS.find(t => t.id === S.get().trail) || TRAILS[0]; }
 
-  _updateControlUI() {
+  _updateControlUI() { this.ui.showBoostButton(this.input.activeMode !== 'keys'); }
+
+  _maybeControlHint() {
+    if (this._controlsShown || this._showTut || this._showBoostTut) return;
     const mode = this.input.activeMode;
-    const hint = mode === 'keys' ? 'WASD / Arrows  ·  hold Shift to boost'
-      : mode === 'tilt' ? 'Tilt to steer  ·  hold BOOST' : 'Drag to steer  ·  hold BOOST';
-    this.ui.setControlHint(hint); this.ui.showControlHint(); this.ui.showBoostButton(mode !== 'keys');
-    clearTimeout(this._hintT); this._hintT = setTimeout(() => this.ui.fadeControlHint(), 4200);
+    const shown = this.ui.controlHint(mode === 'keys' ? 'WASD / Arrows  ·  hold Shift to boost'
+      : mode === 'tilt' ? 'Tilt to steer  ·  hold BOOST' : 'Drag to steer  ·  hold BOOST');
+    if (shown) this._controlsShown = true;
   }
 
   async play() { await SDK.preroll(); this.startStage(S.get().maxLevel, {}); }
@@ -188,16 +190,26 @@ class App {
     const n = this.stage;
     const worldChanged = (n - 1) % LEVELS_PER_WORLD === 0 && n > 1;
     const nm = newMechanicAt(n);
-    if (worldChanged) { this.ui.banner('NEW WORLD', this.levelData.world.name); this.ui.toast(this.levelData.world.blurb, 2200); this.director.noteNovelty(); }
-    else if (nm && !S.hasSeenMechanic(nm.key)) { this.ui.banner('NEW!', nm.label); S.markMechanicSeen(nm.key); this.director.noteNovelty(); }
-    else { this.ui.banner('LEVEL ' + n, this.levelData.world.name); if (plan && plan.novelty) this.director.noteNovelty(); }
+    // Only announce levels that are actually worth announcing; the HUD already
+    // shows which level this is.
+    if (worldChanged) { this.ui.banner('NEW WORLD', this.levelData.world.name); this.director.noteNovelty(); }
+    else if (nm && !S.hasSeenMechanic(nm.key)) { this.ui.banner('NEW', nm.label); S.markMechanicSeen(nm.key); this.director.noteNovelty(); }
+    else {
+      if (n % 5 === 0) this.ui.banner('LEVEL ' + n, this.levelData.world.name);
+      if (plan && plan.novelty) this.director.noteNovelty();
+    }
     this.ui.setMenuWorld(this.levelData.world.name);
+    this._maybeControlHint();
 
-    if (this.mission) { clearTimeout(this._mT); this._mT = setTimeout(() => this.ui.toast('🎯 ' + this.mission.label, 2200), 1500); }
+    clearTimeout(this._mT);
+    if (this.mission && n >= 4 && n - (this._lastMissionNote ?? -99) >= 4) {
+      this._lastMissionNote = n;
+      this._mT = setTimeout(() => this.ui.toast(this.mission.label, 2000), 2400);
+    }
 
     if (plan && plan.mods && plan.mods.surpriseReward) {
       const amt = plan.mods.surpriseReward; S.addCoins(amt); this.ui.setCoinBalance(S.get().coins);
-      setTimeout(() => this.ui.surprise('🎉 LUCKY DROP', '+' + amt + ' coins'), 700);
+      setTimeout(() => this.ui.surprise('LUCKY DROP', '+' + amt + ' coins'), 700);
     }
     if (plan && plan.churn && plan.churn.zone === 'panic') { clearTimeout(this._gT); this._gT = setTimeout(() => this.game.forceGoldRush(), 1700); }
 
@@ -222,6 +234,8 @@ class App {
     let awarded = Math.round(base + finish + perfect + medal + missionReward);
     const chestDue = stage % ECON.chestEvery === 0;
 
+    const prevBest = S.levelRecord(stage).bestTimeMs ?? Infinity;
+    const newBest = data.timeMs < prevBest;
     S.recordLevelResult(stage, { stars: data.stars, coins: data.coins, timeMs: data.timeMs });
     S.unlockNextLevel(stage); S.addCoins(awarded); S.bump('wins'); this.winsSinceAd++;
     this.lastWin = { awarded, doubled: false };
@@ -237,9 +251,11 @@ class App {
       onReplay: () => this._adThen(() => this.startStage(stage, {})),
       onMenu: () => this._adThen(() => this.toMenu()),
     });
-    if (missionDone) this.ui.toast(`🎯 Mission! +${missionReward} coins`, 2000);
-    else if (perfect) this.ui.toast('Perfect! All coins ✨', 2000);
-    else if (beatPar) this.ui.toast('⏱ Time medal!', 1700);
+    // At most one, and only occasionally — the win panel already reports the run.
+    const spaced = stage - (this._lastFlavourNote ?? -99) >= 4;
+    if (missionDone) { this.ui.toast(`Mission complete  ·  +${missionReward} coins`, 2000); this._lastFlavourNote = stage; }
+    else if (perfect && spaced) { this.ui.toast('Perfect run  ·  every coin', 2000); this._lastFlavourNote = stage; }
+    else if (beatPar && newBest && prevBest !== Infinity && spaced) { this.ui.toast('New best time', 1700); this._lastFlavourNote = stage; }
   }
   _openChest(stage) {
     this.ui.showChest(ECON.chestCoins(stage), (total) => {
@@ -251,7 +267,7 @@ class App {
   async _doubleCoins() {
     if (this.lastWin.doubled) return;
     const ok = await SDK.rewardedBreak();
-    if (ok) { S.addCoins(this.lastWin.awarded); this.lastWin.doubled = true; this.ui.setWinCoins(this.lastWin.awarded * 2); this.ui.setCoinBalance(S.get().coins); this.ui.disableDouble(); Audio.powerup(); this.ui.toast('Coins doubled! 🤑'); }
+    if (ok) { S.addCoins(this.lastWin.awarded); this.lastWin.doubled = true; this.ui.setWinCoins(this.lastWin.awarded * 2); this.ui.setCoinBalance(S.get().coins); this.ui.disableDouble(); Audio.powerup(); this.ui.toast('Coins doubled'); }
     else this.ui.toast('Ad not available');
   }
   async _next() {
@@ -280,7 +296,7 @@ class App {
     const ok = await SDK.rewardedBreak(); if (!ok) { this.ui.toast('Ad not available'); return; }
     this.revivedThisRun = true; this.ui.hideOverlays(); this.ui.showHUD(true);
     if (S.get().settings.music) Audio.startMusic();
-    this.game.revive(); SDK.gameplayStart(); this.ui.toast('Revived! 🛡️ Shielded');
+    this.game.revive(); SDK.gameplayStart(); this.ui.toast('Revived  ·  shielded');
   }
   async _skip() {
     const ok = await SDK.rewardedBreak(); if (!ok) { this.ui.toast('Ad not available'); return; }
@@ -295,14 +311,14 @@ class App {
         this.ui.updateHUD({ level: this.stage, ...h });
       },
       onCoin: (collected, val, combo) => { this.run.coinValue += val; this.director.noteMove(); if (combo >= 3) this.ui.combo(combo); },
-      onPowerupStart: (def) => this.ui.toast(`${def.icon || '★'} ${def.name}`, 1400),
+      onPowerupStart: (def) => this.ui.toast(def.name, 1400),
       onPowerups: (list) => this.ui.powerups(list),
       onPowerupEnd: () => {},
       onWin: (d) => this._onWin(d),
       onDie: (r, info) => this._onDie(r, info),
       onSfx: (name, arg) => this._sfx(name, arg),
       onGoldRush: (on) => this.ui.goldRush(on),
-      onShieldSave: () => this.ui.toast('🛡️ Shield saved you!', 1500),
+      onShieldSave: () => this.ui.toast('Shield saved you', 1500),
       onFinishArrow: (info) => this.ui.finishArrow(info),
       onIdle: () => this.director.noteIdle(),
       onActive: () => this.director.noteMove(),

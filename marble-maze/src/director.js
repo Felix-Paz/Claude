@@ -243,13 +243,13 @@ export class Director {
 
   _mission(archetype) {
     const byArch = {
-      speedrunner: { id: 'fast', label: 'Beat the par time ⏱', reward: 40 },
-      explorer: { id: 'allcoins', label: 'Collect every coin ✨', reward: 45 },
-      collector: { id: 'allcoins', label: 'Collect every coin ✨', reward: 45 },
-      survivor: { id: 'flawless', label: 'Finish without dying 🛡️', reward: 35 },
-      competitor: { id: 'fast', label: 'Beat the par time ⏱', reward: 40 },
+      speedrunner: { id: 'fast', label: 'Beat the par time', reward: 40 },
+      explorer: { id: 'allcoins', label: 'Collect every coin', reward: 45 },
+      collector: { id: 'allcoins', label: 'Collect every coin', reward: 45 },
+      survivor: { id: 'flawless', label: 'Finish without dying', reward: 35 },
+      competitor: { id: 'fast', label: 'Beat the par time', reward: 40 },
     };
-    return byArch[archetype] || { id: 'allcoins', label: 'Collect every coin ✨', reward: 40 };
+    return byArch[archetype] || { id: 'allcoins', label: 'Collect every coin', reward: 40 };
   }
   checkMission(mission, win) {
     if (!mission) return false;
