@@ -39,13 +39,18 @@ export class Game {
     this.scene.add(this.levelGroup);
 
     window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+    if (typeof ResizeObserver !== 'undefined') {
+      this._ro = new ResizeObserver(this._onResize);
+      this._ro.observe(this.canvas);
+    }
   }
   setCallbacks(cb) { this.cb = cb || {}; }
 
   _initRenderer() {
     const r = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, powerPreference: 'high-performance' });
     r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    r.setSize(window.innerWidth, window.innerHeight);
+    r.setSize(this.canvas.clientWidth || window.innerWidth, this.canvas.clientHeight || window.innerHeight, false);
     r.outputColorSpace = THREE.SRGBColorSpace;
     r.toneMapping = THREE.ACESFilmicToneMapping;
     r.toneMappingExposure = 1.08;
@@ -442,6 +447,7 @@ export class Game {
   resume() { if (this.state === 'paused') this.state = 'playing'; }
 
   update(dt, input) {
+    this._syncSize();
     dt = Math.min(dt, 0.05); this._t += dt; const sdt = dt * this.timeScale;
     if (this.state === 'playing') {
       this.clockMs += dt * 1000;
@@ -803,7 +809,17 @@ export class Game {
     this.sun.position.set(this.marble.position.x + 18, 44, this.marble.position.z + 24); this.sun.target.position.set(this.marble.position.x, 0, this.marble.position.z); this.sun.target.updateMatrixWorld();
   }
 
-  _onResize = () => { if (!this.renderer) return; this.camera.aspect = window.innerWidth / window.innerHeight; this.camera.updateProjectionMatrix(); this.renderer.setSize(window.innerWidth, window.innerHeight); };
+  _syncSize() {
+    if (!this.renderer) return;
+    const w = this.canvas.clientWidth || window.innerWidth;
+    const h = this.canvas.clientHeight || window.innerHeight;
+    if (!w || !h || (w === this._vw && h === this._vh)) return;
+    this._vw = w; this._vh = h;
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(w, h, false);
+  }
+  _onResize = () => this._syncSize();
 
   setQuality(q) {
     this.qfixed = (q === 'auto') ? null : q; this.autoQuality = (q === 'auto');
@@ -825,7 +841,12 @@ export class Game {
     }
   }
 
-  dispose() { window.removeEventListener('resize', this._onResize); this._clearLevel(); this.renderer.dispose(); }
+  dispose() {
+    window.removeEventListener('resize', this._onResize);
+    window.removeEventListener('orientationchange', this._onResize);
+    this._ro?.disconnect();
+    this._clearLevel(); this.renderer.dispose();
+  }
 }
 
 function distToSeg(px, pz, ax, az, bx, bz) { const dx = bx - ax, dz = bz - az; const l2 = dx*dx + dz*dz || 1e-6; let t = ((px-ax)*dx + (pz-az)*dz)/l2; t = Math.max(0, Math.min(1, t)); const cx = ax+t*dx, cz = az+t*dz; return Math.hypot(px-cx, pz-cz); }
