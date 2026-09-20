@@ -203,15 +203,15 @@ export class Director {
     let target = this.skill + 400 * Math.log10((1 - DIRECTOR.targetWinProb) / DIRECTOR.targetWinProb) + this._bias();
 
     const mods = { sizeScale: 1, hazardScale: 1, decoyScale: 1, extraCoins: 0, forgive: 0, tightness: 0,
-      addBoost: false, biggerGoal: false, closerFinish: false, guaranteePowerup: null, rescueOpen: false, surpriseReward: 0, slowHazards: 1, novelty };
+      addBoost: false, biggerGoal: false, closerFinish: false, guaranteePowerup: null, surpriseReward: 0, slowHazards: 1, novelty };
 
     if (mode === 'teach') { target += DIRECTOR.offsetEasy * 0.5; mods.hazardScale = 0.6; }
     else if (mode === 'challenge') { target += DIRECTOR.offsetHard; mods.extraCoins = 3; mods.tightness = 0.4; this._beginIntervention('challenge'); }
     else if (mode === 'rescue') {
       const sev = ch.zone === 'panic' ? 1.4 : ch.zone === 'red' ? 1.0 : 0.7;
       target += DIRECTOR.offsetEasy * sev;
-      mods.hazardScale = clamp(0.5 - sev * 0.2, 0.2, 0.6); mods.decoyScale = 0.4;
-      mods.biggerGoal = true; mods.closerFinish = true; mods.forgive = clamp(0.4 + sev * 0.3, 0.4, 0.9);
+      mods.hazardScale = clamp(0.95 - sev * 0.15, 0.7, 0.95); mods.decoyScale = 0.8;
+      mods.closerFinish = ch.zone === 'panic';
       mods.guaranteePowerup = 'shield'; mods.addBoost = true;
       if (ch.zone === 'panic') mods.surpriseReward = 250;
       this._beginIntervention('rescue');
@@ -226,20 +226,14 @@ export class Director {
     }
 
     target = clamp(Math.round(ctx.scripted?.difficulty ?? target), DIRECTOR.diffMin, DIRECTOR.diffMax);
-    const sizeBucket = ctx.scripted ? 'small' : this.pickSize();
+    let sizeBucket = ctx.scripted ? 'small' : this.pickSize();
+    const floorIdx = stage <= 4 ? 0 : stage <= 10 ? 1 : stage <= 20 ? 2 : 3;
+    if (SIZE_ORDER.indexOf(sizeBucket) < floorIdx) sizeBucket = SIZE_ORDER[floorIdx];
     if (novelty) this.levelsSinceNovel = 0;
     this._save();
     return { stage, difficulty: target, sizeBucket, mods, mode, churn: ch, meters: m, archetype, novelty, mission: this._mission(archetype) };
   }
 
-  retryMods() {
-    const n = this.session.retries;
-    const m = { rescueOpen: false, hazardScale: 1, forgive: 0, biggerGoal: false, slowHazards: 1 };
-    if (n >= 2) { m.forgive = 0.4; m.slowHazards = 0.85; }
-    if (n >= 3) { m.hazardScale = 0.6; m.slowHazards = 0.7; m.forgive = 0.6; }
-    if (n >= 4) { m.rescueOpen = true; m.hazardScale = 0.4; m.biggerGoal = true; m.forgive = 0.8; }
-    return m;
-  }
 
   _mission(archetype) {
     const byArch = {

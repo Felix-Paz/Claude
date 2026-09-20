@@ -40,15 +40,32 @@ export function drawMarbleTexture(x, type, W, H = W) {
 
   switch (type) {
     case 'pearl': {
-      bg('#f6f7fb');
-      for (let i = 0; i < 26; i++) {
-        const g = x.createRadialGradient(rnd() * W, v(0.15 + rnd() * 0.7), 0, rnd() * W, v(0.5), v(0.4));
-        const tint = ['rgba(198,214,255,.5)', 'rgba(255,224,240,.45)', 'rgba(210,255,246,.4)', 'rgba(255,246,214,.4)'][(rnd() * 4) | 0];
-        g.addColorStop(0, tint); g.addColorStop(1, 'rgba(255,255,255,0)');
+      bg('#f1f4fb');
+      for (let i = 0; i < 16; i++) {
+        const g = x.createRadialGradient(rnd() * W, v(0.15 + rnd() * 0.7), 0, rnd() * W, v(0.5), v(0.45));
+        g.addColorStop(0, ['rgba(186,205,244,.5)', 'rgba(214,230,255,.45)', 'rgba(235,238,252,.45)'][(rnd() * 3) | 0]);
+        g.addColorStop(1, 'rgba(255,255,255,0)');
         fill(g); x.fillRect(0, 0, W, H);
       }
-      veins(9, 26, v(0.012), 'rgba(176,192,220,.5)', 1.1);
-      shade('rgba(255,255,255,.5)', 'rgba(120,140,180,.25)');
+      const ribbon = (base, amp, ph, fr, wide) => {
+        const pts = [];
+        for (let i = 0; i <= 64; i++) pts.push([u(i / 64), v(base + Math.sin(i * fr + ph) * amp)]);
+        const line = (col, lw) => {
+          x.strokeStyle = col; x.lineWidth = lw; x.lineCap = 'round'; x.lineJoin = 'round';
+          x.beginPath(); for (const [px, py] of pts) x.lineTo(px, py); x.stroke();
+        };
+        line('rgba(24,38,68,.85)', wide * 1.34);
+        const g = x.createLinearGradient(0, 0, W, 0);
+        g.addColorStop(0, '#00d9ff'); g.addColorStop(0.28, '#3aa0ff');
+        g.addColorStop(0.55, '#9b4dff'); g.addColorStop(0.78, '#ff3d9a'); g.addColorStop(1, '#00d9ff');
+        line(g, wide);
+        x.save(); x.globalAlpha = 0.5; line('rgba(255,255,255,.9)', wide * 0.2); x.restore();
+      };
+      ribbon(0.3, 0.115, 0.4, 0.26, v(0.12));
+      ribbon(0.56, 0.105, 2.6, 0.3, v(0.095));
+      ribbon(0.78, 0.07, 4.9, 0.24, v(0.06));
+      veins(6, 20, v(0.009), 'rgba(110,132,175,.4)', 1.1);
+      shade('rgba(255,255,255,.28)', 'rgba(46,64,102,.42)');
       break;
     }
     case 'beach': {
@@ -58,17 +75,25 @@ export function drawMarbleTexture(x, type, W, H = W) {
       shade('rgba(255,255,255,.35)', 'rgba(0,0,40,.22)');
       break;
     }
-    case 'smiley': {
-      bg('#ffd23a');
-      around(3, (cx) => {
-        ell(cx - u(0.052), v(0.3), u(0.022), v(0.07), '#2a2318');
-        ell(cx + u(0.052), v(0.3), u(0.022), v(0.07), '#2a2318');
-        x.strokeStyle = '#2a2318'; x.lineWidth = v(0.042); x.lineCap = 'round';
-        x.beginPath(); x.ellipse(cx, v(0.41), u(0.072), v(0.155), 0, 0.42, Math.PI - 0.42); x.stroke();
-        ell(cx - u(0.115), v(0.42), u(0.028), v(0.05), 'rgba(255,120,120,.45)');
-        ell(cx + u(0.115), v(0.42), u(0.028), v(0.05), 'rgba(255,120,120,.45)');
-      });
-      shade('rgba(255,255,255,.3)', 'rgba(120,70,0,.3)');
+    case 'lavalamp': {
+      bg('#2a0f3a');
+      for (let i = 0; i < 18; i++) {
+        const g = x.createRadialGradient(rnd() * W, v(0.5), 0, rnd() * W, v(0.5), v(0.5));
+        g.addColorStop(0, 'rgba(120,30,140,.5)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+        fill(g); x.fillRect(0, 0, W, H);
+      }
+      const blobs = ['#ff5a2a', '#ff8a2a', '#ff3d7a', '#ffc247'];
+      for (let i = 0; i < 16; i++) {
+        const cx = rnd() * W, cy = v(0.12 + rnd() * 0.76);
+        const taper = Math.max(0.35, Math.sin((cy / H) * Math.PI));
+        const ry = v(0.08 + rnd() * 0.14), rx = ry * (0.5 + rnd() * 0.3) / taper;
+        const col = blobs[(rnd() * blobs.length) | 0];
+        const g = x.createRadialGradient(cx, cy - ry * 0.3, 0, cx, cy, ry * 1.5);
+        g.addColorStop(0, '#ffe9a8'); g.addColorStop(0.42, col); g.addColorStop(1, 'rgba(255,60,20,0)');
+        fill(g); x.beginPath(); x.ellipse(cx, cy, rx * 1.5, ry * 1.5, 0, 0, 7); x.fill();
+        ell(cx, cy, rx, ry, col);
+      }
+      speckle(40, 0.004, 0.012, ['rgba(255,220,140,.7)']);
       break;
     }
     case 'donut': {
@@ -82,40 +107,52 @@ export function drawMarbleTexture(x, type, W, H = W) {
       shade('rgba(255,255,255,.4)', 'rgba(140,60,90,.28)');
       break;
     }
-    case 'soccer': {
-      bg('#f7f8fa');
-      x.strokeStyle = '#b9c1ce'; x.lineWidth = v(0.014); x.lineJoin = 'round';
-      const pent = (cx, cy, r, rot) => {
-        const lat = Math.max(0.28, Math.sin((cy / H) * Math.PI));
-        fill('#191c22'); x.beginPath();
-        for (let i = 0; i < 5; i++) {
-          const a = rot + i / 5 * Math.PI * 2;
-          const px = cx + Math.cos(a) * (r / lat) * 0.55, py = cy + Math.sin(a) * r;
-          i ? x.lineTo(px, py) : x.moveTo(px, py);
-        }
-        x.closePath(); x.fill(); x.stroke();
-      };
-      for (let i = 0; i < 6; i++) pent(u(i / 6), v(0.055), v(0.075), -Math.PI / 2);
-      for (let i = 0; i < 6; i++) pent(u(i / 6), v(0.945), v(0.075), Math.PI / 2);
-      around(5, (cx) => pent(cx, v(0.32), v(0.115), Math.PI / 2));
-      for (let i = 0; i < 5; i++) pent(u(i / 5), v(0.68), v(0.115), -Math.PI / 2);
-      for (let i = 0; i < 10; i++) {
-        x.beginPath(); x.moveTo(u(i / 10), v(0.43)); x.lineTo(u((i + 0.5) / 10), v(0.57)); x.stroke();
+    case 'plasma': {
+      bg('#0b0526');
+      for (let i = 0; i < 22; i++) {
+        const cx = rnd() * W, cy = v(0.2 + rnd() * 0.6);
+        const g = x.createRadialGradient(cx, cy, 0, cx, cy, u(0.16));
+        g.addColorStop(0, ['rgba(80,200,255,.55)', 'rgba(180,90,255,.5)', 'rgba(255,80,210,.4)'][(rnd() * 3) | 0]);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        fill(g); x.fillRect(0, 0, W, H);
       }
-      shade('rgba(255,255,255,.35)', 'rgba(20,30,60,.3)');
+      x.lineCap = 'round'; x.lineJoin = 'round';
+      for (let i = 0; i < 26; i++) {
+        let px = rnd() * W, py = v(0.12 + rnd() * 0.76), a = rnd() * 7;
+        const col = ['#7ae4ff', '#c58cff', '#ff8ae0'][(rnd() * 3) | 0];
+        x.strokeStyle = col; x.lineWidth = v(0.016);
+        x.beginPath(); x.moveTo(px, py);
+        for (let k = 0; k < 14; k++) {
+          a += (rnd() - 0.5) * 2.2;
+          px += Math.cos(a) * v(0.055); py += Math.sin(a) * v(0.03);
+          x.lineTo(px, py);
+        }
+        x.stroke();
+        x.strokeStyle = 'rgba(255,255,255,.85)'; x.lineWidth = v(0.005); x.stroke();
+      }
+      speckle(70, 0.003, 0.008, ['rgba(200,240,255,.9)']);
       break;
     }
-    case 'basket': {
-      bg('#df6a22');
-      speckle(220, 0.006, 0.012, ['rgba(140,60,10,.30)', 'rgba(255,170,110,.22)']);
-      x.strokeStyle = '#2b1409'; x.lineWidth = v(0.016); x.lineCap = 'round';
-      for (const uu of [0.25, 0.75]) { x.beginPath(); x.moveTo(u(uu), 0); x.lineTo(u(uu), H); x.stroke(); }
-      for (const base of [0.32, 0.68]) {
+    case 'boba': {
+      const g0 = x.createLinearGradient(0, 0, 0, H);
+      g0.addColorStop(0, '#ffe7cf'); g0.addColorStop(0.45, '#f0c49a'); g0.addColorStop(1, '#c98a5e');
+      fill(g0); x.fillRect(0, 0, W, H);
+      for (let i = 0; i < 14; i++) {
+        const cy = v(0.1 + rnd() * 0.8);
+        const taper = Math.max(0.35, Math.sin((cy / H) * Math.PI));
+        x.strokeStyle = 'rgba(255,248,238,.5)'; x.lineWidth = v(0.05 + rnd() * 0.06);
         x.beginPath();
-        for (let i = 0; i <= 60; i++) x.lineTo(u(i / 60), v(base + Math.sin(i / 60 * Math.PI * 4) * 0.055));
+        for (let k = 0; k <= 30; k++) x.lineTo(u(k / 30), cy + Math.sin(k * 0.5 + i) * v(0.035) / taper);
         x.stroke();
       }
-      shade('rgba(255,210,170,.3)', 'rgba(40,12,0,.35)');
+      for (let i = 0; i < 34; i++) {
+        const cy = v(0.14 + rnd() * 0.72);
+        const taper = Math.max(0.35, Math.sin((cy / H) * Math.PI));
+        const r = v(0.026 + rnd() * 0.022), cx = rnd() * W;
+        ell(cx, cy, r / taper, r, '#2e1a12');
+        ell(cx - r * 0.3 / taper, cy - r * 0.32, r * 0.3 / taper, r * 0.28, 'rgba(255,230,200,.45)');
+      }
+      shade('rgba(255,250,240,.4)', 'rgba(90,50,20,.35)');
       break;
     }
     case 'eight': {
@@ -159,42 +196,49 @@ export function drawMarbleTexture(x, type, W, H = W) {
       shade('rgba(255,255,255,.4)', 'rgba(10,20,50,.4)');
       break;
     }
-    case 'panda': {
-      bg('#f7f7fa');
-      around(2, (cx) => {
-        ell(cx - u(0.075), v(0.24), u(0.045), v(0.085), '#1b1b1f');
-        ell(cx + u(0.075), v(0.24), u(0.045), v(0.085), '#1b1b1f');
-        ell(cx - u(0.055), v(0.47), u(0.042), v(0.085), '#1b1b1f');
-        ell(cx + u(0.055), v(0.47), u(0.042), v(0.085), '#1b1b1f');
-        ell(cx - u(0.05), v(0.46), u(0.016), v(0.032), '#ffffff');
-        ell(cx + u(0.05), v(0.46), u(0.016), v(0.032), '#ffffff');
-        ell(cx - u(0.05), v(0.465), u(0.008), v(0.017), '#000000');
-        ell(cx + u(0.05), v(0.465), u(0.008), v(0.017), '#000000');
-        ell(cx, v(0.58), u(0.022), v(0.036), '#1b1b1f');
-      });
-      caps('#e9e9ef', 0.05);
-      shade('rgba(255,255,255,.35)', 'rgba(20,20,40,.3)');
+    case 'ink': {
+      bg('#f4f6fa');
+      const inks = ['#ff5a2a', '#ff2d6a', '#ffb02e', '#12324a'];
+      for (let i = 0; i < 9; i++) {
+        const col = inks[i % inks.length];
+        const base = 0.14 + rnd() * 0.72;
+        x.strokeStyle = col; x.lineCap = 'round'; x.lineJoin = 'round';
+        x.lineWidth = v(0.03 + rnd() * 0.075);
+        x.beginPath();
+        const amp = 0.05 + rnd() * 0.1, ph = rnd() * 7, fr = 0.22 + rnd() * 0.3;
+        for (let k = 0; k <= 60; k++) x.lineTo(u(k / 60), v(base + Math.sin(k * fr + ph) * amp));
+        x.stroke();
+        x.strokeStyle = 'rgba(255,255,255,.35)'; x.lineWidth = v(0.012);
+        x.beginPath();
+        for (let k = 0; k <= 60; k++) x.lineTo(u(k / 60), v(base - 0.022 + Math.sin(k * fr + ph) * amp));
+        x.stroke();
+      }
+      speckle(46, 0.006, 0.018, ['rgba(255,90,42,.5)', 'rgba(18,50,74,.4)', 'rgba(255,45,106,.4)']);
+      shade('rgba(255,255,255,.4)', 'rgba(40,60,90,.32)');
       break;
     }
-    case 'globe': {
-      bg('#1f74c8');
-      for (let i = 0; i < 22; i++) {
-        const g = x.createRadialGradient(rnd() * W, v(0.5), 0, rnd() * W, v(0.5), v(0.6));
-        g.addColorStop(0, 'rgba(60,150,220,.35)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-        fill(g); x.fillRect(0, 0, W, H);
+    case 'chameleon': {
+      const g1 = x.createLinearGradient(0, 0, W, 0);
+      const stops = ['#00e0a8', '#00c2ff', '#7a4dff', '#ff3fb4', '#ffb52e', '#00e0a8'];
+      stops.forEach((c, i) => g1.addColorStop(i / (stops.length - 1), c));
+      fill(g1); x.fillRect(0, 0, W, H);
+      const g2 = x.createLinearGradient(0, 0, 0, H);
+      g2.addColorStop(0, 'rgba(255,255,255,.34)'); g2.addColorStop(0.5, 'rgba(0,0,0,0)');
+      g2.addColorStop(1, 'rgba(10,0,40,.4)');
+      fill(g2); x.fillRect(0, 0, W, H);
+      const rows = 13, cols3 = 30;
+      for (let ry = 0; ry < rows; ry++) {
+        for (let rx = 0; rx < cols3; rx++) {
+          const cx = (rx + (ry % 2 ? 0.5 : 0)) * (W / cols3);
+          const cy = (ry + 0.5) * (H / rows);
+          const t = rnd();
+          x.fillStyle = t > 0.7 ? 'rgba(255,255,255,.22)' : t > 0.42 ? 'rgba(0,0,0,.16)' : 'rgba(255,255,255,.05)';
+          x.beginPath();
+          x.ellipse(cx, cy, (W / cols3) * 0.62, (H / rows) * 0.52, 0, 0, Math.PI);
+          x.fill();
+          x.strokeStyle = 'rgba(0,0,0,.18)'; x.lineWidth = v(0.004); x.stroke();
+        }
       }
-      const land = ['#3fa15a', '#57b86b', '#7cc36f', '#c9b978'];
-      for (let i = 0; i < 26; i++) {
-        const cy = v(0.18 + rnd() * 0.64);
-        const taper = Math.max(0.3, Math.sin((cy / H) * Math.PI));
-        const rx = u(0.035 + rnd() * 0.06) / taper, ry = v(0.05 + rnd() * 0.08);
-        const cx = rnd() * W;
-        ell(cx, cy, rx, ry, land[(rnd() * land.length) | 0]);
-        ell(cx + rx * 0.5, cy + ry * 0.4, rx * 0.6, ry * 0.6, land[(rnd() * land.length) | 0]);
-      }
-      caps('#f2f8ff', 0.09);
-      speckle(26, 0.01, 0.028, ['rgba(255,255,255,.55)'], 0.15, 0.85);
-      shade('rgba(190,230,255,.3)', 'rgba(0,20,60,.4)');
       break;
     }
     case 'magma': {

@@ -392,7 +392,10 @@ export class Game {
       mat.map = tex; mat.color = new THREE.Color(mm.tint ?? 0xffffff);
     }
     this._setRing(!!def.ring, mm.ringColor ?? 0xd8b070);
-    this._rainbow = !!(def.rainbow || mm.rainbow); mat.needsUpdate = true;
+    this._rainbow = !!(def.rainbow || mm.rainbow);
+    this._flow = def.flow || 0; this._hueShift = def.hueShift || 0;
+    if (!this._flow && mat.map) mat.map.offset.x = 0;
+    mat.needsUpdate = true;
   }
   _setRing(on, color) {
     if (on && !this.ringMesh) {
@@ -402,7 +405,18 @@ export class Game {
     }
     if (this.ringMesh) { this.ringMesh.visible = on; if (on) this.ringMesh.material.color.set(color); }
   }
-  applyTrail(def) { this.trailDef = def; const on = def && def.id !== 'none'; if (this.trail) this.trail.visible = on; if (on) this.trailColor = new THREE.Color(def.color); this._trailRainbow = !!(def && def.rainbow); }
+  applyTrail(def) {
+    this.trailDef = def; const on = def && def.id !== 'none';
+    if (this.trail) this.trail.visible = on;
+    if (on) {
+      this.trailColor = new THREE.Color(def.color);
+      this.trailColor2 = new THREE.Color(def.color2 ?? def.color);
+      this.trail.material.size = def.size ?? 0.9;
+      this.trail.material.blending = def.soft ? THREE.NormalBlending : THREE.AdditiveBlending;
+      this.trail.material.needsUpdate = true;
+    }
+    this._trailRainbow = !!(def && def.rainbow);
+  }
 
   _tex(name) {
     if (this._texCache[name]) return this._texCache[name];
@@ -421,9 +435,18 @@ export class Game {
     const N = 46; const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
     geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
-    this.trail = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.9, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    const tc = document.createElement('canvas'); tc.width = tc.height = 64;
+    const tx2 = tc.getContext('2d');
+    const tg = tx2.createRadialGradient(32, 32, 0, 32, 32, 32);
+    tg.addColorStop(0, 'rgba(255,255,255,1)'); tg.addColorStop(0.35, 'rgba(255,255,255,.75)');
+    tg.addColorStop(1, 'rgba(255,255,255,0)');
+    tx2.fillStyle = tg; tx2.beginPath(); tx2.arc(32, 32, 32, 0, 7); tx2.fill();
+    const spriteTex = new THREE.CanvasTexture(tc);
+    this.trail = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.9, map: spriteTex, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
     this.trail.frustumCulled = false; this.scene.add(this.trail);
-    this._trailN = N; this._trailHead = 0; this._trailLife = new Float32Array(N); this.trailColor = new THREE.Color(0xffffff);
+    this._trailN = N; this._trailHead = 0; this._trailLife = new Float32Array(N);
+    this._trailVel = new Float32Array(N * 3); this._trailSeed = new Float32Array(N);
+    this.trailColor = new THREE.Color(0xffffff); this.trailColor2 = new THREE.Color(0xffffff);
   }
 
   _initParticles() {
@@ -799,7 +822,12 @@ export class Game {
       this.finishMesh.userData.beam.material.opacity = 0.18 + Math.sin(this._t * 3) * 0.07;
       if (this.state === 'playing' && Math.random() < 0.5) this.burst(this.finishMesh.position.x + (Math.random() - 0.5) * 1.6, 0.4 + Math.random() * 3, this.finishMesh.position.z + (Math.random() - 0.5) * 1.6, FINISH_COLOR, 1, 1.5, 0.9, 2.5);
     }
-    if (this._rainbow && this.marble) { const h = (this._t * 0.15) % 1; this.marble.material.emissive.setHSL(h, 1, 0.5); if (!this.skinDef?.tex) this.marble.material.color.setHSL(h, 0.7, 0.5); }
+    if (this.marble) {
+      const mat = this.marble.material;
+      if (this._flow && mat.map) mat.map.offset.x = (this._t * this._flow) % 1;
+      if (this._hueShift) mat.emissive.setHSL((this._t * this._hueShift) % 1, 0.8, 0.45);
+      if (this._rainbow) { const h = (this._t * 0.15) % 1; mat.emissive.setHSL(h, 1, 0.5); if (!this.skinDef?.tex) mat.color.setHSL(h, 0.7, 0.5); }
+    }
     if (this.blob && this.marble) { this.blob.position.set(this.marble.position.x, 0.03, this.marble.position.z); this.blob.scale.setScalar(this.radius / this.baseRadius); this.blob.visible = !(this.wallsPhased && this.phaseAmt > 0.5); }
     if (this.shieldAura) { const on = this.shield && this.state === 'playing'; this.shieldAura.visible = on; if (on) { const s = 1 + 0.07 * Math.sin(this._t * 6); this.shieldAura.scale.setScalar(s); this.shieldAura.material.opacity = 0.2 + 0.1 * Math.sin(this._t * 6); } }
   }
@@ -807,12 +835,44 @@ export class Game {
 
   _trailUpdate(dt) {
     if (!this.trail || !this.trail.visible) return;
-    const sp = Math.hypot(this.vel.x, this.vel.z); const pos = this.trail.geometry.attributes.position.array; const col = this.trail.geometry.attributes.color.array;
-    for (let i = 0; i < this._trailN; i++) this._trailLife[i] -= dt * 2.2;
-    if (sp > 1.5) { const i = this._trailHead; this._trailHead = (this._trailHead + 1) % this._trailN; pos[i*3] = this.marble.position.x + (Math.random()-0.5)*0.2; pos[i*3+1] = this.marble.position.y; pos[i*3+2] = this.marble.position.z + (Math.random()-0.5)*0.2; this._trailLife[i] = 1; }
-    let c = this.trailColor; if (this._trailRainbow) c = new THREE.Color().setHSL((this._t * 0.2) % 1, 1, 0.55);
-    for (let i = 0; i < this._trailN; i++) { const k = Math.max(0, this._trailLife[i]); if (this.trailDef?.id === 'bubble') pos[i*3+1] += dt * 0.6 * k; col[i*3]=c.r*k; col[i*3+1]=c.g*k; col[i*3+2]=c.b*k; if (k<=0) pos[i*3+1]=-9999; }
-    this.trail.geometry.attributes.position.needsUpdate = true; this.trail.geometry.attributes.color.needsUpdate = true;
+    const d = this.trailDef || {};
+    const spread = d.spread ?? 0.2, rise = d.rise ?? 0, grav = d.gravity ?? 0;
+    const decay = d.decay ?? 2.2, drag = d.drag ?? 1.4, twinkle = d.twinkle ?? 0;
+    const sp = Math.hypot(this.vel.x, this.vel.z);
+    const pos = this.trail.geometry.attributes.position.array;
+    const col = this.trail.geometry.attributes.color.array;
+    const vel = this._trailVel;
+
+    for (let i = 0; i < this._trailN; i++) this._trailLife[i] -= dt * decay;
+    if (sp > 1.5) {
+      const i = this._trailHead; this._trailHead = (this._trailHead + 1) % this._trailN;
+      pos[i*3] = this.marble.position.x + (Math.random()-0.5) * spread;
+      pos[i*3+1] = this.marble.position.y + (Math.random()-0.5) * spread * 0.5;
+      pos[i*3+2] = this.marble.position.z + (Math.random()-0.5) * spread;
+      vel[i*3] = (Math.random()-0.5) * spread * 1.6;
+      vel[i*3+1] = rise * (0.6 + Math.random() * 0.8);
+      vel[i*3+2] = (Math.random()-0.5) * spread * 1.6;
+      this._trailSeed[i] = Math.random() * 7;
+      this._trailLife[i] = 1;
+    }
+    let c = this.trailColor;
+    if (this._trailRainbow) c = new THREE.Color().setHSL((this._t * 0.35) % 1, 1, 0.6);
+    const c2 = this._trailRainbow ? c : this.trailColor2;
+    const damp = Math.max(0, 1 - drag * dt);
+    for (let i = 0; i < this._trailN; i++) {
+      const k = Math.max(0, this._trailLife[i]);
+      if (k <= 0) { pos[i*3+1] = -9999; col[i*3] = col[i*3+1] = col[i*3+2] = 0; continue; }
+      vel[i*3+1] -= grav * dt;
+      pos[i*3] += vel[i*3] * dt; pos[i*3+1] += vel[i*3+1] * dt; pos[i*3+2] += vel[i*3+2] * dt;
+      vel[i*3] *= damp; vel[i*3+2] *= damp;
+      let a = k;
+      if (twinkle) a *= 0.55 + 0.45 * Math.sin(this._t * 14 + this._trailSeed[i]) * twinkle + 0.45 * (1 - twinkle);
+      col[i*3]   = (c2.r + (c.r - c2.r) * k) * a;
+      col[i*3+1] = (c2.g + (c.g - c2.g) * k) * a;
+      col[i*3+2] = (c2.b + (c.b - c2.b) * k) * a;
+    }
+    this.trail.geometry.attributes.position.needsUpdate = true;
+    this.trail.geometry.attributes.color.needsUpdate = true;
   }
 
   _camOffset() { const span = Math.max(this.level.gw, this.level.gh) * T; return { h: 16 + span * 0.22, d: 11 + span * 0.16 }; }

@@ -147,19 +147,19 @@ export const RARITY = {
 };
 
 export const SKINS = [
-  { id:'pearl',   name:'Classic Pearl', rarity:'common', price:0,    unlocked:true, tex:'pearl',
-    mat:{ color:0xffffff, metalness:0.12, roughness:0.1, clearcoat:1 } },
+  { id:'pearl',   name:'Classic Swirl', rarity:'common', price:0,    unlocked:true, tex:'pearl',
+    mat:{ color:0xffffff, metalness:0.0, roughness:0.16, clearcoat:0.85 } },
   { id:'beach',   name:'Beach Ball',    rarity:'common', price:220,  tex:'beach',
     mat:{ color:0xffffff, metalness:0.0, roughness:0.22, clearcoat:0.8 } },
-  { id:'smiley',  name:'Happy Face',    rarity:'common', price:300,  tex:'smiley',
-    mat:{ color:0xffffff, metalness:0.0, roughness:0.26, clearcoat:0.5 } },
+  { id:'smiley',  name:'Lava Lamp',     rarity:'common', price:300,  tex:'lavalamp', flow:0.03, hueShift:0.05,
+    mat:{ color:0xffffff, metalness:0.15, roughness:0.16, clearcoat:1, emissive:0xff5a2a, emissiveInt:0.35 } },
   { id:'donut',   name:'Sprinkle Pop',  rarity:'common', price:420,  tex:'donut',
     mat:{ color:0xffffff, metalness:0.0, roughness:0.35, clearcoat:0.4 } },
 
-  { id:'soccer',  name:'Soccer',        rarity:'rare', price:700, tex:'soccer',
-    mat:{ color:0xffffff, metalness:0.0, roughness:0.3 } },
-  { id:'basket',  name:'Basketball',    rarity:'rare', price:780, tex:'basket',
-    mat:{ color:0xffffff, metalness:0.0, roughness:0.42 } },
+  { id:'soccer',  name:'Plasma Orb',    rarity:'rare', price:700, tex:'plasma', flow:0.11, hueShift:0.13,
+    mat:{ color:0xffffff, metalness:0.25, roughness:0.12, clearcoat:1, emissive:0x5a2aff, emissiveInt:0.5 } },
+  { id:'basket',  name:'Boba Swirl',    rarity:'rare', price:780, tex:'boba', flow:0.025,
+    mat:{ color:0xffffff, metalness:0.05, roughness:0.2, clearcoat:0.9 } },
   { id:'eight',   name:'8-Ball',        rarity:'rare', price:880, tex:'eight',
     mat:{ color:0xffffff, metalness:0.0, roughness:0.2, clearcoat:0.55 } },
   { id:'melon',   name:'Watermelon',    rarity:'rare', price:950, tex:'melon',
@@ -167,10 +167,10 @@ export const SKINS = [
 
   { id:'disco',   name:'Disco Ball',    rarity:'epic', price:1600, tex:'disco', perk:'lucky',
     mat:{ color:0xffffff, metalness:0.95, roughness:0.12 } },
-  { id:'panda',   name:'Panda',         rarity:'epic', price:1800, tex:'panda', perk:'lucky',
-    mat:{ color:0xffffff, metalness:0.0, roughness:0.4, clearcoat:0.3 } },
-  { id:'globe',   name:'Lil Earth',     rarity:'epic', price:2000, tex:'globe', perk:'magnet',
-    mat:{ color:0xffffff, metalness:0.0, roughness:0.42, clearcoat:0.5 } },
+  { id:'panda',   name:'Ink Drop',      rarity:'epic', price:1800, tex:'ink', flow:0.04, perk:'lucky',
+    mat:{ color:0xffffff, metalness:0.05, roughness:0.14, clearcoat:1 } },
+  { id:'globe',   name:'Chameleon',     rarity:'epic', price:2000, tex:'chameleon', hueShift:0.14, perk:'magnet',
+    mat:{ color:0xffffff, metalness:0.55, roughness:0.15, clearcoat:1, emissive:0x1a4a6a, emissiveInt:0.3 } },
   { id:'magma',   name:'Magma Core',    rarity:'epic', price:2200, tex:'magma', perk:'headstart',
     mat:{ color:0xffffff, metalness:0.3, roughness:0.55, emissive:0xff5a14, emissiveInt:0.55 } },
 
@@ -187,12 +187,21 @@ export const SKINS = [
 ];
 
 export const TRAILS = [
-  { id:'none',    name:'No Trail',    price:0,    unlocked:true,  color:0xffffff },
-  { id:'spark',   name:'Sparkles',    price:200,  color:0xffe14d },
-  { id:'neon',    name:'Neon Streak', price:400,  color:0x21f3ff },
-  { id:'fire',    name:'Fire Tail',   price:600,  color:0xff5a2a },
-  { id:'bubble',  name:'Bubbles',     price:500,  color:0x9adfff },
-  { id:'rainbow', name:'Rainbow',     price:1500, color:0xff00ff, rainbow:true },
+  { id:'none',    name:'No Trail',    price:0,    unlocked:true, color:0xffffff },
+  { id:'spark',   name:'Sparkles',    price:260,  color:0xfff3a8, color2:0xffa62e,
+    size:0.5, spread:0.34, rise:1.1, gravity:1.6, decay:2.0, twinkle:1 },
+  { id:'neon',    name:'Neon Streak', price:480,  color:0x9afcff, color2:0x0a6bff,
+    size:1.15, spread:0.05, rise:0, decay:1.5, drag:3 },
+  { id:'bubble',  name:'Bubbles',     price:620,  color:0xd8f6ff, color2:0x49b6ff,
+    size:0.85, spread:0.42, rise:1.5, gravity:-0.2, decay:1.1, drag:0.7, soft:true },
+  { id:'fire',    name:'Fire Tail',   price:760,  color:0xfff0a0, color2:0xff2a0a,
+    size:1.0, spread:0.26, rise:1.7, gravity:-0.6, decay:2.4, drag:1.9 },
+  { id:'frost',   name:'Frost Dust',  price:1000, color:0xffffff, color2:0x6fd4ff,
+    size:0.55, spread:0.5, rise:0.2, gravity:1.1, decay:1.2, drag:0.8, twinkle:0.8 },
+  { id:'void',    name:'Stardust',    price:1400, color:0xffe6ff, color2:0x7a2aff,
+    size:0.7, spread:0.55, rise:0.6, gravity:0.2, decay:0.95, drag:0.5, twinkle:0.9 },
+  { id:'rainbow', name:'Rainbow',     price:1900, color:0xff00ff, rainbow:true,
+    size:1.0, spread:0.2, rise:0.5, decay:1.4, drag:1.2 },
 ];
 
 export const ECON = {
@@ -206,10 +215,10 @@ export const ECON = {
 };
 
 export const SIZE_BUCKETS = {
-  small:  { cols: [4, 6],  rows: [4, 5] },
-  medium: { cols: [7, 9],  rows: [6, 8] },
-  large:  { cols: [10, 12], rows: [8, 10] },
-  huge:   { cols: [13, 16], rows: [10, 12] },
+  small:  { cols: [6, 8],   rows: [5, 6] },
+  medium: { cols: [9, 11],  rows: [7, 9] },
+  large:  { cols: [12, 14], rows: [9, 11] },
+  huge:   { cols: [15, 17], rows: [11, 13] },
 };
 export const SIZE_ORDER = ['small', 'medium', 'large', 'huge'];
 
@@ -224,10 +233,10 @@ export const DIFFICULTY_ORDER = ['chill', 'normal', 'hard', 'expert'];
 export const DIRECTOR = {
   startSkill: 1000,
   K: 64,
-  targetWinProb: 0.72,
-  offsetEasy: -120,
-  offsetHard: +140,
-  diffMin: 640, diffMax: 2600,
+  targetWinProb: 0.60,
+  offsetEasy: -80,
+  offsetHard: +180,
+  diffMin: 780, diffMax: 2600,
   churn: {
     deathStreak2: 22, deathStreak3: 40, quickDeath: 18, idle5s: 16,
     pausedMidLevel: 10, repeatedSpot: 20, longLoseStreak: 30, tabBlur: 14,

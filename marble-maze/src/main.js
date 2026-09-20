@@ -131,7 +131,7 @@ class App {
   async _adThen(fn) { await SDK.midroll(); fn(); }
 
   _planFor(stage, retry) {
-    if (retry) return { stage, difficulty: this.lastDifficulty, sizeBucket: this.lastSizeBucket, mods: { ...this.lastMods, ...this.director.retryMods() }, seedSalt: 0, mission: this.mission, churn: this.director.churn(), novelty: false };
+    if (retry) return { stage, difficulty: this.lastDifficulty, sizeBucket: this.lastSizeBucket, mods: { ...this.lastMods }, seedSalt: 0, mission: this.mission, churn: this.director.churn(), novelty: false };
     const scripted = stage <= 7 ? { difficulty: SCRIPTED[stage] } : null;
     const ctx = { scripted, newMechanic: !!newMechanicAt(stage), worldChanged: (stage - 1) % LEVELS_PER_WORLD === 0 && stage > 1 };
     const plan = this.director.planNext(stage, ctx);

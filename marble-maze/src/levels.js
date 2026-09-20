@@ -15,9 +15,20 @@ const key = (x, y) => x + ',' + y;
 const DIRS = [[0,-1],[1,0],[0,1],[-1,0]];
 
 const EMPTY_MODS = { sizeScale:1, hazardScale:1, decoyScale:1, extraCoins:0, forgive:0, tightness:0,
-  addBoost:false, biggerGoal:false, closerFinish:false, guaranteePowerup:null, rescueOpen:false, slowHazards:1 };
+  addBoost:false, biggerGoal:false, closerFinish:false, guaranteePowerup:null, slowHazards:1 };
 
-function defaultSize(stage) { return stage <= 7 ? 'small' : stage <= 14 ? 'medium' : 'large'; }
+function defaultSize(stage) { return stage <= 4 ? 'small' : stage <= 10 ? 'medium' : stage <= 20 ? 'large' : 'huge'; }
+
+function pickStartCell(cols, rows, ri, rand) {
+  if (rand() < 0.66) {
+    const edge = ri(4);
+    if (edge === 0) return { cx: ri(cols), cy: 0 };
+    if (edge === 1) return { cx: cols - 1, cy: ri(rows) };
+    if (edge === 2) return { cx: ri(cols), cy: rows - 1 };
+    return { cx: 0, cy: ri(rows) };
+  }
+  return { cx: ri(cols), cy: ri(rows) };
+}
 
 function normalizePlan(arg) {
   if (typeof arg === 'number') {
@@ -75,11 +86,12 @@ function procedural(plan) {
   const rr = (a) => a[0] + ri(a[1] - a[0] + 1);
   let cols = Math.round(rr(sb.cols) * mods.sizeScale), rows = Math.round(rr(sb.rows) * mods.sizeScale);
   cols = Math.max(3, Math.min(17, cols)); rows = Math.max(3, Math.min(13, rows));
-  const braid = Math.max(0.03, Math.min(0.42, 0.1 + (1 - t) * 0.18 - (mods.tightness || 0) * 0.08 + (mods.rescueOpen ? 0.18 : 0)));
+  const braid = Math.max(0.03, Math.min(0.42, 0.1 + (1 - t) * 0.18 - (mods.tightness || 0) * 0.08));
   const { grid, gw, gh } = buildMaze(cols, rows, braid, rand);
   const early = lvl <= 7;
 
-  const start = { tx: 1, ty: 1 };
+  const sc = pickStartCell(cols, rows, ri, rand);
+  const start = { tx: sc.cx * 2 + 1, ty: sc.cy * 2 + 1 };
   const dist = new Map(), parent = new Map();
   bfs(grid, gw, gh, start, dist, parent);
 
@@ -90,8 +102,12 @@ function procedural(plan) {
   }
   cells.sort((a, b) => b.d - a.d);
   let finish;
-  if (mods.closerFinish && cells.length > 3) finish = cells[Math.floor(cells.length * 0.45)];
-  else finish = cells[0] || { tx: gw - 2, ty: gh - 2 };
+  if (!cells.length) finish = { tx: gw - 2, ty: gh - 2 };
+  else if (mods.closerFinish && cells.length > 3) finish = cells[Math.floor(cells.length * 0.45)];
+  else {
+    const far = cells.filter(c => c.d >= cells[0].d * 0.8);
+    finish = far[ri(far.length)] || cells[0];
+  }
 
   const safe = new Set(); let cur = key(finish.tx, finish.ty);
   while (cur != null) { safe.add(cur); cur = parent.get(cur); }

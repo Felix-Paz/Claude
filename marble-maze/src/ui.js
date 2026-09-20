@@ -103,7 +103,7 @@ export class UI {
     $('playLabel').textContent = st.maxLevel > 1 ? `PLAY · Lv ${st.maxLevel}` : 'PLAY';
   }
   setMenuWorld(name) { $('menuWorld').textContent = name; }
-  setProvider(p) { $('menuProvider').textContent = p === 'none' ? 'standalone' : p; }
+  setProvider(p) { this.provider = p; }
   setCoinBalance(n) { $('menuCoins').textContent = fmt(n); $('shopCoins').textContent = fmt(n); }
 
   updateHUD(s) {
@@ -269,11 +269,7 @@ export class UI {
     c.style.setProperty('--rc', '#3fa9ff');
     const tag = document.createElement('div'); tag.className = 'card-rarity'; tag.textContent = 'Trail'; c.appendChild(tag);
     const disc = document.createElement('div'); disc.className = 'card-disc';
-    const sw = document.createElement('div'); sw.className = 'swatch';
-    sw.style.cssText = t.rainbow
-      ? 'background:conic-gradient(#ff4d8d,#ffd23a,#3ddc84,#21f3ff,#b06bff,#ff4d8d)'
-      : `background:radial-gradient(circle at 40% 35%, #fff, ${hex(t.color)} 70%);box-shadow:0 0 22px ${hex(t.color)}aa`;
-    disc.appendChild(sw); c.appendChild(disc);
+    disc.appendChild(trailSwatch(t)); c.appendChild(disc);
     const nm = document.createElement('div'); nm.className = 'cname'; nm.textContent = t.name; c.appendChild(nm);
     const btn = document.createElement('button');
     if (equipped) { btn.className = 'cbtn equipped'; btn.textContent = '✓ Equipped'; }
@@ -404,6 +400,41 @@ export class UI {
 }
 
 function fmt(n) { return n >= 10000 ? (n / 1000).toFixed(1) + 'k' : '' + n; }
+
+function trailSwatch(t) {
+  const c = document.createElement('canvas'); c.width = c.height = 120; c.className = 'swatch-canvas';
+  const x = c.getContext('2d');
+  x.save(); x.beginPath(); x.arc(60, 60, 58, 0, 7); x.clip();
+  const bgg = x.createRadialGradient(60, 46, 4, 60, 60, 62);
+  bgg.addColorStop(0, '#1b2238'); bgg.addColorStop(1, '#090d1a');
+  x.fillStyle = bgg; x.fillRect(0, 0, 120, 120);
+
+  if (t.id !== 'none') {
+    const a = rgb(t.color), b = rgb(t.color2 ?? t.color);
+    const n = 30, size = (t.size ?? 0.9) * 11;
+    for (let i = 0; i < n; i++) {
+      const k = i / (n - 1);
+      const ang = Math.PI * 0.96 - k * Math.PI * 0.72;
+      const px = 62 + Math.cos(ang) * 40;
+      const py = 78 + Math.sin(ang) * 40 * 0.62 - k * 6 - (t.rise ?? 0) * (1 - k) * 7;
+      const col = t.rainbow
+        ? `hsl(${Math.round(k * 300)},100%,62%)`
+        : `rgb(${Math.round(b[0] + (a[0] - b[0]) * k)},${Math.round(b[1] + (a[1] - b[1]) * k)},${Math.round(b[2] + (a[2] - b[2]) * k)})`;
+      const r = size * (0.3 + k * 0.8);
+      const g = x.createRadialGradient(px, py, 0, px, py, r);
+      g.addColorStop(0, col); g.addColorStop(0.45, col); g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.globalAlpha = 0.25 + k * 0.7;
+      x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, 7); x.fill();
+    }
+    x.globalAlpha = 1;
+  }
+  const mg = x.createRadialGradient(72, 36, 2, 78, 44, 26);
+  mg.addColorStop(0, '#ffffff'); mg.addColorStop(0.5, '#dfe7f7'); mg.addColorStop(1, '#8fa2c4');
+  x.fillStyle = mg; x.beginPath(); x.arc(80, 44, 17, 0, 7); x.fill();
+  x.restore();
+  return c;
+}
+function rgb(n) { return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
 
 function skinSwatch(s) {
   const c = document.createElement('canvas'); c.width = c.height = 120; c.className = 'swatch-canvas';
