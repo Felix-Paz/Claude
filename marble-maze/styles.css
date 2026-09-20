@@ -30,13 +30,13 @@ body{
 .hidden{display:none !important;}
 .muted{color:var(--muted);}
 
-.logo{font-family:'Baloo 2',cursive;font-weight:800;font-size:clamp(40px,11vw,78px);line-height:.94;letter-spacing:.5px;
-  text-align:center;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5));}
-.logo span{display:block;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.logo{font-family:'Baloo 2',cursive;font-weight:800;font-size:clamp(26px,11.5vw,60px);line-height:1;letter-spacing:.5px;
+  text-align:center;white-space:nowrap;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5));}
+
 .tagline{color:var(--muted);font-size:15px;margin-top:-2px;}
 .tagline b{color:var(--c1);}
-.loader-title{font-family:'Baloo 2';font-weight:800;font-size:42px;margin-top:16px;text-align:center;}
-.loader-title span{display:block;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.loader-title{font-family:'Baloo 2';font-weight:800;font-size:clamp(24px,9vw,42px);margin-top:16px;text-align:center;white-space:nowrap;}
+
 .loader-sub{color:var(--muted);margin-top:6px;}
 .loader-marble{width:64px;height:64px;border-radius:50%;
   background:radial-gradient(circle at 32% 28%, #fff, #cfe0ff 30%, #6aa9ff 62%, #2a5bd0);
@@ -57,6 +57,9 @@ body{
 .btn.big{font-size:20px;padding:16px 26px;}
 .btn.huge{font-size:30px;padding:20px 64px;border-radius:22px;letter-spacing:1px;animation:pulse 2.4s ease-in-out infinite;}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+/* A pulsing button moves under the finger, so a tap that starts on it can end off it
+   and the browser never fires the click. This pad keeps the touch target still. */
+.btn.huge::after,.chest-cta::after{content:'';position:absolute;inset:-6%;}
 .btn.danger{color:var(--bad);}
 .btn.reward-ad{background:linear-gradient(135deg,#ffb02e,#ff7a2e);color:#2a1500;}
 .btn.reward-ad small{font-size:12px;opacity:.8;}
@@ -196,7 +199,7 @@ input[type=checkbox]:checked::after{transform:translateX(20px);}
 
 .game-logo{position:absolute;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));
   font-family:'Baloo 2';font-weight:800;font-size:15px;letter-spacing:.5px;opacity:.5;line-height:1;pointer-events:none;}
-.game-logo b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
 
 #goalArrow{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:44px;height:44px;
   border-radius:999px;background:var(--glass);border:1px solid var(--stroke);backdrop-filter:blur(8px);
@@ -315,7 +318,7 @@ body.goldrush #ui::after{content:'';position:fixed;inset:0;pointer-events:none;z
 .game-logo{font-size:21px;opacity:1;background:rgba(6,8,18,.64);border:1px solid rgba(255,255,255,.16);
   padding:8px 14px;border-radius:13px;box-shadow:0 5px 16px rgba(0,0,0,.45);letter-spacing:.6px;}
 .panel-brand{font-family:'Baloo 2';font-weight:800;font-size:22px;text-align:center;letter-spacing:.5px;line-height:1;margin-bottom:2px;}
-.panel-brand b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
 
 .perk-chip{position:absolute;left:max(10px,env(safe-area-inset-left));top:calc(max(12px,env(safe-area-inset-top)) + 70px);
   display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(255,210,58,.24),rgba(255,138,61,.18));
@@ -396,4 +399,54 @@ body.goldrush #ui::after{content:'';position:fixed;inset:0;pointer-events:none;z
   .swatch-canvas{width:50px;height:50px;}
   .card .cname{font-size:11px;}
   .cbtn{font-size:11px;padding:6px 6px;}
+}
+
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:26px;background:transparent;cursor:pointer;}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;
+  background:linear-gradient(90deg,var(--c1),var(--c2));box-shadow:inset 0 1px 3px rgba(0,0,0,.5);}
+input[type=range]::-moz-range-track{height:8px;border-radius:99px;
+  background:linear-gradient(90deg,var(--c1),var(--c2));box-shadow:inset 0 1px 3px rgba(0,0,0,.5);}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-7px;
+  border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffffff,#dfe7f7 45%,#9fb0d0);
+  border:2px solid rgba(255,255,255,.9);box-shadow:0 3px 10px rgba(0,0,0,.5);transition:transform .1s;}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#ffffff,#dfe7f7 45%,#9fb0d0);
+  border:2px solid rgba(255,255,255,.9);box-shadow:0 3px 10px rgba(0,0,0,.5);}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.14);}
+
+.wm{white-space:nowrap;}
+.wm .w{display:inline-block;position:relative;will-change:transform,opacity;}
+.wm .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.wm .w::after{content:attr(data-t);position:absolute;left:0;top:0;pointer-events:none;
+  background:linear-gradient(104deg,transparent 40%,rgba(255,255,255,.92) 50%,transparent 60%);
+  background-size:280% 100%;background-position:190% 0;
+  -webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;}
+
+@keyframes wmSheen{0%{opacity:0;background-position:190% 0}
+  12%{opacity:1}88%{opacity:1}100%{opacity:0;background-position:-90% 0}}
+@keyframes wmDropIn{0%{opacity:0;transform:translateY(-.52em) scale(.9)}
+  62%{opacity:1;transform:translateY(.055em) scale(1.015)}100%{opacity:1;transform:none}}
+@keyframes wmRiseIn{0%{opacity:0;transform:translateY(.52em) scale(.9)}
+  62%{opacity:1;transform:translateY(-.055em) scale(1.015)}100%{opacity:1;transform:none}}
+@keyframes wmSettle{0%{opacity:0;transform:scale(.94);filter:blur(6px)}
+  100%{opacity:1;transform:none;filter:blur(0)}}
+@keyframes wmRoll{0%{opacity:0;transform:translateX(-58%) rotate(-260deg)}
+  22%{opacity:1}78%{opacity:1}100%{opacity:0;transform:translateX(58%) rotate(260deg)}}
+
+.wm.play .w:nth-child(1){animation:wmDropIn .62s cubic-bezier(.22,1.28,.44,1) both;}
+.wm.play .w:nth-child(2){animation:wmRiseIn .62s cubic-bezier(.22,1.28,.44,1) .085s both;}
+.wm.play .w::after{animation:wmSheen 1.15s ease-in-out .5s;}
+
+.loader-title.wm .w{animation:wmSettle .8s cubic-bezier(.2,.9,.3,1) both;}
+.loader-title.wm .w:nth-child(2){animation-delay:.13s;}
+.loader-title.wm .w::after{animation:wmSheen 1.5s ease-in-out .7s infinite;}
+.loader-title.wm{position:relative;}
+.loader-title.wm::after{content:'';position:absolute;left:50%;bottom:-11px;width:13px;height:13px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#fff,#cfe0ff 38%,#6aa9ff 72%,#2a5bd0);
+  box-shadow:0 2px 8px rgba(40,90,255,.6);animation:wmRoll 1.9s cubic-bezier(.5,0,.5,1) infinite;}
+
+.game-logo.wm .w::after{animation:wmSheen 2.2s ease-in-out infinite;animation-delay:6s;}
+
+@media (prefers-reduced-motion:reduce){
+  .wm .w,.wm .w::after,.loader-title.wm::after{animation:none !important;opacity:1 !important;transform:none !important;}
 }

@@ -10,8 +10,8 @@ export const MOVER_COLOR = 0xffb02e;
 export const PORTAL_A = 0x46b6ff, PORTAL_B = 0xff7adf;
 
 export const PHYS = {
-  accel: 80,
-  maxSpeed: 15.5,
+  accel: 88,
+  maxSpeed: 17.2,
   boostMult: 1.8,
   friction: 3.2,
   wallRestitution: 0.18,
@@ -147,8 +147,8 @@ export const RARITY = {
 };
 
 export const SKINS = [
-  { id:'pearl',   name:'Classic Swirl', rarity:'common', price:0,    unlocked:true, tex:'pearl',
-    mat:{ color:0xffffff, metalness:0.0, roughness:0.16, clearcoat:0.85 } },
+  { id:'pearl',   name:'Classic Swirl', rarity:'common', price:0,    unlocked:true, tex:'pearl', worldTint:0.12,
+    mat:{ color:0xffffff, metalness:0.0, roughness:0.28, clearcoat:0.45, envInt:0.55 } },
   { id:'beach',   name:'Beach Ball',    rarity:'common', price:220,  tex:'beach',
     mat:{ color:0xffffff, metalness:0.0, roughness:0.22, clearcoat:0.8 } },
   { id:'smiley',  name:'Lava Lamp',     rarity:'common', price:300,  tex:'lavalamp', flow:0.03, hueShift:0.05,
@@ -215,10 +215,10 @@ export const ECON = {
 };
 
 export const SIZE_BUCKETS = {
-  small:  { cols: [6, 8],   rows: [5, 6] },
-  medium: { cols: [9, 11],  rows: [7, 9] },
-  large:  { cols: [12, 14], rows: [9, 11] },
-  huge:   { cols: [15, 17], rows: [11, 13] },
+  small:  { cols: [4, 6],  rows: [4, 5] },
+  medium: { cols: [7, 9],  rows: [6, 8] },
+  large:  { cols: [10, 12], rows: [8, 10] },
+  huge:   { cols: [13, 16], rows: [10, 12] },
 };
 export const SIZE_ORDER = ['small', 'medium', 'large', 'huge'];
 

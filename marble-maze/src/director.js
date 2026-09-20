@@ -226,9 +226,7 @@ export class Director {
     }
 
     target = clamp(Math.round(ctx.scripted?.difficulty ?? target), DIRECTOR.diffMin, DIRECTOR.diffMax);
-    let sizeBucket = ctx.scripted ? 'small' : this.pickSize();
-    const floorIdx = stage <= 4 ? 0 : stage <= 10 ? 1 : stage <= 20 ? 2 : 3;
-    if (SIZE_ORDER.indexOf(sizeBucket) < floorIdx) sizeBucket = SIZE_ORDER[floorIdx];
+    const sizeBucket = ctx.scripted ? 'small' : this.pickSize();
     if (novelty) this.levelsSinceNovel = 0;
     this._save();
     return { stage, difficulty: target, sizeBucket, mods, mode, churn: ch, meters: m, archetype, novelty, mission: this._mission(archetype) };

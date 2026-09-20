@@ -4,7 +4,9 @@ import {
   DANGER, DANGER_DARK, FINISH_COLOR, MOVER_COLOR, GOLD_RUSH,
 } from './config.js';
 import { drawMarbleTexture } from './marbletex.js';
+import { PerfGovernor, measureRefresh, BUDGET_FAST } from './perf.js';
 
+const TRAIL_N = 46;
 const UP = new THREE.Vector3(0, 1, 0);
 const tmpV = new THREE.Vector3();
 
@@ -28,13 +30,14 @@ export class Game {
     this.holesPatched = false;
     this.gold = { active: false, timer: 0, times: [], coins: [] };
     this.idleTimer = 0; this._idleFired = false;
-    this.autoQuality = true; this.qfixed = null; this._fpsAcc = 0; this._fpsN = 0; this._degraded = 0;
+    this.qmode = 'auto'; this.pBudget = 700; this._trailBudget = 46; this._fxOff = false; this._sizeTick = 0; this._hudAcc = 0; this._arrowAcc = 0;
 
     this._initRenderer();
     this._initScene();
     this._initParticles();
+    this._initPerf();
     this._geo = {};
-    this._texCache = {};
+    this._texCache = {}; this._mbLru = [];
     this.levelGroup = new THREE.Group();
     this.scene.add(this.levelGroup);
 
@@ -83,7 +86,7 @@ export class Game {
     });
     const sky = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), this.skyMat);
     sky.scale.setScalar(500); sky.frustumCulled = false; sky.renderOrder = -1; this.scene.add(sky);
-    this.scene.fog = new THREE.FogExp2(0xdff6ff, 0.012);
+    this.scene.fog = null;
   }
 
   geo(key, make) { return this._geo[key] || (this._geo[key] = make()); }
@@ -143,7 +146,7 @@ export class Game {
 
     this.envCube = this._makeEnvCube(w); this.scene.environment = this.envCube;
     this.skyMat.uniforms.top.value.set(w.sky); this.skyMat.uniforms.bottom.value.set(w.horizon);
-    this.scene.fog.color.set(w.horizon); this.scene.fog.density = w.fog;
+
     this.renderer.setClearColor(new THREE.Color(w.horizon), 1);
     this.hemi.color.set(w.hemiSky); this.hemi.groundColor.set(w.hemiGround); this.hemi.intensity = w.hemiInt;
     this.sun.color.set(w.sun); this.sun.intensity = w.sunInt;
@@ -273,6 +276,22 @@ export class Game {
     x.fillStyle = 'rgba(255,255,255,0.95)'; x.font = '70px serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(def.icon || '★', 64, 74);
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; this._texCache[k] = t; return t;
   }
+  _marbleTex(name) {
+    const k = 'mb_' + name;
+    const hit = this._texCache[k];
+    if (hit) { const i = this._mbLru.indexOf(k); if (i >= 0) this._mbLru.splice(i, 1); this._mbLru.push(k); return hit; }
+    const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 512;
+    drawMarbleTexture(cv.getContext('2d'), name, 1024, 512);
+    const t = new THREE.CanvasTexture(cv);
+    t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.wrapS = THREE.RepeatWrapping;
+    this._texCache[k] = t; this._mbLru.push(k);
+    while (this._mbLru.length > 4) {
+      const old = this._mbLru.shift();
+      if (this._texCache[old] !== this.marble?.material?.map) { this._texCache[old]?.dispose?.(); delete this._texCache[old]; }
+      else this._mbLru.push(old);
+    }
+    return t;
+  }
 
   _makeBoostPad(p, w) {
     const g = new THREE.Group(); const wp = this.tileWorld(p.tx, p.ty); g.position.set(wp.x, 0.05, wp.z);
@@ -376,20 +395,19 @@ export class Game {
 
   applySkin(def) {
     this.skinDef = def; const mat = this.marble.material; const mm = def.mat;
-    if (mat.map) { mat.map.dispose?.(); mat.map = null; }
+    mat.map = null;
     mat.transparent = false; mat.opacity = 1;
     mat.color = new THREE.Color(mm.color);
     mat.metalness = mm.metalness ?? 0; mat.roughness = mm.roughness ?? 0.2;
     mat.clearcoat = mm.clearcoat ?? 0; mat.clearcoatRoughness = 0.08;
     mat.emissive = new THREE.Color(mm.emissive ?? 0x000000); mat.emissiveIntensity = mm.emissiveInt ?? 0;
-    mat.envMapIntensity = 1.1;
+    mat.envMapIntensity = mm.envInt ?? 1.1;
     if (def.tex) {
-      const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 512;
-      drawMarbleTexture(cv.getContext('2d'), def.tex, 1024, 512);
-      const tex = new THREE.CanvasTexture(cv);
-      tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-      tex.wrapS = THREE.RepeatWrapping;
+      const tex = this._marbleTex(def.tex);
+      tex.offset.x = 0;
       mat.map = tex; mat.color = new THREE.Color(mm.tint ?? 0xffffff);
+      const wd = this.level?.world;
+      if (def.worldTint && wd) mat.color.lerp(new THREE.Color(wd.accent), def.worldTint);
     }
     this._setRing(!!def.ring, mm.ringColor ?? 0xd8b070);
     this._rainbow = !!(def.rainbow || mm.rainbow);
@@ -432,7 +450,7 @@ export class Game {
   }
 
   _initTrail() {
-    const N = 46; const geo = new THREE.BufferGeometry();
+    const N = TRAIL_N; const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
     geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
     const tc = document.createElement('canvas'); tc.width = tc.height = 64;
@@ -447,6 +465,7 @@ export class Game {
     this._trailN = N; this._trailHead = 0; this._trailLife = new Float32Array(N);
     this._trailVel = new Float32Array(N * 3); this._trailSeed = new Float32Array(N);
     this.trailColor = new THREE.Color(0xffffff); this.trailColor2 = new THREE.Color(0xffffff);
+    this._trailRC = new THREE.Color(0xffffff);
   }
 
   _initParticles() {
@@ -456,12 +475,13 @@ export class Game {
     geo.setAttribute('color', new THREE.BufferAttribute(this.pCol, 3));
     this.particles = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.5, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
     this.particles.frustumCulled = false;
-    this.pVel = new Float32Array(M * 3); this.pLife = new Float32Array(M); this.pMax = new Float32Array(M); this.pBase = new Float32Array(M * 3); this.pHead = 0;
+    this.pAlive = 0; this._pDirty = false; this.pVel = new Float32Array(M * 3); this.pLife = new Float32Array(M); this.pMax = new Float32Array(M); this.pBase = new Float32Array(M * 3); this.pHead = 0;
     for (let i = 0; i < M; i++) this.pPos[i * 3 + 1] = -9999;
     this.scene.add(this.particles);
   }
   burst(x, y, z, color, count = 16, spd = 6, life = 0.6, up = 2) {
-    if (this._degraded > 1) count = Math.ceil(count * 0.5);
+    if (this.pBudget < this.pM) count = Math.max(2, Math.round(count * (this.pBudget / this.pM)));
+    this.pAlive += count;
     const c = new THREE.Color(color);
     for (let i = 0; i < count; i++) {
       const idx = this.pHead; this.pHead = (this.pHead + 1) % this.pM;
@@ -473,14 +493,21 @@ export class Game {
     }
   }
   _updateParticles(dt) {
+    if (this.pAlive <= 0) {
+      if (this._pDirty) { this.particles.geometry.attributes.position.needsUpdate = true; this.particles.geometry.attributes.color.needsUpdate = true; this._pDirty = false; }
+      return;
+    }
+    let alive = 0;
     for (let i = 0; i < this.pM; i++) {
       if (this.pLife[i] <= 0) continue;
+      alive++;
       this.pLife[i] -= dt; const k = Math.max(0, this.pLife[i] / this.pMax[i]);
       this.pVel[i * 3 + 1] -= 9 * dt; this.pVel[i * 3] *= 0.96; this.pVel[i * 3 + 2] *= 0.96;
       this.pPos[i * 3] += this.pVel[i * 3] * dt; this.pPos[i * 3 + 1] += this.pVel[i * 3 + 1] * dt; this.pPos[i * 3 + 2] += this.pVel[i * 3 + 2] * dt;
       this.pCol[i * 3] = this.pBase[i * 3] * k; this.pCol[i * 3 + 1] = this.pBase[i * 3 + 1] * k; this.pCol[i * 3 + 2] = this.pBase[i * 3 + 2] * k;
-      if (this.pLife[i] <= 0) { this.pPos[i * 3 + 1] = -9999; this.pCol[i*3]=this.pCol[i*3+1]=this.pCol[i*3+2]=0; }
+      if (this.pLife[i] <= 0) { this.pPos[i * 3 + 1] = -9999; this.pCol[i*3]=this.pCol[i*3+1]=this.pCol[i*3+2]=0; alive--; }
     }
+    this.pAlive = alive; this._pDirty = true;
     this.particles.geometry.attributes.position.needsUpdate = true; this.particles.geometry.attributes.color.needsUpdate = true;
   }
 
@@ -489,7 +516,12 @@ export class Game {
   resume() { if (this.state === 'paused') this.state = 'playing'; }
 
   update(dt, input) {
-    this._syncSize();
+    // The dt the loop hands us is clamped for physics stability, so it cannot tell the
+    // governor how long a frame really took. Time the frames here instead.
+    const nowMs = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    const frameMs = this._lastFrame ? nowMs - this._lastFrame : 1000 / 60;
+    this._lastFrame = nowMs;
+    if ((this._sizeTick = (this._sizeTick + 1) % 12) === 0) this._syncSize();
     dt = Math.min(dt, 0.05); this._t += dt; const sdt = dt * this.timeScale;
     if (this.state === 'playing') {
       this.clockMs += dt * 1000;
@@ -503,14 +535,16 @@ export class Game {
       this._checkHoles();
       this._checkHazards();
       this._idleCheck(dt, input);
-      if (this.cb.onHud) this.cb.onHud(this._hud());
-      this._finishArrow();
+      this._hudAcc += dt;
+      if (this.cb.onHud && this._hudAcc >= 0.05) { this._hudAcc = 0; this.cb.onHud(this._hud()); }
+      this._arrowAcc += dt;
+      if (this._arrowAcc >= 0.06) { this._arrowAcc = 0; this._finishArrow(); }
     } else if (this.state === 'win' || this.state === 'die') {
       this._deathAnim(dt); this._entities(sdt * 0.2); this._trailUpdate(dt);
     } else { this._idleAnim(dt); }
     this._animateDecor(dt); this._updateParticles(dt); this._camera(dt);
     this.renderer.render(this.scene, this.camera);
-    this._perf(dt);
+    this._perf(frameMs, nowMs);
   }
 
   _hud() {
@@ -824,8 +858,10 @@ export class Game {
     }
     if (this.marble) {
       const mat = this.marble.material;
-      if (this._flow && mat.map) mat.map.offset.x = (this._t * this._flow) % 1;
-      if (this._hueShift) mat.emissive.setHSL((this._t * this._hueShift) % 1, 0.8, 0.45);
+      if (!this._fxOff) {
+        if (this._flow && mat.map) mat.map.offset.x = (this._t * this._flow) % 1;
+        if (this._hueShift) mat.emissive.setHSL((this._t * this._hueShift) % 1, 0.8, 0.45);
+      }
       if (this._rainbow) { const h = (this._t * 0.15) % 1; mat.emissive.setHSL(h, 1, 0.5); if (!this.skinDef?.tex) mat.color.setHSL(h, 0.7, 0.5); }
     }
     if (this.blob && this.marble) { this.blob.position.set(this.marble.position.x, 0.03, this.marble.position.z); this.blob.scale.setScalar(this.radius / this.baseRadius); this.blob.visible = !(this.wallsPhased && this.phaseAmt > 0.5); }
@@ -843,9 +879,10 @@ export class Game {
     const col = this.trail.geometry.attributes.color.array;
     const vel = this._trailVel;
 
+    const TN = Math.min(this._trailN, this._trailBudget);
     for (let i = 0; i < this._trailN; i++) this._trailLife[i] -= dt * decay;
     if (sp > 1.5) {
-      const i = this._trailHead; this._trailHead = (this._trailHead + 1) % this._trailN;
+      const i = this._trailHead; this._trailHead = (this._trailHead + 1) % TN;
       pos[i*3] = this.marble.position.x + (Math.random()-0.5) * spread;
       pos[i*3+1] = this.marble.position.y + (Math.random()-0.5) * spread * 0.5;
       pos[i*3+2] = this.marble.position.z + (Math.random()-0.5) * spread;
@@ -856,7 +893,7 @@ export class Game {
       this._trailLife[i] = 1;
     }
     let c = this.trailColor;
-    if (this._trailRainbow) c = new THREE.Color().setHSL((this._t * 0.35) % 1, 1, 0.6);
+    if (this._trailRainbow) c = this._trailRC.setHSL((this._t * 0.35) % 1, 1, 0.6);
     const c2 = this._trailRainbow ? c : this.trailColor2;
     const damp = Math.max(0, 1 - drag * dt);
     for (let i = 0; i < this._trailN; i++) {
@@ -900,25 +937,33 @@ export class Game {
   }
   _onResize = () => this._syncSize();
 
+  _initPerf() {
+    const dprCap = (v) => { this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, v)); };
+    const knobs = [
+      { id: 'pixel', steps: 4, gain: 3.0, cost: 1.0, apply: (l) => dprCap([2, 1.5, 1.25, 1][l]) },
+      { id: 'shadow', steps: 3, gain: 2.6, cost: 1.3, apply: (l) => {
+        if (l >= 2) { this.renderer.shadowMap.enabled = false; this.sun.castShadow = false; return; }
+        this.renderer.shadowMap.enabled = true; this.sun.castShadow = true;
+        const size = l === 0 ? 2048 : 1024;
+        if (this.shadowSize !== size) { this.shadowSize = size; this.sun.shadow.mapSize.set(size, size); this.sun.shadow.map?.dispose(); this.sun.shadow.map = null; }
+      } },
+      { id: 'parts', steps: 3, gain: 1.4, cost: 1.2, apply: (l) => { this.pBudget = [this.pM, 340, 150][l]; } },
+      { id: 'trail', steps: 3, gain: 0.8, cost: 1.3, apply: (l) => { this._trailBudget = [TRAIL_N, 26, 14][l]; } },
+      { id: 'skinfx', steps: 2, gain: 0.5, cost: 1.0, apply: (l) => { this._fxOff = l > 0; } },
+    ];
+    this.perf = new PerfGovernor(knobs, { budget: BUDGET_FAST });
+    this.perf.reset();
+    measureRefresh((ms) => this.perf.setBudget(ms));
+  }
+
   setQuality(q) {
-    this.qfixed = (q === 'auto') ? null : q; this.autoQuality = (q === 'auto');
-    if (q === 'low') this._applyTier(2); else if (q === 'high') this._applyTier(0); else this._applyTier(this._degraded);
+    this.qmode = q;
+    if (q === 'high') { this.perf.setActive(false); this.perf.reset(); }
+    else if (q === 'low') { this.perf.setActive(false); this.perf.applyAll({ pixel: 3, shadow: 2, parts: 2, trail: 2, skinfx: 1 }); }
+    else { this.perf.reset(); this.perf.setActive(true); }
   }
-  _applyTier(tier) {
-    this._degraded = tier;
-    if (tier >= 2) { this.renderer.setPixelRatio(1); this.renderer.shadowMap.enabled = false; this.sun.castShadow = false; }
-    else if (tier === 1) { this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.3)); this.renderer.shadowMap.enabled = true; this.sun.castShadow = true; if (this.shadowSize !== 1024) { this.shadowSize = 1024; this.sun.shadow.mapSize.set(1024, 1024); } }
-    else { this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); this.renderer.shadowMap.enabled = true; this.sun.castShadow = true; }
-  }
-  _perf(dt) {
-    if (!this.autoQuality) return;
-    this._fpsAcc += dt; this._fpsN++;
-    if (this._fpsAcc >= 1.5) {
-      const fps = this._fpsN / this._fpsAcc; this._fpsAcc = 0; this._fpsN = 0;
-      if (fps < 40) { this._lowStreak = (this._lowStreak || 0) + 1; if (this._lowStreak >= 2 && this._degraded < 2) { this._applyTier(this._degraded + 1); this._lowStreak = 0; } }
-      else this._lowStreak = 0;
-    }
-  }
+
+  _perf(dtMs, now) { this.perf.sample(dtMs, now); }
 
   dispose() {
     window.removeEventListener('resize', this._onResize);

@@ -17,7 +17,7 @@ const DIRS = [[0,-1],[1,0],[0,1],[-1,0]];
 const EMPTY_MODS = { sizeScale:1, hazardScale:1, decoyScale:1, extraCoins:0, forgive:0, tightness:0,
   addBoost:false, biggerGoal:false, closerFinish:false, guaranteePowerup:null, slowHazards:1 };
 
-function defaultSize(stage) { return stage <= 4 ? 'small' : stage <= 10 ? 'medium' : stage <= 20 ? 'large' : 'huge'; }
+function defaultSize(stage) { return stage <= 7 ? 'small' : stage <= 14 ? 'medium' : 'large'; }
 
 function pickStartCell(cols, rows, ri, rand) {
   if (rand() < 0.66) {

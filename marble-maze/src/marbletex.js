@@ -40,32 +40,62 @@ export function drawMarbleTexture(x, type, W, H = W) {
 
   switch (type) {
     case 'pearl': {
-      bg('#f1f4fb');
-      for (let i = 0; i < 16; i++) {
-        const g = x.createRadialGradient(rnd() * W, v(0.15 + rnd() * 0.7), 0, rnd() * W, v(0.5), v(0.45));
-        g.addColorStop(0, ['rgba(186,205,244,.5)', 'rgba(214,230,255,.45)', 'rgba(235,238,252,.45)'][(rnd() * 3) | 0]);
-        g.addColorStop(1, 'rgba(255,255,255,0)');
-        fill(g); x.fillRect(0, 0, W, H);
-      }
-      const ribbon = (base, amp, ph, fr, wide) => {
-        const pts = [];
-        for (let i = 0; i <= 64; i++) pts.push([u(i / 64), v(base + Math.sin(i * fr + ph) * amp)]);
-        const line = (col, lw) => {
-          x.strokeStyle = col; x.lineWidth = lw; x.lineCap = 'round'; x.lineJoin = 'round';
-          x.beginPath(); for (const [px, py] of pts) x.lineTo(px, py); x.stroke();
-        };
-        line('rgba(24,38,68,.85)', wide * 1.34);
-        const g = x.createLinearGradient(0, 0, W, 0);
-        g.addColorStop(0, '#00d9ff'); g.addColorStop(0.28, '#3aa0ff');
-        g.addColorStop(0.55, '#9b4dff'); g.addColorStop(0.78, '#ff3d9a'); g.addColorStop(1, '#00d9ff');
-        line(g, wide);
-        x.save(); x.globalAlpha = 0.5; line('rgba(255,255,255,.9)', wide * 0.2); x.restore();
+      // The camera looks down at the marble, so whatever sits near the poles is what
+      // the player mostly sees. Colour has to cover the whole map, not just a band
+      // around the equator, or the marble reads as a plain white ball in play.
+      // Every horizontal gradient starts and ends on the same colour and every path
+      // has the same height at both edges, so the map meets itself cleanly at the seam.
+      const grad = (cols, y0 = 0, y1 = 0) => {
+        const g = x.createLinearGradient(0, v(y0), W, v(y1));
+        cols.forEach((c, i) => g.addColorStop(i / (cols.length - 1), c));
+        return g;
       };
-      ribbon(0.3, 0.115, 0.4, 0.26, v(0.12));
-      ribbon(0.56, 0.105, 2.6, 0.3, v(0.095));
-      ribbon(0.78, 0.07, 4.9, 0.24, v(0.06));
-      veins(6, 20, v(0.009), 'rgba(110,132,175,.4)', 1.1);
-      shade('rgba(255,255,255,.28)', 'rgba(46,64,102,.42)');
+      const path = (yc, amp, ph) => {
+        const pts = [];
+        for (let i = 0; i <= 96; i++) {
+          const t = i / 96;
+          pts.push([u(t), v(yc + Math.sin(t * Math.PI * 2 + ph) * amp)]);
+        }
+        return pts;
+      };
+      const stroke = (pts, style, lw, alpha) => {
+        x.globalAlpha = alpha; x.strokeStyle = style; x.lineWidth = lw;
+        x.lineCap = 'round'; x.lineJoin = 'round';
+        x.beginPath(); for (const [px, py] of pts) x.lineTo(px, py); x.stroke();
+        x.globalAlpha = 1;
+      };
+
+      // 1. the glass body. The scene is brightly lit and tone mapped, so a pale pastel
+      //    washes out to plain white on screen — the body needs real colour to survive it.
+      const body = x.createLinearGradient(0, 0, 0, H);
+      body.addColorStop(0, '#bfe6ff'); body.addColorStop(0.28, '#6fb4f5');
+      body.addColorStop(0.62, '#3f6fd8'); body.addColorStop(1, '#223f8f');
+      fill(body); x.fillRect(0, 0, W, H);
+      // nacre: a slow colour drift around the ball so no angle of it looks flat
+      x.globalAlpha = 0.34;
+      fill(grad(['#63e8ff', '#8f7bff', '#ff7cc4', '#5cf0cf', '#63e8ff'], 0.15, 0.85));
+      x.fillRect(0, 0, W, H);
+      x.globalAlpha = 1;
+
+      // 2. the swirl, sweeping pole to pole so it is in view from above as it rolls
+      const hue = grad(['#5ff0ff', '#7ea8ff', '#c07bff', '#ff74b8', '#5ff0ff']);
+      const main = path(0.5, 0.32, 0);
+      stroke(main, 'rgba(18,34,74,.34)', v(0.30), 1);
+      for (let p = 3; p >= 1; p--) stroke(main, hue, v(0.17) * (1 + p * 0.45), 0.12);
+      stroke(main, hue, v(0.17), 1);
+      stroke(main, grad(['rgba(255,255,255,.95)', 'rgba(232,250,255,.85)', 'rgba(255,255,255,.95)']), v(0.045), 0.95);
+
+      // 3. a second, quieter ribbon a half turn away, for depth rather than noise
+      const back = path(0.5, 0.29, Math.PI);
+      stroke(back, grad(['#9ff0ff', '#cbb0ff', '#ffb8dc', '#9ff0ff']), v(0.085), 0.26);
+
+      // 4. glass: a soft highlight up top and a terminator at the bottom
+      const gloss = x.createLinearGradient(0, 0, 0, v(0.22));
+      gloss.addColorStop(0, 'rgba(255,255,255,.42)'); gloss.addColorStop(1, 'rgba(255,255,255,0)');
+      fill(gloss); x.fillRect(0, 0, W, v(0.22));
+      const deep = x.createLinearGradient(0, v(0.64), 0, H);
+      deep.addColorStop(0, 'rgba(14,26,62,0)'); deep.addColorStop(1, 'rgba(12,22,56,.55)');
+      fill(deep); x.fillRect(0, v(0.64), W, v(0.36));
       break;
     }
     case 'beach': {

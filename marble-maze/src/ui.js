@@ -19,7 +19,7 @@ export class UI {
   showScreen(name) {
     this.clearNotice();
     for (const s of this.screens) $(s)?.classList.toggle('hidden', s !== name);
-    if (name === 'menu') this.refreshMenu();
+    if (name === 'menu') { this.refreshMenu(); this.playWordmark(); }
     if (name === 'shop') this.buildShop(this.shopTab);
   }
   showOverlay(name) { this.clearNotice(); $(name)?.classList.remove('hidden'); }
@@ -102,25 +102,39 @@ export class UI {
     $('dailyDot').classList.toggle('hidden', !d.claimable);
     $('playLabel').textContent = st.maxLevel > 1 ? `PLAY · Lv ${st.maxLevel}` : 'PLAY';
   }
+  playWordmark() {
+    const el = document.querySelector('#menu .wm'); if (!el) return;
+    el.classList.remove('play'); void el.offsetWidth; el.classList.add('play');
+  }
   setMenuWorld(name) { $('menuWorld').textContent = name; }
   setProvider(p) { this.provider = p; }
   setCoinBalance(n) { $('menuCoins').textContent = fmt(n); $('shopCoins').textContent = fmt(n); }
 
   updateHUD(s) {
-    $('hudLevel').textContent = 'Level ' + s.level;
-    $('hudCoins').textContent = `${s.coins}`;
-    $('hudTime').textContent = (s.timeMs / 1000).toFixed(1);
-    $('hudTimePill').classList.toggle('overtime', s.parMs && s.timeMs > s.parMs);
-    const pct = Math.min(100, (s.speed / (s.maxSpeed * 1.8)) * 100);
-    $('speedBar').style.width = pct + '%';
-    $('boostFlare').classList.toggle('on', !!s.boosting);
+    const p = this._hudPrev || (this._hudPrev = {});
+    if (p.level !== s.level) { p.level = s.level; $('hudLevel').textContent = 'Level ' + s.level; }
+    if (p.coins !== s.coins) { p.coins = s.coins; $('hudCoins').textContent = `${s.coins}`; }
+    const t = (s.timeMs / 1000).toFixed(1);
+    if (p.time !== t) { p.time = t; $('hudTime').textContent = t; }
+    const over = !!(s.parMs && s.timeMs > s.parMs);
+    if (p.over !== over) { p.over = over; $('hudTimePill').classList.toggle('overtime', over); }
+    const pct = Math.round(Math.min(100, (s.speed / (s.maxSpeed * 1.8)) * 100));
+    if (p.pct !== pct) { p.pct = pct; $('speedBar').style.width = pct + '%'; }
+    const b = !!s.boosting;
+    if (p.boost !== b) { p.boost = b; $('boostFlare').classList.toggle('on', b); }
   }
 
   finishArrow(info) {
     const el = $('goalArrow');
-    if (!info || info.hide || info.angle == null) { el.classList.remove('show'); return; }
-    el.classList.add('show');
-    el.querySelector('.ga-arrow').style.transform = `rotate(${info.angle}rad)`;
+    if (!info || info.hide || info.angle == null) {
+      if (this._arrowOn) { this._arrowOn = false; el.classList.remove('show'); }
+      return;
+    }
+    if (!this._arrowOn) { this._arrowOn = true; el.classList.add('show'); }
+    if (this._arrowAng === undefined || Math.abs(info.angle - this._arrowAng) > 0.012) {
+      this._arrowAng = info.angle;
+      (this._arrowEl || (this._arrowEl = el.querySelector('.ga-arrow'))).style.transform = `rotate(${info.angle}rad)`;
+    }
   }
   hideGoalArrow() { $('goalArrow').classList.remove('show'); }
 
@@ -401,7 +415,16 @@ export class UI {
 
 function fmt(n) { return n >= 10000 ? (n / 1000).toFixed(1) + 'k' : '' + n; }
 
-function trailSwatch(t) {
+const _swatchCache = new Map();
+function cachedSwatch(key, make) {
+  let c = _swatchCache.get(key);
+  if (!c) { c = make(); _swatchCache.set(key, c); }
+  return c;
+}
+function trailSwatch(t) { return cachedSwatch('t:' + t.id, () => drawTrailSwatch(t)); }
+function skinSwatch(s) { return cachedSwatch('s:' + s.id, () => drawSkinSwatch(s)); }
+
+function drawTrailSwatch(t) {
   const c = document.createElement('canvas'); c.width = c.height = 120; c.className = 'swatch-canvas';
   const x = c.getContext('2d');
   x.save(); x.beginPath(); x.arc(60, 60, 58, 0, 7); x.clip();
@@ -436,7 +459,7 @@ function trailSwatch(t) {
 }
 function rgb(n) { return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
 
-function skinSwatch(s) {
+function drawSkinSwatch(s) {
   const c = document.createElement('canvas'); c.width = c.height = 120; c.className = 'swatch-canvas';
   const x = c.getContext('2d'); const R = 56, cx = 60, cy = 60;
   x.save(); x.beginPath(); x.arc(cx, cy, R, 0, 7); x.clip();
