@@ -242,20 +242,21 @@ class App {
     SDK.reportWin({ maxLevel: S.get().maxLevel, score: S.get().totalCoinsEver });
 
     this.ui.setCoinBalance(S.get().coins);
+    const spaced = stage - (this._lastFlavourNote ?? -99) >= 4;
+    let noteLabel = '';
+    if (missionDone) noteLabel = `Mission complete  ·  +${missionReward} coins`;
+    else if (perfect && spaced) noteLabel = 'Perfect run  ·  every coin';
+    else if (beatPar && newBest && prevBest !== Infinity && spaced) noteLabel = 'New best time';
+    if (noteLabel) this._lastFlavourNote = stage;
+
     this.ui.showWin({ ...data, coinsAwarded: awarded, beatPar }, {
-      canDouble: true, canChest: chestDue,
-      missionDone, missionLabel: missionDone ? this.mission.label : '',
+      canDouble: true, canChest: chestDue, noteLabel,
       onDouble: () => this._doubleCoins(),
       onChest: () => this._openChest(stage),
       onNext: () => this._next(),
       onReplay: () => this._adThen(() => this.startStage(stage, {})),
       onMenu: () => this._adThen(() => this.toMenu()),
     });
-    // At most one, and only occasionally — the win panel already reports the run.
-    const spaced = stage - (this._lastFlavourNote ?? -99) >= 4;
-    if (missionDone) { this.ui.toast(`Mission complete  ·  +${missionReward} coins`, 2000); this._lastFlavourNote = stage; }
-    else if (perfect && spaced) { this.ui.toast('Perfect run  ·  every coin', 2000); this._lastFlavourNote = stage; }
-    else if (beatPar && newBest && prevBest !== Infinity && spaced) { this.ui.toast('New best time', 1700); this._lastFlavourNote = stage; }
   }
   _openChest(stage) {
     this.ui.showChest(ECON.chestCoins(stage), (total) => {

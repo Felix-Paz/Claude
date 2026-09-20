@@ -128,7 +128,7 @@ body{
 .reward small{color:var(--muted);font-size:12px;}
 .lose-sub{text-align:center;color:var(--muted);margin-top:-4px;}
 
-#shop{justify-content:flex-start;}
+#shop{justify-content:flex-start;background:radial-gradient(120% 100% at 50% 0%, rgba(10,14,30,.84), rgba(6,8,18,.96));backdrop-filter:blur(9px);}
 .shop-head{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;gap:10px;justify-content:space-between;
   padding:max(12px,env(safe-area-inset-top)) 14px 12px;background:linear-gradient(180deg,rgba(8,11,24,.9),transparent);z-index:2;}
 .shop-tabs{display:flex;gap:6px;background:var(--glass);border-radius:14px;padding:5px;border:1px solid var(--stroke);}
@@ -183,12 +183,13 @@ input[type=checkbox]:checked::after{transform:translateX(20px);}
   transition:opacity .3s, transform .3s;pointer-events:none;}
 .banner.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
 .banner .b-new{font-family:'Baloo 2';font-weight:800;font-size:14px;letter-spacing:3px;color:var(--c1);}
-.banner .b-title{font-family:'Baloo 2';font-weight:800;font-size:clamp(28px,8vw,46px);
+.banner .b-title{font-family:'Baloo 2';font-weight:800;font-size:clamp(19px,6vw,46px);white-space:nowrap;
   background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 6px 30px rgba(80,120,255,.4);}
-.combo-pop{position:fixed;top:38%;left:50%;transform:translate(-50%,-50%);z-index:25;pointer-events:none;
-  font-family:'Baloo 2';font-weight:800;color:var(--gold);text-shadow:0 3px 12px rgba(0,0,0,.5);opacity:0;}
+.combo-pop{position:fixed;top:calc(max(12px,env(safe-area-inset-top)) + 102px);left:50%;
+  transform:translate(-50%,-50%);z-index:25;pointer-events:none;white-space:nowrap;
+  font-family:'Baloo 2';font-weight:800;color:var(--gold);text-shadow:0 3px 12px rgba(0,0,0,.6);opacity:0;}
 .combo-pop.show{animation:combo .7s ease-out;}
-@keyframes combo{0%{opacity:0;transform:translate(-50%,-30%) scale(.5)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
+@keyframes combo{0%{opacity:0;transform:translate(-50%,-10%) scale(.6)}28%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}100%{opacity:0;transform:translate(-50%,-95%) scale(.95)}}
 
 .game-logo{position:absolute;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));
   font-family:'Baloo 2';font-weight:800;font-size:15px;letter-spacing:.5px;opacity:.5;line-height:1;pointer-events:none;}
@@ -295,7 +296,7 @@ body.goldrush #ui::after{content:'';position:fixed;inset:0;pointer-events:none;z
 .chest-cell.revealed{opacity:.45;}
 .chest-cell.revealed small{color:var(--muted);font-size:11px;}
 
-#shop{justify-content:flex-start;}
+#shop{justify-content:flex-start;background:radial-gradient(120% 100% at 50% 0%, rgba(10,14,30,.84), rgba(6,8,18,.96));backdrop-filter:blur(9px);}
 .shop-grid{grid-template-columns:repeat(auto-fill,minmax(166px,1fr));width:min(920px,96vw);gap:14px;
   margin-top:74px;padding:0 4px 30px;overflow-y:auto;max-height:calc(100dvh - 86px);align-content:start;
   overscroll-behavior:contain;touch-action:pan-y;}
@@ -365,4 +366,31 @@ body.goldrush #ui::after{content:'';position:fixed;inset:0;pointer-events:none;z
   .settings-panel .row{font-size:13px;}
   .daily-grid{gap:6px;}
   .chest-grid{gap:8px;}
+}
+
+@media (max-width:560px){
+  .shop-head{padding:max(8px,env(safe-area-inset-top)) 10px 8px;gap:6px;}
+  .shop-tabs{flex:0 1 auto;min-width:0;padding:3px;border-radius:11px;}
+  .tab{font-size:12px;padding:6px 9px;}
+  .shop-head .hud-pill{padding:6px 10px;font-size:13px;}
+  .shop-grid{grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px;width:96vw;
+    margin-top:60px;max-height:calc(100dvh - 68px);}
+  .card{padding:8px 8px 10px;gap:6px;border-radius:14px;}
+  .card-rarity{font-size:8.5px;letter-spacing:.4px;}
+  .card-disc{width:62px;height:62px;}
+  .swatch-canvas{width:58px;height:58px;}
+  .card .cname{font-size:12px;}
+  .card-perk{font-size:9px;padding:2px 6px;border-radius:6px;}
+  .cbtn{font-size:12px;padding:7px 8px;border-radius:10px;}
+  .cbtn .dot{width:10px;height:10px;}
+  .tab{font-size:13px;padding:6px 11px;}
+  .shop-tabs{padding:4px;border-radius:12px;}
+  .combo-pop{font-size:20px !important;}
+}
+@media (max-width:380px){
+  .shop-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px;}
+  .card-disc{width:54px;height:54px;}
+  .swatch-canvas{width:50px;height:50px;}
+  .card .cname{font-size:11px;}
+  .cbtn{font-size:11px;padding:6px 6px;}
 }

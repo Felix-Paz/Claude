@@ -356,7 +356,15 @@ export class Game {
     if (!this.marble) {
       this.marble = new THREE.Mesh(new THREE.SphereGeometry(MARBLE_R, 40, 30), new THREE.MeshPhysicalMaterial());
       this.marble.castShadow = true; this.scene.add(this.marble);
-      this.blob = new THREE.Mesh(new THREE.CircleGeometry(MARBLE_R * 1.25, 20), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3, depthWrite: false }));
+      const bc = document.createElement('canvas'); bc.width = bc.height = 128;
+      const bx = bc.getContext('2d');
+      const bg2 = bx.createRadialGradient(64, 64, 0, 64, 64, 64);
+      bg2.addColorStop(0, 'rgba(0,0,0,0.85)'); bg2.addColorStop(0.45, 'rgba(0,0,0,0.42)');
+      bg2.addColorStop(0.78, 'rgba(0,0,0,0.12)'); bg2.addColorStop(1, 'rgba(0,0,0,0)');
+      bx.fillStyle = bg2; bx.fillRect(0, 0, 128, 128);
+      const bt = new THREE.CanvasTexture(bc);
+      this.blob = new THREE.Mesh(new THREE.PlaneGeometry(MARBLE_R * 3.2, MARBLE_R * 3.2),
+        new THREE.MeshBasicMaterial({ map: bt, transparent: true, opacity: 0.55, depthWrite: false, color: 0x000000 }));
       this.blob.rotation.x = -Math.PI / 2; this.scene.add(this.blob);
       this.shieldAura = new THREE.Mesh(new THREE.SphereGeometry(MARBLE_R * 1.5, 20, 16),
         new THREE.MeshBasicMaterial({ color: 0x4dffa3, transparent: true, opacity: 0.26, depthWrite: false, side: THREE.DoubleSide }));
@@ -375,13 +383,24 @@ export class Game {
     mat.clearcoat = mm.clearcoat ?? 0; mat.clearcoatRoughness = 0.08;
     mat.emissive = new THREE.Color(mm.emissive ?? 0x000000); mat.emissiveIntensity = mm.emissiveInt ?? 0;
     mat.envMapIntensity = 1.1;
-    if (def.tex) { const cv = document.createElement('canvas'); cv.width = cv.height = 256; drawMarbleTexture(cv.getContext('2d'), def.tex, 256); const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; mat.map = tex; mat.color = new THREE.Color(0xffffff); }
-    this._setRing(!!def.ring, mm.color);
-    this._rainbow = !!mm.rainbow; mat.needsUpdate = true;
+    if (def.tex) {
+      const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 512;
+      drawMarbleTexture(cv.getContext('2d'), def.tex, 1024, 512);
+      const tex = new THREE.CanvasTexture(cv);
+      tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+      tex.wrapS = THREE.RepeatWrapping;
+      mat.map = tex; mat.color = new THREE.Color(mm.tint ?? 0xffffff);
+    }
+    this._setRing(!!def.ring, mm.ringColor ?? 0xd8b070);
+    this._rainbow = !!(def.rainbow || mm.rainbow); mat.needsUpdate = true;
   }
   _setRing(on, color) {
-    if (on && !this.ringMesh) { this.ringMesh = new THREE.Mesh(new THREE.TorusGeometry(MARBLE_R * 1.7, MARBLE_R * 0.18, 10, 32), new THREE.MeshStandardMaterial({ color, metalness: 0.3, roughness: 0.5 })); this.ringMesh.rotation.x = 1.2; this.marble.add(this.ringMesh); }
-    if (this.ringMesh) this.ringMesh.visible = on;
+    if (on && !this.ringMesh) {
+      this.ringMesh = new THREE.Mesh(new THREE.TorusGeometry(MARBLE_R * 1.95, MARBLE_R * 0.13, 8, 48),
+        new THREE.MeshStandardMaterial({ metalness: 0.25, roughness: 0.55 }));
+      this.ringMesh.rotation.set(1.32, 0, 0.22); this.marble.add(this.ringMesh);
+    }
+    if (this.ringMesh) { this.ringMesh.visible = on; if (on) this.ringMesh.material.color.set(color); }
   }
   applyTrail(def) { this.trailDef = def; const on = def && def.id !== 'none'; if (this.trail) this.trail.visible = on; if (on) this.trailColor = new THREE.Color(def.color); this._trailRainbow = !!(def && def.rainbow); }
 

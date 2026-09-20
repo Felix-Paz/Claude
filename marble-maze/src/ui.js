@@ -17,11 +17,12 @@ export class UI {
   setHandlers(h) { this.h = h; }
 
   showScreen(name) {
+    this.clearNotice();
     for (const s of this.screens) $(s)?.classList.toggle('hidden', s !== name);
     if (name === 'menu') this.refreshMenu();
     if (name === 'shop') this.buildShop(this.shopTab);
   }
-  showOverlay(name) { $(name)?.classList.remove('hidden'); }
+  showOverlay(name) { this.clearNotice(); $(name)?.classList.remove('hidden'); }
   hideOverlay(name) { $(name)?.classList.add('hidden'); }
   hideOverlays() { for (const s of this.overlays) $(s)?.classList.add('hidden'); }
   visibleOverlay() { for (const s of this.overlays) if (!$(s)?.classList.contains('hidden')) return s; return null; }
@@ -194,8 +195,8 @@ export class UI {
     $('winCoins').textContent = '+' + data.coinsAwarded;
     $('winTime').textContent = (data.timeMs / 1000).toFixed(1) + 's';
     $('winTimeNote').textContent = data.beatPar ? 'time · medal' : 'time';
-    $('winMissionRow').classList.toggle('hidden', !opts.missionDone);
-    if (opts.missionDone) $('winMission').textContent = opts.missionLabel || 'Mission complete!';
+    $('winMissionRow').classList.toggle('hidden', !opts.noteLabel);
+    if (opts.noteLabel) $('winMission').textContent = opts.noteLabel;
     const cb = $('chestBtn');
     cb.classList.toggle('hidden', !opts.canChest);
     cb.onclick = () => { this.h.sfx?.('uiClick'); cb.classList.add('hidden'); opts.onChest?.(); };
@@ -250,7 +251,7 @@ export class UI {
     const disc = document.createElement('div'); disc.className = 'card-disc';
     disc.appendChild(skinSwatch(s)); c.appendChild(disc);
     const nm = document.createElement('div'); nm.className = 'cname'; nm.textContent = s.name; c.appendChild(nm);
-    if (s.perk && PERKS[s.perk]) { const pk = document.createElement('div'); pk.className = 'card-perk'; pk.innerHTML = `${PERKS[s.perk].icon} ${PERKS[s.perk].label}`; c.appendChild(pk); }
+    if (s.perk && PERKS[s.perk]) { const pk = document.createElement('div'); pk.className = 'card-perk'; pk.textContent = PERKS[s.perk].label; c.appendChild(pk); }
     const btn = document.createElement('button');
     if (equipped) { btn.className = 'cbtn equipped'; btn.textContent = '✓ Equipped'; }
     else if (owned) { btn.className = 'cbtn equip'; btn.textContent = 'Equip'; btn.onclick = () => { this.h.equipSkin?.(s.id); this.buildShop('skins'); this.h.sfx?.('uiClick'); }; }
@@ -390,7 +391,7 @@ export class UI {
     if (n < 3) return;
     this._notice('combo', 1, 800, () => {
       const c = $('comboPop'); c.textContent = `Combo ×${n}`;
-      c.style.fontSize = Math.min(48, 22 + n * 2) + 'px';
+      c.style.fontSize = Math.min(30, 17 + n) + 'px';
       c.classList.remove('hidden', 'show'); void c.offsetWidth; c.classList.add('show');
     });
   }
@@ -408,7 +409,11 @@ function skinSwatch(s) {
   const c = document.createElement('canvas'); c.width = c.height = 120; c.className = 'swatch-canvas';
   const x = c.getContext('2d'); const R = 56, cx = 60, cy = 60;
   x.save(); x.beginPath(); x.arc(cx, cy, R, 0, 7); x.clip();
-  if (s.tex) drawMarbleTexture(x, s.tex, 120);
+  if (s.tex) {
+    const off = document.createElement('canvas'); off.width = 480; off.height = 240;
+    drawMarbleTexture(off.getContext('2d'), s.tex, 480, 240);
+    x.drawImage(off, 120, 0, 240, 240, 0, 0, 120, 120);
+  }
   else if (s.rainbow) { const g = x.createLinearGradient(0, 0, 120, 120); g.addColorStop(0, '#2ff0d0'); g.addColorStop(0.5, '#49d0ff'); g.addColorStop(1, '#7a3aff'); x.fillStyle = g; x.fillRect(0, 0, 120, 120); }
   else { const g = x.createRadialGradient(44, 40, 6, 60, 60, 64); g.addColorStop(0, '#ffffff'); g.addColorStop(0.42, hex(s.mat.color)); g.addColorStop(1, '#00000055'); x.fillStyle = g; x.fillRect(0, 0, 120, 120); if (s.mat.metalness >= 0.9) { x.fillStyle = 'rgba(255,255,255,.3)'; x.fillRect(0, 80, 120, 8); } }
   const hl = x.createRadialGradient(46, 40, 2, 50, 44, 40); hl.addColorStop(0, 'rgba(255,255,255,.85)'); hl.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = hl; x.beginPath(); x.arc(48, 42, 30, 0, 7); x.fill();
