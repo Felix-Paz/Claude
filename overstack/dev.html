@@ -1610,6 +1610,23 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 .toggle.on { background: var(--mint); }
 .toggle.on::after { left: 27px; }
 
+/* The graphics control. Three states you can see at once and reach in one tap,
+   rather than a switch you have to press twice to understand — and the lit
+   block slides between them, so the control reads as one thing with a position
+   rather than three buttons that happen to be adjacent. */
+.seg { position: relative; display: flex; background: rgba(255,255,255,0.10); border-radius: 14px; padding: 3px; gap: 0; }
+.seg button { position: relative; z-index: 1; border: none; background: none; color: rgba(255,255,255,0.62);
+  font: inherit; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.11em; padding: 6px 11px;
+  border-radius: 11px; cursor: pointer; transition: color 0.18s ease; }
+.seg button.on { color: #0A0B10; }
+.seg-ink { position: absolute; top: 3px; left: 3px; height: calc(100% - 6px); width: 0; border-radius: 11px;
+  background: var(--mint); transition: left 0.24s cubic-bezier(0.2,1,0.3,1), width 0.24s cubic-bezier(0.2,1,0.3,1); }
+/* What AUTO is currently doing, in one quiet line. It says nothing at all
+   while nothing has been turned down, because "everything is on" is the
+   normal state and does not need announcing. */
+#q-note { display: block; font-style: normal; font-size: 0.6rem; color: var(--text-mute); margin-top: 3px; letter-spacing: 0.02em; }
+#q-note:empty { display: none; }
+
 /* leaderboard */
 #board-list { list-style: none; }
 #board-list li { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 2px; border-bottom: 1px solid rgba(255,255,255,0.07); font-size: 0.85rem; }
@@ -1882,7 +1899,13 @@ body.dev-collapsed #dev-title, body.dev-collapsed #dev-fps { display: none; }
     <h2>SETTINGS</h2>
     <div class="setting-row"><span>Sound effects</span><button class="toggle" id="tgl-sound"></button></div>
     <div class="setting-row"><span>Music</span><button class="toggle" id="tgl-music"></button></div>
-    <div class="setting-row"><span>Reduce motion / low power</span><button class="toggle" id="tgl-motion"></button></div>
+    <div class="setting-row">
+      <span>Graphics<i id="q-note"></i></span>
+      <div class="seg" id="seg-quality" role="group" aria-label="Graphics quality">
+        <span class="seg-ink"></span>
+        <button data-q="auto">AUTO</button><button data-q="low">LOW</button><button data-q="high">HIGH</button>
+      </div>
+    </div>
     <button class="btn btn-ghost" id="btn-legal">Privacy policy &amp; terms of use</button>
   </div>
 </div>
@@ -2012,8 +2035,6 @@ body.dev-collapsed #dev-title, body.dev-collapsed #dev-fps { display: none; }
         These terms are governed by the laws of <b data-legal-law></b>. If the terms
         change, the date at the top of this page changes with them.</p>
 
-        <h3>Contact</h3>
-        <p>Questions about these terms can be sent to <b data-legal-contact></b>.</p>
       </section>
     </div>
   </div>
@@ -2321,6 +2342,21 @@ const CONFIG = {
   strainForce: 0.0009,
   angryJumpDelayMs: 550,       // first jump, after it lands
   angryJumpGapMs: 1250,        // and then it keeps going, roughly this often
+  /* The lean a merged block arrives with, and then loses.
+
+     This is how the merge always looked: the new block appears already tipped
+     a few degrees and rocks itself down. It was removed when merged pieces were
+     made to arrive square, because with friction this high a lean was a lean
+     forever — the block simply stayed crooked. What changed since is the settle
+     assist, which now waits for a piece to stop moving, renews its allowance,
+     and will wake a sleeper to finish the job. So the lean can come back and
+     the block still ends up on its face.
+
+     A spin and a sideways nudge were both tried in its place and both removed:
+     a nudge shifts the new block's centre of mass, and extra upward energy
+     carries it past a corner. Either one could topple a marginal tower, and a
+     merge is not allowed to change whether a stack survives. */
+  fusionTilt: 0.25,            // radians, either direction - the original value
   /* PHASE BLOCK (§20c). It does not obey gravity and it does not stay put: it
      walks the CREST of the pile in jumps, dissolving out of one place and
      re-forming in another. Every number here is about readability — you have to
@@ -2508,7 +2544,7 @@ const SaveStore = {
       hints: { fusion: false, bank: false, safe: false },
       tutorialDone: false,              // the four-beat first-run tour, shown once ever
       tutorialRuns: 0,                  // runs it has opened on, so it cannot nag forever
-      settings: { sound: true, music: true, reduceMotion: false },
+      settings: { sound: true, music: true, quality: 'auto' },
       baselines: { decisionLatency: 0, decisionLatencySamples: [], sessionPace: 0, sessionMinutes: 0, sessions: 0 },
       profile: { // persisted play-style stats — surfaced as a style title
         greedAtBank: 1.6, banks: 0, collapses: 0,
@@ -2572,7 +2608,10 @@ const LEGAL = {
 const Settings = {
   get sound() { return save.settings.sound; },
   get music() { return save.settings.music !== false; },   // older saves predate the split
-  get reduceMotion() { return save.settings.reduceMotion; },
+  /* Kept as the single question the rest of the game asks — "should I skip the
+     theatre?" — so every call site stays exactly as it was. It is now answered
+     by the quality ladder rather than by a switch of its own. */
+  get reduceMotion() { return !Q.flourish; },
   toggle(key) {
     save.settings[key] = !save.settings[key];
     SaveStore.save();
@@ -2580,9 +2619,20 @@ const Settings = {
     return save.settings[key];
   },
 };
+/* The CSS half of the ladder. `reduce-motion` stops the big decorative
+   animations; `low-fx` drops blurs and heavy filters out of the stylesheet.
+   They are separate because they cost separate things: an animation costs main
+   thread and compositing, a backdrop blur costs fill rate, and a device can
+   easily be short of one and fine on the other. */
+/* Write a text node only when it would actually say something different. */
+const TOAST_FADE_MS = 340;   // matches the 0.32s opacity transition on #toast
+function setText(el, s) { if (el && el.__t !== s) { el.__t = s; el.textContent = s; } }
+
 function applyMotionClass() {
-  document.body.classList.toggle('reduce-motion', Settings.reduceMotion || perf.tier === 'low');
-  document.body.classList.toggle('low-fx', perf.tier === 'low');
+  const b = document.body;
+  if (!b) return;
+  b.classList.toggle('reduce-motion', !Q.flourish);
+  b.classList.toggle('low-fx', !Q.propGlow);
 }
 
 /* Five recorded one-shots, base64 MP3 so the file stays self-contained and so
@@ -3236,45 +3286,369 @@ FeedbackBus.on('phaseOut', () => Audio2.phaseOut());
 FeedbackBus.on('phaseIn', () => Audio2.phaseIn());
 FeedbackBus.on('offer', () => Audio2.revealLand(3));
 
-/* ============================ §7 PERF MONITOR ============================= */
-const perf = { tier: 'high', samples: [], done: false, particleCap: 620 };
-function perfSample(dt) {
-  if (perf.done) return;
-  perf.samples.push(dt);
-  if (perf.samples.length >= 150) {
-    const avg = perf.samples.reduce((a, b) => a + b, 0) / perf.samples.length;
-    if (1000 / avg < 45) { perf.tier = 'low'; perf.particleCap = 240; }
-    perf.done = true;
-    applyMotionClass();
-  }
+/* ============================ §7 QUALITY ==================================
+   Three modes, one philosophy: never take something away that is not actually
+   costing anything.
+
+   HIGH is the whole game with nothing withheld. LOW is the whole game with the
+   handful of things that genuinely cost frames turned down. AUTO starts at
+   HIGH, watches how the game is really running, and gives back the smallest,
+   least-missed thing that will fix a problem it can actually see — one step at
+   a time, with a reason for each — then hands every one of them back as soon
+   as the device proves it can carry them.
+
+   What is deliberately NOT here: anything that touches the simulation, the
+   economy, the director, the retention model or the odds. Quality changes how
+   the game is DRAWN, never what it does. The one exception is the solver, and
+   only at the very bottom of the ladder, where the alternative is a game that
+   does not run at all. */
+
+/* ---- the live knobs -----------------------------------------------------
+   Read straight off this object in hot paths: a plain property read on a small
+   monomorphic object, which is about as cheap as a branch gets. Nothing in the
+   render loop ever asks the Quality module a question — it only ever reads Q. */
+const Q = {
+  pieceGlow: true,     // the shadowBlur halo on every piece, every frame
+  propGlow: true,      // the same halo on props: meteors, docks, HUD art
+  bgPool: true,        // full-screen radial wash behind the tower
+  embers: true,        // ambient particles thrown off props while they idle
+  particleGlow: true,  // per-particle shadowBlur
+  particleCap: 620,    // how many can be alive at once
+  burstScale: 1,       // how many a burst spawns
+  setpiece: true,      // the extra passes inside STRAIN / OVERFLOW / arrivals
+  flourish: true,      // idle wordmark acts, deck arrivals, parallax
+  popShadow: true,     // drop shadow under score popups
+  dprCap: 2,           // device-pixel ceiling: the single biggest fill-rate lever
+  solver: 1,           // 1 = full physics accuracy, 0 = economy solver
+};
+
+/* The solver is the only knob that can change how the game FEELS, so it is the
+   last resort and it is kept honest here rather than scattered around. */
+const SOLVER = { full: { pos: 10, vel: 8 }, economy: { pos: 6, vel: 4 } };
+
+/* ---- the ladder ---------------------------------------------------------
+   Ordered by how little anybody will miss it, and each step declares what it
+   would actually save RIGHT NOW. `gain` returns an estimate in milliseconds per
+   frame from the scene as it currently stands — no scene, no cost, no reason to
+   take it. That is what stops the controller stripping a static menu bare
+   because one frame ran long. */
+/* ---- the ladder ---------------------------------------------------------
+   ORDERED BY MEASUREMENT, not by taste. Each step was benchmarked on an
+   identical seeded board under a 6x CPU throttle at DPR 2, twice: once with
+   the particle pool saturated and once with only the sparks the props throw
+   off themselves. The share of frame time each one gave back:
+
+     resolution      36%   (and it is quadratic in pixels, so it is the biggest
+                            single lever on any high-DPI screen)
+     background wash 24%   (identical in both runs — the most reliable result
+                            of the whole exercise, for something nobody will
+                            consciously miss)
+     glow on blocks  19%
+     glow on sparks   9%   — but ONLY with a full pool; with a dozen sparks on
+                            screen it measured as nothing at all
+     solver           6%
+     glow on props    4%
+     spark count      0%   — no measurable effect in either run
+     ambient sparks   0%   — no measurable effect in either run
+
+   The last two are why this is a ladder and not a switch. Turning off ambient
+   sparks makes the game plainer and gives back nothing, so it is not a step on
+   its own; it only happens as part of capping the pool, and only once the pool
+   is genuinely large enough for that to be worth something.
+
+   `gain` is the estimated saving IN THE SCENE AS IT STANDS RIGHT NOW. It is
+   what lets the controller skip a step that would cost the player something
+   and buy nothing — no sparks on screen, no reason to touch the sparks. */
+const QSTEPS = [
+  { id: 'bgPool', why: 'the soft wash behind the tower',
+    gain: () => (Q.bgPool ? screenMp() * 0.9 : 0),
+    down() { Q.bgPool = false; }, up() { Q.bgPool = true; } },
+
+  { id: 'popShadow', why: 'the shadow under score popups',
+    gain: () => (Q.popShadow ? popups.length * 0.05 : 0),
+    down() { Q.popShadow = false; }, up() { Q.popShadow = true; } },
+
+  { id: 'particleGlow', why: 'the halo on each spark',
+    gain: () => (Q.particleGlow ? Particles.pool.length * 0.028 : 0),
+    down() { Q.particleGlow = false; }, up() { Q.particleGlow = true; } },
+
+  { id: 'propGlow', why: 'the halo on props and the deck',
+    gain: () => (Q.propGlow ? screenMp() * 0.25 : 0),
+    down() { Q.propGlow = false; }, up() { Q.propGlow = true; } },
+
+  /* Capping the pool and stopping ambient emission are one step, because on
+     their own neither does anything: the cap only bites while sparks are
+     pouring in, and stopping the pouring only helps if the pool was the cost. */
+  { id: 'particles', why: 'how many sparks are in the air',
+    gain: () => (Q.particleCap > 240 ? Math.max(0, Particles.pool.length - 240) * 0.03 : 0),
+    down() { Q.particleCap = 240; Q.burstScale = 0.45; Q.embers = false; },
+    up() { Q.particleCap = 620; Q.burstScale = 1; Q.embers = true; } },
+
+  { id: 'pieceGlow', why: 'the halo on every block',
+    gain: () => (Q.pieceGlow ? Stack.pieces().length * 0.075 : 0),
+    down() { Q.pieceGlow = false; }, up() { Q.pieceGlow = true; } },
+
+  { id: 'dpr', why: 'rendering resolution',
+    gain: () => (Q.dprCap > 1.5 && (window.devicePixelRatio || 1) > 1.5 ? screenMp() * 2.6 : 0),
+    down() { Q.dprCap = 1.5; resize(); }, up() { Q.dprCap = 2; resize(); } },
+
+  { id: 'setpiece', why: 'the extra layers inside the big moments',
+    gain: () => ((Q.setpiece && (Overflow.active || Strain.active || Reveal.active)) ? 2.4 : 0),
+    down() { Q.setpiece = false; }, up() { Q.setpiece = true; } },
+
+  { id: 'flourish', why: 'idle theatre and arrival animations',
+    gain: () => (Q.flourish ? 0.5 : 0),
+    down() { Q.flourish = false; applyMotionClass(); }, up() { Q.flourish = true; applyMotionClass(); } },
+
+  /* Last, and past where the manual LOW setting stops. It is reached only on a
+     device that is still failing with every picture-level saving already taken,
+     where the alternative is a game that does not really run. It is the same
+     physics with the same constants, iterating less — so the game plays the
+     same game, a little softer. */
+  { id: 'solver', why: 'physics solver accuracy',
+    gain: () => (Q.solver ? Stack.pieces().length * 0.09 : 0),
+    down() { Q.solver = 0; applySolver(); }, up() { Q.solver = 1; applySolver(); } },
+];
+
+/* Screen area in megapixels, which is what a full-screen fill actually costs.
+   Read off the backing store so it follows both the window and the DPR cap. */
+function screenMp() { return (canvas.width * canvas.height) / 1e6; }
+
+function applySolver() {
+  const s = Q.solver ? SOLVER.full : SOLVER.economy;
+  engine.positionIterations = s.pos;
+  engine.velocityIterations = s.vel;
 }
+
+const Quality = {
+  /* 'auto' | 'high' | 'low'. AUTO is the default and the one the game is tuned
+     for; the other two exist because some people simply want to decide. */
+  /* `window.__forceQuality` pins the mode for automated runs and for the dev
+     build. An adaptive renderer is the enemy of a repeatable test: a headless
+     machine under load will correctly start shedding work mid-assertion, and
+     at the bottom of the ladder that includes the solver, which moves bodies.
+     Nothing in the shipped game ever sets it. */
+  get mode() { return (typeof window !== 'undefined' && window.__forceQuality) || save.settings.quality || 'auto'; },
+  set mode(v) { save.settings.quality = v; SaveStore.save(); this.apply(); },
+  cycle() { this.mode = this.mode === 'auto' ? 'low' : this.mode === 'low' ? 'high' : 'auto'; return this.mode; },
+
+  // how far down the ladder we currently are, and why
+  depth: 0,
+  reasons: [],
+  /* Steps that misbehaved when we tried to give them back: each one remembers
+     how long to leave it alone next time, doubling. This is what stops a device
+     sitting exactly on the edge from flickering a feature on and off forever. */
+  penalty: Object.create(null),
+
+  // ---- the watcher ------------------------------------------------------
+  budget: 16.7,        // ms per frame we are aiming to hit
+  hz: 60,
+  late: 0,             // smoothed mean overshoot, in ms per frame
+  fps: 60,             // smoothed frames actually delivered per second
+  jank: 0,             // smoothed share of frames that ran badly long
+  sumLate: 0,          // accumulators for the window in progress
+  long: 0,
+  frames: 0,
+  winStart: 0,
+  goodWins: 0,         // consecutive healthy windows
+  lastAct: 0,          // when we last moved, either way
+  hzSamples: 0,
+  hzSum: 0,
+  nowLate: 0, nowFps: 60, nowJank: 0,   // the window that just ended, unsmoothed
+  calmUntil: 0,        // nothing is judged while the game is still warming up
+
+  apply() {
+    const m = this.mode;
+    if (m === 'high') { this.restoreAll(); }
+    else if (m === 'low') { this.restoreAll(); this.toDepth(LOW_DEPTH); }
+    else { this.restoreAll(); }   // AUTO always starts by believing in the device
+    this.reset();
+    applyMotionClass();
+  },
+  /* Loading a run, opening a set piece and switching decks all cost frames for
+     reasons that have nothing to do with what the device can sustain. Judging
+     those moments would have the game strip itself during exactly the seconds
+     it is trying to impress. */
+  calm(ms) { this.calmUntil = Math.max(this.calmUntil, now() + ms); },
+  reset() {
+    this.late = 0; this.fps = this.hz; this.jank = 0;
+    this.sumLate = 0; this.long = 0; this.frames = 0;
+    this.winStart = now(); this.goodWins = 0; this.lastAct = now();
+    this.calm(WARMUP_MS);
+  },
+
+  restoreAll() {
+    for (let i = QSTEPS.length - 1; i >= 0; i--) QSTEPS[i].up();
+    this.depth = 0; this.reasons = [];
+  },
+  toDepth(d) {
+    while (this.depth < d && this.depth < QSTEPS.length) { QSTEPS[this.depth].down(); this.depth++; }
+  },
+
+  /* Called once per frame with the real frame delta. Everything here is a
+     handful of adds and compares on numbers that already exist — no array, no
+     allocation, no timer call, nothing that could become part of the problem
+     it is trying to measure. */
+  sample(dt) {
+    // learn the display's actual refresh rate from the first second of frames
+    if (this.hzSamples < 90) {
+      if (dt > 4 && dt < 40) { this.hzSum += dt; this.hzSamples++; }
+      if (this.hzSamples === 90) {
+        const avg = this.hzSum / 90;
+        this.hz = avg < 10.5 ? 120 : avg < 14.5 ? 90 : 60;
+        /* Aim at the display, but never chase 120: a phone that can only just
+           hold 60 should not be told it is failing. The target is the refresh
+           rate or 60, whichever is gentler, plus a little room for the browser. */
+        this.budget = Math.max(1000 / 60, 1000 / this.hz) * 1.25;
+        this.fps = this.hz;
+      }
+    }
+    if (dt > 0 && dt < 500) {
+      const over = dt - this.budget;
+      if (over > 0) this.sumLate += over;
+      if (over > this.budget * 0.6) this.long++;
+      this.frames++;
+    }
+    if (this.mode !== 'auto') return;
+    const el = now() - this.winStart;
+    if (el < WINDOW_MS) return;
+    /* The window is measured in TIME, never in frames. A device in trouble
+       delivers FEWER frames, so a frame-count threshold would go quiet exactly
+       when it was needed — which is precisely the bug this replaces. */
+    const f = this.frames;
+    const winFps = f / (el / 1000);
+    const meanLate = f ? this.sumLate / f : this.budget;
+    const winJank = f ? this.long / f : 1;
+    // short memory, so recovery is believed within a couple of seconds
+    this.late += (meanLate - this.late) * 0.5;
+    this.fps += (winFps - this.fps) * 0.5;
+    this.jank += (winJank - this.jank) * 0.5;
+    this.nowLate = meanLate; this.nowFps = winFps; this.nowJank = winJank;
+    this.sumLate = 0; this.long = 0; this.frames = 0; this.winStart = now();
+    this.decide();
+  },
+
+  /* One decision per window, at most one step. */
+  decide() {
+    const t = now();
+    if (t < this.calmUntil) { this.goodWins = 0; return; }
+    const jank = this.jank;
+    /* Three independent ways of being in trouble, because they are genuinely
+       different failures: frames arriving late, frames arriving unevenly, and
+       frames not arriving. Smooth 40fps and a steady 60 with one stall a
+       second are both bad, and only one of them shows up in an average. */
+    const bad = (l, j, f) => l > 2.2 || j > 0.18 || f < this.hz * 0.8;
+    /* Trouble has to be true of the smoothed history AND of the window that
+       just ended. The history alone would keep cutting for several seconds
+       after a device recovered — punishing it for a stall that is already over
+       — and the window alone would react to a single hitch. Requiring both is
+       what makes "there is evidence that reducing this will help" literally
+       true at the moment the decision is taken. */
+    const struggling = bad(this.late, jank, this.fps) && bad(this.nowLate, this.nowJank, this.nowFps);
+    const healthy = this.late < 0.8 && jank < 0.05 && this.fps > this.hz * 0.92;
+
+    if (struggling) {
+      this.goodWins = 0;
+      if (t - this.lastAct < DOWN_COOLDOWN) return;
+      /* Find the cheapest step that would actually buy something. A step whose
+         gain is nil right now is not a saving, it is just a loss of something
+         the player paid attention to — so it is skipped entirely and the
+         controller looks further down the ladder. */
+      for (let i = this.depth; i < QSTEPS.length; i++) {
+        const s = QSTEPS[i];
+        const g = s.gain();
+        if (g < MIN_GAIN_MS) { this.depth = i + 1; continue; }   // nothing to win here
+        s.down();
+        this.depth = i + 1;
+        this.reasons.push({ id: s.id, why: s.why, gain: +g.toFixed(2), at: t, late: +this.late.toFixed(2) });
+        this.lastAct = t;
+        this.calm(SETTLE_MS);        // let the change actually show before judging again
+        return;
+      }
+      return;
+    }
+
+    if (healthy) {
+      this.goodWins++;
+      if (this.depth === 0) return;
+      /* How fast things come back depends on how much room the device is
+         showing. Comfortably idle: give it back quickly, because a single ad
+         break or a garbage pause should not cost a minute of dimmed visuals.
+         Only just healthy: take the slow road, because that is the device most
+         likely to fall over again. */
+      const roomy = this.late < 0.25 && this.jank < 0.01 && this.fps > this.hz * 0.97;
+      if (this.goodWins < (roomy ? 2 : GOOD_WINS)) return;
+      if (t - this.lastAct < (roomy ? UP_COOLDOWN * 0.4 : UP_COOLDOWN)) return;
+      /* Give back the most recent reduction first, and only one. If it turns
+         out the device could not carry it after all, the step earns a penalty
+         and we wait twice as long before offering it again. */
+      const i = this.depth - 1;
+      const s = QSTEPS[i];
+      const pen = this.penalty[s.id] || 0;
+      if (t - (s._downAt || 0) < pen) return;
+      s.up();
+      s._upAt = t;
+      this.depth = i;
+      const r = this.reasons.pop();
+      if (r) r.restoredAt = t;
+      this.lastAct = t;
+      this.goodWins = 0;
+    } else {
+      this.goodWins = 0;
+    }
+  },
+};
+
+const WINDOW_MS = 1000;        // one decision per second, at most
+const DOWN_COOLDOWN = 1200;    // and never two reductions back to back
+const UP_COOLDOWN = 5000;      // restoring is deliberately slower than reducing
+const GOOD_WINS = 4;           // four clean seconds before anything comes back
+const MIN_GAIN_MS = 0.35;      // below this a reduction is not worth the loss
+const LOW_DEPTH = 9;           // manual LOW takes every picture saving, but never the solver
+const WARMUP_MS = 2500;        // boot, run start and deck changes are not evidence
+const SETTLE_MS = 900;         // after a change, wait for it to take effect
+
+/* Remember when a step went down, so a step that fails on the way back up can
+   be made to wait longer each time. */
+for (const s of QSTEPS) {
+  const d = s.down, u = s.up;
+  s.down = function () { d.call(s); s._downAt = now(); };
+  s.up = function () {
+    /* If this step was restored recently and we are already back here, the
+       device clearly cannot hold it — double its cooling-off period. */
+    if (s._upAt && now() - s._upAt < 12000) Quality.penalty[s.id] = Math.min((Quality.penalty[s.id] || 4000) * 2, 120000);
+    u.call(s);
+  };
+}
+
+function perfSample(dt) { Quality.sample(dt); }
 
 /* ============================ §8 FX: particles/shake/slow-mo ============== */
 const Particles = {
   pool: [],
   spawn(opts) {
-    if (this.pool.length >= perf.particleCap) return;
+    if (this.pool.length >= Q.particleCap) return;
     this.pool.push(Object.assign({
       x: 0, y: 0, vx: 0, vy: 0, life: 1, maxLife: 1, size: 3,
       color: '#fff', gravity: 0, drag: 0.99, glow: false, shape: 'dot', spin: 0, angle: 0,
     }, opts));
   },
   burst(x, y, color, count, speed, life = 0.9, glow = true) {
-    const n = perf.tier === 'low' ? Math.ceil(count * 0.4) : count;
+    const n = Q.burstScale === 1 ? count : Math.ceil(count * Q.burstScale);
     for (let i = 0; i < n; i++) {
       const a = rand(0, Math.PI * 2), s = rand(speed * 0.3, speed);
       this.spawn({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - speed * 0.3, life: rand(life * 0.5, life), maxLife: life, size: rand(2, 5.5), color, gravity: 240, drag: 0.96, glow });
     }
   },
   goldRain(x, y) { // jackpot / chase moments — gold everywhere
-    const n = perf.tier === 'low' ? 40 : 110;
+    const n = Math.ceil(110 * Q.burstScale);
     for (let i = 0; i < n; i++) {
       const a = rand(-Math.PI * 0.9, -Math.PI * 0.1), s = rand(220, 560);
       this.spawn({ x: x + rand(-60, 60), y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(1, 2), maxLife: 2, size: rand(2.5, 6), color: pick(['#FFD24A', '#FFE79A', '#FFF6D0', '#FFB930']), gravity: 380, drag: 0.985, glow: true });
     }
   },
   confetti(x, y, colors) {
-    const n = perf.tier === 'low' ? 26 : 80;
+    const n = Math.ceil(80 * Q.burstScale);
     for (let i = 0; i < n; i++) {
       const a = rand(-Math.PI * 0.85, -Math.PI * 0.15), s = rand(180, 480);
       this.spawn({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.9, 1.7), maxLife: 1.7, size: rand(3, 7), color: pick(colors), gravity: 420, drag: 0.985, shape: 'rect', spin: rand(-9, 9), glow: false });
@@ -3305,7 +3679,7 @@ const Shake = {
   trauma: 0, micro: 0,
   impulse(amount) { this.trauma = Math.min(1, this.trauma + amount); },
   offset(t) {
-    if (Settings.reduceMotion) return { x: 0, y: 0 };
+    if (!Q.flourish) return { x: 0, y: 0 };
     const a = this.trauma * this.trauma * 16 + this.micro * this.micro * 9;
     return { x: Math.sin(t * 0.061) * a + Math.sin(t * 0.127) * a * 0.5, y: Math.cos(t * 0.083) * a };
   },
@@ -3319,7 +3693,7 @@ const SlowMo = {
 };
 
 function flashScreen() {
-  if (Settings.reduceMotion) return;
+  if (!Q.flourish) return;
   const el = $('flash');
   el.style.transition = 'none'; el.style.opacity = '0.9';
   requestAnimationFrame(() => { el.style.transition = 'opacity 0.35s ease'; el.style.opacity = '0'; });
@@ -3978,6 +4352,11 @@ const AdManager = {
 /* ==================== §19 PHYSICS / STACK MANAGER ========================= */
 const { Engine, Bodies, Body, Composite, Events, Sleeping } = Matter;
 const engine = Engine.create({ enableSleeping: true });
+/* Bumped whenever the set of bodies in the world changes, so anything that
+   derives a list from it can cache against this instead of rebuilding. */
+let worldRev = 0;
+Events.on(engine.world, 'afterAdd', () => { worldRev++; });
+Events.on(engine.world, 'afterRemove', () => { worldRev++; });
 engine.gravity.y = 1;
 engine.positionIterations = 10;
 engine.velocityIterations = 8;
@@ -4121,9 +4500,19 @@ const Stack = {
       this.walls.forEach((wl) => Composite.add(engine.world, wl));
     }
   },
+  /* THE PIECE LIST, BUILT ONCE PER CHANGE INSTEAD OF ONCE PER ASK.
+
+     This used to walk the whole composite tree and allocate two arrays on every
+     call, and it is asked several times a frame — the render loop, the doom
+     check, the balance pass, the fusion scan, the camera. `plugin.piece` is set
+     when a body is built and never changes, so the only thing that can alter
+     the answer is a body entering or leaving the world. Matter tells us when
+     that happens; between those moments the same array is handed back. */
   pieces() {
-    return Composite.allBodies(engine.world).filter((b) => b.plugin && b.plugin.piece);
+    if (this._pcRev !== worldRev) { this._pcRev = worldRev; this._pc = Composite.allBodies(engine.world).filter((b) => b.plugin && b.plugin.piece); }
+    return this._pc;
   },
+  _pc: [], _pcRev: -1,
   clearPieces() {
     this.pieces().forEach((b) => Composite.remove(engine.world, b));
     this.fusionQueue.length = 0;
@@ -4167,8 +4556,15 @@ const Stack = {
        multiples of 2π/n from its angle, so a pentagon at 0 is resting 18° off
        its own bottom face — it is standing on a corner. The angle that actually
        puts a face on the floor is π/2 folded into one face-step. */
-    Body.setAngle(body, (def.flat || def.special === 'star' || def.special === 'jackpot')
-      ? restAngle(sides) : rand(-0.25, 0.25));
+    /* `flat` means "start from a face on the floor" — with `tilt`, it means
+       "start from a face on the floor and then lean off it by this much". A
+       merge uses the second form: it is the lean the block always arrived with,
+       measured from the right reference this time, and the settle assist is
+       what now takes it back down onto its face afterwards. */
+    const flatBorn = def.flat || def.special === 'star' || def.special === 'jackpot';
+    Body.setAngle(body, flatBorn
+      ? restAngle(sides) + (def.tilt ? rand(-def.tilt, def.tilt) : 0)
+      : rand(-0.25, 0.25));
     body.plugin = {
       piece: true, tier: def.tier, kind: def.kind || 'poly', rScale: def.rScale || 1, r,
       special: def.special || null, giftNote: !!def.giftNote,
@@ -4256,7 +4652,7 @@ const Stack = {
       Composite.remove(engine.world, a);
       Composite.remove(engine.world, b);
       removed = true;
-      const merged = this.spawnPiece({ tier: newTier, kind: 'poly', rScale: 1, flat: true }, clamp(mx, 40, WORLD.width - 40), my);
+      const merged = this.spawnPiece({ tier: newTier, kind: 'poly', rScale: 1, flat: true, tilt: CONFIG.fusionTilt }, clamp(mx, 40, WORLD.width - 40), my);
       merged.plugin.fusedAt = now();
       Body.setVelocity(merged, { x: 0, y: -0.6 });
       Game.onFusion(merged, mult, specials);
@@ -4505,6 +4901,15 @@ const Balance = {
   GRACE_MS: 240,         // how long it has to sit like that before we believe it
   MAX_NUDGES: 14,        // and a ceiling, so nothing can be nudged forever
   FLAT_MIN: 0.075,       // ~4.3°: below this it is flat enough for anyone
+  /* Tuned against Matter's own sleep threshold. Too low (0.012) and a piece
+     falls asleep crooked in the gap before the assist can engage — and a
+     sleeping body's contacts are deactivated, so it can never be read again.
+     Too high (0.12) and the assist starts shoving pieces that are still
+     travelling. At 0.09 a merge swings 3-21 degrees and comes to rest under 4,
+     measured over thirty merges. */
+  FLAT_STILL: 0.09,     // and above this it is still moving, so leave it be
+  FLAT_RENEW: 2000,      // left alone this long, a stuck piece may try again
+  WAKE_MIN: 0.14,        // ~8°: worth waking a sleeper to straighten it out
   FLAT_WAIT: 200,        // let it actually stop moving before deciding it is stuck
   FLAT_MAX_MS: 1400,     // and never push on one piece longer than this
 
@@ -4598,15 +5003,45 @@ const Balance = {
      allowed. An earlier version refused to touch anything with a side contact
      at all, which in a real tower is very nearly every piece on the board, so
      it never fired once outside a laboratory. */
+  /* The assist's allowance, shared by both paths below. It is a rate limit
+     rather than a life sentence: a piece shoved crooked spends its allowance
+     failing to straighten against whatever is leaning on it, and used to be
+     abandoned that way for the rest of the run even after the thing pinning it
+     had gone. Left alone for a couple of seconds, it earns another go. */
+  spend(p) {
+    const tn = now();
+    if (tn - (p.flatLast || 0) > this.FLAT_RENEW) p.flatFor = 0;
+    p.flatLast = tn;
+    if ((p.flatFor || 0) > this.FLAT_MAX_MS) return false;   // it has had its chance, for now
+    p.flatFor = (p.flatFor || 0) + 16;
+    return true;
+  },
+
   flatten(b, e) {
     const p = b.plugin;
-    if (!e || !e.under || !e.level) { p.flatAt = 0; return; }
     const err = this.toFlat(b);
     if (Math.abs(err) < this.FLAT_MIN) { p.flatAt = 0; p.flatFor = 0; return; }
+    /* A SLEEPING body has no contacts to read — Matter deactivates the pairs
+       between sleeping bodies — so there is no support data here at all, and a
+       piece that fell asleep crooked would stay crooked for the rest of the
+       run. That was the whole failure: most blocks settled dead flat and a
+       handful sat at thirty degrees forever. If it is badly off and it still
+       has allowance, knock on the door. The next tick has real contacts and
+       the ordinary path below takes over. */
+    if (b.isSleeping) {
+      if (Math.abs(err) > this.WAKE_MIN && this.spend(p)) Sleeping.set(b, false);
+      return;
+    }
+    if (!e || !e.under || !e.level) { p.flatAt = 0; return; }
+    /* A piece that is still turning is not stuck, it is settling — and a merge
+       arrives deliberately rocking. Waiting for it to actually stop does two
+       things: the wobble is left to play out as physics rather than being
+       fought, and the assist's budget is still intact at the moment it is
+       needed, which is when the rocking ends on a corner instead of a face. */
+    if (Math.abs(b.angularVelocity) > this.FLAT_STILL) { p.flatAt = 0; return; }
     if (!p.flatAt) { p.flatAt = now(); return; }
     if (now() - p.flatAt < this.FLAT_WAIT) return;
-    if ((p.flatFor || 0) > this.FLAT_MAX_MS) return;     // it has had its chance
-    p.flatFor = (p.flatFor || 0) + 16;
+    if (!this.spend(p)) return;
     Sleeping.set(b, false);
     // eased, never snapped: the piece rocks down onto its face over a few
     // frames the way it would have if friction had let it
@@ -4702,6 +5137,7 @@ const Game = {
   maxRevives() { return save.powers.includes('power_encore') ? 2 : 1; },
 
   startRun(opts = {}) {
+    Quality.calm(2500);          // a run opening is not evidence about the device
     Stack.buildPlatform();
     Stack.clearPieces();
     Director.refill(save.runsTotal === 0 ? CONFIG.onboarding.seededQueue.slice() : null);
@@ -5693,7 +6129,7 @@ const EventDirector = {
     m.trail = m.trail || [];
     m.trail.push({ x: m.x, y: m.y });
     if (m.trail.length > 26) m.trail.shift();
-    if (perf.tier !== 'low') {
+    if (Q.embers) {
       // embers, thrown back and sideways and dragged out — a rock this hot
       // should be visibly losing pieces of itself
       for (let i = 0; i < 2; i++) {
@@ -5861,7 +6297,7 @@ FeedbackBus.on('surprise', (p) => {
 });
 
 function resize() {
-  dpr = Math.min(window.devicePixelRatio || 1, perf.tier === 'low' ? 1.5 : 2);
+  dpr = Math.min(window.devicePixelRatio || 1, Q.dprCap);
   cw = window.innerWidth; ch = window.innerHeight;
   canvas.width = Math.round(cw * dpr);
   canvas.height = Math.round(ch * dpr);
@@ -5896,6 +6332,33 @@ function lighten(hex, amt) {
    keeps every tip on or inside the hull it actually collides with. */
 const STAR_R = { outer: 0.92, inner: 0.42 };
 
+/* Every block's body fill, built once per look instead of once per frame.
+
+   A block's gradient depends on three things that barely ever change — which
+   skin it is, what colour its tier is, and how big it is — and on nothing that
+   changes as it moves. Rebuilding it sixty times a second per block was
+   measured at about half a millisecond a frame on a two-dozen-block board, all
+   of it thrown away. The set of distinct looks is tiny, so they are simply
+   kept. */
+const GRAD_CACHE = new Map();
+function pieceGradient(sp, color, r) {
+  const key = (sp || '') + '|' + color + '|' + r;
+  let g = GRAD_CACHE.get(key);
+  if (g) return g;
+  if (GRAD_CACHE.size > 96) GRAD_CACHE.clear();   // themes and packs change the palette
+  g = ctx.createRadialGradient(-r * 0.3, -r * 0.4, r * 0.1, 0, 0, r * 1.5);
+  if (sp === 'golden') {
+    // struck metal falls off to bronze at the rim — the one thing a flat
+    // yellow block never does, and what keeps the two apart at a glance
+    g.addColorStop(0, '#FFDC7A'); g.addColorStop(0.55, '#E3A81B'); g.addColorStop(1, '#8A6410');
+  } else {
+    g.addColorStop(0, lighten(color, sp === 'ice' ? 0.5 : 0.35));
+    g.addColorStop(1, color);
+  }
+  GRAD_CACHE.set(key, g);
+  return g;
+}
+
 function starPath(cx, cy, rOuter, rInner, pts, rot) {
   ctx.beginPath();
   for (let i = 0; i < pts * 2; i++) {
@@ -5911,7 +6374,7 @@ function drawBomb(b, t) {
   const x = b.position.x, y = b.position.y, r = b.plugin.r;
   const pulse = 0.5 + 0.5 * Math.sin(t * 0.012);
   // red danger halo
-  if (perf.tier !== 'low') { ctx.shadowColor = '#ff2a44'; ctx.shadowBlur = 14 + pulse * 16; }
+  if (Q.pieceGlow) { ctx.shadowColor = '#ff2a44'; ctx.shadowBlur = 14 + pulse * 16; }
   // dark metal sphere
   ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
   const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r * 1.15);
@@ -5929,11 +6392,11 @@ function drawBomb(b, t) {
   ctx.strokeStyle = '#d8c37a'; ctx.lineWidth = 3; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(capX, capY); ctx.quadraticCurveTo(capX + r * 0.5, capY - r * 0.5, capX + r * 0.25, capY - r * 0.8); ctx.stroke();
   const sparkR = (2 + pulse * 3);
-  if (perf.tier !== 'low') { ctx.shadowColor = '#ffcf5c'; ctx.shadowBlur = 12; }
+  if (Q.pieceGlow) { ctx.shadowColor = '#ffcf5c'; ctx.shadowBlur = 12; }
   ctx.beginPath(); ctx.arc(capX + r * 0.25, capY - r * 0.8, sparkR, 0, Math.PI * 2);
   ctx.fillStyle = pulse > 0.5 ? '#fff3b0' : '#ff8a3c'; ctx.fill();
   ctx.shadowBlur = 0;
-  if (Math.random() < 0.4 && perf.tier !== 'low') {
+  if (Math.random() < 0.4 && Q.embers) {
     Particles.spawn({ x: capX + r * 0.25, y: capY - r * 0.8, vx: rand(-20, 20), vy: rand(-50, -20), life: 0.4, maxLife: 0.4, size: rand(1, 2.5), color: pick(['#ffd166', '#ff8a3c', '#fff3b0']), glow: true });
   }
   // countdown ring
@@ -5976,17 +6439,17 @@ function magnetPath(c, r) {
 function drawMagnet(b, t) {
   const x = b.position.x, y = b.position.y, r = b.plugin.r;
   ctx.save(); ctx.translate(x, y); ctx.rotate(b.angle);
-  if (perf.tier !== 'low') { ctx.shadowColor = '#ff3b6b'; ctx.shadowBlur = 10 + 8 * (0.5 + 0.5 * Math.sin(t * 0.01)); }
+  if (Q.pieceGlow) { ctx.shadowColor = '#ff3b6b'; ctx.shadowBlur = 10 + 8 * (0.5 + 0.5 * Math.sin(t * 0.01)); }
   magnetPath(ctx, r);
   ctx.shadowBlur = 0;
   ctx.restore();
   // pull sparks
-  if (perf.tier !== 'low' && Math.random() < 0.3) Particles.spawn({ x: x + rand(-r, r) * 1.6, y: y + rand(-r, r) * 1.6, vx: (x - (x + rand(-40, 40))) * 0.5, vy: 0, life: 0.3, maxLife: 0.3, size: 1.5, color: '#ff8aa0', glow: true });
+  if (Q.embers && Math.random() < 0.3) Particles.spawn({ x: x + rand(-r, r) * 1.6, y: y + rand(-r, r) * 1.6, vx: (x - (x + rand(-40, 40))) * 0.5, vy: 0, life: 0.3, maxLife: 0.3, size: 1.5, color: '#ff8aa0', glow: true });
 }
 // 🏋️ HEAVY — dark iron block with bolts + weight bars
 function drawHeavy(b, glow) {
   const x = b.position.x, y = b.position.y, r = b.plugin.r;
-  if (perf.tier !== 'low') { ctx.shadowColor = '#8894b0'; ctx.shadowBlur = glow; }
+  if (Q.pieceGlow) { ctx.shadowColor = '#8894b0'; ctx.shadowBlur = glow; }
   bodyPath(b);
   const g = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
   g.addColorStop(0, '#6b7590'); g.addColorStop(0.5, '#3a4257'); g.addColorStop(1, '#232a3a');
@@ -6002,7 +6465,7 @@ function drawHeavy(b, glow) {
 // 🧩 SPLIT — a block scored with dashed break-lines
 function drawSplit(b, glow) {
   const x = b.position.x, y = b.position.y, r = b.plugin.r;
-  if (perf.tier !== 'low') { ctx.shadowColor = '#7affc0'; ctx.shadowBlur = glow; }
+  if (Q.pieceGlow) { ctx.shadowColor = '#7affc0'; ctx.shadowBlur = glow; }
   bodyPath(b);
   const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r * 1.4);
   g.addColorStop(0, '#a8ffcf'); g.addColorStop(1, '#2fae7a');
@@ -6016,7 +6479,7 @@ function drawSplit(b, glow) {
 function drawAngry(b, glow, t) {
   const x = b.position.x, y = b.position.y, r = b.plugin.r;
   const col = themeColor(b.plugin.tier);
-  if (perf.tier !== 'low') { ctx.shadowColor = col; ctx.shadowBlur = glow; }
+  if (Q.pieceGlow) { ctx.shadowColor = col; ctx.shadowBlur = glow; }
   bodyPath(b);
   const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.4, r * 0.1, x, y, r * 1.5);
   g.addColorStop(0, lighten(col, 0.3)); g.addColorStop(1, col);
@@ -6045,7 +6508,7 @@ function drawDice(b, glow) {
      merge with right now, so the answer is the same glance you use for every
      other block on the board. It brightens when the roll locks. */
   const tierCol = themeColor(clamp(b.plugin.tier, 1, TIERS.count));
-  if (perf.tier !== 'low') { ctx.shadowColor = tierCol; ctx.shadowBlur = glow + (b.plugin.diceLocked ? 10 : 0); }
+  if (Q.pieceGlow) { ctx.shadowColor = tierCol; ctx.shadowBlur = glow + (b.plugin.diceLocked ? 10 : 0); }
   const g = ctx.createLinearGradient(-r, -r, r, r); g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#cdd3e0');
   ctx.fillStyle = g; roundRect2(-r * 0.85, -r * 0.85, r * 1.7, r * 1.7, r * 0.28); ctx.fill(); ctx.shadowBlur = 0;
   ctx.strokeStyle = tierCol;
@@ -6069,7 +6532,7 @@ function drawDice(b, glow) {
 function drawChest(b, t) {
   const x = b.position.x, y = b.position.y, r = b.plugin.r;
   ctx.save(); ctx.translate(x, y); ctx.rotate(b.angle);
-  if (perf.tier !== 'low') { ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 12 + 8 * (0.5 + 0.5 * Math.sin(t * 0.008)); }
+  if (Q.pieceGlow) { ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 12 + 8 * (0.5 + 0.5 * Math.sin(t * 0.008)); }
   // body
   ctx.fillStyle = '#7a4a1e'; roundRect2(-r * 0.9, -r * 0.4, r * 1.8, r * 1.2, r * 0.14); ctx.fill();
   // lid
@@ -6082,13 +6545,13 @@ function drawChest(b, t) {
   // keyhole
   ctx.fillStyle = '#3a2408'; ctx.beginPath(); ctx.arc(0, 0, r * 0.14, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
-  if (perf.tier !== 'low' && Math.random() < 0.25) Particles.spawn({ x: x + rand(-r, r), y: y - r, vx: 0, vy: rand(-30, -10), life: 0.5, maxLife: 0.5, size: rand(1, 2.5), color: '#fff3b0', glow: true });
+  if (Q.embers && Math.random() < 0.25) Particles.spawn({ x: x + rand(-r, r), y: y - r, vx: 0, vy: rand(-30, -10), life: 0.5, maxLife: 0.5, size: rand(1, 2.5), color: '#fff3b0', glow: true });
 }
 // 💎 JACKPOT — a huge faceted gold diamond
 function drawJackpot(b, t) {
   const x = b.position.x, y = b.position.y, r = b.plugin.r;
   ctx.save(); ctx.translate(x, y); ctx.rotate(b.angle);
-  if (perf.tier !== 'low') { ctx.shadowColor = '#8be0ff'; ctx.shadowBlur = 20 + 14 * (0.5 + 0.5 * Math.sin(t * 0.01)); }
+  if (Q.pieceGlow) { ctx.shadowColor = '#8be0ff'; ctx.shadowBlur = 20 + 14 * (0.5 + 0.5 * Math.sin(t * 0.01)); }
   const g = ctx.createLinearGradient(-r, -r, r, r);
   g.addColorStop(0, '#eaffff'); g.addColorStop(0.5, '#8be0ff'); g.addColorStop(1, '#ffd93a');
   polyPath(ctx, 0, 0, 4, r * 1.2, Math.PI / 4); ctx.fillStyle = g; ctx.fill(); ctx.shadowBlur = 0;
@@ -6097,7 +6560,7 @@ function drawJackpot(b, t) {
   ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(-r * 1.2, 0); ctx.lineTo(r * 1.2, 0); ctx.moveTo(0, -r * 1.2); ctx.lineTo(0, r * 1.2); ctx.stroke();
   ctx.restore();
-  if (perf.tier !== 'low' && Math.random() < 0.4) Particles.spawn({ x: x + rand(-r, r), y: y + rand(-r, r), vx: rand(-20, 20), vy: rand(-40, -10), life: 0.5, maxLife: 0.5, size: rand(1.5, 3.5), color: pick(['#8be0ff', '#fff3b0', '#ffd93a']), glow: true });
+  if (Q.embers && Math.random() < 0.4) Particles.spawn({ x: x + rand(-r, r), y: y + rand(-r, r), vx: rand(-20, 20), vy: rand(-40, -10), life: 0.5, maxLife: 0.5, size: rand(1.5, 3.5), color: pick(['#8be0ff', '#fff3b0', '#ffd93a']), glow: true });
 }
 function roundRect2(x, y, w, h, r) {
   ctx.beginPath(); ctx.moveTo(x + r, y);
@@ -6299,7 +6762,7 @@ function drawPhaseBlock(b, t) {
   const p = b.plugin, r = p.r, tier = p.tier;
   const P = CONFIG.phase;
   const x = b.position.x, y = b.position.y;
-  const lowFx = perf.tier === 'low';
+  const lowFx = !Q.setpiece;
 
   // ---------- LEAVING ----------
   if (p.phase === 'out') {
@@ -6399,7 +6862,7 @@ function drawPhaseBlock(b, t) {
   ctx.save();
   ctx.translate(x + rand(-jitter, jitter), y + rand(-jitter, jitter));
   ctx.rotate(b.angle);
-  if (perf.tier !== 'low') {
+  if (Q.pieceGlow) {
     ctx.shadowColor = '#9d8bff';
     ctx.shadowBlur = 14 + breathe * 12 + soon * 22;
   }
@@ -6447,7 +6910,7 @@ function drawPhaseBlock(b, t) {
    velocity is what makes it look like it is burning through air instead of
    wearing a cone. */
 function drawMeteor(m, t) {
-  const lowFx = perf.tier === 'low';
+  const lowFx = !Q.setpiece;
   const trail = m.trail || [];
   const R = 22;
   const sp = Math.hypot(m.vx, m.vy) || 1;
@@ -6609,32 +7072,35 @@ function drawBody(b, glowStrength, t) {
     ctx.closePath();
   }
 
+  let atOrigin = false;
   if (sp === 'rainbow') {
-    // full animated rainbow fill — unmistakable
+    // full animated rainbow fill — its hue moves every frame, so there is
+    // nothing here to cache and it is drawn where it always was
     const rg = ctx.createLinearGradient(b.position.x - r, b.position.y - r, b.position.x + r, b.position.y + r);
     const off = (t * 0.03) % 360;
     for (let i = 0; i <= 6; i++) rg.addColorStop(i / 6, `hsl(${(off + i * 60) % 360} 95% 62%)`);
     ctx.fillStyle = rg;
-  } else {
-    const g = ctx.createRadialGradient(
-      b.position.x - r * 0.3, b.position.y - r * 0.4, r * 0.1,
-      b.position.x, b.position.y, r * 1.5);
-    if (sp === 'golden') {
-      // struck metal falls off to bronze at the rim — the one thing a flat
-      // yellow block never does, and what keeps the two apart at a glance
-      g.addColorStop(0, '#FFDC7A'); g.addColorStop(0.55, '#E3A81B'); g.addColorStop(1, '#8A6410');
-    } else {
-      g.addColorStop(0, lighten(color, sp === 'ice' ? 0.5 : 0.35));
-      g.addColorStop(1, color);
-    }
-    ctx.fillStyle = g;
+  } else {    atOrigin = true;
+    ctx.fillStyle = pieceGradient(sp, color, r);
   }
-  if (perf.tier !== 'low') {
+  if (Q.pieceGlow) {
     ctx.shadowColor = sp === 'golden' ? '#F0B417' : sp === 'star' ? '#ffd700' : sp === 'rainbow' ? '#ff5ad0' : color;
     ctx.shadowBlur = (sp === 'golden' || sp === 'star') ? glowStrength + 16 : glowStrength;
   }
   if (sp === 'unstable') ctx.globalAlpha = 0.7 + 0.3 * Math.sin(t * 0.02);
-  ctx.fill();
+  /* The gradient is built once per (skin, colour, radius) and kept, which means
+     it is built at the ORIGIN rather than at the block. A canvas resolves a
+     gradient in whatever space is in effect when the paint lands — while the
+     path was already baked when it was traced — so translating to the block for
+     the fill alone puts the identical gradient in the identical place, and the
+     path is untouched. Same pixels, one allocation instead of one per block per
+     frame. */
+  if (atOrigin) {
+    ctx.save();
+    ctx.translate(b.position.x, b.position.y);
+    ctx.fill();
+    ctx.restore();
+  } else ctx.fill();
   ctx.globalAlpha = 1;
   ctx.shadowBlur = 0;
   ctx.lineJoin = 'round';
@@ -6691,7 +7157,7 @@ function drawBody(b, glowStrength, t) {
     // electric arcs radiating from center
     ctx.strokeStyle = `rgba(255,240,120,${0.5 + 0.5 * Math.random()})`; ctx.lineWidth = 1.5;
     for (let i = 0; i < 2; i++) { const a = rand(0, 6.28); ctx.beginPath(); ctx.moveTo(b.position.x, b.position.y); ctx.lineTo(b.position.x + Math.cos(a) * r * 1.2, b.position.y + Math.sin(a) * r * 1.2); ctx.stroke(); }
-    if (perf.tier !== 'low' && Math.random() < 0.4) Particles.spawn({ x: b.position.x + rand(-r, r), y: b.position.y + rand(-r, r), vx: rand(-40, 40), vy: rand(-40, 40), life: 0.2, maxLife: 0.2, size: rand(1, 2.2), color: '#fff28a', glow: true });
+    if (Q.embers && Math.random() < 0.4) Particles.spawn({ x: b.position.x + rand(-r, r), y: b.position.y + rand(-r, r), vx: rand(-40, 40), vy: rand(-40, 40), life: 0.2, maxLife: 0.2, size: rand(1, 2.2), color: '#fff28a', glow: true });
   }
   if (glitched) ctx.restore(); // end unstable glitch-offset transform
 
@@ -6708,7 +7174,7 @@ function drawBody(b, glowStrength, t) {
     ctx.globalAlpha = 1;
   }
   // golden / star sparkle
-  if ((sp === 'golden' || sp === 'star') && Math.random() < 0.14 && perf.tier !== 'low') {
+  if ((sp === 'golden' || sp === 'star') && Math.random() < 0.14 && Q.embers) {
     Particles.spawn({ x: b.position.x + rand(-r, r), y: b.position.y + rand(-r, r), vx: rand(-16, 16), vy: rand(-40, -12), life: 0.5, maxLife: 0.5, size: rand(1.5, 3), color: sp === 'golden' ? '#FFE9A8' : '#fff3b0', glow: true });
   }
 }
@@ -6745,7 +7211,7 @@ function paintDock(hw, detail, slab) {
   /* The ambient glow is skipped on a slab: clipped to a slice it stops being a
      halo around a lit object and becomes a hot line down both cut edges, which
      is exactly what makes an assembly read as stripes instead of one deck. */
-  if (perf.tier !== 'low' && !slab) { ctx.shadowColor = skin.glow; ctx.shadowBlur = 18; }
+  if (Q.propGlow && !slab) { ctx.shadowColor = skin.glow; ctx.shadowBlur = 18; }
   const bg = ctx.createLinearGradient(0, y0, 0, y0 + h);
   bg.addColorStop(0, skin.c1); bg.addColorStop(1, skin.c2);
   ctx.fillStyle = bg;
@@ -6798,7 +7264,7 @@ function paintDock(hw, detail, slab) {
     case 'lava': { // one thin ember seam, breathing slowly
       const glow = 0.55 + 0.35 * Math.sin(t * 0.002);
       ctx.strokeStyle = `rgba(255,110,30,${glow})`; ctx.lineWidth = 2;
-      if (perf.tier !== 'low') { ctx.shadowColor = '#ff6b1e'; ctx.shadowBlur = 8; }
+      if (Q.propGlow) { ctx.shadowColor = '#ff6b1e'; ctx.shadowBlur = 8; }
       ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + h * 0.55);
       ctx.lineTo(x0 + w * 0.3, y0 + h * 0.45); ctx.lineTo(x0 + w * 0.55, y0 + h * 0.6);
       ctx.lineTo(x0 + w * 0.8, y0 + h * 0.5); ctx.lineTo(x0 + w - 8, y0 + h * 0.58);
@@ -6812,7 +7278,7 @@ function paintDock(hw, detail, slab) {
       ctx.fillStyle = 'rgba(60,230,170,0.35)';
       for (let i = 1; i <= 4; i++) { ctx.beginPath(); ctx.arc(x0 + (w * i) / 5, midY, 2, 0, Math.PI * 2); ctx.fill(); }
       const px = x0 + ((t * 0.045) % w);
-      if (perf.tier !== 'low') { ctx.shadowColor = '#3ce6aa'; ctx.shadowBlur = 8; }
+      if (Q.propGlow) { ctx.shadowColor = '#3ce6aa'; ctx.shadowBlur = 8; }
       ctx.fillStyle = '#8affd4'; ctx.beginPath(); ctx.arc(px, midY, 2.6, 0, Math.PI * 2); ctx.fill();
       ctx.shadowBlur = 0;
       break;
@@ -6883,7 +7349,7 @@ function paintDock(hw, detail, slab) {
       ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + 7); ctx.lineTo(x0 + w - 8, y0 + 7); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + h - 7); ctx.lineTo(x0 + w - 8, y0 + h - 7); ctx.stroke();
       const spin = t * 0.0009;
-      if (perf.tier !== 'low') { ctx.shadowColor = '#fff'; ctx.shadowBlur = 14; }
+      if (Q.propGlow) { ctx.shadowColor = '#fff'; ctx.shadowBlur = 14; }
       ctx.fillStyle = '#fff';
       starPath(cx, y0 + h / 2, 11, 4.4, 4, spin); ctx.fill();
       starPath(cx, y0 + h / 2, 6.5, 2.6, 4, spin + Math.PI / 4); ctx.fillStyle = '#FFE9A8'; ctx.fill();
@@ -6896,7 +7362,7 @@ function paintDock(hw, detail, slab) {
       ctx.strokeStyle = 'rgba(255,214,110,0.45)';
       ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + h - 8); ctx.lineTo(x0 + w - 8, y0 + h - 8); ctx.stroke();
       const pulse = 0.7 + 0.3 * Math.sin(t * 0.0015);
-      if (perf.tier !== 'low') { ctx.shadowColor = '#ffd66e'; ctx.shadowBlur = 10 * pulse; }
+      if (Q.propGlow) { ctx.shadowColor = '#ffd66e'; ctx.shadowBlur = 10 * pulse; }
       ctx.fillStyle = '#ffd66e';
       polyPath(ctx, cx, y0 + h / 2, 4, 7, Math.PI / 4); ctx.fill();
       ctx.shadowBlur = 0;
@@ -6921,7 +7387,7 @@ function paintWalls(k) {
   for (const wl of Stack.walls) {
     const wx = wl.position.x;
     ctx.fillStyle = lighten(skin.c1, 0.1);
-    if (perf.tier !== 'low') { ctx.shadowColor = skin.glow; ctx.shadowBlur = 10; }
+    if (Q.propGlow) { ctx.shadowColor = skin.glow; ctx.shadowBlur = 10; }
     roundRect(wx - 6, WORLD.platformY - wallH + 6, 12, wallH, 6); ctx.fill();
     ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -6965,7 +7431,7 @@ function render(t) {
   ctx.fillStyle = `hsl(${bgH.toFixed(1)}, ${(bgS * 0.6).toFixed(1)}%, 27%)`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   // one soft pool of the same colour, a little brighter, behind the tower
-  if (perf.tier !== 'low') {
+  if (Q.bgPool) {
     const px = canvas.width / 2, py = canvas.height * 0.56, pr = Math.max(canvas.width, canvas.height) * 0.62;
     const pool = ctx.createRadialGradient(px, py, 10, px, py, pr);
     pool.addColorStop(0, `hsla(${bgH.toFixed(1)}, ${(bgS * 0.68).toFixed(1)}%, 35%, 0.5)`);
@@ -7033,7 +7499,7 @@ function render(t) {
     ctx.restore();
 
     // matter falling in, on a spiral rather than straight lines
-    if (perf.tier !== 'low' && Math.random() < 0.45) {
+    if (Q.embers && Math.random() < 0.45) {
       const a = rand(0, 6.28), d0 = rand(rr * 2.2, rr * 3.6);
       Particles.spawn({
         x: bh.x + Math.cos(a) * d0, y: bh.y + Math.sin(a) * d0,
@@ -7091,7 +7557,7 @@ function render(t) {
       ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
       ctx.restore();
     } else {
-      if (p.glow && perf.tier !== 'low') { ctx.shadowColor = p.color; ctx.shadowBlur = 8; }
+      if (p.glow && Q.particleGlow) { ctx.shadowColor = p.color; ctx.shadowBlur = 8; }
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
@@ -7115,7 +7581,7 @@ function render(t) {
     ctx.font = `800 ${size}px Sora, sans-serif`;
     ctx.textAlign = 'center';
     ctx.fillStyle = p.color;
-    if (perf.tier !== 'low') { ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 6; }
+    if (Q.popShadow) { ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 6; }
     ctx.fillText(p.text, p.x, p.y - age * 46);
     ctx.shadowBlur = 0;
   }
@@ -7682,7 +8148,7 @@ const Strain = {
     }
 
     // dust dragged off the near faces, falling up the axis toward the middle
-    if (perf.tier !== 'low' && Math.random() < this.k * 0.9) {
+    if (Q.embers && Math.random() < this.k * 0.9) {
       const from = Math.random() < 0.5 ? f.a : f.b;
       const s = from === f.a ? 1 : -1;
       const px = from.position.x + nx * s * from.plugin.r * rand(0.75, 1.0) + rand(-14, 14);
@@ -7731,7 +8197,7 @@ const Strain = {
     const ex = bx - nx * b.plugin.r * 0.94, ey = by - ny * b.plugin.r * 0.94;
     const mx = (sx + ex) / 2, my = (sy + ey) / 2;
     const gapLen = Math.max(1, Math.hypot(ex - sx, ey - sy));
-    const lowFx = perf.tier === 'low';
+    const lowFx = !Q.setpiece;
     const R = a.plugin.r + b.plugin.r;
 
     /* ---- the far half of the effect ------------------------------------
@@ -8216,7 +8682,7 @@ const Overflow = {
         ctx.fillStyle = pg;
         ctx.beginPath(); ctx.arc(p.position.x, p.position.y, pr, 0, Math.PI * 2); ctx.fill();
       }
-      if (perf.tier !== 'low') {
+      if (Q.setpiece) {
         // rings tightening INWARD — the light is being gathered, not spent
         for (let i = 0; i < 3; i++) {
           const rk = ((k * 2.2 + i / 3) % 1);
@@ -8247,7 +8713,7 @@ const Overflow = {
       return;
     }
     // the bloom, and a column of light standing where the blocks were
-    if (perf.tier === 'low') return;
+    if (!Q.flourish) return;
     const n = now();
     /* What replaced the shockwaves. Three soft falloffs at slightly different
        speeds, each one a filled radial gradient that fades to nothing at its
@@ -8289,7 +8755,7 @@ const Overflow = {
   /* Screen-space finish: the gold wash at the edges, and the rings that come
      off the number itself when it takes a hit. */
   drawHud() {
-    if (!this.active || perf.tier === 'low' || Settings.reduceMotion) return;
+    if (!this.active || !Q.flourish) return;
     const n = now();
     if (this.vig > 0.02) {
       const v = ctx.createRadialGradient(cw / 2, ch * 0.42, Math.min(cw, ch) * 0.28, cw / 2, ch * 0.42, Math.max(cw, ch) * 0.75);
@@ -8735,7 +9201,7 @@ const Reveal = {
   /* The flourish over the top: the part that is unmistakably THIS deck. Drawn
      in world space, over the slabs, under the pieces. */
   drawDockFx(hw, b) {
-    if (perf.tier === 'low') return;
+    if (!Q.flourish) return;
     const x0 = WORLD.width / 2 - hw, w = hw * 2, y0 = WORLD.platformY, h = WORLD.platformH + 26;
     const cx = WORLD.width / 2, el = b.el, n = this.show.parts;
     const skin = Economy.dock;
@@ -8920,7 +9386,7 @@ const Reveal = {
           const run = w * EASE.out3(k);
           ctx.beginPath(); ctx.moveTo(x0 + 8, y0 + 8); ctx.lineTo(x0 + 8 + run, y0 + 8); ctx.stroke();
           ctx.beginPath(); ctx.moveTo(x0 + w - 8, y0 + h - 8); ctx.lineTo(x0 + w - 8 - run, y0 + h - 8); ctx.stroke();
-          if (perf.tier !== 'low' && Math.random() < 0.6) {
+          if (Q.embers && Math.random() < 0.6) {
             Particles.spawn({ x: x0 + 8 + run, y: y0 + 8, vx: rand(-30, 30), vy: rand(-40, 10),
               life: 0.5, maxLife: 0.5, size: rand(1, 2.6), color: '#ffd66e', glow: true, drag: 0.6 });
           }
@@ -9311,7 +9777,7 @@ const Weather = {
     /* 2. the streaks. Each is drawn twice — a dark pass a pixel below and a
        light pass on top — which is the whole contrast trick: on a pale board
        the dark edge carries it, on a dark board the light one does. */
-    if (perf.tier === 'low') return;
+    if (!Q.flourish) return;
     const T = t * 0.001;
     ctx.lineCap = 'round';
     for (const s of this.streaks) {
@@ -9461,7 +9927,7 @@ const IdleShow = {
       if (now() >= this.endsAt || !Game.inPlay()) this.stop();
       return;
     }
-    if (Settings.reduceMotion || perf.tier === 'low') return;
+    if (!Q.flourish) return;
     if (!Game.inPlay() || Game.state !== 'DECISION' || Tutor.active || Overflow.active) return;
     const t = now();
     if (t >= this.nextAt) { this.play(this.deal()); return; }
@@ -9498,7 +9964,7 @@ const BlockHint = {
      an explanation still sitting there for a block that left is worse than no
      explanation at all. */
   MAX_MS: 11000,       // and a ceiling, for a piece nobody ever drops
-  def: null, body: null, special: '', shownAt: 0, el: null, outT: 0, poll: 0,
+  def: null, body: null, special: '', shownAt: 0, el: null, outT: 0, poll: 0, waitT: 0,
 
   node() { return this.el || (this.el = $('block-hint')); },
 
@@ -9524,7 +9990,7 @@ const BlockHint = {
     clearTimeout(this.outT);
     this.outT = setTimeout(() => { el.classList.add('hidden'); el.classList.remove('out'); }, 300);
   },
-  clear() { this.def = null; this.body = null; this.special = ''; this.hide(); },
+  clear() { clearTimeout(this.waitT); this.def = null; this.body = null; this.special = ''; this.hide(); },
 
   // is the piece this hint is about still on the board?
   alive(b) {
@@ -9566,7 +10032,15 @@ const BlockHint = {
     this.body = null;
     this.special = def.special;
     this.shownAt = now();
-    this.show(def, meta);
+    clearTimeout(this.waitT);
+    /* The same block is often announced twice: once as "INCOMING" while it is
+       still in the queue, and again here as the banner that explains it. They
+       live at the same place on screen, so arriving together reads as a pile-up
+       rather than as two messages. The toast is sent away first, and the banner
+       waits for it to finish leaving. */
+    const wait = UI.dismissToast();
+    if (wait) this.waitT = setTimeout(() => { if (this.def === def) this.show(def, meta); }, wait + 40);
+    else this.show(def, meta);
   },
 
   show(def, meta) {
@@ -9720,6 +10194,16 @@ const UI = {
     el.classList.add('show');
     clearTimeout(this._toastT);
     this._toastT = setTimeout(() => el.classList.remove('show'), 2200);
+  },
+  toastUp() { const el = $('toast'); return !!el && el.classList.contains('show'); },
+  /* Take the toast down now rather than at the end of its two seconds, and say
+     how long it needs to finish fading so whatever is replacing it can wait. */
+  dismissToast() {
+    const el = $('toast');
+    if (!el || !el.classList.contains('show')) return 0;
+    clearTimeout(this._toastT);
+    el.classList.remove('show');
+    return TOAST_FADE_MS;
   },
   react(text, color = 'var(--text)') { // the big overreaction words
     const el = $('reaction');
@@ -10020,8 +10504,32 @@ const UI = {
   syncToggles() {
     $('tgl-sound').classList.toggle('on', Settings.sound);
     $('tgl-music').classList.toggle('on', Settings.music);
-    $('tgl-motion').classList.toggle('on', Settings.reduceMotion);
+    this.syncQuality();
   },
+  /* Move the lit block under the live mode and, in AUTO, say in one line what
+     the game has actually turned down. Called when settings opens and once a
+     second while it is open — never from the frame loop. */
+  syncQuality() {
+    const seg = $('seg-quality');
+    if (!seg) return;
+    const m = Quality.mode;
+    const btns = seg.querySelectorAll('button');
+    let on = null;
+    btns.forEach((b) => { const hit = b.dataset.q === m; b.classList.toggle('on', hit); if (hit) on = b; });
+    const ink = seg.querySelector('.seg-ink');
+    if (ink && on) { ink.style.left = on.offsetLeft + 'px'; ink.style.width = on.offsetWidth + 'px'; }
+    const note = $('q-note');
+    if (!note) return;
+    if (m === 'high') note.textContent = 'Everything on.';
+    else if (m === 'low') note.textContent = 'Effects reduced to keep frames steady.';
+    else if (!Quality.reasons.length) note.textContent = 'Everything on — this device is keeping up.';
+    else note.textContent = 'Eased off: ' + Quality.reasons.map((r) => r.why).join(', ') + '.';
+  },
+  /* The score, the multiplier and the BANK label are recomputed every frame but
+     change on maybe one frame in ten. Writing textContent invalidates the node
+     whether or not the string is new, and these three sit inside elements that
+     are themselves running CSS animations, so the cheapest write is the one
+     that does not happen. */
   hudTick(dt) {
     // keep the NEXT preview live so animated specials (rainbow, golden…) are
     // unmistakable in the box, not a stale single frame
@@ -10029,9 +10537,9 @@ const UI = {
     if (this._pvT > 0.15 && Game.inPlay()) { this._pvT = 0; this.renderNextPreview(); }
     // the OVERFLOW drives the number itself while it climbs (§21f)
     if (!Game.coinLock) Game.displayCoins = lerp(Game.displayCoins, Game.runCoins, Math.min(dt * 9, 1));
-    $('run-score-num').textContent = fmt(Game.displayCoins);
+    setText($('run-score-num'), fmt(Game.displayCoins));
     const gv = Greed.value;
-    $('greed-val').textContent = `×${gv.toFixed(1)}`;
+    setText($('greed-val'), `×${gv.toFixed(1)}`);
     const pill = $('greed-pill');
     pill.classList.toggle('g2', gv >= 2.2 && gv < 3.5);
     pill.classList.toggle('g3', gv >= 3.5);
@@ -10041,7 +10549,7 @@ const UI = {
       // BANK is running its own animation and is not a button right now
       bank.disabled = true;
       bank.classList.remove('u1', 'u2', 'u3', 'u4', 'doomed');
-      $('bank-amt').textContent = `+${fmt(Game.runCoins)}`;
+      setText($('bank-amt'), `+${fmt(Game.runCoins)}`);
       return;
     }
     // Bankable only while the next piece is "in preview" (DECISION/AIMING).
@@ -10052,7 +10560,7 @@ const UI = {
       const bankable = previewState && !doomed && !cursed;
       bank.disabled = !bankable;
       bank.classList.toggle('doomed', doomed || cursed);
-      $('bank-amt').textContent = cursed ? 'CURSED' : doomed ? 'TOO LATE' : `+${fmt(Game.runCoins)}`;
+      setText($('bank-amt'), cursed ? 'CURSED' : doomed ? 'TOO LATE' : `+${fmt(Game.runCoins)}`);
       // The BANK button is a CHARACTER, but a well-timed one: it stays calm
       // until real money is on the line (~◆150k unbanked) then escalates —
       // glow, grow, BIG smooth pulses, SCREAM. No jitter, no glitching.
@@ -10064,7 +10572,7 @@ const UI = {
     } else {
       bank.disabled = true;
       bank.classList.remove('u1', 'u2', 'u3', 'u4', 'doomed');
-      $('bank-amt').textContent = '—';
+      setText($('bank-amt'), '—');
     }
   },
 };
@@ -10151,6 +10659,16 @@ const Input = {
     bind('shop-x', closeShop);
     bind('btn-settings', () => { UI.syncToggles(); UI.show('settings'); });
     bind('settings-x', () => UI.showMenu());
+    /* One tap picks a mode outright. A cycling button would make AUTO -> HIGH
+       two presses and would never show you what the other options were. */
+    $('seg-quality').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-q]');
+      if (!b) return;
+      e.stopPropagation();
+      Audio2.ensure(); Audio2.ui();
+      Quality.mode = b.dataset.q;
+      UI.syncQuality();
+    });
     bind('btn-board', () => { UI.renderBoard(); UI.show('board'); Profile.onBoardOpen(); });
     bind('board-x', () => UI.showMenu());
     bind('btn-daily', () => { UI.renderDaily(); UI.show('daily'); });
@@ -10175,7 +10693,6 @@ const Input = {
     $('confirm-dialog').addEventListener('click', (e) => { if (e.target === $('confirm-dialog')) $('confirm-dialog').classList.add('hidden'); });
     bind('tgl-sound', () => { Settings.toggle('sound'); Audio2.muteCheck(); UI.syncToggles(); });
     bind('tgl-music', () => { Settings.toggle('music'); Audio2.muteCheck(); UI.syncToggles(); });
-    bind('tgl-motion', () => { Settings.toggle('reduceMotion'); UI.syncToggles(); });
     bind('btn-legal', () => UI.showLegal());
     bind('legal-x', () => { UI.syncToggles(); UI.show('settings'); });
     for (const t of document.querySelectorAll('.lg-tab')) {
@@ -10291,10 +10808,10 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else boot();
 
 // Debug/tuning handle (used by automated playtests — not part of gameplay)
-window.__overstack = { WORLD, Game, Stack, Director, Overflow, Strain, Reveal, Weather, Balance, BlockHint, __DOCK_SHOWS: DOCK_SHOWS, DOCKS, SPECIALS, TIERS, THEMES, CONFIG, __cat: SHOP_CATALOG, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, IdleShow, Audio2, Settings, FeedbackBus, UI, save, engine, Composite, Body };
+window.__overstack = { WORLD, Game, Stack, Director, Overflow, Strain, Reveal, Weather, Balance, BlockHint, __DOCK_SHOWS: DOCK_SHOWS, DOCKS, SPECIALS, TIERS, THEMES, CONFIG, __cat: SHOP_CATALOG, PSV, Churn, SessionArc, AdManager, Greed, Surprise, EventDirector, RiskFX, Profile, Economy, Camera, Daily, Tutor, IdleShow, Audio2, Settings, FeedbackBus, UI, save, engine, Composite, Body, Quality, Q, QSTEPS, Particles, Sleeping, Engine };
 window.__overstackCam = Camera;
 window.__shake = Shake;
-Object.defineProperty(window, '__perfTier', { get: () => perf.tier });
+Object.defineProperty(window, '__perfTier', { get: () => (Quality.depth >= 6 ? 'low' : 'high') });
 window.__drawDefIcon = drawDefIcon;   // debug handle: the NEXT-box icon, on any canvas
 window.__starR = STAR_R;
 window.__tierColors = themePalette();
@@ -10859,15 +11376,32 @@ window.__tierColors = themePalette();
       ['wide base', T(() => lay(Array.from({ length: 4 }, (_, i) => ({ tier: 4, dx: fit(i, 4, TIERS.radii[4] + 4) })), 160), true)],
     ]);
 
+    /* ------------------------------------------------------- quality ladder
+       What the adaptive controller is seeing and what it has done about it.
+       The numbers here are the ones the decision is actually taken on, so a
+       rung going down should always be explainable from the row above it. */
+    b = group(pane, 'QUALITY', 'What AUTO is measuring, and every rung it has taken.');
+    row(b, 'mode', { get: () => Quality.mode, set: (v) => { Quality.mode = v; }, options: ['auto', 'low', 'high'] });
+    row(b, 'fps / budget', { get: () => Quality.fps.toFixed(1) + ' @ ' + Quality.hz + 'Hz / ' + Quality.budget.toFixed(1) + 'ms' });
+    row(b, 'late (mean over)', { get: () => Quality.late.toFixed(2) + 'ms' });
+    row(b, 'jank (long frames)', { get: () => (Quality.jank * 100).toFixed(1) + '%' });
+    row(b, 'depth', { get: () => Quality.depth + ' / ' + QSTEPS.length });
+    row(b, 'eased off', { get: () => (Quality.reasons.length ? Quality.reasons.map((r) => r.id).join(', ') : 'nothing') });
+    row(b, 'next rung', { get: () => { const s = QSTEPS[Quality.depth]; return s ? s.id + ' (would save ' + s.gain().toFixed(2) + 'ms)' : 'bottom'; } });
+    row(b, 'warm-up hold', { get: () => (now() < Quality.calmUntil ? Math.round(Quality.calmUntil - now()) + 'ms' : 'no') });
+    buttons(b, [
+      ['step down one', () => { const s = QSTEPS[Quality.depth]; if (s) { s.down(); Quality.reasons.push({ id: s.id, why: s.why, gain: +s.gain().toFixed(2), at: now() }); Quality.depth++; } }],
+      ['step up one', () => { if (Quality.depth > 0) { QSTEPS[Quality.depth - 1].up(); Quality.depth--; Quality.reasons.pop(); } }],
+      ['restore everything', () => Quality.restoreAll(), 'go'],
+    ]);
+
     // ------------------------------------------------------------ the flags
     b = group(pane, 'FLAGS');
     row(b, 'GOD MODE (no collapse)', { get: () => godMode, fmt: yn, set: (v) => { godMode = v; }, bool: true });
     row(b, 'freeze fusions', { get: () => noFuse, fmt: yn, set: (v) => { noFuse = v; }, bool: true });
     row(b, 'sound', { get: () => Settings.sound, fmt: yn, set: (v) => { Settings.sound = v; }, bool: true });
     row(b, 'music', { get: () => Settings.music, fmt: yn, set: (v) => { Settings.music = v; }, bool: true });
-    row(b, 'haptics', { get: () => Settings.haptics, fmt: yn, set: (v) => { Settings.haptics = v; }, bool: true });
-    row(b, 'reduce motion', { get: () => Settings.reduceMotion, fmt: yn, set: (v) => { Settings.reduceMotion = v; document.body.classList.toggle('reduce-motion', !!v); }, bool: true });
-    row(b, 'perf tier', { get: () => perf.tier, set: (v) => { perf.tier = v; }, options: ['low', 'mid', 'high'] });
+
     buttons(b, [
       ['restart run', () => { save.tutorialDone = true; Game.startRun(); }, 'go'],
       ['back to menu', () => UI.showMenu()],

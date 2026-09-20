@@ -849,6 +849,11 @@ preference.
 **A curse says it once.** The red badge stays; the toast that repeated its exact
 words next to it is gone.
 
+**And two notices never pile up.** A special is often announced twice — once as
+"INCOMING" while it is still in the queue, and again as the banner that explains
+it — and the two share a spot on screen. The toast is now sent away the moment
+the banner is due, and the banner waits for it to finish leaving.
+
 **The special-block hint waits for the block.** It used to fire when a special
 entered the NEXT box and vanish 4.6 seconds later — which meant it explained a
 block you could not yet act on and was gone by the time you held it. It now
@@ -885,6 +890,47 @@ still show their partners, because there the rule is not obvious.
 
   On a fixed seeded game, mean resting tilt went from 6.4° to 3.1°, and pieces
   more than 8° off flat from 4 in 13 to 1 in 13.
+
+**A merge still rocks, it just lands flat.** The lean is back, and it is
+literally the old value: a merged block arrives tipped by up to fourteen
+degrees and rocks itself down, exactly as it always did. That lean had been
+taken away when merged pieces were made to arrive square — because with
+friction this high a lean was a lean *forever*, and the block simply stayed
+crooked, which is the bug it was removed to fix. What makes it safe to put back
+is that the settle assist has since learned three things:
+
+- **It waits for the block to stop.** A piece still turning is settling, not
+  stuck, so the rock is left to play out instead of being fought — and the
+  assist's time budget is still intact at the moment it is actually needed.
+- **Its budget is a rate limit, not a life sentence.** A piece shoved crooked
+  used to spend its whole allowance failing to straighten against whatever was
+  leaning on it, then be abandoned that way for the rest of the run. Left alone
+  for a couple of seconds, it earns another go.
+- **It can wake a sleeper.** Matter deactivates the contact pairs between
+  sleeping bodies, so a settled tower reports no support data at all, and the
+  assist — which reads exactly that data — would bail out. A block that fell
+  asleep crooked could never be straightened again: most settled dead flat and
+  a handful sat at thirty degrees for the rest of the run, which is precisely
+  the behaviour that was reported. One more than 8° off flat now gets woken;
+  the next tick has real contacts and the ordinary path takes over.
+
+Measured over thirty merges: the block leans up to 14° and comes to rest
+between 0.0° and 1.2°, every time.
+
+A spin and a small upward hop were both tried in place of the lean, and both
+removed. A sideways nudge shifts the new block's centre of mass; extra upward
+energy carries it past a corner, and at one setting two runs in three left a
+block sitting at twenty-five degrees. Either one could also topple a marginal
+tower — and a merge is not allowed to change whether a stack survives, which
+the dev build's deliberately precarious tower template checks.
+
+What is deliberately *not* straightened: a block wedged between two neighbours,
+and a block perched on a slope. Those are at an angle because the stack put
+them there, and forcing them square would be inventing physics rather than
+fixing it — which is also why the test reports the **median** resting tilt
+rather than the mean. A tower legitimately contains a few blocks the stack has
+jammed at an angle, and one of those at fifty degrees drags an average
+anywhere it likes. The typical block now comes to rest under 3°.
 
 **The star is a star-shaped hole, not a ghost.** Its collision body is a
 chamfered pentagon, and chamfering pulls the real hull *inside* the radius — so
@@ -930,6 +976,123 @@ screen, so it lands in empty space beside its subject instead of on top of it.
 is 33–54s rather than 45–75s.
 
 **Haptics are gone entirely**, along with their setting. See [On a phone](#on-a-phone).
+
+## Graphics: AUTO, LOW, HIGH
+
+Settings used to offer a **Reduce motion / low power** switch, backed by a probe
+that measured the first 150 frames of the session, and — if they looked slow —
+turned a long list of things off, permanently, with no way back. A device that
+happened to be busy while the page loaded spent the rest of the session with
+half the game missing. A device that got hot twenty minutes in was never
+noticed at all.
+
+That is replaced by one control with three positions. **HIGH** is the whole game
+with nothing withheld. **LOW** takes every picture-level saving at once and
+leaves the physics alone. **AUTO** is the default, and it is the interesting one.
+
+### What AUTO actually does
+
+It starts at HIGH, because the assumption is that the device is fine. Then it
+watches, once a second, and asks three separate questions, because they are
+three different failures:
+
+- **Are frames arriving late?** (mean overshoot past the budget)
+- **Are they arriving unevenly?** (share of frames that ran badly long)
+- **Are they arriving at all?** (frames delivered per second)
+
+A steady 40fps and a locked 60 with one stall a second are both bad, and only
+one of them shows up in an average — which is why frame *pacing* is measured
+alongside frame *rate*.
+
+The budget comes from the display, not from a constant: the first ninety frames
+identify a 60, 90 or 120Hz panel, and the target is set to the refresh rate or
+60, whichever is gentler, plus a quarter-frame of room. A phone that can only
+just hold 60 is never told it is failing for not reaching 120.
+
+**It does not turn things down. It turns ONE thing down, and only if that thing
+is currently costing something.** Every rung on the ladder can price itself
+against the scene as it stands — no sparks on screen, no saving available from
+the sparks, so that rung is skipped entirely and the next one is considered. A
+reduction worth less than a third of a millisecond is not taken at all, because
+the player would notice the loss and not the gain.
+
+### The ladder, ordered by measurement
+
+Each step was benchmarked on an identical seeded board under a 6× CPU throttle
+at DPR 2, twice — once with the particle pool saturated, once with only the
+sparks the props throw off themselves. Share of frame time returned:
+
+| Step | Measured saving | Notes |
+|---|---|---|
+| resolution | **36%** | quadratic in pixels; the biggest single lever |
+| background wash | **24%** | identical in both runs — the most reliable result here |
+| glow on blocks | **19%** | |
+| glow on sparks | **9%** | only with a full pool; ~0 with a dozen sparks |
+| solver accuracy | **6%** | last resort, past where manual LOW stops |
+| glow on props | **4%** | |
+| spark count | **0%** | no measurable effect in either run |
+| ambient sparks | **0%** | no measurable effect in either run |
+
+The last two rows are the whole point. Turning off ambient sparks makes the
+game plainer and gives back *nothing*, so it is not a step on its own — it
+happens only as part of capping the pool, and only once the pool is genuinely
+large enough for the cap to buy something. Nothing is taken away just because
+it could be.
+
+### Coming back
+
+Recovery is deliberately slower than reduction, and it happens one rung at a
+time, most-recent-first. How fast depends on how much room the device is
+showing: comfortably idle and it comes back in about two seconds a step, only
+just healthy and it takes the slow road, because that is the device most likely
+to fall over again. A step that fails on the way back up earns a cooling-off
+period that doubles each time, so a device sitting exactly on the edge settles
+instead of flickering a feature on and off.
+
+Three things are never treated as evidence: the first few seconds after boot, a
+run opening, and the moment just after a change was made. Those all cost frames
+for reasons that say nothing about what the device can sustain, and judging them
+would have the game strip itself during precisely the seconds it is trying to
+impress.
+
+### What it will not do
+
+Quality changes how the game is **drawn**. It never touches the simulation, the
+economy, the director, the retention model or the odds — there is a test that
+diffs all of those across a mode change. The single exception is the solver, at
+the very bottom of the ladder, past where manual LOW stops: same physics, same
+constants, fewer iterations, reached only on a device that is otherwise failing
+outright. In a throttled test the controller never gets that far.
+
+### The optimisations underneath
+
+Reducing quality is the fallback. Three things were simply made cheaper, and
+they help every device at HIGH:
+
+- **Block gradients are built once per look, not once per block per frame.** A
+  block's gradient depends on its skin, its tier colour and its size, and on
+  nothing that changes as it moves — yet it was being rebuilt sixty times a
+  second per block and thrown away. Measured at ~0.54ms a frame on a two-dozen
+  block board. The cached gradient is built at the origin and the canvas is
+  translated for the fill alone, which lands identical pixels: a gradient is
+  resolved in the space in effect when the paint lands, while the path was
+  already baked when it was traced.
+- **The piece list is built once per change, not once per ask.** It walked the
+  whole body tree and allocated two arrays every call, several times a frame.
+  `plugin.piece` never changes after a body is built, so the list is rebuilt
+  only when something enters or leaves the world.
+- **The HUD stops writing text that has not changed.** The score, the multiplier
+  and the BANK label are recomputed every frame and change on maybe one frame in
+  ten, and they sit inside elements running CSS animations.
+
+A pixel-diff harness compares HIGH against the previous build on four scenes,
+reading the canvas directly and comparing 16×16 tile means. The two
+deterministic scenes — a tower of plain blocks, and the menu — come back
+**identical**. The two scenes full of self-animating blocks throwing random
+sparks are noisy by construction, so they are read against a control: the same
+build compared with itself, twice. Old-vs-new lands inside that control band
+every time, and on several runs the control differs *more* than the change
+does.
 
 ## The dev build
 
@@ -997,8 +1160,14 @@ watch the game react to it:
   bodies spawned inside one another and thrown off the deck. The three
   *inspection* layouts freeze fusions first, or they would merge themselves into
   two pieces before you could read them
-- **Flags** — god mode, freeze fusions, sound, music, reduced motion,
-  performance tier, restart, replay the tour, wipe the save
+- **Quality** — the mode, the live numbers the adaptive controller decides on
+  (frames per second against the detected refresh rate, mean lateness, share of
+  long frames), how far down the ladder it is, every rung it has taken and why,
+  what the next rung would save in the scene as it stands, and whether a
+  warm-up hold is currently suppressing judgement. Rungs can be stepped down
+  and back up by hand
+- **Flags** — god mode, freeze fusions, sound, music, restart, replay the tour,
+  wipe the save
 
 Verified by `test_dev.js`: 48 assertions that press the actual buttons and check
 the game moved.
