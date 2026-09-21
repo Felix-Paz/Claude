@@ -11,13 +11,39 @@ const SDK_BLOCK = /<!-- Optional SDKs \(enable one\):[\s\S]*?-->\n?/;
 const IMPORTMAP = /<script type="importmap">[\s\S]*?<\/script>\n?/;
 const MODULE_TAG = /<script type="module" src="\.\/src\/main\.js"><\/script>/;
 
+// The game bundle loads after this inline script, so events that arrive before it
+// is ready are queued and replayed. Pause mutes and pauses, start unmutes and
+// resumes, both in src/sdk.js.
 const GD_SNIPPET = `<script>
 window["GD_OPTIONS"] = {
   "gameId": "500476821acf49d89fcdb425cbf48b81",
   "onEvent": function (event) {
-    if (window.__gdHandler) { window.__gdHandler(event); }
-    else { (window.__gdEvents = window.__gdEvents || []).push(event); }
+    switch (event.name) {
+      case "SDK_GAME_START":
+        // advertisement done, resume game logic and unmute audio
+        window.__gdDispatch(event);
+        break;
+      case "SDK_GAME_PAUSE":
+        // pause game logic / mute audio
+        window.__gdDispatch(event);
+        break;
+      case "SDK_READY":
+        // when the SDK is ready
+        window.__gdReady = true;
+        window.__gdDispatch(event);
+        break;
+      case "SDK_ERROR":
+        // when the SDK has hit a critical error
+        window.__gdDispatch(event);
+        break;
+      default:
+        window.__gdDispatch(event);
+    }
   }
+};
+window.__gdDispatch = function (event) {
+  if (window.__gdHandler) window.__gdHandler(event);
+  else (window.__gdEvents = window.__gdEvents || []).push(event);
 };
 (function (d, s, id) {
   var js, fjs = d.getElementsByTagName(s)[0];
