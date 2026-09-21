@@ -92,36 +92,44 @@ window.__gmDispatch = function (a) {
 </script>
 `;
 
-const Y8_SNIPPET = `<script src="https://cdn.y8.com/minimal-sdk/2-0/y8.min.js" async></script>
+const Y8_SNIPPET = `<script
+  src="https://cdn.y8.com/minimal-sdk/2-0/y8.min.js"
+  async
+></script>
 <script>
-window.__y8 = { appId: "6aabd15425b1d17038e6416c", gameId: "283597" };
-let y8Sdk;
+  // Set before the SDK arrives: the game detects which portal it is on while it
+  // boots, which is earlier than y8sdk.ready can fire.
+  window.__y8 = { appId: "6aabd15425b1d17038e6416c", gameId: "283597" };
 
-window.addEventListener("y8sdk.ready", function () {
-  y8Sdk = y8.sdk();
-  window.__y8Sdk = y8Sdk;
+  let y8Sdk;
 
-  y8Sdk.init(
-    { appId: window.__y8.appId, autoLogin: true },
-    {
-      gameId: window.__y8.gameId,
-      preloadAdBreaks: "on",
-      sound: "on",
-      onReady: function () { window.__y8AdsReady = true; }
-    }
-  );
+  window.addEventListener("y8sdk.ready", function () {
+    y8Sdk = y8.sdk();
+    window.__y8Sdk = y8Sdk;          // this is what the game calls showAd on
 
-  y8Sdk.onAuth(function (user, error) {
-    if (error) {
-      window.__y8AuthError = error.message ?? error;
-      console.warn("[y8] sign-in unavailable, continuing as guest:", window.__y8AuthError);
-      return;
-    }
-    window.__y8User = user;
-  });
-}, { once: true });
+    const appConfig = {
+      appId: '6aabd15425b1d17038e6416c',
+      autoLogin: true
+    };
 
-if (window.y8 && window.y8.emitReadyEvent) { window.y8.emitReadyEvent(); }
+    const adConfig = {
+      gameId: '283597',
+      preloadAdBreaks: 'on',
+      sound: 'on',
+      onReady: () => { window.__y8AdsReady = true; }
+    };
+
+    y8Sdk.init(appConfig, adConfig);
+    y8Sdk.onAuth((user, error) => {
+      if (error) { console.warn("[y8] signed out, continuing as guest"); return; }
+      window.__y8User = user;
+    });
+  }, { once: true });
+
+  // Handle the case where the SDK already loaded
+  if (window.y8 && window.y8.emitReadyEvent) {
+    window.y8.emitReadyEvent();
+  }
 </script>
 `;
 

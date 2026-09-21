@@ -132,7 +132,7 @@ async function y8ShowAd(opts) {
     };
     const finish = () => { if (done) return; done = true; release(); resolve(viewed); };
     try {
-      window.__y8Sdk.showAd({
+      const p = window.__y8Sdk.showAd({
         ...opts,
         beforeAd: () => { wasPlaying = !!hooks.pause(); hooks.hardMute(true); },
         afterAd: () => release(),
@@ -140,6 +140,9 @@ async function y8ShowAd(opts) {
         adDismissed: () => { viewed = false; },
         adBreakDone: () => finish(),
       });
+      // showAd returns a promise, and a rejection after the call has returned would
+      // otherwise go unhandled and leave the game paused behind a curtain
+      if (p && p.catch) p.catch((e) => { console.error(e); finish(); });
     } catch (e) { finish(); return; }
     setTimeout(finish, 60000);
   });
