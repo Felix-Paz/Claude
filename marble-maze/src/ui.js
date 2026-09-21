@@ -1,0 +1,548 @@
+import { SKINS, TRAILS, RARITY, POWERUPS, ECON, PERKS } from './config.js';
+import { drawMarbleTexture } from './marbletex.js';
+import * as S from './storage.js';
+
+const $ = (id) => document.getElementById(id);
+const hex = (n) => '#' + ('000000' + (n >>> 0).toString(16)).slice(-6);
+
+export class UI {
+  constructor() {
+    this.h = {};
+    this.shopTab = 'skins';
+    this.base = ['loading', 'menu', 'shop'];
+    this.overlays = ['adCurtain', 'legal', 'chest', 'pause', 'win', 'lose', 'daily', 'settings', 'tiltPrompt'];
+    this.screens = [...this.base, ...this.overlays];
+    this._splitWordmarks();
+    this._bindStatic();
+  }
+  setHandlers(h) { this.h = h; }
+
+  // Each letter animates on its own, and a transformed letter is dropped by a
+  // gradient clipped on its parent — so every letter carries the gradient itself,
+  // shifted to the slice of the word it occupies. --t is when the rolling marble
+  // reaches it, as a fraction of the crossing.
+  _splitWordmarks() {
+    this._wms = [...document.querySelectorAll('.wm')];
+    for (const wm of this._wms) {
+      for (const w of wm.querySelectorAll('.w')) {
+        if (w.querySelector('.c')) continue;
+        const text = w.dataset.t || w.textContent;
+        w.textContent = '';
+        for (const ch of text) {
+          const i = document.createElement('i');
+          i.className = 'c'; i.textContent = ch; i.dataset.t = ch;
+          w.appendChild(i);
+        }
+      }
+    }
+    this._measureWordmarks();
+    if (typeof ResizeObserver !== 'undefined') {
+      this._wmRO = new ResizeObserver(() => {
+        clearTimeout(this._wmT);
+        this._wmT = setTimeout(() => this._measureWordmarks(), 120);
+      });
+      for (const wm of this._wms) this._wmRO.observe(wm);
+    }
+  }
+
+  _measureWordmarks(only) {
+    for (const wm of (only ? [only] : this._wms)) {
+      const box = wm.getBoundingClientRect();
+      const total = box.width;
+      if (!total) continue;
+      const wmLeft = box.left;
+      wm.style.setProperty('--wmw', total.toFixed(2) + 'px');
+      for (const w of wm.querySelectorAll('.w')) {
+        const wb = w.getBoundingClientRect();
+        if (!wb.width) continue;
+        w.style.setProperty('--ww', wb.width.toFixed(2) + 'px');
+        for (const c of w.querySelectorAll('.c')) {
+          const cb = c.getBoundingClientRect();
+          c.style.setProperty('--cx', (cb.left - wb.left).toFixed(2) + 'px');
+          c.style.setProperty('--t', ((cb.left + cb.width * 0.5 - wmLeft) / total).toFixed(3));
+        }
+      }
+    }
+  }
+
+  showScreen(name) {
+    this.clearNotice();
+    for (const s of this.screens) $(s)?.classList.toggle('hidden', s !== name);
+    if (name === 'menu') { this.refreshMenu(); this.playWordmark(); }
+    if (name === 'shop') this.buildShop(this.shopTab);
+  }
+  showOverlay(name) { this.clearNotice(); $(name)?.classList.remove('hidden'); }
+  hideOverlay(name) { $(name)?.classList.add('hidden'); }
+  hideOverlays() { for (const s of this.overlays) $(s)?.classList.add('hidden'); }
+  visibleOverlay() { for (const s of this.overlays) if (!$(s)?.classList.contains('hidden')) return s; return null; }
+  visibleBase() { for (const s of this.base) if (!$(s)?.classList.contains('hidden')) return s; return null; }
+  showHUD(on) {
+    $('hud').classList.toggle('hidden', !on);
+    if (on) this.playHudWordmark(); else this.stopHudWordmark();
+  }
+
+  _bindStatic() {
+    const click = (id, fn) => { const e = $(id); if (e) e.addEventListener('click', () => { this.h.sfx?.('uiClick'); fn(); }); };
+    click('playBtn', () => this.h.play?.());
+    click('shopBtn', () => this.showScreen('shop'));
+    click('dailyBtn', () => this.showDaily());
+    click('settingsBtn', () => this.showSettings());
+    click('shopBackBtn', () => this.showScreen('menu'));
+    click('pauseBtn', () => this.h.pause?.());
+    click('resumeBtn', () => this.h.resume?.());
+    click('restartBtn', () => this.h.restart?.());
+    click('pauseMenuBtn', () => this.h.toMenu?.());
+    click('settingsCloseBtn', () => this.hideOverlays());
+    click('dailyCloseBtn', () => this.hideOverlays());
+    click('legalBtn', () => this.showOverlay('legal'));
+    click('legalCloseBtn', () => this.hideOverlay('legal'));
+    click('calibrateBtn', () => { this.h.calibrate?.(); this.toast('Tilt calibrated'); });
+    click('resetBtn', () => {
+      const b = $('resetBtn');
+      if (b.dataset.arm === '1') {
+        b.dataset.arm = ''; b.textContent = 'Reset Progress';
+        S.hardReset(); this.refreshMenu(); this.buildShop(this.shopTab); this.toast('Progress reset');
+      } else {
+        b.dataset.arm = '1'; b.textContent = 'Tap again to reset!';
+        clearTimeout(this._rstT);
+        this._rstT = setTimeout(() => { b.dataset.arm = ''; b.textContent = 'Reset Progress'; }, 2600);
+      }
+    });
+    click('tiltEnableBtn', () => this.h.enableTilt?.());
+    click('tiltTouchBtn', () => this.h.useTouch?.());
+
+    document.querySelectorAll('.shop-tabs .tab').forEach(t => t.addEventListener('click', () => {
+      this.h.sfx?.('uiClick');
+      document.querySelectorAll('.shop-tabs .tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active'); this.shopTab = t.dataset.tab; this.buildShop(this.shopTab);
+    }));
+
+    $('setSound').addEventListener('change', e => this.h.setSetting?.('sound', e.target.checked));
+    $('setMusic').addEventListener('change', e => this.h.setSetting?.('music', e.target.checked));
+    $('setSens').addEventListener('input', e => { $('sensVal').textContent = (+e.target.value).toFixed(1); this.h.setSetting?.('tiltSensitivity', +e.target.value); });
+    this._seg('setControl', v => this.h.setSetting?.('control', v));
+    this._seg('setQuality', v => this.h.setSetting?.('quality', v));
+    this._seg('setDifficulty', v => this.h.setSetting?.('difficulty', v));
+
+    const bb = $('boostBtn');
+    const on = (e) => { e.preventDefault(); this.h.boost?.(true); };
+    const off = (e) => { e.preventDefault(); this.h.boost?.(false); };
+    bb.addEventListener('touchstart', on, { passive: false });
+    bb.addEventListener('touchend', off, { passive: false });
+    bb.addEventListener('mousedown', on);
+    bb.addEventListener('mouseup', off);
+    bb.addEventListener('mouseleave', off);
+  }
+  _seg(id, fn) {
+    const wrap = $(id);
+    wrap.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      this.h.sfx?.('uiClick');
+      wrap.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active'); fn(b.dataset.v);
+    }));
+  }
+  setSeg(id, v) {
+    $(id)?.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  }
+
+  refreshMenu() {
+    const st = S.get();
+    $('menuCoins').textContent = fmt(st.coins);
+    $('shopCoins').textContent = fmt(st.coins);
+    $('menuStars').textContent = S.totalStars();
+    const d = S.dailyStatus();
+    $('dailyDot').classList.toggle('hidden', !d.claimable);
+    $('playLabel').textContent = st.maxLevel > 1 ? `PLAY · Lv ${st.maxLevel}` : 'PLAY';
+  }
+  playWordmark() { this._runWordmark(document.querySelector('#menu .wm'), 'play'); }
+
+  // The in-game mark introduces itself once, then only ever repeats a much quieter
+  // version of the same move so it never pulls the eye away from the maze.
+  playHudWordmark() {
+    const el = document.querySelector('#hud .wm'); if (!el) return;
+    clearInterval(this._hudWmT);
+    if (!this._hudWmSeen) { this._hudWmSeen = true; this._runWordmark(el, 'play'); }
+    else this._runWordmark(el, 'idle');
+    this._hudWmT = setInterval(() => {
+      if ($('hud').classList.contains('hidden')) return;
+      this._runWordmark(el, 'idle');
+    }, 26000);
+  }
+  stopHudWordmark() { clearInterval(this._hudWmT); this._hudWmT = null; }
+
+  _runWordmark(el, cls) {
+    if (!el) return;
+    el.classList.remove('play', 'idle');
+    this._measureWordmarks(el);        // it may have been hidden, and so unmeasurable, until now
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+  setMenuWorld(name) { $('menuWorld').textContent = name; }
+  setProvider(p) { this.provider = p; }
+  setCoinBalance(n) { $('menuCoins').textContent = fmt(n); $('shopCoins').textContent = fmt(n); }
+
+  updateHUD(s) {
+    const p = this._hudPrev || (this._hudPrev = {});
+    if (p.level !== s.level) { p.level = s.level; $('hudLevel').textContent = 'Level ' + s.level; }
+    if (p.coins !== s.coins) { p.coins = s.coins; $('hudCoins').textContent = `${s.coins}`; }
+    const t = (s.timeMs / 1000).toFixed(1);
+    if (p.time !== t) { p.time = t; $('hudTime').textContent = t; }
+    const over = !!(s.parMs && s.timeMs > s.parMs);
+    if (p.over !== over) { p.over = over; $('hudTimePill').classList.toggle('overtime', over); }
+    const pct = Math.round(Math.min(100, (s.speed / (s.maxSpeed * 1.8)) * 100));
+    if (p.pct !== pct) { p.pct = pct; $('speedBar').style.width = pct + '%'; }
+    const b = !!s.boosting;
+    if (p.boost !== b) { p.boost = b; $('boostFlare').classList.toggle('on', b); }
+  }
+
+  finishArrow(info) {
+    const el = $('goalArrow');
+    if (!info || info.hide || info.angle == null) {
+      if (this._arrowOn) { this._arrowOn = false; el.classList.remove('show'); }
+      return;
+    }
+    if (!this._arrowOn) { this._arrowOn = true; el.classList.add('show'); }
+    if (this._arrowAng === undefined || Math.abs(info.angle - this._arrowAng) > 0.012) {
+      this._arrowAng = info.angle;
+      (this._arrowEl || (this._arrowEl = el.querySelector('.ga-arrow'))).style.transform = `rotate(${info.angle}rad)`;
+    }
+  }
+  hideGoalArrow() { $('goalArrow').classList.remove('show'); }
+
+  showChest(base, onCollect) {
+    this.showOverlay('chest');
+    const grid = $('chestGrid'); grid.innerHTML = '';
+    const info = $('chestInfo'); const collect = $('chestCollect');
+    let picks = 2, total = 0;
+    const rewards = Array.from({ length: 9 }, () => Math.max(10, Math.round(base * (0.5 + Math.random() * 1.3))));
+    info.textContent = 'Pick 2 chests!'; collect.classList.add('hidden');
+    const cells = [];
+    for (let i = 0; i < 9; i++) {
+      const cell = document.createElement('button'); cell.className = 'chest-cell';
+      cell.innerHTML = '<span class="chest-emoji">?</span>';
+      cell.onclick = () => {
+        if (picks <= 0 || cell.classList.contains('opened')) return;
+        cell.classList.add('opened'); total += rewards[i]; picks--;
+        cell.innerHTML = `<span class="chest-emoji pop">+</span><b>+${rewards[i]}</b>`;
+        this.h.sfx?.('powerup');
+        if (picks > 0) info.textContent = 'Pick 1 more!';
+        else {
+          info.innerHTML = `You won <b>${total}</b> coins`; collect.classList.remove('hidden');
+          cells.forEach((cc, j) => { if (!cc.classList.contains('opened')) { cc.classList.add('revealed'); cc.innerHTML = `<span class="chest-emoji">?</span><small>+${rewards[j]}</small>`; } });
+        }
+      };
+      grid.appendChild(cell); cells.push(cell);
+    }
+    collect.onclick = () => { this.h.sfx?.('uiClick'); this.hideOverlay('chest'); onCollect?.(total); };
+  }
+
+  goldRush(on) {
+    document.body.classList.toggle('goldrush', on);
+    if (on) this.banner('GOD MODE', 'GOLD RUSH');
+  }
+
+  enterGame() {
+    const open = this.screens.map(s => $(s)).find(e => e && !e.classList.contains('hidden'));
+    const done = () => { for (const s of this.screens) $(s)?.classList.add('hidden'); this.showHUD(true); };
+    if (open) { open.classList.add('screen-exit'); setTimeout(() => { open.classList.remove('screen-exit'); done(); }, 340); }
+    else done();
+  }
+
+  surprise(text, sub) { this.banner(text, sub); }
+  setPerk(perk) {
+    const el = $('perkChip'); if (!el) return;
+    if (!perk || !PERKS[perk]) { el.classList.add('hidden'); return; }
+    el.innerHTML = `<span>${PERKS[perk].label}</span>`;
+    el.classList.remove('hidden');
+  }
+  showBoostButton(on) { $('boostBtn').classList.toggle('hidden', !on); }
+
+  powerups(list) {
+    const wrap = $('powerupChips'); wrap.innerHTML = '';
+    for (const p of list) {
+      const def = p.def || POWERUPS[p.id] || { name: p.id, dur: 1 };
+      const el = document.createElement('div'); el.className = 'pu-chip';
+      const frac = Math.max(0, Math.min(1, p.t / (def.dur || 1)));
+      el.innerHTML = `<span>${(def.name || p.id)}</span>
+        <span class="bar" style="width:${frac * 100}%;background:${hex(def.color || 0x21f3ff)}"></span>`;
+      wrap.appendChild(el);
+    }
+  }
+
+  showWin(data, opts) {
+    this.hideGoalArrow();
+    this.showOverlay('win');
+    const spans = $('winStars').children;
+    for (let i = 0; i < 3; i++) {
+      spans[i].classList.remove('on');
+      if (i < data.stars) setTimeout(() => { spans[i].classList.add('on'); this.h.sfx?.('star', i); }, 250 + i * 260);
+    }
+    $('winCoins').textContent = '+' + data.coinsAwarded;
+    $('winTime').textContent = (data.timeMs / 1000).toFixed(1) + 's';
+    $('winTimeNote').textContent = data.beatPar ? 'time · medal' : 'time';
+    $('winMissionRow').classList.toggle('hidden', !opts.noteLabel);
+    if (opts.noteLabel) $('winMission').textContent = opts.noteLabel;
+    const cb = $('chestBtn');
+    cb.classList.toggle('hidden', !opts.canChest);
+    cb.onclick = () => { this.h.sfx?.('uiClick'); cb.classList.add('hidden'); opts.onChest?.(); };
+    const db = $('doubleBtn');
+    db.classList.toggle('hidden', !opts.canDouble);
+    db.onclick = () => { this.h.sfx?.('uiClick'); opts.onDouble?.(); };
+    $('nextBtn').onclick = () => { this.h.sfx?.('uiClick'); opts.onNext?.(); };
+    $('replayBtn').onclick = () => { this.h.sfx?.('uiClick'); opts.onReplay?.(); };
+    $('winMenuBtn').onclick = () => { this.h.sfx?.('uiClick'); opts.onMenu?.(); };
+  }
+  setWinCoins(n) { $('winCoins').textContent = '+' + n; }
+  disableDouble() { $('doubleBtn').classList.add('hidden'); }
+
+  showLose(reason, opts) {
+    this.hideGoalArrow();
+    this.showOverlay('lose');
+    const lines = {
+      hole: ['So close!', 'That hole was RED — avoid red!'],
+      hazard: ['So close!', 'Red means danger. Time it next try.'],
+      default: ['So close!', 'You almost had it.'],
+    };
+    let [t, sub] = lines[reason] || lines.default;
+    if (opts.nearFinish) { t = 'SO close!'; sub = 'You were almost at the goal — one more try!'; }
+    $('loseTitle').textContent = t; $('loseSub').textContent = sub;
+    const rv = $('reviveBtn');
+    rv.classList.toggle('hidden', !opts.canRevive);
+    rv.onclick = () => { this.h.sfx?.('uiClick'); opts.onRevive?.(); };
+    const sk = $('skipBtn');
+    sk.classList.toggle('hidden', !opts.canSkip);
+    sk.onclick = () => { this.h.sfx?.('uiClick'); opts.onSkip?.(); };
+    $('retryBtn').onclick = () => { this.h.sfx?.('uiClick'); opts.onRetry?.(); };
+    $('loseMenuBtn').onclick = () => { this.h.sfx?.('uiClick'); opts.onMenu?.(); };
+  }
+
+  buildShop(tab) {
+    const grid = $('shopGrid'); grid.innerHTML = '';
+    $('shopCoins').textContent = fmt(S.get().coins);
+    if (tab === 'skins') {
+      [...SKINS].sort((a, b) => (RARITY[a.rarity].order - RARITY[b.rarity].order) || (a.price - b.price))
+        .forEach(s => grid.appendChild(this._skinCard(s)));
+    } else {
+      TRAILS.forEach(t => grid.appendChild(this._trailCard(t)));
+    }
+  }
+  _skinCard(s) {
+    const owned = S.ownsSkin(s.id), equipped = S.get().skin === s.id;
+    const r = RARITY[s.rarity];
+    const c = document.createElement('div');
+    c.className = 'card rar-' + s.rarity + (equipped ? ' equipped-card' : '');
+    c.style.setProperty('--rc', r.color);
+    const tag = document.createElement('div'); tag.className = 'card-rarity'; tag.textContent = r.label; c.appendChild(tag);
+    const disc = document.createElement('div'); disc.className = 'card-disc';
+    disc.appendChild(skinSwatch(s)); c.appendChild(disc);
+    const nm = document.createElement('div'); nm.className = 'cname'; nm.textContent = s.name; c.appendChild(nm);
+    if (s.perk && PERKS[s.perk]) { const pk = document.createElement('div'); pk.className = 'card-perk'; pk.textContent = PERKS[s.perk].label; c.appendChild(pk); }
+    const btn = document.createElement('button');
+    if (equipped) { btn.className = 'cbtn equipped'; btn.textContent = '✓ Equipped'; }
+    else if (owned) { btn.className = 'cbtn equip'; btn.textContent = 'Equip'; btn.onclick = () => { this.h.equipSkin?.(s.id); this.buildShop('skins'); this.h.sfx?.('uiClick'); }; }
+    else {
+      const afford = S.get().coins >= s.price;
+      btn.className = 'cbtn ' + (afford ? 'buy' : 'locked');
+      btn.innerHTML = `<span class="dot gold"></span> ${fmt(s.price)}`;
+      btn.onclick = () => { if (this.h.buySkin?.(s.id)) { this.buildShop('skins'); this.h.sfx?.('powerup'); } else { this.toast('Not enough coins'); this.h.sfx?.('uiBack'); } };
+    }
+    c.appendChild(btn); return c;
+  }
+  _trailCard(t) {
+    const owned = S.ownsTrail(t.id), equipped = S.get().trail === t.id;
+    const c = document.createElement('div'); c.className = 'card rar-rare' + (equipped ? ' equipped-card' : '');
+    c.style.setProperty('--rc', '#3fa9ff');
+    const tag = document.createElement('div'); tag.className = 'card-rarity'; tag.textContent = 'Trail'; c.appendChild(tag);
+    const disc = document.createElement('div'); disc.className = 'card-disc';
+    disc.appendChild(trailSwatch(t)); c.appendChild(disc);
+    const nm = document.createElement('div'); nm.className = 'cname'; nm.textContent = t.name; c.appendChild(nm);
+    const btn = document.createElement('button');
+    if (equipped) { btn.className = 'cbtn equipped'; btn.textContent = '✓ Equipped'; }
+    else if (owned) { btn.className = 'cbtn equip'; btn.textContent = 'Equip'; btn.onclick = () => { this.h.equipTrail?.(t.id); this.buildShop('trails'); this.h.sfx?.('uiClick'); }; }
+    else {
+      const afford = S.get().coins >= t.price;
+      btn.className = 'cbtn ' + (afford ? 'buy' : 'locked');
+      btn.innerHTML = `<span class="dot gold"></span> ${fmt(t.price)}`;
+      btn.onclick = () => { if (this.h.buyTrail?.(t.id)) { this.buildShop('trails'); this.h.sfx?.('powerup'); } else { this.toast('Not enough coins'); this.h.sfx?.('uiBack'); } };
+    }
+    c.appendChild(btn); return c;
+  }
+
+  showDaily() {
+    this.showOverlay('daily');
+    const d = S.dailyStatus();
+    $('dailyStreak').innerHTML = `Current streak: <b>${d.streak}</b> day${d.streak === 1 ? '' : 's'}`;
+    const grid = $('dailyGrid'); grid.innerHTML = '';
+    for (let i = 0; i < ECON.daily.length; i++) {
+      const cell = document.createElement('div');
+      const isChest = ((i + 1) % ECON.dailySkinAt) === 0;
+      cell.className = 'daily-cell' + (isChest ? ' chest' : '');
+      const isToday = d.claimable && i === d.dayInCycle;
+      const claimed = i < d.dayInCycle || (!d.claimable && i <= d.dayInCycle);
+      if (isToday) cell.classList.add('today');
+      else if (claimed) cell.classList.add('claimed');
+      cell.innerHTML = `Day ${i + 1}<b>${isChest ? 'Chest' : '+' + ECON.daily[i]}</b>`;
+      grid.appendChild(cell);
+    }
+    const btn = $('claimBtn');
+    btn.disabled = !d.claimable;
+    btn.textContent = d.claimable ? `Claim +${d.reward}${d.isChest ? ' + chest' : ''}` : 'Come back tomorrow';
+    btn.style.opacity = d.claimable ? '1' : '.5';
+    btn.onclick = () => {
+      if (!d.claimable) return;
+      this.h.sfx?.('powerup');
+      const res = this.h.claimDaily?.();
+      this.refreshMenu();
+      if (res) { this.toast(`+${res.reward} coins · streak ${res.nextStreak}`); }
+      this.showDaily();
+    };
+  }
+
+  showSettings() {
+    this.showOverlay('settings');
+    const st = S.get();
+    $('setSound').checked = st.settings.sound;
+    $('setMusic').checked = st.settings.music;
+    $('setSens').value = st.settings.tiltSensitivity; $('sensVal').textContent = (+st.settings.tiltSensitivity).toFixed(1);
+    this.setSeg('setControl', st.settings.control);
+    this.setSeg('setQuality', st.settings.quality);
+    this.setSeg('setDifficulty', st.settings.difficulty || 'normal');
+  }
+
+  // instant = a new notice is taking the slot, so the old one must go at once
+  // instead of cross-fading with it. On natural expiry it fades out.
+  _hideNotices(instant) {
+    for (const id of ['toast', 'banner', 'tutHint', 'comboPop']) {
+      const el = $(id); if (!el) continue;
+      el.classList.remove('show');
+      if (instant) el.classList.add('hidden');
+    }
+    const ch = $('controlHint');
+    if (ch) { ch.style.opacity = '0'; if (instant) ch.classList.add('hidden'); }
+  }
+
+  // Only one notice is ever on screen. A more important one takes the slot;
+  // anything less important is dropped rather than stacked.
+  _notice(kind, prio, dur, render) {
+    if (this._nKind && prio < this._nPrio) return false;
+    clearTimeout(this._nT); this._nT = 0;
+    this._hideNotices(true);
+    this._nKind = kind; this._nPrio = prio;
+    render();
+    if (dur > 0) this._nT = setTimeout(() => this.clearNotice(kind), dur);
+    return true;
+  }
+  clearNotice(kind) {
+    if (kind && this._nKind !== kind) return;
+    clearTimeout(this._nT); this._nT = 0;
+    this._hideNotices(false);
+    this._nKind = null; this._nPrio = 0;
+  }
+
+  tutorialHint(show, text) {
+    if (!show) { this.clearNotice('tut'); return; }
+    this._notice('tut', 4, 0, () => {
+      const el = $('tutHint'); if (!el) return;
+      el.textContent = text || ''; el.classList.remove('hidden');
+      requestAnimationFrame(() => el.classList.add('show'));
+    });
+  }
+
+  toast(msg, dur = 1800) {
+    this._notice('toast', 2, dur, () => {
+      const t = $('toast'); t.textContent = msg; t.classList.remove('hidden');
+      requestAnimationFrame(() => t.classList.add('show'));
+    });
+  }
+  banner(newLabel, title) {
+    this._notice('banner', 3, 1900, () => {
+      const b = $('banner');
+      b.innerHTML = `<div class="b-new">${newLabel}</div><div class="b-title">${title}</div>`;
+      b.classList.remove('hidden'); requestAnimationFrame(() => b.classList.add('show'));
+    });
+  }
+  controlHint(text, dur = 3400) {
+    return this._notice('hint', 1, dur, () => {
+      const e = $('controlHint'); if (!e) return;
+      e.textContent = text; e.classList.remove('hidden');
+      requestAnimationFrame(() => { e.style.opacity = '1'; });
+    });
+  }
+  combo(n) {
+    if (n < 3) return;
+    this._notice('combo', 1, 800, () => {
+      const c = $('comboPop'); c.textContent = `Combo ×${n}`;
+      c.style.fontSize = Math.min(30, 17 + n) + 'px';
+      c.classList.remove('hidden', 'show'); void c.offsetWidth; c.classList.add('show');
+    });
+  }
+  adCurtain(on, kind) {
+    const el = $('adCurtain'); if (!el) return;
+    const msg = el.querySelector('.ad-msg');
+    if (msg && on) msg.textContent = kind === 'reward' ? 'Loading reward…' : 'Advertisement';
+    el.classList.toggle('hidden', !on);
+  }
+}
+
+function fmt(n) { return n >= 10000 ? (n / 1000).toFixed(1) + 'k' : '' + n; }
+
+const _swatchCache = new Map();
+function cachedSwatch(key, make) {
+  let c = _swatchCache.get(key);
+  if (!c) { c = make(); _swatchCache.set(key, c); }
+  return c;
+}
+function trailSwatch(t) { return cachedSwatch('t:' + t.id, () => drawTrailSwatch(t)); }
+function skinSwatch(s) { return cachedSwatch('s:' + s.id, () => drawSkinSwatch(s)); }
+
+function drawTrailSwatch(t) {
+  const c = document.createElement('canvas'); c.width = c.height = 120; c.className = 'swatch-canvas';
+  const x = c.getContext('2d');
+  x.save(); x.beginPath(); x.arc(60, 60, 58, 0, 7); x.clip();
+  const bgg = x.createRadialGradient(60, 46, 4, 60, 60, 62);
+  bgg.addColorStop(0, '#1b2238'); bgg.addColorStop(1, '#090d1a');
+  x.fillStyle = bgg; x.fillRect(0, 0, 120, 120);
+
+  if (t.id !== 'none') {
+    const a = rgb(t.color), b = rgb(t.color2 ?? t.color);
+    const n = 30, size = (t.size ?? 0.9) * 11;
+    for (let i = 0; i < n; i++) {
+      const k = i / (n - 1);
+      const ang = Math.PI * 0.96 - k * Math.PI * 0.72;
+      const px = 62 + Math.cos(ang) * 40;
+      const py = 78 + Math.sin(ang) * 40 * 0.62 - k * 6 - (t.rise ?? 0) * (1 - k) * 7;
+      const col = t.rainbow
+        ? `hsl(${Math.round(k * 300)},100%,62%)`
+        : `rgb(${Math.round(b[0] + (a[0] - b[0]) * k)},${Math.round(b[1] + (a[1] - b[1]) * k)},${Math.round(b[2] + (a[2] - b[2]) * k)})`;
+      const r = size * (0.3 + k * 0.8);
+      const g = x.createRadialGradient(px, py, 0, px, py, r);
+      g.addColorStop(0, col); g.addColorStop(0.45, col); g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.globalAlpha = 0.25 + k * 0.7;
+      x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, 7); x.fill();
+    }
+    x.globalAlpha = 1;
+  }
+  const mg = x.createRadialGradient(72, 36, 2, 78, 44, 26);
+  mg.addColorStop(0, '#ffffff'); mg.addColorStop(0.5, '#dfe7f7'); mg.addColorStop(1, '#8fa2c4');
+  x.fillStyle = mg; x.beginPath(); x.arc(80, 44, 17, 0, 7); x.fill();
+  x.restore();
+  return c;
+}
+function rgb(n) { return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+
+function drawSkinSwatch(s) {
+  const c = document.createElement('canvas'); c.width = c.height = 120; c.className = 'swatch-canvas';
+  const x = c.getContext('2d'); const R = 56, cx = 60, cy = 60;
+  x.save(); x.beginPath(); x.arc(cx, cy, R, 0, 7); x.clip();
+  if (s.tex) {
+    const off = document.createElement('canvas'); off.width = 480; off.height = 240;
+    drawMarbleTexture(off.getContext('2d'), s.tex, 480, 240);
+    x.drawImage(off, 120, 0, 240, 240, 0, 0, 120, 120);
+  }
+  else if (s.rainbow) { const g = x.createLinearGradient(0, 0, 120, 120); g.addColorStop(0, '#2ff0d0'); g.addColorStop(0.5, '#49d0ff'); g.addColorStop(1, '#7a3aff'); x.fillStyle = g; x.fillRect(0, 0, 120, 120); }
+  else { const g = x.createRadialGradient(44, 40, 6, 60, 60, 64); g.addColorStop(0, '#ffffff'); g.addColorStop(0.42, hex(s.mat.color)); g.addColorStop(1, '#00000055'); x.fillStyle = g; x.fillRect(0, 0, 120, 120); if (s.mat.metalness >= 0.9) { x.fillStyle = 'rgba(255,255,255,.3)'; x.fillRect(0, 80, 120, 8); } }
+  const hl = x.createRadialGradient(46, 40, 2, 50, 44, 40); hl.addColorStop(0, 'rgba(255,255,255,.85)'); hl.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = hl; x.beginPath(); x.arc(48, 42, 30, 0, 7); x.fill();
+  x.restore();
+  if (s.ring) { x.strokeStyle = '#e8c98a'; x.lineWidth = 6; x.save(); x.translate(cx, cy); x.rotate(-0.4); x.scale(1, 0.32); x.beginPath(); x.arc(0, 0, 52, 0, 7); x.stroke(); x.restore(); }
+  return c;
+}
