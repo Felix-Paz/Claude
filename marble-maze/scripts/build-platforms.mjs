@@ -143,6 +143,7 @@ for (const [name, patch] of Object.entries(PLATFORMS)) {
   fs.copyFileSync(path.join(ROOT, 'styles.css'), path.join(out, 'styles.css'));
   fs.copyFileSync(path.join(ROOT, 'fonts.css'), path.join(out, 'fonts.css'));
   fs.copyFileSync(bundle, path.join(out, 'game.js'));
+  fs.cpSync(path.join(ROOT, 'audio'), path.join(out, 'audio'), { recursive: true });
   let html = patch(baseHtml)
     .replace(IMPORTMAP, '')
     .replace(MODULE_TAG, '<script src="./game.js" defer></script>');

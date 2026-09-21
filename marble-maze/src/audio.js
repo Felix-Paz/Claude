@@ -1,185 +1,242 @@
+// Every sound is a file. Effects are decoded into memory before play starts and
+// fired straight from those buffers, so a sound lands on the same frame as the
+// thing that caused it. Music streams on two decks that cross-fade into each
+// other, so a track can loop or hand over to the next one with no gap.
+
+const BASE = './audio/';
+
+const TRACKS = {
+  menu: 'menu.mp3',
+  playA: 'play-a.mp3',
+  playB: 'play-b.mp3',
+};
+
+// One entry per sound the game asks for. `trim` is a per-sound level so the ones
+// that fire constantly sit under the ones that only happen once in a level.
+const SFX = {
+  coin:    { file: 'drop_002.mp3',         trim: 0.50 },
+  bounce:  { file: 'error_007.mp3',        trim: 0.78 },
+  uiClick: { file: 'switch_007.mp3',       trim: 0.62 },
+  powerup: { file: 'question_001.mp3',     trim: 0.85 },
+  win:     { file: 'confirmation_001.mp3', trim: 1.00 },
+  die:     { file: 'error_006.mp3',        trim: 0.92 },
+};
+
+// Music sits well under the effects so it stays background and the effects read
+// over it; both are low, because neither should be the thing you notice.
+const MUSIC_LEVEL = 0.20;
+const SFX_LEVEL = 0.52;
+const CROSSFADE = 2.6;
+const DUCK = 0.45;              // while a panel is up, so its effect cuts through
+
 let ctx = null;
-let master, sfxGain, musicGain, noiseBuf;
+let master, musicBus, sfxBus;
 let enabled = { sound: true, music: true };
 let hardMuted = false;
-let rolling = null;
-let musicTimer = null;
-let musicScale = [0, 3, 5, 7, 10];
-let musicRoot = 220;
+let buffers = new Map();
+let decks = [];
+let deckI = 0;
+let scene = null;
+let lastPlay = 'playB';
+let ducked = false;
+let watchdog = null;
 
 function ensure() {
   if (ctx) return ctx;
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return null;
-  ctx = new AC();
-  master = ctx.createGain(); master.gain.value = hardMuted ? 0 : 0.9; master.connect(ctx.destination);
-  sfxGain = ctx.createGain(); sfxGain.gain.value = 0.9; sfxGain.connect(master);
-  musicGain = ctx.createGain(); musicGain.gain.value = 0.0; musicGain.connect(master);
-  const len = ctx.sampleRate * 1.0;
-  noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
-  const d = noiseBuf.getChannelData(0);
-  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  try { ctx = new AC({ latencyHint: 'interactive' }); } catch (e) { ctx = new AC(); }
+  master = ctx.createGain(); master.gain.value = hardMuted ? 0 : 1; master.connect(ctx.destination);
+  musicBus = ctx.createGain(); musicBus.gain.value = 0; musicBus.connect(master);
+  sfxBus = ctx.createGain(); sfxBus.gain.value = enabled.sound ? SFX_LEVEL : 0; sfxBus.connect(master);
   return ctx;
 }
 
 export function resume() {
   ensure();
   if (ctx && ctx.state === 'suspended') ctx.resume();
+  // a gesture may be the first chance we get to actually start playing
+  if (scene) applyScene();
 }
+
+// ---- effects ---------------------------------------------------------------
+
+// Called once, early. Nothing is played from a file that has not been decoded,
+// so the first coin of the first level is as prompt as the hundredth.
+export async function preload() {
+  if (!ensure()) return;
+  await Promise.all(Object.entries(SFX).map(async ([name, def]) => {
+    if (buffers.has(name)) return;
+    try {
+      const res = await fetch(BASE + def.file);
+      if (!res.ok) return;
+      const raw = await res.arrayBuffer();
+      const buf = await new Promise((ok, no) => {
+        const p = ctx.decodeAudioData(raw, ok, no);
+        if (p && p.then) p.then(ok, no);
+      });
+      buffers.set(name, buf);
+    } catch (e) { /* a missing effect is silent, never fatal */ }
+  }));
+}
+
+function fire(name, rate = 1) {
+  if (!enabled.sound || !ctx) return;
+  const buf = buffers.get(name); if (!buf) return;
+  const def = SFX[name];
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.playbackRate.value = rate;
+  const g = ctx.createGain();
+  g.gain.value = def.trim;
+  src.connect(g); g.connect(sfxBus);
+  src.start();
+}
+
+export function play(name, arg) {
+  if (!SFX[name] || !ensure()) return;
+  // Coins come in fast runs, and the identical click repeated twenty times reads
+  // as a rattle. The same sound steps up slightly through a combo and resets with
+  // it — about three semitones across a long one, so it never becomes a new sound.
+  if (name === 'coin') fire('coin', 1 + Math.min(arg || 0, 8) * 0.025);
+  else fire(name);
+}
+
+// ---- music -----------------------------------------------------------------
+
+function makeDeck() {
+  const el = new Audio();
+  el.preload = 'none';
+  el.crossOrigin = 'anonymous';
+  const gain = ctx.createGain(); gain.gain.value = 0; gain.connect(musicBus);
+  let src = null;
+  try { src = ctx.createMediaElementSource(el); src.connect(gain); } catch (e) { src = null; }
+  return { el, gain, src, track: null };
+}
+
+function ramp(param, to, secs) {
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  param.cancelScheduledValues(t);
+  param.setValueAtTime(param.value, t);
+  param.linearRampToValueAtTime(to, t + secs);
+}
+
+function musicTarget() {
+  if (!enabled.music) return 0;
+  return MUSIC_LEVEL * (ducked ? DUCK : 1);
+}
+
+// Brings up the next track on the free deck and fades the current one out under
+// it, which covers both moving between tracks and looping one back to its start.
+function crossTo(track, secs = CROSSFADE) {
+  if (!ensure()) return;
+  if (!decks.length) decks = [makeDeck(), makeDeck()];
+  const cur = decks[deckI];
+  const next = decks[deckI = (deckI + 1) % 2];
+
+  next.track = track;
+  if (next.el.src.indexOf(TRACKS[track]) === -1) next.el.src = BASE + TRACKS[track];
+  next.el.currentTime = 0;
+  next.el.loop = false;
+  if (!next.src) next.el.volume = 0;
+  next.gain.gain.value = 0;
+  const started = next.el.play();
+  if (started && started.catch) started.catch(() => {});
+
+  ramp(next.gain.gain, 1, secs);
+  if (!next.src) fadeElement(next, 1, secs);
+  if (cur && cur.el.src) {
+    ramp(cur.gain.gain, 0, secs);
+    if (!cur.src) fadeElement(cur, 0, secs);
+    const el = cur.el;
+    setTimeout(() => { try { el.pause(); } catch (e) {} }, secs * 1000 + 120);
+  }
+  if (track !== 'menu') lastPlay = track;
+  ramp(musicBus.gain, musicTarget(), 0.4);
+  startWatchdog();
+}
+
+// createMediaElementSource is unavailable in a few embeds; there the element's
+// own volume does the fade instead.
+function fadeElement(deck, to, secs) {
+  const from = deck.el.volume, t0 = performance.now();
+  clearInterval(deck.fade);
+  deck.fade = setInterval(() => {
+    const k = Math.min(1, (performance.now() - t0) / (secs * 1000));
+    try { deck.el.volume = Math.max(0, Math.min(1, from + (to - from) * k)); } catch (e) {}
+    if (k >= 1) clearInterval(deck.fade);
+  }, 50);
+}
+
+// Hands over before the file runs out, so a loop never exposes the gap that
+// every mp3 has at its ends.
+function startWatchdog() {
+  clearInterval(watchdog);
+  watchdog = setInterval(() => {
+    const d = decks[deckI];
+    if (!d || !d.el.duration || !isFinite(d.el.duration) || d.el.paused) return;
+    if (d.el.duration - d.el.currentTime <= CROSSFADE) crossTo(nextTrack());
+  }, 250);
+}
+
+function nextTrack() {
+  if (scene === 'menu') return 'menu';
+  return lastPlay === 'playA' ? 'playB' : 'playA';
+}
+
+function applyScene() {
+  if (!enabled.music || !scene) return;
+  if (!ensure()) return;
+  const cur = decks[deckI];
+  const want = scene === 'menu' ? 'menu' : (cur && cur.track && cur.track !== 'menu' ? cur.track : nextTrack());
+  if (cur && cur.track === want && !cur.el.paused) { ramp(musicBus.gain, musicTarget(), 0.4); return; }
+  crossTo(want, cur && cur.track ? CROSSFADE : 1.4);
+}
+
+// 'menu' and 'game' are places, not tracks: the music keeps running across level
+// starts, deaths and wins, because restarting it every level is what makes a
+// soundtrack feel cheap.
+export function setScene(next) {
+  scene = next;
+  if (!next) { stopMusic(); return; }
+  applyScene();
+}
+
+export function duck(on) {
+  ducked = !!on;
+  if (musicBus) ramp(musicBus.gain, musicTarget(), 0.35);
+}
+
+export function stopMusic() {
+  clearInterval(watchdog); watchdog = null;
+  if (musicBus) ramp(musicBus.gain, 0, 0.5);
+  setTimeout(() => {
+    for (const d of decks) { try { d.el.pause(); } catch (e) {} d.track = null; }
+  }, 600);
+}
+
+// ---- settings --------------------------------------------------------------
 
 export function setEnabled(opts) {
   enabled = { ...enabled, ...opts };
-  if (musicGain) musicGain.gain.value = enabled.music ? 0.18 : 0.0;
+  if (sfxBus) sfxBus.gain.value = enabled.sound ? SFX_LEVEL : 0;
   if (!enabled.music) stopMusic();
+  else if (scene) applyScene();
 }
 
 export function setHardMute(v) {
   hardMuted = !!v;
-  if (master) master.gain.value = hardMuted ? 0 : 0.9;
+  if (master) ramp(master.gain, hardMuted ? 0 : 1, 0.12);
 }
 
-function tone(freq, t0, dur, type = 'sine', peak = 0.5, glideTo = null) {
-  if (!ctx || !enabled.sound) return;
-  const o = ctx.createOscillator();
-  const g = ctx.createGain();
-  o.type = type;
-  o.frequency.setValueAtTime(freq, t0);
-  if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t0 + dur);
-  g.gain.setValueAtTime(0.0001, t0);
-  g.gain.exponentialRampToValueAtTime(peak, t0 + 0.012);
-  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-  o.connect(g); g.connect(sfxGain);
-  o.start(t0); o.stop(t0 + dur + 0.02);
-}
-function noiseBurst(t0, dur, freq = 1200, q = 1, peak = 0.4, type = 'bandpass') {
-  if (!ctx || !enabled.sound) return;
-  const src = ctx.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
-  const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(0.0001, t0);
-  g.gain.exponentialRampToValueAtTime(peak, t0 + 0.008);
-  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-  src.connect(f); f.connect(g); g.connect(sfxGain);
-  src.start(t0); src.stop(t0 + dur + 0.02);
-}
-
-export function coin(combo = 0) {
-  if (!ensure()) return;
-  const t = ctx.currentTime;
-  const base = 880 * Math.pow(2, Math.min(combo, 8) / 12);
-  tone(base, t, 0.12, 'triangle', 0.35);
-  tone(base * 1.5, t + 0.04, 0.12, 'sine', 0.25);
-}
-export function powerup() {
-  if (!ensure()) return; const t = ctx.currentTime;
-  tone(523, t, 0.1, 'square', 0.3, 880);
-  tone(784, t + 0.08, 0.18, 'square', 0.3, 1320);
-}
-export function boost() {
-  if (!ensure()) return; const t = ctx.currentTime;
-  noiseBurst(t, 0.25, 600, 0.6, 0.3, 'highpass');
-  tone(180, t, 0.25, 'sawtooth', 0.2, 520);
-}
-export function bounce() {
-  if (!ensure()) return; const t = ctx.currentTime;
-  tone(300, t, 0.15, 'sine', 0.4, 760);
-}
-export function shieldHit() {
-  if (!ensure()) return; const t = ctx.currentTime;
-  noiseBurst(t, 0.18, 2200, 2, 0.35, 'bandpass');
-  tone(420, t, 0.14, 'triangle', 0.25, 200);
-}
-export function die() {
-  if (!ensure()) return; const t = ctx.currentTime;
-  tone(330, t, 0.5, 'sawtooth', 0.35, 70);
-  noiseBurst(t, 0.4, 400, 0.5, 0.3, 'lowpass');
-}
-export function win() {
-  if (!ensure()) return; const t = ctx.currentTime;
-  const notes = [523, 659, 784, 1047];
-  notes.forEach((n, i) => tone(n, t + i * 0.09, 0.22, 'triangle', 0.32));
-}
-export function star(i = 0) {
-  if (!ensure()) return; const t = ctx.currentTime;
-  tone([784, 988, 1175][i % 3], t, 0.18, 'sine', 0.3);
-}
-export function gold() {
-  if (!ensure()) return; const t = ctx.currentTime;
-  const notes = [523, 659, 784, 1047, 1319, 1568];
-  notes.forEach((n, i) => tone(n, t + i * 0.06, 0.3, 'triangle', 0.34));
-  noiseBurst(t, 0.5, 5000, 0.5, 0.18, 'highpass');
-}
-export function portal() {
-  if (!ensure()) return; const t = ctx.currentTime;
-  tone(880, t, 0.18, 'sine', 0.28, 220);
-  noiseBurst(t, 0.2, 1800, 1.4, 0.18, 'bandpass');
-}
-export function uiClick() {
-  if (!ensure()) return; const t = ctx.currentTime;
-  tone(660, t, 0.05, 'square', 0.16);
-}
-export function uiBack() {
-  if (!ensure()) return; const t = ctx.currentTime;
-  tone(330, t, 0.06, 'square', 0.16);
-}
-
-export function startRolling() {
-  if (!ensure() || rolling) return;
-  const src = ctx.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
-  const filter = ctx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 300; filter.Q.value = 0.8;
-  const gain = ctx.createGain(); gain.gain.value = 0;
-  src.connect(filter); filter.connect(gain); gain.connect(sfxGain);
-  src.start();
-  rolling = { src, filter, gain };
-}
-export function setRolling(speed01) {
-  if (!rolling || !ctx) return;
-  const g = enabled.sound ? Math.min(0.22, speed01 * 0.26) : 0;
-  rolling.gain.gain.setTargetAtTime(g, ctx.currentTime, 0.05);
-  rolling.filter.frequency.setTargetAtTime(220 + speed01 * 900, ctx.currentTime, 0.05);
-}
-export function stopRolling() {
-  if (!rolling) return;
-  try { rolling.src.stop(); } catch (e) {}
-  rolling = null;
-}
-
-export function configureMusic(scale, rootHz) {
-  if (scale) musicScale = scale;
-  if (rootHz) musicRoot = rootHz;
-}
-export function startMusic() {
-  if (!ensure() || musicTimer || !enabled.music) return;
-  musicGain.gain.value = 0.18;
-  let step = 0;
-  const tick = () => {
-    if (!ctx || !enabled.music) return;
-    const t = ctx.currentTime + 0.02;
-    const deg = musicScale[(step * 2) % musicScale.length];
-    const oct = (step % 8 < 4) ? 1 : 2;
-    const f = musicRoot * Math.pow(2, deg / 12) * oct;
-    const o = ctx.createOscillator(); const g = ctx.createGain();
-    o.type = 'sine'; o.frequency.value = f;
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.5, t + 0.03);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
-    o.connect(g); g.connect(musicGain);
-    o.start(t); o.stop(t + 0.55);
-    if (step % 4 === 0) {
-      const b = ctx.createOscillator(); const bg = ctx.createGain();
-      b.type = 'triangle'; b.frequency.value = musicRoot / 2;
-      bg.gain.setValueAtTime(0.0001, t);
-      bg.gain.exponentialRampToValueAtTime(0.6, t + 0.04);
-      bg.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
-      b.connect(bg); bg.connect(musicGain);
-      b.start(t); b.stop(t + 0.85);
-    }
-    step++;
+export function debug() {
+  return {
+    ctx: ctx ? ctx.state : 'none',
+    sfxReady: buffers.size,
+    scene,
+    music: musicBus ? +musicBus.gain.value.toFixed(3) : 0,
+    sfx: sfxBus ? +sfxBus.gain.value.toFixed(3) : 0,
+    raw: { ctx, master, musicBus, sfxBus, decks },
   };
-  tick();
-  musicTimer = setInterval(tick, 320);
-}
-export function stopMusic() {
-  if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
-  if (musicGain) musicGain.gain.value = 0;
 }

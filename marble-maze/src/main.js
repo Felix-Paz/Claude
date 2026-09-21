@@ -65,6 +65,10 @@ class App {
     this.ui.refreshMenu(); this.ui.setMenuWorld(worldForLevel(st.maxLevel).name);
     requestAnimationFrame(this._loop);
     SDK.loadingFinished();
+    // Effects are fetched now so the first one is not the slow one; music waits
+    // until the game is on screen so it never holds up the first frame.
+    Audio.preload();
+    Audio.setScene('menu');
     if (SDK.requiresPlayGate()) {
       try { this._loadShowcase(); } catch (e) { }
       this.ui.showScreen('menu');
@@ -155,9 +159,8 @@ class App {
     this.director.noteLevelStart();
     SDK.reportLevelStart(stage);
 
-    const world = this.levelData.world;
-    Audio.configureMusic(worldScale(world.id), worldRoot(world.id));
-    if (S.get().settings.music) Audio.startMusic();
+    Audio.setScene('game');
+    Audio.duck(false);
 
     const wantTilt = (this.input.mode === 'auto' || this.input.mode === 'tilt');
     if (this.input.isTouchDevice() && wantTilt && this.input.tiltAvailable && !this.input.tiltPermitted) {
@@ -216,13 +219,13 @@ class App {
     SDK.gameReady();
   }
 
-  pause() { if (this.game.state !== 'playing') return; this.director.notePause(); this.game.pause(); Audio.stopMusic(); SDK.gameplayStop(); this.ui.showOverlay('pause'); }
-  resume() { this.ui.hideOverlays(); this.ui.showHUD(true); if (S.get().settings.music) Audio.startMusic(); this.game.resume(); SDK.gameplayStart(); }
+  pause() { if (this.game.state !== 'playing') return; this.director.notePause(); this.game.pause(); Audio.duck(true); SDK.gameplayStop(); this.ui.showOverlay('pause'); }
+  resume() { this.ui.hideOverlays(); this.ui.showHUD(true); Audio.duck(false); this.game.resume(); SDK.gameplayStart(); }
   restart() { this.startStage(this.stage, { retry: true }); }
-  toMenu() { SDK.gameplayStop(); SDK.clearLevelContext(); Audio.stopMusic(); this.game.state = 'idle'; this.ui.showHUD(false); this.ui.goldRush(false); this.ui.showScreen('menu'); this.ui.refreshMenu(); }
+  toMenu() { SDK.gameplayStop(); SDK.clearLevelContext(); Audio.setScene('menu'); Audio.duck(false); this.game.state = 'idle'; this.ui.showHUD(false); this.ui.goldRush(false); this.ui.showScreen('menu'); this.ui.refreshMenu(); }
 
   _onWin(data) {
-    SDK.gameplayStop(); SDK.happyMoment(); Audio.stopMusic();
+    SDK.gameplayStop(); SDK.happyMoment(); Audio.duck(true);
     const stage = this.stage;
     this.director.recordWin({ difficulty: this.lastDifficulty, timeMs: data.timeMs, par: this.levelData.parTimeMs, coins: data.coins, coinTotal: data.coinTotal, deaths: this.deathsThisStage });
     const base = this.run.coinValue;
@@ -262,13 +265,13 @@ class App {
     this.ui.showChest(ECON.chestCoins(stage), (total) => {
       S.addCoins(total); this.lastWin.awarded += total;
       this.ui.setCoinBalance(S.get().coins); this.ui.setWinCoins(this.lastWin.awarded * (this.lastWin.doubled ? 2 : 1));
-      Audio.win();
+      Audio.play('win');
     });
   }
   async _doubleCoins() {
     if (this.lastWin.doubled) return;
     const ok = await SDK.rewardedBreak();
-    if (ok) { S.addCoins(this.lastWin.awarded); this.lastWin.doubled = true; this.ui.setWinCoins(this.lastWin.awarded * 2); this.ui.setCoinBalance(S.get().coins); this.ui.disableDouble(); Audio.powerup(); this.ui.toast('Coins doubled'); }
+    if (ok) { S.addCoins(this.lastWin.awarded); this.lastWin.doubled = true; this.ui.setWinCoins(this.lastWin.awarded * 2); this.ui.setCoinBalance(S.get().coins); this.ui.disableDouble(); Audio.play('powerup'); this.ui.toast('Coins doubled'); }
     else this.ui.toast('Ad not available');
   }
   async _next() {
@@ -279,7 +282,7 @@ class App {
   }
 
   _onDie(reason, info) {
-    SDK.gameplayStop(); SDK.reportLevelFail(this.stage); Audio.stopMusic(); S.bump('deaths'); this.deathsThisStage++;
+    SDK.gameplayStop(); SDK.reportLevelFail(this.stage); Audio.duck(true); S.bump('deaths'); this.deathsThisStage++;
     this.director.noteDeathNow();
     if (info?.nearFinish) this.director.noteNearMiss();
     this.director.recordLoss({ difficulty: this.lastDifficulty, timeMs: this.game.clockMs, deathSpot: info, nearFinish: info?.nearFinish });
@@ -296,7 +299,7 @@ class App {
   async _revive() {
     const ok = await SDK.rewardedBreak(); if (!ok) { this.ui.toast('Ad not available'); return; }
     this.revivedThisRun = true; this.ui.hideOverlays(); this.ui.showHUD(true);
-    if (S.get().settings.music) Audio.startMusic();
+    Audio.duck(false);
     this.game.revive(); SDK.gameplayStart(); this.ui.toast('Revived  ·  shielded');
   }
   async _skip() {
@@ -325,13 +328,10 @@ class App {
       onActive: () => this.director.noteMove(),
     };
   }
+  // Only the six sounds the game actually has; anything else stays silent.
+  // uiBack is a button press too, so it gets the button sound.
   _sfx(name, arg) {
-    const map = {
-      coin: () => Audio.coin(arg || 0), boost: Audio.boost, bounce: Audio.bounce, powerup: Audio.powerup,
-      shieldHit: Audio.shieldHit, die: Audio.die, win: Audio.win, gold: Audio.gold, portal: Audio.portal,
-      star: () => Audio.star(arg || 0), uiClick: Audio.uiClick, uiBack: Audio.uiBack,
-    };
-    (map[name] || (() => {}))();
+    Audio.play(name === 'uiBack' ? 'uiClick' : name, arg);
   }
 
   _wireHandlers() {
@@ -369,7 +369,7 @@ class App {
   }
   _setSetting(key, val) {
     S.setSetting(key, val);
-    if (key === 'sound' || key === 'music') { Audio.setEnabled({ [key]: val }); if (key === 'music' && val && this.game.state === 'playing') Audio.startMusic(); }
+    if (key === 'sound' || key === 'music') Audio.setEnabled({ [key]: val });
     if (key === 'control') { this.input.setMode(val); this._updateControlUI(); }
     if (key === 'tiltSensitivity') this.input.setSensitivity(val);
     if (key === 'quality') this.applyQuality(val);
@@ -377,10 +377,5 @@ class App {
   }
 }
 
-function worldRoot(id) { return ({ meadow: 261, canyon: 233, jungle: 220, candy: 294, ice: 329, ocean: 207, lava: 174, neon: 196, toxic: 246, space: 233 })[id] || 220; }
-function worldScale(id) {
-  const minorPent = [0, 3, 5, 7, 10], majorPent = [0, 2, 4, 7, 9], lydian = [0, 2, 4, 6, 7], phrygian = [0, 1, 5, 7, 8];
-  return ({ meadow: majorPent, canyon: minorPent, jungle: minorPent, candy: majorPent, ice: lydian, ocean: lydian, lava: phrygian, neon: phrygian, toxic: phrygian, space: majorPent })[id] || minorPent;
-}
 
 const app = new App(); window.__marble = app; app.boot();
