@@ -30,17 +30,38 @@ window["GD_OPTIONS"] = {
 </script>
 `;
 
+// The game bundle loads after this inline script, so events that arrive before it is
+// ready are queued and replayed. Pause/mute and resume/unmute both run in src/sdk.js.
 const GM_SNIPPET = `<script type="text/javascript">
-window["SDK_OPTIONS"] = {
-  "gameId": "PUT-YOUR-GAMEMONETIZE-GAME-ID-HERE",
-  "onEvent": function (event) {
-    if (window.__gmHandler) { window.__gmHandler(event); }
-    else { (window.__gmEvents = window.__gmEvents || []).push(event); }
+window.SDK_OPTIONS = {
+  gameId: "04juwgelsxdddyb8698nur9wu6ewxt8l",
+  onEvent: function (a) {
+    switch (a.name) {
+      case "SDK_GAME_PAUSE":
+        // pause game logic / mute audio
+        window.__gmDispatch(a);
+        break;
+      case "SDK_GAME_START":
+        // advertisement done, resume game logic and unmute audio
+        window.__gmDispatch(a);
+        break;
+      case "SDK_READY":
+        // when sdk is ready
+        window.__gmReady = true;
+        window.__gmDispatch(a);
+        break;
+      default:
+        window.__gmDispatch(a);
+    }
   }
 };
+window.__gmDispatch = function (a) {
+  if (window.__gmHandler) window.__gmHandler(a);
+  else (window.__gmEvents = window.__gmEvents || []).push(a);
+};
 (function (a, b, c) {
-  var d = a.getElementsByTagName(b)[0];
-  a.getElementById(c) || (a = a.createElement(b), a.id = c, a.src = "https://api.gamemonetize.com/sdk.js", d.parentNode.insertBefore(a, d));
+   var d = a.getElementsByTagName(b)[0];
+   a.getElementById(c) || (a = a.createElement(b), a.id = c, a.src = "https://api.gamemonetize.com/sdk.js", d.parentNode.insertBefore(a, d))
 })(document, "script", "gamemonetize-sdk");
 </script>
 `;

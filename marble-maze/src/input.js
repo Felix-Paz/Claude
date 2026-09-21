@@ -10,7 +10,7 @@ export class Input {
     this.tiltPermitted = false;
     this.tiltNeutral = { beta: 40, gamma: 0 };
     this._keys = new Set();
-    this._touch = { active: false, ax: 0, ay: 0, id: null, radius: 44 };
+    this._touch = { active: false, ax: 0, ay: 0, id: null, radius: 78 };
     this._touchBoost = false;
     this._lastTilt = null;
     this._bound = false;
@@ -101,8 +101,7 @@ export class Input {
     if (mag > 1) { rx /= mag; ry /= mag; }
     this.raw.x = rx; this.raw.y = ry;
 
-    const resp = this.activeMode === 'touch' ? 34 : 18;
-    const k = 1 - Math.exp(-resp * dt);
+    const k = 1 - Math.exp(-18 * dt);
     this.vec.x += (this.raw.x - this.vec.x) * k;
     this.vec.y += (this.raw.y - this.vec.y) * k;
 
@@ -148,7 +147,6 @@ export class Input {
     this._touch.active = true; this._touch.id = t.identifier;
     this._touch.ax = 0; this._touch.ay = 0;
     this._touch._ox = t.clientX; this._touch._oy = t.clientY;
-    this._touch.radius = Math.max(30, Math.min(52, Math.min(window.innerWidth, window.innerHeight) * 0.09));
     if (this.mode === 'auto') this.activeMode = 'touch';
   };
   _onTouchMove = (e) => {
@@ -156,17 +154,11 @@ export class Input {
     e.preventDefault();
     for (const t of e.changedTouches) {
       if (t.identifier !== this._touch.id) continue;
-      let dx = t.clientX - this._touch._ox;
-      let dy = t.clientY - this._touch._oy;
+      const dx = t.clientX - this._touch._ox;
+      const dy = t.clientY - this._touch._oy;
       const r = this._touch.radius;
-      const d = Math.hypot(dx, dy);
-      if (d > r) {
-        const pull = (d - r) / d;
-        this._touch._ox += dx * pull; this._touch._oy += dy * pull;
-        dx -= dx * pull; dy -= dy * pull;
-      }
-      this._touch.ax = dx / r;
-      this._touch.ay = dy / r;
+      this._touch.ax = Math.max(-1, Math.min(1, dx / r));
+      this._touch.ay = Math.max(-1, Math.min(1, dy / r));
     }
   };
   _onTouchEnd = (e) => {

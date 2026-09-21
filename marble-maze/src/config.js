@@ -10,8 +10,8 @@ export const MOVER_COLOR = 0xffb02e;
 export const PORTAL_A = 0x46b6ff, PORTAL_B = 0xff7adf;
 
 export const PHYS = {
-  accel: 88,
-  maxSpeed: 17.2,
+  accel: 80,
+  maxSpeed: 15.5,
   boostMult: 1.8,
   friction: 3.2,
   wallRestitution: 0.18,

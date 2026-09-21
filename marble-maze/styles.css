@@ -197,8 +197,11 @@ input[type=checkbox]:checked::after{transform:translateX(20px);}
 .combo-pop.show{animation:combo .7s ease-out;}
 @keyframes combo{0%{opacity:0;transform:translate(-50%,-10%) scale(.6)}28%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}100%{opacity:0;transform:translate(-50%,-95%) scale(.95)}}
 
+/* No plate behind it: a tight dark halo keeps the mark readable over a white world
+   without putting a box on top of the maze. */
 .game-logo{position:absolute;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));
-  font-family:'Baloo 2';font-weight:800;font-size:15px;letter-spacing:.5px;opacity:.5;line-height:1;pointer-events:none;}
+  font-family:'Baloo 2';font-weight:800;font-size:15px;letter-spacing:.5px;opacity:.78;line-height:1;pointer-events:none;
+  filter:drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000) drop-shadow(0 .5px 1px #000) drop-shadow(0 0 7px rgba(0,0,0,.55));}
 
 
 #goalArrow{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:44px;height:44px;
@@ -253,8 +256,7 @@ body.goldrush #ui::after{content:'';position:fixed;inset:0;pointer-events:none;z
 .menu-panel .menu-row .btn{flex:1;padding:13px 8px;}
 .menu-panel .tagline{margin-top:-4px;}
 
-.game-logo{opacity:.9;background:rgba(8,11,24,.4);padding:5px 11px;border-radius:11px;backdrop-filter:blur(5px);
-  text-shadow:0 2px 8px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.08);}
+.game-logo{opacity:.88;}
 
 /* Keep the top bar on one line however narrow or oddly shaped the window is. */
 #hudLevelPill{min-width:0;}
@@ -276,7 +278,7 @@ body.goldrush #ui::after{content:'';position:fixed;inset:0;pointer-events:none;z
   #goalArrow{width:34px;height:34px;}
   .ga-arrow{font-size:15px;}
   .boost-btn{width:80px;height:80px;font-size:14px;}
-  .game-logo{font-size:17px;padding:6px 10px;}
+  .game-logo{font-size:17px;}
 }
 
 .card-perk{font-size:11px;font-weight:700;color:#ffd23a;background:rgba(255,210,58,.12);border:1px solid rgba(255,210,58,.3);
@@ -315,8 +317,8 @@ body.goldrush #ui::after{content:'';position:fixed;inset:0;pointer-events:none;z
 
 @media (max-width:520px){ .shop-grid{grid-template-columns:repeat(auto-fill,minmax(46vw,1fr));width:96vw;} .card-disc{width:78px;height:78px;} .swatch-canvas{width:74px;height:74px;} }
 
-.game-logo{font-size:21px;opacity:1;background:rgba(6,8,18,.64);border:1px solid rgba(255,255,255,.16);
-  padding:8px 14px;border-radius:13px;box-shadow:0 5px 16px rgba(0,0,0,.45);letter-spacing:.6px;}
+.game-logo{font-size:20px;opacity:.92;letter-spacing:.6px;
+  filter:drop-shadow(0 0 1.5px #000) drop-shadow(0 0 1.5px #000) drop-shadow(0 1px 1.5px #000) drop-shadow(0 0 9px rgba(0,0,0,.55));}
 .panel-brand{font-family:'Baloo 2';font-weight:800;font-size:22px;text-align:center;letter-spacing:.5px;line-height:1;margin-bottom:2px;}
 
 
@@ -414,39 +416,72 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
   border:2px solid rgba(255,255,255,.9);box-shadow:0 3px 10px rgba(0,0,0,.5);}
 input[type=range]:active::-webkit-slider-thumb{transform:scale(1.14);}
 
+/* ---- wordmark ------------------------------------------------------------
+   A marble rolls across the mark and each letter it reaches springs up into
+   place behind it, then one highlight sweeps the finished word. The in-game
+   mark plays it once on the first level and afterwards only repeats the same
+   letter wave, small and slow, so it never competes with the maze.
+   Letters carry the gradient themselves, offset to their own slice of the
+   word (--cx / --ww), because a transformed letter is dropped by a gradient
+   that is clipped on its parent. --t is where the letter sits along the
+   mark, which is also when the marble gets to it.                          */
 .wm{white-space:nowrap;}
-.wm .w{display:inline-block;position:relative;will-change:transform,opacity;}
-.wm .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
-.wm .w::after{content:attr(data-t);position:absolute;left:0;top:0;pointer-events:none;
-  background:linear-gradient(104deg,transparent 40%,rgba(255,255,255,.92) 50%,transparent 60%);
-  background-size:280% 100%;background-position:190% 0;
+/* the rolling marble anchors to the mark, so the static ones need a position of
+   their own — .game-logo already has one and must keep it */
+.logo.wm,.loader-title.wm,.panel-brand.wm{position:relative;}
+.wm .w{display:inline-block;position:relative;}
+.wm .c{display:inline-block;font-style:normal;position:relative;will-change:transform,opacity;}
+.wm .grad .c{background:var(--grad);background-size:var(--ww,100%) 100%;
+  background-position:calc(-1 * var(--cx,0px)) 0;
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.wm .c::after{content:attr(data-t);position:absolute;left:0;top:0;pointer-events:none;
+  background:linear-gradient(104deg,transparent 38%,rgba(255,255,255,.95) 50%,transparent 62%);
+  background-size:340% 100%;background-position:190% 0;
   -webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;}
 
+/* the marble that leads the letters in */
+.wm::before{content:'';position:absolute;left:0;bottom:-.06em;width:.3em;height:.3em;border-radius:50%;
+  background:radial-gradient(circle at 34% 28%,#fff,#d6e6ff 34%,#6aa9ff 68%,#2a5bd0);
+  box-shadow:0 .04em .14em rgba(20,50,140,.55);opacity:0;pointer-events:none;}
+
 @keyframes wmSheen{0%{opacity:0;background-position:190% 0}
-  12%{opacity:1}88%{opacity:1}100%{opacity:0;background-position:-90% 0}}
-@keyframes wmDropIn{0%{opacity:0;transform:translateY(-.52em) scale(.9)}
-  62%{opacity:1;transform:translateY(.055em) scale(1.015)}100%{opacity:1;transform:none}}
-@keyframes wmRiseIn{0%{opacity:0;transform:translateY(.52em) scale(.9)}
-  62%{opacity:1;transform:translateY(-.055em) scale(1.015)}100%{opacity:1;transform:none}}
-@keyframes wmSettle{0%{opacity:0;transform:scale(.94);filter:blur(6px)}
-  100%{opacity:1;transform:none;filter:blur(0)}}
-@keyframes wmRoll{0%{opacity:0;transform:translateX(-58%) rotate(-260deg)}
-  22%{opacity:1}78%{opacity:1}100%{opacity:0;transform:translateX(58%) rotate(260deg)}}
+  14%{opacity:1}86%{opacity:1}100%{opacity:0;background-position:-120% 0}}
+@keyframes wmPop{
+  0%  {opacity:0;transform:translateY(.7em) scale(.72) rotate(-7deg)}
+  50% {opacity:1;transform:translateY(-.11em) scale(1.08) rotate(2deg)}
+  74% {opacity:1;transform:translateY(.035em) scale(.985) rotate(-.6deg)}
+  100%{opacity:1;transform:none}}
+@keyframes wmWave{
+  0%  {transform:none}
+  38% {transform:translateY(-.11em)}
+  100%{transform:none}}
+@keyframes wmCross{
+  0%  {opacity:0;transform:translateX(-1.3em) rotate(0deg)}
+  9%  {opacity:1}
+  84% {opacity:1}
+  100%{opacity:0;transform:translateX(calc(var(--wmw,10em) + .5em)) rotate(760deg)}}
 
-.wm.play .w:nth-child(1){animation:wmDropIn .62s cubic-bezier(.22,1.28,.44,1) both;}
-.wm.play .w:nth-child(2){animation:wmRiseIn .62s cubic-bezier(.22,1.28,.44,1) .085s both;}
-.wm.play .w::after{animation:wmSheen 1.15s ease-in-out .5s;}
+.wm.play .c{animation:wmPop .5s cubic-bezier(.16,1.45,.38,1) both;
+  animation-delay:calc(var(--t,0) * .58s);}
+.wm.play .c::after{animation:wmSheen .8s ease-in-out both;
+  animation-delay:calc(.62s + var(--t,0) * .34s);}
+.wm.play::before{animation:wmCross .78s cubic-bezier(.32,.04,.36,1) both;}
 
-.loader-title.wm .w{animation:wmSettle .8s cubic-bezier(.2,.9,.3,1) both;}
-.loader-title.wm .w:nth-child(2){animation-delay:.13s;}
-.loader-title.wm .w::after{animation:wmSheen 1.5s ease-in-out .7s infinite;}
-.loader-title.wm{position:relative;}
-.loader-title.wm::after{content:'';position:absolute;left:50%;bottom:-11px;width:13px;height:13px;border-radius:50%;
-  background:radial-gradient(circle at 34% 30%,#fff,#cfe0ff 38%,#6aa9ff 72%,#2a5bd0);
-  box-shadow:0 2px 8px rgba(40,90,255,.6);animation:wmRoll 1.9s cubic-bezier(.5,0,.5,1) infinite;}
+/* the quiet repeat: the same wave, no marble, no scale, barely there */
+.wm.idle .c{animation:wmWave .52s ease-in-out both;animation-delay:calc(var(--t,0) * .42s);}
+.wm.idle .c::after{animation:wmSheen .9s ease-in-out both;
+  animation-delay:calc(var(--t,0) * .42s);opacity:0;}
+.wm.idle .c::after{animation-name:wmSheenSoft;}
+@keyframes wmSheenSoft{0%{opacity:0;background-position:190% 0}
+  20%{opacity:.5}80%{opacity:.5}100%{opacity:0;background-position:-120% 0}}
 
-.game-logo.wm .w::after{animation:wmSheen 2.2s ease-in-out infinite;animation-delay:6s;}
+.loader-title.wm .c{animation:wmPop .52s cubic-bezier(.16,1.45,.38,1) both;
+  animation-delay:calc(.15s + var(--t,0) * .6s);}
+.loader-title.wm .c::after{animation:wmSheen 1.4s ease-in-out infinite;
+  animation-delay:calc(.9s + var(--t,0) * .3s);}
+.loader-title.wm::before{animation:wmCross .8s cubic-bezier(.32,.04,.36,1) .15s both;}
 
 @media (prefers-reduced-motion:reduce){
-  .wm .w,.wm .w::after,.loader-title.wm::after{animation:none !important;opacity:1 !important;transform:none !important;}
+  .wm .c,.wm .c::after,.wm::before{animation:none !important;opacity:1 !important;transform:none !important;}
+  .wm .c::after,.wm::before{opacity:0 !important;}
 }

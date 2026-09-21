@@ -12,9 +12,58 @@ export class UI {
     this.base = ['loading', 'menu', 'shop'];
     this.overlays = ['adCurtain', 'legal', 'chest', 'pause', 'win', 'lose', 'daily', 'settings', 'tiltPrompt'];
     this.screens = [...this.base, ...this.overlays];
+    this._splitWordmarks();
     this._bindStatic();
   }
   setHandlers(h) { this.h = h; }
+
+  // Each letter animates on its own, and a transformed letter is dropped by a
+  // gradient clipped on its parent — so every letter carries the gradient itself,
+  // shifted to the slice of the word it occupies. --t is when the rolling marble
+  // reaches it, as a fraction of the crossing.
+  _splitWordmarks() {
+    this._wms = [...document.querySelectorAll('.wm')];
+    for (const wm of this._wms) {
+      for (const w of wm.querySelectorAll('.w')) {
+        if (w.querySelector('.c')) continue;
+        const text = w.dataset.t || w.textContent;
+        w.textContent = '';
+        for (const ch of text) {
+          const i = document.createElement('i');
+          i.className = 'c'; i.textContent = ch; i.dataset.t = ch;
+          w.appendChild(i);
+        }
+      }
+    }
+    this._measureWordmarks();
+    if (typeof ResizeObserver !== 'undefined') {
+      this._wmRO = new ResizeObserver(() => {
+        clearTimeout(this._wmT);
+        this._wmT = setTimeout(() => this._measureWordmarks(), 120);
+      });
+      for (const wm of this._wms) this._wmRO.observe(wm);
+    }
+  }
+
+  _measureWordmarks(only) {
+    for (const wm of (only ? [only] : this._wms)) {
+      const box = wm.getBoundingClientRect();
+      const total = box.width;
+      if (!total) continue;
+      const wmLeft = box.left;
+      wm.style.setProperty('--wmw', total.toFixed(2) + 'px');
+      for (const w of wm.querySelectorAll('.w')) {
+        const wb = w.getBoundingClientRect();
+        if (!wb.width) continue;
+        w.style.setProperty('--ww', wb.width.toFixed(2) + 'px');
+        for (const c of w.querySelectorAll('.c')) {
+          const cb = c.getBoundingClientRect();
+          c.style.setProperty('--cx', (cb.left - wb.left).toFixed(2) + 'px');
+          c.style.setProperty('--t', ((cb.left + cb.width * 0.5 - wmLeft) / total).toFixed(3));
+        }
+      }
+    }
+  }
 
   showScreen(name) {
     this.clearNotice();
@@ -27,7 +76,10 @@ export class UI {
   hideOverlays() { for (const s of this.overlays) $(s)?.classList.add('hidden'); }
   visibleOverlay() { for (const s of this.overlays) if (!$(s)?.classList.contains('hidden')) return s; return null; }
   visibleBase() { for (const s of this.base) if (!$(s)?.classList.contains('hidden')) return s; return null; }
-  showHUD(on) { $('hud').classList.toggle('hidden', !on); }
+  showHUD(on) {
+    $('hud').classList.toggle('hidden', !on);
+    if (on) this.playHudWordmark(); else this.stopHudWordmark();
+  }
 
   _bindStatic() {
     const click = (id, fn) => { const e = $(id); if (e) e.addEventListener('click', () => { this.h.sfx?.('uiClick'); fn(); }); };
@@ -102,9 +154,28 @@ export class UI {
     $('dailyDot').classList.toggle('hidden', !d.claimable);
     $('playLabel').textContent = st.maxLevel > 1 ? `PLAY · Lv ${st.maxLevel}` : 'PLAY';
   }
-  playWordmark() {
-    const el = document.querySelector('#menu .wm'); if (!el) return;
-    el.classList.remove('play'); void el.offsetWidth; el.classList.add('play');
+  playWordmark() { this._runWordmark(document.querySelector('#menu .wm'), 'play'); }
+
+  // The in-game mark introduces itself once, then only ever repeats a much quieter
+  // version of the same move so it never pulls the eye away from the maze.
+  playHudWordmark() {
+    const el = document.querySelector('#hud .wm'); if (!el) return;
+    clearInterval(this._hudWmT);
+    if (!this._hudWmSeen) { this._hudWmSeen = true; this._runWordmark(el, 'play'); }
+    else this._runWordmark(el, 'idle');
+    this._hudWmT = setInterval(() => {
+      if ($('hud').classList.contains('hidden')) return;
+      this._runWordmark(el, 'idle');
+    }, 26000);
+  }
+  stopHudWordmark() { clearInterval(this._hudWmT); this._hudWmT = null; }
+
+  _runWordmark(el, cls) {
+    if (!el) return;
+    el.classList.remove('play', 'idle');
+    this._measureWordmarks(el);        // it may have been hidden, and so unmeasurable, until now
+    void el.offsetWidth;
+    el.classList.add(cls);
   }
   setMenuWorld(name) { $('menuWorld').textContent = name; }
   setProvider(p) { this.provider = p; }
