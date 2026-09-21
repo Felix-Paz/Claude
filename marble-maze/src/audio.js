@@ -11,15 +11,19 @@ const TRACKS = {
   playB: 'play-b.mp3',
 };
 
-// One entry per sound the game asks for. `trim` is a per-sound level so the ones
-// that fire constantly sit under the ones that only happen once in a level.
+// One entry per sound the game asks for. The balance between them is baked into
+// the files themselves — each was brought to a shared loudness and then set in
+// its place in the mix, so the ones that fire constantly sit under the ones that
+// mark a real moment. They are wav because a short effect encoded as mp3 carries
+// the encoder's padding at its head, which is silence before the sound, which is
+// the sound arriving late. All six together are under 200KB.
 const SFX = {
-  coin:    { file: 'drop_002.mp3',         trim: 0.50 },
-  bounce:  { file: 'error_007.mp3',        trim: 0.78 },
-  uiClick: { file: 'switch_007.mp3',       trim: 0.62 },
-  powerup: { file: 'question_001.mp3',     trim: 0.85 },
-  win:     { file: 'confirmation_001.mp3', trim: 1.00 },
-  die:     { file: 'error_006.mp3',        trim: 0.92 },
+  coin:    'drop_002.wav',
+  bounce:  'error_007.wav',
+  uiClick: 'switch_007.wav',
+  powerup: 'question_001.wav',
+  win:     'confirmation_001.wav',
+  die:     'error_006.wav',
 };
 
 // Music sits well under the effects so it stays background and the effects read
@@ -65,10 +69,10 @@ export function resume() {
 // so the first coin of the first level is as prompt as the hundredth.
 export async function preload() {
   if (!ensure()) return;
-  await Promise.all(Object.entries(SFX).map(async ([name, def]) => {
+  await Promise.all(Object.entries(SFX).map(async ([name, file]) => {
     if (buffers.has(name)) return;
     try {
-      const res = await fetch(BASE + def.file);
+      const res = await fetch(BASE + file);
       if (!res.ok) return;
       const raw = await res.arrayBuffer();
       const buf = await new Promise((ok, no) => {
@@ -83,13 +87,10 @@ export async function preload() {
 function fire(name, rate = 1) {
   if (!enabled.sound || !ctx) return;
   const buf = buffers.get(name); if (!buf) return;
-  const def = SFX[name];
   const src = ctx.createBufferSource();
   src.buffer = buf;
   src.playbackRate.value = rate;
-  const g = ctx.createGain();
-  g.gain.value = def.trim;
-  src.connect(g); g.connect(sfxBus);
+  src.connect(sfxBus);
   src.start();
 }
 
