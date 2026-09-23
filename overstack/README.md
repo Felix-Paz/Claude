@@ -12,8 +12,9 @@ before banking and the run's coins burn — the vault never does.
 no install, no login, no network required — 2.3 MB, of which 1.9 MB is the five
 embedded songs. Everything else, the whole game, is under 400 KB.
 
-**Play it with a friend:** open `duel.html` on a phone, lay it flat between you,
-and sit on opposite sides. See [OVERSTACK DUEL](#overstack-duel--two-players-one-phone).
+**Play it with a friend:** open `duel.html` on a phone, hold it sideways between
+you, and play side by side (or lay it flat and sit face to face). See
+[OVERSTACK DUEL](#overstack-duel--two-players-one-phone).
 
 ## Controls
 
@@ -1177,10 +1178,78 @@ the game moved.
 
 ## OVERSTACK DUEL — two players, one phone
 
-`duel.html` is the same game for two people sitting across a table from each
-other with one phone lying flat between them. Each player gets a half of the
-screen turned to face them, their own deck, their own tower and their own BANK
-button — and one clock, one set of blocks and one winner.
+`duel.html` is the same game for two people sharing one phone. Each player gets
+half of the screen, their own deck, their own tower and their own BANK button —
+and one clock, one set of blocks and one winner.
+
+### How two people actually hold one phone
+
+The first version of the duel assumed two people sitting across a table from
+each other, with the phone lying flat between them and each half turned to
+face its player. That works, but it is not how two people usually share a
+phone. More often they are next to each other — on a sofa, at a bar, at a
+desk, at the same side of a table — and the phone is between them on its
+side. So the duel now supports both, and side by side is the default:
+
+- **SIDE BY SIDE** (the default). The phone is held or laid sideways between
+  two people sitting next to each other. Player 1 plays the left half and
+  Player 2 the right, and **both boards are upright for both players**. That
+  matters more than it sounds: each player can read the other's tower at a
+  glance, which is what makes the new attack timing (below) a real decision.
+  One scoreboard sits in a column between the boards and reads the right way
+  up for both. The two boards are mirror images: NEXT and BANK on each
+  player's **outside** edge, under the hand holding that end of the phone,
+  and FIRE on the **inside**, next to the rival.
+- **FACE TO FACE.** The phone lies flat between two people sitting across a
+  table, and each board is turned to face its player (180° on an upright
+  phone, a quarter each way on a sideways one). Each board carries its own
+  clock and scores, because nothing in the middle can be read upright from
+  both ends.
+
+Either player picks one on the lobby or rematch card, with a two-option
+switch that shows a tiny diagram of each seating. The choice is remembered on
+the device. At a desk (mouse and keyboard) it is always side by side, and the
+switch does not appear.
+
+**Rotation lock.** Many people keep their phone's rotation locked to portrait.
+When they turn it sideways, the browser stays in portrait and a landscape game
+would appear sideways. Side by side does not depend on that: if the page is in
+portrait, the whole table is turned a quarter inside the page, so it is
+landscape anyway. It is turned the way nearly everyone turns a phone for a
+landscape game (top edge to the left), and a phone lying on a table can simply
+be spun to match. Touch maps through the turn like everything else. On Android,
+the first READY asks for fullscreen and locks landscape (side by side) or the
+current orientation (face to face).
+
+**Every size.** Side by side, the column is 13.5% of the width (84–136 px) and
+the two boards split the rest exactly evenly. Each board is taller than it is
+wide on every phone tested:
+
+| Phone | Each board |
+|---|---|
+| iPhone 14, sideways (notch on both ends) | 324 × 369 |
+| iPhone 14, rotation locked, turned by the page | 324 × 390 |
+| iPhone SE, sideways | 288 × 375 |
+| iPhone SE in Safari, rotation locked, toolbars showing | 232 × 375 |
+| Android, sideways, browser bar showing | 395 × 356 |
+| A desk | 572 × 800 |
+
+A notch on one end never makes one player's board narrower: side by side, the
+safe area is taken as the larger of the two ends and applied to both. Boards
+under 300 px wide get a compact HUD (smaller NEXT, BANK and FIRE); cards on a
+sideways phone are tightened so the whole lobby fits in 356 px of height.
+
+### The middle column (side by side)
+
+Top to bottom: the **clock** (the match length in the lobby, red and pulsing in
+the last ten seconds); **both scores**, Player 1's in blue and flush to its own
+board, Player 2's in orange and flush to theirs, with the leader's in gold,
+counting up rather than jumping; a **tug of war** between them that settles at
+each player's share of everything banked; who is **ahead and by how much**;
+and the **one pause button** for the table. Each player's **attack meter**
+runs up the column's edge against their own board, and throbs in their colour
+while an attack is loaded, so the rival can see it coming. In the lobby the
+column shows VS and the running record; after the buzzer, the winner.
 
 ### How a solo game becomes a head-to-head one
 
@@ -1212,57 +1281,38 @@ What shipped:
   pot still standing is cashed for you with the full BANK moment — so the last
   ten seconds are the same decision the solo game is built on, with a rival
   watching.
-- **Fusions are ammunition.** Every fusion charges an attack meter, by the tier
-  it made, multiplied by the chain it was part of. When it fills, an attack
-  leaves your side of the band and flies across into your rival's half, where
-  it lands as one of the game's own world events — **METEOR**, **HEX**, **GUST**
-  or **BLACK HOLE**, always in that order, so both players can learn what is
-  coming next. The events keep every safety promise they make in the solo game:
-  they can cost you blocks and scramble your tower, never end your run on their
-  own. An attack aimed at an empty deck waits — and says so — until there is
-  something for it to hit.
+- **Fusions load an attack, and you choose when to throw it.** Every fusion
+  charges your attack meter, by the tier it made, multiplied by the chain it
+  was part of. When the meter fills, it does **not** fire itself: it **arms**.
+  Your FIRE button turns solid in your colour and throbs, TAP TO FIRE, and the
+  rival's meter in the middle throbs too. One tap throws it: it leaves from
+  your button, arcs across the middle and lands in your rival's deck as one of
+  the game's own world events — **METEOR**, **HEX**, **GUST** or **BLACK
+  HOLE**, always in that order, so both players know what is loaded.
+  - This is the main mechanical change for the shared screen. With both towers
+    in view, *when* is the whole decision: into a tower that is already
+    leaning, or just before your rival banks a big pot. And the rival, seeing
+    your meter throb, has to decide whether to bank early to protect their pot.
+  - Holding costs something: while an attack is loaded, **fusions charge
+    nothing**, so sitting on one wastes charge. A big chain that fills the
+    meter carries up to 40% of a meter over into the next.
+  - An attack still held at the buzzer was never thrown.
+  - A tap on a meter that is not full shakes it and throws nothing, and never
+    drops a block by accident.
+  - The events keep every safety promise they make in the solo game: they can
+    cost you blocks and scramble your tower, never end your run on their own.
+    An attack thrown at an empty deck waits (and says so) until there is
+    something for it to hit.
 - **The rarest thing in the game is a weapon.** Two AUREX touching still
-  triggers THE OVERFLOW, empties your deck and pays out — and in a duel it also
-  fires two attacks at once.
+  triggers THE OVERFLOW, empties your deck and pays out — and in a duel it
+  also throws two attacks at once, without touching your meter.
 
-Tuned on two bots playing full two-minute matches at real speed: the first
+Tuned on two bots playing full two-minute matches at real speed. The first
 charge values sent five to nine attacks a side, one every thirteen seconds,
-which is weather again, not an event. The shipped values send three to five
-for fast, fusion-heavy play and fewer for a careful player.
-
-### Mobile first: the table
-
-A phone lying flat has no "up", so the layout never assumes one:
-
-- **Upright phone** — the screen splits top and bottom, and the far half is
-  turned 180° to face its player. Both towers grow toward the band in the
-  middle.
-- **Sideways phone** — the screen splits left and right, and each half is
-  turned a quarter to face its player's short edge. A flat phone can flip
-  orientation on its own; the match survives it untouched.
-- **A desk** (mouse and keyboard) — the boards sit side by side and upright,
-  and two players share one keyboard: `A` `D` aim, `S` drop, `W` bank for
-  player one; the arrows for player two; `P` pauses. Each lobby card shows its
-  player's keys.
-
-Every half is exactly the same size, and each board inside is a full game laid
-out for its own half: the HUD is two rows and nothing else — what you are
-risking across the top (NEXT, POT and GREED, the clock), what you have banked
-across the bottom (SCORE with your rival's beside it, your next attack, BANK).
-The camera frames the deck between those rows, so nothing is ever drawn over
-the tower. Safe areas are respected at each player's own edge — the notch is
-one player's problem, the home indicator the other's.
-
-The band down the middle belongs to neither player and is readable from
-either side: a **tug of war** (each player's colour fills from their own left,
-meeting at the share of the total they have banked) with each player's
-**attack meter** running along their own edge of it.
-
-Touch is two-handed and simultaneous: each board takes its own touches, so both
-players can aim and drop at the same instant. On Android a first READY asks for
-fullscreen and locks the orientation it is in; during a match the screen is
-kept awake, because a phone lying on a table untouched for ten seconds would
-otherwise dim itself mid-duel.
+which felt like random weather, not an event. The shipped values arm three to
+five for fast, fusion-heavy play and fewer for a careful player. With bots
+that hold each loaded attack for half a second to four seconds, a two-minute
+match came out at four attacks each and 11,611 to 12,107.
 
 ### The match
 
@@ -1271,23 +1321,37 @@ minutes — both cards follow). Both boards are dealt during a 3-2-1 so each
 player can read their first two blocks before anything can drop. The last ten
 seconds count down big and faint across each board. Either player can pause;
 the clock, both boards and every timer inside both games stop — a bomb's fuse,
-a curse, a black hole — and resuming counts back in. Each player then gets
-their own verdict — VICTORY or DEFEAT — with both scores from their own side,
-their banks, best bank, attacks sent, collapses and the highest block they
-built, and a running record between the two seats. A rematch needs both
-players and deals a brand-new game.
+a curse, a black hole — nothing can be thrown while paused, and resuming counts
+back in. Each player then gets their own verdict — VICTORY or DEFEAT — with
+both scores from their own side, their banks, best bank, attacks sent,
+collapses and the highest block they built, and a running record between the
+two seats. A rematch needs both players and deals a brand-new game.
+
+At a desk, two players share one keyboard: `A` `D` aim, `S` drop, `W` bank,
+`E` fire for Player 1; the arrows and `Enter` for Player 2; `P` pauses. Each
+lobby card shows its player's keys, and a loaded attack names its key (E TO
+FIRE, ENTER TO FIRE).
 
 ### How it is built
 
 The duel does not re-implement the game and does not modify it. It runs the
-**same game code twice** — each copy in its own frame, turned to face its
-player — with a thin conductor page between them.
+**same game code twice** — each copy in its own frame — with a thin conductor
+page between them.
 
 This was chosen over refactoring the game into instances because the game is
 one self-contained program, and two frames give each board perfect isolation
 for free: its own physics engine, its own state, its own DOM, its own audio.
-Better still, the browser maps touches through each frame's rotation, so the
-game inside never needs to know it is upside down.
+Better still, the browser maps touches through any rotation of a frame (or of
+the whole table), so the game inside never needs to know it is sideways or
+upside down.
+
+The conductor lays the table out as a rectangle for each board plus the way it
+faces, all inside one wrapper that is itself turned a quarter when a
+rotation-locked phone is held sideways. It owns what belongs to the match: the
+seed, the clock, the scores, the meters and when they arm, the middle column
+(or, face to face, the band), attacks in flight, the lobby and results flow,
+and the seating choice. It stores only that choice and the match length, under
+its own key (`overstack.duel.v1`).
 
 Each copy is the solo build plus one extra section (§25, `duel_mode.js`) that is
 compiled into the duel build only. It:
@@ -1303,6 +1367,9 @@ compiled into the duel build only. It:
   anyone's pile deciding what anyone gets);
 - turns world events into attacks only, and BANK and collapse into
   cash-in-and-continue;
+- lays its HUD out for how the players are sitting (its own clock and scores
+  face to face; mirrored, with the clock and scores in the middle, side by
+  side) and turns the attack meter into the FIRE button;
 - removes the one quality rung that touches physics, so both boards always run
   identical physics — and lets Player 1's board make the table's quality
   decisions from the shared frame times while Player 2's mirrors them, so both
@@ -1313,29 +1380,42 @@ build and the dev build are byte-identical with or without the duel.
 
 ### Performance
 
-Two whole games on one phone was the obvious risk. Measured on an identical
-seeded match under CPU throttle, with both boards actively playing:
+Two whole games on one phone was the obvious risk. Measured under CPU throttle
+with both boards actively playing, in headless Chromium. Each figure is a
+six-second sample and repeated runs vary by several fps, so ranges are the
+spread across runs:
 
-| | Solo | Duel |
-|---|---|---|
-| Normal phone (2× throttle), AUTO | 54.9 fps | 53.2 fps, only the background wash eased off |
-| Weak phone (4× throttle), AUTO | 53.9 fps | 46.2 fps |
-| Weak phone, everything forced on | 16.1 fps | 14.2 fps |
+| | Solo | Duel, side by side | Duel, face to face |
+|---|---|---|---|
+| Normal phone (2× throttle), AUTO | 56.2–56.5 fps | 56.9 fps | 58.0 fps |
+| Weak phone (4× throttle), AUTO | 43.6–54.8 fps | 35.1–41.6 fps | 46.4 fps |
+| Weak phone, everything forced on | 15.7–18.1 fps | 14.7–16.0 fps | 10.9–14.2 fps |
 
-Each board is half the pixels, so rendering two costs only about 12% more than
+The previous duel build (face to face only, attacks fired automatically),
+measured in the same runs: 33.7 fps in AUTO and 12.2–14.2 fps forced on, so
+the rework costs nothing measurable.
+
+Each board is half the pixels, so rendering two costs only a little more than
 rendering one. Profiling showed 90% of the frame is the browser rasterising and
-compositing, and the duel's own code is under 0.3% — so the fixes were layers,
-not code: the attack layer only exists while something is in flight, and the
-band is only redrawn when a score, a meter or the layout actually changes. The
-second board carries no songs (the table plays one), which saves it parsing
-1.9 MB.
+compositing, and the duel's own code is under 0.3%, so the fixes were layers,
+not code: the attack layer only exists while something is in flight; the band
+is only redrawn when a score, a meter or the layout actually changes; the
+middle column is plain HTML that is written only when a number changes; and
+its throbbing meters and the loaded FIRE button animate opacity only, which
+the compositor handles without repainting. The second board carries no songs
+(the table plays one), which saves it parsing 1.9 MB.
 
-Verified by `test_duel.js`: 63 assertions — layout in all three modes; READY,
-aim and drops through the 180° and 90° turns; two fingers at once; identical
-sequences, physics and quality on both boards; BANK, collapse, attacks, the
-attack rotation and the waiting attack; pause freezing every timer; the buzzer,
-the verdicts, the record and the rematch; and the solo save left exactly as it
-was.
+Verified by `test_duel.js`: 102 assertions — side by side (the default, equal
+upright boards, the middle column, mirrored HUDs), the lobby and seating
+switch, identical sequences, physics and quality on both boards; touch on each
+board and two fingers at once; BANK, collapse and the rivalry readouts; arming,
+holding, the price of holding, the dud tap, the tap that fires, the flight path,
+the attack rotation and the waiting attack; pause (including nothing thrown
+while paused); the buzzer, a held attack at the buzzer, the verdicts, the record
+and the rematch; a rotation-locked phone turned by the page, with touch and
+FIRE through the turn; face to face through 180° and 90° turns, remembered
+across a reload; a desk with one keyboard and E / Enter to fire; and the solo
+save left exactly as it was.
 
 ## 404
 
