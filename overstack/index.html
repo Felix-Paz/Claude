@@ -1429,14 +1429,18 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   font-size: 0.56rem; font-weight: 800; letter-spacing: 0.16em;
 }
 .lg-tab.on { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.28); }
-/* The document scrolls, and says so quietly: a hairline thumb in the card's
-   own ink on no track at all, and the text fading out at whichever edge has
-   more to come. `scrollbar-color` has to be set alongside `scrollbar-width` —
-   a browser that honours the standard pair ignores the ::-webkit rules, and
-   with only the width set it draws its own grey default bar. */
+/* The document scrolls without the browser's own scrollbar. That bar is
+   different in every browser and on every platform, and on some it is a white
+   track with a grey thumb that belongs to no game, whatever it is asked to
+   look like. So it is switched off everywhere (both switches: the standard one
+   and the WebKit one), and the card draws its own mark instead: a pill of the
+   card's own ink in the margin, no track, sized to how much of the document is
+   in view — faint at rest, brighter while it moves, and with a mouse, wider
+   under the pointer and draggable. The text fades out at whichever edge has
+   more to come. */
 #legal-body {
   flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain;
-  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.16) transparent;
+  scrollbar-width: none; -ms-overflow-style: none;
   text-align: left; padding: 10px 12px 14px 0; margin-top: 2px;
   font-size: 0.72rem; line-height: 1.62; color: rgba(255,255,255,0.74);
   --fade-t: 0px; --fade-b: 22px;
@@ -1445,10 +1449,22 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 }
 #legal-body.scrolled { --fade-t: 18px; }
 #legal-body.at-end { --fade-b: 0px; }
-#legal-body::-webkit-scrollbar { width: 6px; }
-#legal-body::-webkit-scrollbar-track { background: transparent; }
-#legal-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 3px; border: 1.5px solid transparent; background-clip: padding-box; }
-#legal-body::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,0.28); }
+#legal-body::-webkit-scrollbar { display: none; width: 0; height: 0; }
+#legal-scroll {
+  position: absolute; right: 5px; top: 0; height: 0; width: 13px;
+  opacity: 0; pointer-events: none; transition: opacity 0.35s var(--e-out);
+}
+#legal-scroll.on { opacity: 1; }
+#legal-scroll i {
+  position: absolute; right: 5px; top: 0; width: 3px; border-radius: 3px;
+  background: rgba(255,255,255,0.18);
+  transition: background 0.3s ease, width 0.2s var(--e-out), right 0.2s var(--e-out);
+}
+#legal-scroll.live i { background: rgba(255,255,255,0.42); }
+@media (hover: hover) and (pointer: fine) {
+  #legal-scroll.on { pointer-events: auto; }
+  #legal-scroll:hover i, #legal-scroll.drag i { width: 5px; right: 4px; background: rgba(255,255,255,0.5); }
+}
 #legal-body h3 {
   margin: 18px 0 6px; font-size: 0.6rem; letter-spacing: 0.18em;
   color: var(--gold); font-weight: 800;
@@ -1970,6 +1986,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 
       </section>
     </div>
+    <div id="legal-scroll" aria-hidden="true"><i></i></div>
   </div>
 </div>
 
@@ -10119,10 +10136,32 @@ const UI = {
     this.legalFade();
   },
   // the text fades out only at an edge that has more to come
-  legalFade() {
+  legalFade(live) {
     const b = $('legal-body');
     b.classList.toggle('scrolled', b.scrollTop > 2);
     b.classList.toggle('at-end', b.scrollTop + b.clientHeight >= b.scrollHeight - 2);
+    this.legalThumb(live);
+  },
+  /* The card's own scroll mark (the browser's is switched off): sized to the
+     share of the document in view, placed by how far down it is read, and
+     only there at all when there is something to scroll. */
+  legalThumb(live) {
+    const b = $('legal-body'), bar = $('legal-scroll'), t = bar && bar.firstElementChild;
+    if (!t) return;
+    const max = b.scrollHeight - b.clientHeight;
+    bar.classList.toggle('on', max > 2);
+    if (max <= 2) return;
+    const pad = 12, track = Math.max(0, b.clientHeight - pad * 2);
+    const h = Math.min(track, Math.max(30, Math.round(track * b.clientHeight / b.scrollHeight)));
+    bar.style.top = (b.offsetTop + pad) + 'px';
+    bar.style.height = track + 'px';
+    t.style.height = h + 'px';
+    t.style.transform = `translateY(${Math.round((track - h) * clamp(b.scrollTop / max, 0, 1))}px)`;
+    if (live) {
+      bar.classList.add('live');
+      clearTimeout(this._lsT);
+      this._lsT = setTimeout(() => bar.classList.remove('live'), 750);
+    }
   },
 
   toast(text) {
@@ -10635,7 +10674,34 @@ const Input = {
         UI.legalFade();
       };
     }
-    $('legal-body').addEventListener('scroll', () => UI.legalFade(), { passive: true });
+    $('legal-body').addEventListener('scroll', () => UI.legalFade(true), { passive: true });
+    window.addEventListener('resize', () => { if (!$('legal').classList.contains('hidden')) UI.legalFade(); });
+    // with a mouse the mark can be dragged, or its track clicked to jump there
+    $('legal-scroll').addEventListener('pointerdown', (e) => {
+      const b = $('legal-body'), bar = $('legal-scroll'), t = bar.firstElementChild;
+      const max = b.scrollHeight - b.clientHeight, track = bar.clientHeight, h = t.offsetHeight;
+      if (max <= 0) return;
+      e.preventDefault(); e.stopPropagation();
+      const tr = t.getBoundingClientRect();
+      if (e.clientY < tr.top || e.clientY > tr.bottom) {
+        const br = bar.getBoundingClientRect();
+        b.scrollTop = clamp((e.clientY - br.top - h / 2) / Math.max(1, track - h), 0, 1) * max;
+      }
+      const y0 = e.clientY, s0 = b.scrollTop;
+      bar.setPointerCapture(e.pointerId);
+      bar.classList.add('drag');
+      const move = (ev) => { b.scrollTop = s0 + (ev.clientY - y0) * max / Math.max(1, track - h); };
+      const up = () => {
+        bar.classList.remove('drag');
+        bar.removeEventListener('pointermove', move);
+        bar.removeEventListener('pointerup', up);
+        bar.removeEventListener('pointercancel', up);
+      };
+      bar.addEventListener('pointermove', move);
+      bar.addEventListener('pointerup', up);
+      bar.addEventListener('pointercancel', up);
+    });
+    $('legal-scroll').addEventListener('click', (e) => e.stopPropagation());
   },
 };
 

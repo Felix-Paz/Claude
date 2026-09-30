@@ -846,12 +846,19 @@ deliberately obvious rather than plausible-looking, so a build cannot ship with
 a fake contact address by accident.
 
 The legal screen dims the world exactly as Settings does, its title is set
-like every other card's, and its scrollbar is a hairline in the card's own ink
-on no track at all. `scrollbar-color` is set alongside `scrollbar-width`,
-because a browser that honours the standard pair ignores the `::-webkit`
-rules, and with only the width set it draws its own grey default bar. The text
-fades out at whichever edge has more to come, and a tap outside the card steps
-back to Settings, as it does on every other card.
+like every other card's, and a tap outside the card steps back to Settings, as
+it does on every other card.
+
+It scrolls without the browser's own scrollbar. That bar differs by browser
+and platform, and on some (Safari, and desktop setups with classic scrollbars)
+it is a white track with a grey thumb whatever it is asked to look like, so no
+amount of styling could make it belong. It is switched off everywhere — both
+`scrollbar-width: none` and the WebKit `::-webkit-scrollbar` switch — and the
+card draws its own mark: a 3 px pill of the card's own ink in the margin, no
+track, sized to the share of the document in view and placed by how far down
+it is read. It is faint at rest and brightens while the text moves; with a
+mouse it widens under the pointer and can be dragged, or its track clicked to
+jump. The text itself fades out at whichever edge has more to come.
 
 ## Menus in motion
 
@@ -923,7 +930,7 @@ time you close a card over it.
   (the collection, with every item cascading in) opens was measured at 47–62 ms
   against 34–40 ms idle, and the animation is over in half a second.
 
-Verified by `test_motion.js`, 45 checks: each kind of move is the one used (from
+Verified by `test_motion.js`, 52 checks: each kind of move is the one used (from
 a button, back into it, card into card, from a tapped item, landing, dropping
 away); every transition ends with no slab, no inline style and nothing pinned;
 a control works mid-animation; hammering open and close across three cards
@@ -931,7 +938,9 @@ leaves the menu whole; the purchase card finds its item after the list is
 rebuilt; reduced motion only fades; LOW graphics never blurs; and the three
 small fixes from the same pass hold: Graphics in Settings is just the word and
 the control, with no explanation under it; the legal screen is dimmed like
-Settings, with the quiet scrollbar above; and the daily reward's footer no
+Settings, with its own scroll mark in place of the browser's (checked for no
+native bar or gutter, the mark's size, movement and brightening, and with a
+mouse, widening and dragging); and the daily reward's footer no
 longer ends with the vault total, which the menu already shows. The suite
 passed five runs in a row, because the bug it caught first was intermittent.
 
