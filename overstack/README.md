@@ -845,6 +845,96 @@ person reads), `law` (the governing jurisdiction), and `updated`. They are
 deliberately obvious rather than plausible-looking, so a build cannot ship with
 a fake contact address by accident.
 
+The legal screen dims the world exactly as Settings does, its title is set
+like every other card's, and its scrollbar is a hairline in the card's own ink
+on no track at all. `scrollbar-color` is set alongside `scrollbar-width`,
+because a browser that honours the standard pair ignores the `::-webkit`
+rules, and with only the width set it draws its own grey default bar. The text
+fades out at whichever edge has more to come, and a tap outside the card steps
+back to Settings, as it does on every other card.
+
+## Menus in motion
+
+Every card in the game — the menu, Settings, the legal pages, Collection, Runs,
+the daily reward, the results, the purchase card, an ad break — opens, closes
+and hands over to the next one through one system (§23b, `Motion`). Nothing
+that opens or closes a screen was rewritten to use it. Every card is a
+`.screen` that code shows and hides by toggling one class; an observer watches
+those classes, and whenever screens appear or disappear in the same moment it
+works out what just happened and choreographs it.
+
+The motion is the game's own: blocks drop, land and stack, so panels do too.
+
+- **Opened from a button, a card grows out of that button.** The button's
+  surface lifts off, travels to the middle and unfolds into the card, while
+  the menu behind it steps back and softens. The card's contents cascade in
+  once there is room, top to bottom, and its close button spins in last.
+- **Closing folds it back into the button it came from.** The button stays
+  hidden until the card arrives over it, then takes over with a small bump, as
+  if the card had landed on it, while the menu comes forward again one line at
+  a time.
+- **From one card to another, the card reshapes.** Settings into the legal
+  pages, the results into the collection and back: one slab of glass stretching
+  from one size to the other, the old contents lifting away as the new ones
+  settle in.
+- **The purchase card grows out of the item you tapped**, over the collection,
+  and folds back into that same item when you cancel — or when you buy, even
+  though buying rebuilds the whole list underneath it.
+- **A card nobody asked for lands.** The results, the daily reward and an ad
+  break drop in from just above, come into focus and settle with the smallest
+  overshoot.
+- **Leaving for a run, everything drops away.** The menu comes apart top first,
+  each piece falling and tipping a beat after the one above; DROP AGAIN tips
+  the results card and lets it fall. The HUD slides in from the edges it lives
+  on.
+- **The small notices move the same way.** Toasts, hints, the welcome banner
+  and the curse and wind banners drop in from a few pixels up, focus as they
+  land and lift away quicker than they came.
+
+Opening a card sounds like air drawn in under one soft note; closing one sounds
+like the same breath let out. Both sit under the button's click and never
+replace it. The wordmark stacks itself when you arrive at the menu, not every
+time you close a card over it.
+
+### How it behaves
+
+- **It never blocks a tap.** A card is live the moment it is shown, so a
+  control can be used halfway through the animation that brings it in.
+- **It can be interrupted anywhere.** Open, close, open again as fast as a
+  thumb can go: each move starts from exactly where the last one visibly got
+  to, so nothing jumps, and it always lands where the last tap asked.
+- **It never leaves anything behind.** Only transform, opacity, blur and clip
+  are animated on anything with contents; the one element that changes size,
+  the slab of glass that reshapes, has no contents at all and is removed the
+  moment its last frame is drawn, in the same frame the card's real glass comes
+  back. Exits never hold their last frame. A browser can lose track of an
+  animation left filling forever, and a lost one keeps its element invisible
+  with nothing left that can find it; so each exit runs for exactly as long as
+  its screen is held, and by the time it ends the screen itself has gone.
+  Animations are named in the animation itself rather than tagged on the
+  script object, which a browser is free to collect and hand back as a new one.
+- **Exits are quicker than entrances,** on one small set of curves: a strong
+  ease-out for arrivals, an iOS-style sheet curve for the reshaping, a landing
+  curve with a hair of overshoot, and gravity for things that fall.
+- **Reduced motion is respected.** With the OS reduced-motion setting on,
+  every panel reaches the same place by fading and nothing else. On LOW
+  graphics nothing is blurred.
+- **It is cheap.** At 4× CPU throttle, the frame time while the biggest card
+  (the collection, with every item cascading in) opens was measured at 47–62 ms
+  against 34–40 ms idle, and the animation is over in half a second.
+
+Verified by `test_motion.js`, 45 checks: each kind of move is the one used (from
+a button, back into it, card into card, from a tapped item, landing, dropping
+away); every transition ends with no slab, no inline style and nothing pinned;
+a control works mid-animation; hammering open and close across three cards
+leaves the menu whole; the purchase card finds its item after the list is
+rebuilt; reduced motion only fades; LOW graphics never blurs; and the three
+small fixes from the same pass hold: Graphics in Settings is just the word and
+the control, with no explanation under it; the legal screen is dimmed like
+Settings, with the quiet scrollbar above; and the daily reward's footer no
+longer ends with the vault total, which the menu already shows. The suite
+passed five runs in a row, because the bug it caught first was intermittent.
+
 ## The tuning pass
 
 Small things, mostly, and a few that were bugs wearing the costume of a

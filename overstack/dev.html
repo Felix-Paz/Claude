@@ -25,6 +25,9 @@
            no bevels, no hard offset edges, no metal.
    ========================================================================== */
 :root {
+  /* motion: one set of curves for everything that opens, closes or lands */
+  --e-out:  cubic-bezier(0.23, 1, 0.32, 1);
+  --e-land: cubic-bezier(0.26, 1.32, 0.5, 1);
   --ink:     #16352A;
   --ink-2:   #222636;
   /* the panels are LIGHT glass sitting on the coloured world, not dark holes
@@ -833,6 +836,9 @@ body {
   opacity: 1; transition: opacity 0.22s ease; pointer-events: auto;
 }
 .screen.hidden { opacity: 0; pointer-events: none; }
+/* with §23b running, every screen's arrival and exit is choreographed there,
+   so the flat cross-fade above only remains as the fallback without it */
+.mo .screen { transition: none; }
 
 #loading { background: var(--ink); z-index: 100; }
 #loading .wordmark { font-size: clamp(2rem, 9.4vw, 2.9rem); }
@@ -842,7 +848,7 @@ body {
 
 #menu { background: rgba(12, 14, 22, 0.82); }
 /* every card screen dims the world a little so the panel reads cleanly */
-#shop, #settings, #board, #daily { background: rgba(12, 14, 22, 0.78); }
+#shop, #settings, #board, #daily, #legal { background: rgba(12, 14, 22, 0.78); }
 #menu .wordmark { font-size: clamp(2.2rem, 10.4vw, 3.2rem); filter: drop-shadow(0 10px 34px rgba(0,0,0,0.45)); }
 #menu .tagline { color: var(--text-mute); font-size: 0.64rem; letter-spacing: 0.44em; margin: 18px 0 30px; text-transform: uppercase; }
 #btn-play { min-width: 240px; font-size: 1.4rem; padding: 20px 52px; animation: breathe 2.8s ease-in-out infinite; }
@@ -869,9 +875,13 @@ body {
   position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
   padding: 11px 20px; font-size: 0.78rem; letter-spacing: 0.06em; color: var(--gold);
   z-index: 60; max-width: 92vw; text-align: center;
-  transition: opacity 0.4s ease; opacity: 1;
+  opacity: 1; translate: 0 0; scale: 1; filter: blur(0px);
+  transition: opacity 0.3s var(--e-out), translate 0.55s var(--e-land), scale 0.55s var(--e-land), filter 0.3s var(--e-out);
 }
-#banner.hidden { opacity: 0; pointer-events: none; }
+#banner.hidden {
+  opacity: 0; pointer-events: none; translate: 0 -10px; scale: 0.96; filter: blur(3px);
+  transition: opacity 0.24s var(--e-out), translate 0.26s var(--e-out), scale 0.26s var(--e-out), filter 0.24s var(--e-out);
+}
 
 /* ---------- HUD ---------- */
 #hud { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
@@ -983,6 +993,10 @@ body.cursed #risk-vignette { background: radial-gradient(78% 68% at 50% 52%, tra
   animation: cursepulse 0.9s ease-in-out infinite;
 }
 #curse-banner.hidden, #wind-banner.hidden { display: none; }
+#wind-banner { animation: box-in 0.46s var(--e-land) both; }
+#curse-banner { animation: box-in 0.46s var(--e-land) both, cursepulse 0.9s ease-in-out 0.46s infinite; }
+.reduce-motion #wind-banner { animation: none; }
+.reduce-motion #curse-banner { animation: cursepulse 0.9s ease-in-out infinite; }
 #wind-banner {
   padding: 7px 16px; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.18em;
   color: #dff6ff; background: rgba(18,44,60,0.82);
@@ -1016,8 +1030,10 @@ body.cursed #risk-vignette { background: radial-gradient(78% 68% at 50% 52%, tra
 #block-hint .bh-txt { min-width: 0; line-height: 1.32; }
 #block-hint .bh-pair { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; opacity: 0.92; }
 #block-hint .bh-never { color: #ff9db0; font-weight: 800; letter-spacing: 0.09em; }
-@keyframes hint-in  { from { opacity: 0; transform: translateY(-9px) scale(0.94); } to { opacity: 1; transform: none; } }
-@keyframes hint-out { to { opacity: 0; transform: translateY(-6px) scale(0.97); } }
+@keyframes hint-in  { from { opacity: 0; transform: translateY(-9px) scale(0.94); filter: blur(4px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes hint-out { to { opacity: 0; transform: translateY(-6px) scale(0.97); filter: blur(3px); } }
+/* the same small landing for every notice in the column */
+@keyframes box-in { from { opacity: 0; translate: 0 -8px; scale: 0.94; filter: blur(4px); } to { opacity: 1; translate: 0 0; scale: 1; filter: blur(0); } }
 .reduce-motion #block-hint { animation: none !important; }
 @media (max-width: 759px) {
   #block-hint { font-size: 0.56rem; padding: 6px 11px 6px 7px; gap: 7px; }
@@ -1334,16 +1350,25 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 
 /* Both live in the empty band directly under the GREED pill — well above the
    deck, so nothing ever covers the blocks or the landing. */
+/* Notices arrive the way cards do, only smaller: dropped in from a few pixels
+   up, settling with a hair of overshoot and coming into focus as they land;
+   they leave quicker than they came, lifting and softening. Each state carries
+   its own transition, so the way in and the way out are timed separately. */
 #hint, #toast {
   position: fixed; left: 50%; transform: translateX(-50%);
   text-shadow: 0 1px 8px rgba(0,0,0,0.45);
   padding: 11px 20px; font-size: 0.82rem; letter-spacing: 0.02em;
-  z-index: 30; pointer-events: none; opacity: 0; transition: opacity 0.32s ease;
-  text-align: center; max-width: 84vw;
+  z-index: 30; pointer-events: none; text-align: center; max-width: 84vw;
+  opacity: 0; translate: 0 -8px; scale: 0.96; filter: blur(3px);
+  transition: opacity 0.2s var(--e-out), translate 0.22s var(--e-out), scale 0.22s var(--e-out), filter 0.2s var(--e-out);
 }
 #toast { top: 152px; }
 #hint  { top: 152px; color: var(--text); }
-#hint.show, #toast.show { opacity: 1; }
+#hint.show, #toast.show {
+  opacity: 1; translate: 0 0; scale: 1; filter: blur(0px);
+  transition: opacity 0.26s var(--e-out), translate 0.5s var(--e-land), scale 0.5s var(--e-land), filter 0.3s var(--e-out);
+}
+.low-fx #hint, .low-fx #toast { filter: none; }
 
 /* ---------- first-run tutorial --------------------------------------------
    Three beats, each anchored to the thing you actually touch, each dismissed by
@@ -1404,13 +1429,26 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   font-size: 0.56rem; font-weight: 800; letter-spacing: 0.16em;
 }
 .lg-tab.on { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.28); }
+/* The document scrolls, and says so quietly: a hairline thumb in the card's
+   own ink on no track at all, and the text fading out at whichever edge has
+   more to come. `scrollbar-color` has to be set alongside `scrollbar-width` —
+   a browser that honours the standard pair ignores the ::-webkit rules, and
+   with only the width set it draws its own grey default bar. */
 #legal-body {
-  flex: 1 1 auto; overflow-y: auto; scrollbar-width: thin;
-  text-align: left; padding-right: 10px; margin-top: 6px;
+  flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.16) transparent;
+  text-align: left; padding: 10px 12px 14px 0; margin-top: 2px;
   font-size: 0.72rem; line-height: 1.62; color: rgba(255,255,255,0.74);
+  --fade-t: 0px; --fade-b: 22px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-t), #000 calc(100% - var(--fade-b)), transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-t), #000 calc(100% - var(--fade-b)), transparent 100%);
 }
-#legal-body::-webkit-scrollbar { width: 8px; }
-#legal-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 4px; }
+#legal-body.scrolled { --fade-t: 18px; }
+#legal-body.at-end { --fade-b: 0px; }
+#legal-body::-webkit-scrollbar { width: 6px; }
+#legal-body::-webkit-scrollbar-track { background: transparent; }
+#legal-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 3px; border: 1.5px solid transparent; background-clip: padding-box; }
+#legal-body::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,0.28); }
 #legal-body h3 {
   margin: 18px 0 6px; font-size: 0.6rem; letter-spacing: 0.18em;
   color: var(--gold); font-weight: 800;
@@ -1480,7 +1518,7 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
   max-height: 86vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;
 }
 #shop-card::-webkit-scrollbar, #board-card::-webkit-scrollbar, #settings-card::-webkit-scrollbar { width: 0; height: 0; display: none; }
-#shop-card h2, #settings-card h2, #board-card h2, #daily-card h2 { font-size: 0.95rem; letter-spacing: 0.28em; margin-bottom: 6px; font-weight: 800; }
+#shop-card h2, #settings-card h2, #board-card h2, #daily-card h2, #legal-card h2 { font-size: 0.95rem; letter-spacing: 0.28em; margin-bottom: 6px; font-weight: 800; }
 .card-sub { font-size: 0.74rem; color: var(--text-mute); margin-bottom: 20px; }
 .card-sub b { color: var(--gold); font-weight: 800; }
 .shop-section { font-size: 0.54rem; letter-spacing: 0.3em; color: var(--text-mute); margin: 24px 0 12px; }
@@ -1532,7 +1570,9 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 }
 .card-x::before { transform: rotate(45deg); }
 .card-x::after { transform: rotate(-45deg); }
+.card-x { transition: background 0.16s ease, transform 0.16s var(--e-out); }
 .card-x:hover { background: rgba(255,255,255,0.18); }
+.card-x:active { transform: scale(0.88); }
 .card-x:hover::before, .card-x:hover::after { background: #fff; }
 
 #confirm-dialog { z-index: 95; background: rgba(6, 7, 12, 0.75); }
@@ -1624,8 +1664,6 @@ body.chase #chase-vignette { opacity: 1; animation: chasepulse 1.5s ease-in-out 
 /* What AUTO is currently doing, in one quiet line. It says nothing at all
    while nothing has been turned down, because "everything is on" is the
    normal state and does not need announcing. */
-#q-note { display: block; font-style: normal; font-size: 0.6rem; color: var(--text-mute); margin-top: 3px; letter-spacing: 0.02em; }
-#q-note:empty { display: none; }
 
 /* leaderboard */
 #board-list { list-style: none; }
@@ -1900,7 +1938,7 @@ body.dev-collapsed #dev-title, body.dev-collapsed #dev-fps { display: none; }
     <div class="setting-row"><span>Sound effects</span><button class="toggle" id="tgl-sound"></button></div>
     <div class="setting-row"><span>Music</span><button class="toggle" id="tgl-music"></button></div>
     <div class="setting-row">
-      <span>Graphics<i id="q-note"></i></span>
+      <span>Graphics</span>
       <div class="seg" id="seg-quality" role="group" aria-label="Graphics quality">
         <span class="seg-ink"></span>
         <button data-q="auto">AUTO</button><button data-q="low">LOW</button><button data-q="high">HIGH</button>
@@ -2062,7 +2100,7 @@ body.dev-collapsed #dev-title, body.dev-collapsed #dev-fps { display: none; }
     <button id="btn-claim" class="btn btn-primary"></button>
     <div class="week-label">THE WEEK AHEAD</div>
     <div id="daily-days"></div>
-    <div id="daily-foot">Miss a day and the ladder restarts at 50,000 · Vault <b id="daily-vault">0</b></div>
+    <div id="daily-foot">Miss a day and the ladder restarts at 50,000</div>
   </div>
 </div>
 
@@ -3138,6 +3176,16 @@ const Audio2 = {
     if (this.sample('ui', { gain: 0.22, rate: rand(0.98, 1.03), verb: 0.1 })) return;
     this.voice({ freq: this.note(7, 0.5), type: 'sine', peak: 0.045, attack: 0.002,
       decay: 0.075, cutoff: 3200, cutoffTo: 1400, verb: 0.12 });
+  },
+  /* A panel opening or closing: a breath of air that rises as it opens and
+     falls as it closes, with one soft note inside it. It sits under the
+     button's click, a beat behind it, and never replaces it. */
+  panel(open) {
+    if (!this.on) return;
+    this.hiss({ peak: 0.03, decay: open ? 0.26 : 0.2, from: open ? 600 : 2800, to: open ? 3400 : 520,
+      q: 0.6, verb: 0.35, when: 0.02 });
+    this.voice({ freq: this.note(open ? 12 : 7, 0), type: 'sine', fm: 0.6, fmRatio: 2.01, peak: 0.028,
+      attack: 0.006, decay: open ? 0.3 : 0.2, verb: 0.4, when: open ? 0.07 : 0.03 });
   },
   unlock() {
     if (!this.on) return;
@@ -10130,9 +10178,11 @@ const UI = {
     Audio2.toMenuMusic();
     $('hud').classList.add('hidden');
     document.body.classList.remove('chase');
+    // closing a card is stepping back into a menu that never left, not arriving at it
+    const fromCard = ['shop', 'settings', 'board', 'daily', 'legal'].some((s) => !$(s).classList.contains('hidden'));
     this.show('menu');
     // and only now, with #menu actually on screen, does the mark stack itself
-    this.playWordmark(document.querySelector('#menu .wordmark'));
+    if (!fromCard) this.playWordmark(document.querySelector('#menu .wordmark'));
     $('ms-best').textContent = fmt(save.best);
     $('ms-coins').textContent = fmt(save.coins);
     $('ms-streak').textContent = String(Streak.days || 0);
@@ -10186,6 +10236,13 @@ const UI = {
     for (const el of document.querySelectorAll('[data-legal-law]')) el.textContent = LEGAL.law;
     $('legal-body').scrollTop = 0;
     this.show('legal');          // show() hides every other screen first
+    this.legalFade();
+  },
+  // the text fades out only at an edge that has more to come
+  legalFade() {
+    const b = $('legal-body');
+    b.classList.toggle('scrolled', b.scrollTop > 2);
+    b.classList.toggle('at-end', b.scrollTop + b.clientHeight >= b.scrollHeight - 2);
   },
 
   toast(text) {
@@ -10345,7 +10402,6 @@ const UI = {
         ? `Come back tomorrow for ${fmt(nextAmt)} — double today's.`
         : `Come back tomorrow for another ${fmt(nextAmt)}.`;
     }
-    $('daily-vault').textContent = fmt(save.coins);
   },
 
   openLoop(kind, score) {
@@ -10424,6 +10480,7 @@ const UI = {
       const equipped = owned && save.equipped[item.kind] === item.data;
       const el = document.createElement('button');
       el.className = 'shop-item' + (owned ? ' owned' : ' locked') + (equipped ? ' equipped' : '') + (item.mythic ? ' mythic' : '');
+      el.dataset.item = item.id;      // so a card can find the item it came from after a re-render
       const progress = owned ? 1 : item.price ? clamp(save.coins / item.price, 0, 1) : 1;
       el.innerHTML =
         `<div class="swatch" style="${this.swatchStyle(item)}"></div>` +
@@ -10506,9 +10563,8 @@ const UI = {
     $('tgl-music').classList.toggle('on', Settings.music);
     this.syncQuality();
   },
-  /* Move the lit block under the live mode and, in AUTO, say in one line what
-     the game has actually turned down. Called when settings opens and once a
-     second while it is open — never from the frame loop. */
+  /* Move the lit block under the live mode. Called when settings opens and
+     when a mode is picked — never from the frame loop. */
   syncQuality() {
     const seg = $('seg-quality');
     if (!seg) return;
@@ -10518,12 +10574,6 @@ const UI = {
     btns.forEach((b) => { const hit = b.dataset.q === m; b.classList.toggle('on', hit); if (hit) on = b; });
     const ink = seg.querySelector('.seg-ink');
     if (ink && on) { ink.style.left = on.offsetLeft + 'px'; ink.style.width = on.offsetWidth + 'px'; }
-    const note = $('q-note');
-    if (!note) return;
-    if (m === 'high') note.textContent = 'Everything on.';
-    else if (m === 'low') note.textContent = 'Effects reduced to keep frames steady.';
-    else if (!Quality.reasons.length) note.textContent = 'Everything on — this device is keeping up.';
-    else note.textContent = 'Eased off: ' + Quality.reasons.map((r) => r.why).join(', ') + '.';
   },
   /* The score, the multiplier and the BANK label are recomputed every frame but
      change on maybe one frame in ten. Writing textContent invalidates the node
@@ -10690,6 +10740,7 @@ const Input = {
     $('shop').addEventListener('click', (e) => { if (e.target === $('shop')) { Audio2.ui(); closeShop(); } });
     $('settings').addEventListener('click', (e) => { if (e.target === $('settings')) { Audio2.ui(); UI.showMenu(); } });
     $('board').addEventListener('click', (e) => { if (e.target === $('board')) { Audio2.ui(); UI.showMenu(); } });
+    $('legal').addEventListener('click', (e) => { if (e.target === $('legal')) { Audio2.ui(); UI.syncToggles(); UI.show('settings'); } });
     $('confirm-dialog').addEventListener('click', (e) => { if (e.target === $('confirm-dialog')) $('confirm-dialog').classList.add('hidden'); });
     bind('tgl-sound', () => { Settings.toggle('sound'); Audio2.muteCheck(); UI.syncToggles(); });
     bind('tgl-music', () => { Settings.toggle('music'); Audio2.muteCheck(); UI.syncToggles(); });
@@ -10701,7 +10752,561 @@ const Input = {
         $('lg-privacy').hidden = t.dataset.lg !== 'privacy';
         $('lg-terms').hidden = t.dataset.lg !== 'terms';
         $('legal-body').scrollTop = 0;
+        UI.legalFade();
       };
+    }
+    $('legal-body').addEventListener('scroll', () => UI.legalFade(), { passive: true });
+  },
+};
+
+/* ==================== §23b MOTION — how every panel arrives and leaves =====
+   Every card in the game is a `.screen` that code shows and hides by toggling
+   one class. Nothing here changes who calls what: an observer watches those
+   classes, and whenever screens appear or disappear in the same moment, this
+   works out what just happened and choreographs it.
+
+   The language is the game's own. Blocks drop, land and stack, so panels do:
+   · a card opened from a button GROWS OUT OF THAT BUTTON — the button's own
+     surface lifts off and becomes the card — and closing it folds it back down
+     into the button it came from, which gives a small bump as it lands;
+   · from one card to another (settings to the legal pages, the results to the
+     collection) the card RESHAPES into the next: one slab of glass, the old
+     contents lifting away while the new ones settle in;
+   · a card nobody asked for (the results, the daily reward, an ad) LANDS: it
+     drops in from just above and settles with the smallest overshoot;
+   · leaving for a run, whatever is on screen DROPS AWAY under gravity, and the
+     HUD slides in from the edges it lives on.
+   Contents always arrive in a short cascade, top to bottom, so the eye is led
+   down the card instead of being handed all of it at once.
+
+   The rules it keeps. Things with contents only ever animate transform,
+   opacity, blur and clip; the one element that changes size — the slab of
+   glass that reshapes — has no contents at all. Exits are quicker than
+   entrances. Anything can be interrupted mid-flight and carries on from
+   exactly where it visibly is, so opening and closing as fast as a thumb can
+   tap never jumps. A screen is live the moment it is shown: nothing waits for
+   an animation to finish. The OS reduced-motion setting gets plain fades, and
+   LOW graphics loses the blur. */
+const Motion = {
+  E_OUT: 'cubic-bezier(0.23, 1, 0.32, 1)',      // arrivals: moving the instant you tap
+  E_SHEET: 'cubic-bezier(0.32, 0.72, 0, 1)',    // a surface travelling and reshaping
+  E_LAND: 'cubic-bezier(0.26, 1.32, 0.5, 1)',   // a landing: a hair past, then home
+  E_DROP: 'cubic-bezier(0.55, 0, 0.9, 0.45)',   // gravity: it gathers speed as it goes
+  CARD: {
+    results: 'results-card', shop: 'shop-card', settings: 'settings-card', legal: 'legal-card',
+    board: 'board-card', daily: 'daily-card', 'confirm-dialog': 'confirm-card', 'ad-overlay': 'ad-box',
+  },
+  // screens that open OVER another one rather than instead of it
+  OVER: new Set(['confirm-dialog', 'ad-overlay']),
+  // lists whose items cascade one by one rather than arriving as a block
+  LISTS: '#menu-nav, #shop-grid-docks, #shop-grid-themes, #shop-powers, #daily-days, #board-list, .confirm-row, .ad-offer-row',
+  on: false, indiv: false, tok: 0, run: null, snap: null, prev: null,
+  // what a computed 'none' means for each property, as a frame (a clip has no in-between from none)
+  IDENT: { translate: '0px 0px', scale: '1', rotate: '0deg', transform: 'none', filter: 'none', clipPath: null },
+  seen: new Map(), origin: {}, press: null,
+
+  init() {
+    if (this.on || !Element.prototype.animate) return;
+    this.on = true;
+    this.indiv = !!(window.CSS && CSS.supports && CSS.supports('translate', '1px 2px') && CSS.supports('scale', '0.5'));
+    document.documentElement.classList.add('mo');
+    // remember what was pressed, so a card knows which button it came from
+    document.addEventListener('pointerdown', (e) => {
+      const el = e.target && e.target.closest ? e.target.closest('button, .shop-item') : null;
+      if (el) this.press = { el, t: performance.now() };
+    }, true);
+    const screens = [...document.querySelectorAll('.screen')];
+    for (const s of screens) this.seen.set(s, !s.classList.contains('hidden'));
+    const watch = new MutationObserver(() => this.changed());
+    for (const s of screens) watch.observe(s, { attributes: true, attributeFilter: ['class'] });
+    const hud = $('hud');
+    if (hud) {
+      this.hudOn = !hud.classList.contains('hidden');
+      new MutationObserver(() => {
+        const on = !hud.classList.contains('hidden');
+        if (on && !this.hudOn) this.hudIn();
+        this.hudOn = on;
+      }).observe(hud, { attributes: true, attributeFilter: ['class'] });
+    }
+  },
+
+  // ---------------------------------------------------------------- plumbing
+  reduced() { return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); },
+  soft() { return !document.body.classList.contains('low-fx'); },
+  card(s) { const id = this.CARD[s.id]; return id ? $(id) : null; },
+  vis(s) { return !s.classList.contains('hidden'); },
+  // later in the page = drawn on top, for two screens on the same layer
+  above(a, b) { return !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING); },
+
+  /* Animate from wherever the element visibly is. If something of ours is
+     already moving the same properties, its current values become the first
+     frame, so an interrupted panel turns round in place instead of jumping. */
+  go(el, frames, t) {
+    const keys = [...new Set(frames.flatMap((f) => Object.keys(f)))].filter((k) => k !== 'offset' && k !== 'easing');
+    const live = el.getAnimations ? el.getAnimations().filter((a) => this.ours(a) && this.keysOf(a).some((k) => keys.includes(k))) : [];
+    const snap = this.snap && this.snap.get(el);
+    if (live.length || snap) {
+      const cs = live.length ? getComputedStyle(el) : null;
+      const f0 = Object.assign({}, frames[0]);
+      for (const k of keys) {
+        let v = snap && snap[k] != null ? snap[k] : cs ? cs[k] : null;
+        if (v === 'none') v = this.IDENT[k];          // 'none' is a resting value, not a gap
+        if (v != null && v !== '') f0[k] = v;
+      }
+      frames = [f0].concat(frames.slice(1));
+      for (const a of live) a.cancel();
+    }
+    const o = Object.assign({ fill: 'backwards', easing: this.E_OUT }, t);
+    const exit = !!o.exit, hold = o.hold || 0;
+    delete o.exit; delete o.hold;
+    /* A way out never pins its last frame. The browser can lose track of an
+       animation that sits filling forever, and a lost one keeps its element
+       invisible with nothing left that can find it to let go. So an exit runs
+       for exactly as long as its screen is held: the motion in the first part,
+       its end state kept to the last moment, and at the end nothing at all —
+       by then the screen itself has gone. */
+    if (exit) {
+      const d = o.duration || 0, dl = o.delay || 0, tot = Math.max(hold, d + dl) || 1, n = frames.length;
+      const fr = frames.map((f, i) => {
+        const x = Object.assign({}, f, { offset: (dl + (f.offset != null ? f.offset : i / (n - 1)) * d) / tot });
+        if (i < n - 1) x.easing = o.easing; else delete x.easing;
+        return x;
+      });
+      if (dl > 0) fr.unshift(Object.assign({}, fr[0], { offset: 0, easing: 'linear' }));
+      if (fr[fr.length - 1].offset < 1) fr.push(Object.assign({}, fr[fr.length - 1], { offset: 1 }));
+      frames = fr;
+      Object.assign(o, { duration: tot, delay: 0, easing: 'linear', fill: 'none' });
+    }
+    const a = el.animate(frames, o);
+    /* Ours are named, not tagged: a finished animation's script object can be
+       collected and handed back later as a new one, and anything hung on the
+       old object goes with it. The name lives in the animation itself. */
+    a.id = 'mo|' + keys.join(',') + '|' + (exit ? 'x' : '');
+    return a;
+  },
+  ours(a) { return typeof a.id === 'string' && a.id.startsWith('mo|'); },
+  keysOf(a) { return a.id.split('|')[1].split(','); },
+  isExit(a) { return a.id.endsWith('|x'); },
+  /* An element's own filter, as the stylesheet has it — read only while nothing
+     of ours is blurring it, because mid-flight the computed value is our blur,
+     and composing onto that compounds it. Opacity needs no such care: every
+     frame here leaves the resting opacity implicit, so the browser fills in
+     whatever the stylesheet says (a disabled button's 0.4, a muted link's 0.72). */
+  bases: new WeakMap(),
+  baseFilter(el) {
+    const busy = el.getAnimations && el.getAnimations().some((a) => this.ours(a) && this.keysOf(a).includes('filter'));
+    if (!busy) { const f = getComputedStyle(el).filter; this.bases.set(el, f); return f; }
+    return this.bases.has(el) ? this.bases.get(el) : 'none';
+  },
+  /* A screen shown again before it finished leaving. Wherever its insides had
+     got to on the way out is written down, the exit is dropped, and whatever
+     brings them back in starts from exactly there — so it turns round in place,
+     and nothing from the way out is left pinned to anything afterwards. */
+  unwind(s) {
+    if (!s.getAnimations) return;
+    const exits = s.getAnimations({ subtree: true }).filter((a) => this.ours(a) && (this.isExit(a) || a.playState === 'finished'));
+    for (const a of exits) {
+      const el = a.effect && a.effect.target;
+      if (el && this.isExit(a) && a.playState !== 'finished' && !this.snap.has(el)) {
+        const cs = getComputedStyle(el), v = {};
+        for (const k of this.keysOf(a)) v[k] = cs[k];
+        this.snap.set(el, v);
+      }
+    }
+    for (const a of exits) a.cancel();
+  },
+  // a position/scale/tilt that composes with whatever transform the element already has
+  tf(x, y, s, r) {
+    if (this.indiv) return { translate: `${x}px ${y}px`, scale: String(s), rotate: `${r || 0}deg` };
+    return { transform: `translate(${x}px, ${y}px) scale(${s}) rotate(${r || 0}deg)` };
+  },
+  blur(px, base) {
+    if (!this.soft()) return {};
+    const b = base && base !== 'none' ? ' ' + base : '';
+    return { filter: `blur(${px}px)${b}` };
+  },
+  inline(el, prop, val) { this.run.undo.push([el, prop, el.style[prop]]); el.style[prop] = val; },
+  // a card's own glass goes clear while a travelling slab stands in for it
+  bare(card) {
+    this.inline(card, 'background', 'transparent');
+    this.inline(card, 'borderColor', 'transparent');
+    this.inline(card, 'boxShadow', 'none');
+  },
+  look(el) {
+    const cs = getComputedStyle(el), r = el.getBoundingClientRect();
+    return { rad: Math.min(parseFloat(cs.borderTopLeftRadius) || 0, r.height / 2, r.width / 2),
+      bg: cs.backgroundColor, line: cs.borderTopColor };
+  },
+  backdrop(s) { const c = getComputedStyle(s).backgroundColor; return c && c !== 'transparent' ? c : 'rgba(0, 0, 0, 0)'; },
+  clear(c) { return c.replace(/rgba?\(([^,]+),([^,]+),([^,)]+)(,[^)]+)?\)/, 'rgba($1,$2,$3, 0)'); },
+  clip(r, box, rad) {
+    return `inset(${r.top - box.top}px ${box.right - r.right}px ${box.bottom - r.bottom}px ${r.left - box.left}px round ${rad}px)`;
+  },
+  // a press in the last moment, on something still on screen, is where a card came from
+  pressed(host, not) {
+    const p = this.press;
+    if (!p || performance.now() - p.t > 900 || !p.el.isConnected) return null;
+    if (host && !host.contains(p.el)) return null;
+    if (not && not.contains(p.el)) return null;
+    return p.el.getBoundingClientRect().width ? p.el : null;
+  },
+  // the element a card should fold back into — found again if the list was re-rendered
+  home(id, host) {
+    const o = this.origin[id];
+    if (!o) return null;
+    let el = o.el;
+    if ((!el || !el.isConnected) && o.key) el = document.querySelector(`[data-item="${o.key}"]`);
+    if (!el || !el.isConnected || (host && !host.contains(el))) return null;
+    return el.getBoundingClientRect().width ? el : null;
+  },
+  remember(id, el) { this.origin[id] = { el, key: el.dataset ? el.dataset.item : null }; },
+
+  kids(root) {
+    const out = [];
+    const take = (el) => { if (el.offsetParent !== null && !el.classList.contains('mo-surface') && !el.classList.contains('card-x')) out.push(el); };
+    for (const c of root.children) {
+      if (c.matches(this.LISTS)) for (const g of c.children) take(g);
+      else take(c);
+    }
+    return out;
+  },
+  // the cascade: each line arrives a beat after the one above it
+  kidsIn(root, delay, o = {}) {
+    const step = o.step || 30, dy = o.dy == null ? 12 : o.dy, s0 = o.scale || 0.985;
+    this.kids(root).forEach((k, i) => {
+      const f = this.baseFilter(k);
+      this.go(k, [
+        Object.assign({ opacity: 0 }, this.tf(0, dy, s0), this.blur(o.blur || 5, f)),
+        Object.assign({}, this.tf(0, 0, 1), this.blur(0, f)),
+      ], { duration: o.dur || 380, delay: delay + Math.min(i, 10) * step, easing: this.E_OUT });
+    });
+    const x = root.querySelector(':scope > .card-x');
+    if (x) this.go(x, [{ opacity: 0, transform: 'rotate(-90deg) scale(0.4)' }, { opacity: 1, transform: 'rotate(0deg) scale(1)' }],
+      { duration: 460, delay: delay + 80, easing: this.E_LAND });
+  },
+  // leaving is quick, together, and a little upward: lifted off, not wiped
+  kidsOut(root, dur = 120, o = {}) {
+    this.kids(root).concat([...root.querySelectorAll(':scope > .card-x')]).forEach((k) => {
+      const f = this.baseFilter(k);
+      this.go(k, [
+        Object.assign({}, this.tf(0, 0, 1), this.blur(0, f)),
+        Object.assign({ opacity: 0 }, this.tf(0, o.dy == null ? -6 : o.dy, o.scale || 0.98), this.blur(o.blur || 4, f)),
+      ], { duration: dur, easing: this.E_OUT, exit: true, hold: o.hold });
+    });
+  },
+  /* A screen that has just been hidden is held on screen while it leaves. When
+     the hold ends, anything of ours still pinning its insides is let go, so the
+     next time it opens it starts clean. */
+  hold(s, ms) {
+    const a = this.go(s, [{ opacity: 1 }, { opacity: 1 }], { duration: ms, fill: 'none', easing: 'linear' });
+    const release = () => {
+      if (this.vis(s) || !s.getAnimations) return;
+      // (the slab is left alone: its own last frame is what ends the transition)
+      for (const x of s.getAnimations({ subtree: true })) if (this.ours(x) && !x.effect.target.classList.contains('mo-surface')) x.cancel();
+    };
+    a.onfinish = release;
+    a.oncancel = () => { if (!this.vis(s)) setTimeout(release, 0); };
+    if (this.run) this.run.holds.push(a);
+  },
+  // a slab of the card's own glass, drawn under a screen's contents
+  slab(host, r, lk) {
+    const el = document.createElement('div');
+    el.className = 'glass mo-surface';
+    Object.assign(el.style, {
+      position: 'fixed', zIndex: '-1', pointerEvents: 'none', margin: '0', padding: '0',
+      left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px',
+      borderRadius: lk.rad + 'px', background: lk.bg, borderColor: lk.line,
+    });
+    if (!this.soft()) el.style.boxShadow = 'none';
+    host.insertBefore(el, host.firstChild);
+    this.run.surface = el;
+    return el;
+  },
+  /* The slab's own last frame is what ends the whole transition: the card's
+     real glass comes back in the very frame the slab stops, never a frame
+     early or late, so there is nothing to see at the handover. */
+  fly(el, r0, l0, r1, l1, dur) {
+    const run = this.run;
+    const a = this.go(el, [
+      { left: r0.left + 'px', top: r0.top + 'px', width: r0.width + 'px', height: r0.height + 'px', borderRadius: l0.rad + 'px', backgroundColor: l0.bg, borderColor: l0.line },
+      { left: r1.left + 'px', top: r1.top + 'px', width: r1.width + 'px', height: r1.height + 'px', borderRadius: l1.rad + 'px', backgroundColor: l1.bg, borderColor: l1.line },
+    ], { duration: dur, easing: this.E_SHEET, fill: 'both' });
+    a.onfinish = () => { if (this.run === run) this.settle(); };
+    return a;
+  },
+
+  // --------------------------------------------------------- one transition
+  begin() {
+    let prev = null;
+    const r = this.run;
+    if (r && r.surface && r.surface.isConnected) prev = { rect: r.surface.getBoundingClientRect(), look: this.look(r.surface), card: r.card };
+    this.settle();
+    this.run = { tok: ++this.tok, undo: [], surface: null, card: null, holds: [] };
+    this.prev = prev;
+    return prev;
+  },
+  settle() {
+    const r = this.run;
+    if (!r) return;
+    for (let i = r.undo.length - 1; i >= 0; i--) { const [el, p, v] = r.undo[i]; el.style[p] = v; }
+    if (r.surface) r.surface.remove();
+    /* A held screen lets go in the same instant the card's own glass comes
+       back, so the two backdrops never overlap and never leave a gap. */
+    for (const h of r.holds) if (h.playState !== 'finished') h.cancel();
+    this.run = null;
+  },
+  end(ms) {
+    const r = this.run;
+    setTimeout(() => { if (this.run === r) this.settle(); }, ms + 40);
+  },
+
+  changed() {
+    const shown = [], gone = [];
+    for (const [s, was] of this.seen) {
+      const v = this.vis(s);
+      if (v !== was) { (v ? shown : gone).push(s); this.seen.set(s, v); }
+    }
+    if (shown.length || gone.length) this.play(gone, shown);
+  },
+
+  play(gone, shown) {
+    const prev = this.begin();
+    this.snap = new Map();
+    for (const s of shown) this.unwind(s);
+    try {
+      if (this.reduced()) return this.fade(gone, shown);
+      this.choreograph(gone, shown);
+    } finally { this.snap = null; }
+  },
+  choreograph(gone, shown) {
+    const prev = this.prev;
+    const snd = this.sound(gone, shown);
+    for (const s of shown) if (this.OVER.has(s.id)) this.overIn(s, prev);
+    for (const s of gone) if (this.OVER.has(s.id)) this.overOut(s, prev);
+    const S = shown.filter((s) => !this.OVER.has(s.id)), G = gone.filter((s) => !this.OVER.has(s.id));
+    const a = G.length === 1 ? G[0] : null, b = S.length === 1 ? S[0] : null;
+    if (a && b && this.card(a) && this.card(b)) this.morph(a, b, prev);
+    else if (a && b && a.id === 'menu' && this.card(b)) this.fromMenu(a, b, prev);
+    else if (a && b && this.card(a) && b.id === 'menu') this.toMenu(a, b, prev);
+    else {
+      const toGame = !$('hud').classList.contains('hidden');
+      for (const g of G) this.leave(g, toGame);
+      for (const s of S) this.arrive(s);
+    }
+    if (snd) { try { Audio2.panel(snd === 'open'); } catch (e) { /* no audio yet */ } }
+  },
+  // a card opening sounds like opening; one closing onto nothing sounds like closing
+  sound(gone, shown) {
+    if (shown.some((s) => s.id === 'loading') || gone.some((s) => s.id === 'loading')) return null;
+    if (shown.some((s) => this.card(s))) return 'open';
+    if (gone.some((s) => this.card(s))) return 'close';
+    return null;
+  },
+
+  // ------------------------------------------------------------ the moves
+  /* A button becomes a card: its surface lifts, travels to the middle and
+     unfolds into the card, whose contents cascade in once there is room. */
+  grow(s, card, from, prev, keepBackdrop) {
+    const D = 460;
+    const box = card.getBoundingClientRect(), lk1 = this.look(card);
+    const r0 = prev && prev.card === card ? prev.rect : from.getBoundingClientRect();
+    const l0 = prev && prev.card === card ? prev.look : this.look(from);
+    this.run.card = card;
+    if (!keepBackdrop) this.inline(s, 'background', 'transparent');
+    else this.go(s, [{ backgroundColor: this.clear(this.backdrop(s)) }, { backgroundColor: this.backdrop(s) }], { duration: 300 });
+    this.bare(card);
+    this.fly(this.slab(s, r0, l0), r0, l0, box, lk1, D);
+    this.go(card, [{ clipPath: this.clip(r0, box, l0.rad) }, { clipPath: this.clip(box, box, lk1.rad) }], { duration: D, easing: this.E_SHEET });
+    this.kidsIn(card, 150);
+    this.end(D + 60);        // a safety net only; the slab's last frame normally ends it
+  },
+  /* ...and folds back into it. The button stays hidden until the slab arrives
+     over it, then takes over with a small bump, as if the card landed on it. */
+  shrink(s, card, to, prev) {
+    const D = 360;
+    const box = card.getBoundingClientRect();
+    const r0 = prev && prev.card === card ? prev.rect : box;
+    const l0 = prev && prev.card === card ? prev.look : this.look(card);
+    const r1 = to.getBoundingClientRect(), l1 = this.look(to);
+    this.run.card = card;
+    this.bare(card);
+    this.fly(this.slab(s, r0, l0), r0, l0, r1, l1, D);
+    this.go(card, [{ clipPath: this.clip(r0, box, l0.rad) }, { clipPath: this.clip(r1, box, l1.rad) }], { duration: D, easing: this.E_SHEET, exit: true, hold: D + 160 });
+    this.kidsOut(card, 110, { hold: D + 160 });
+    this.go(to, [{ opacity: 0 }, { opacity: 0, offset: 0.78 }, { opacity: 1 }], { duration: D, easing: 'linear' });
+    setTimeout(() => {
+      if (!to.isConnected) return;
+      this.go(to, [this.tf(0, 0, 1.07), this.tf(0, 0, 1)], { duration: 380, easing: this.E_LAND });
+    }, D - 40);
+    this.hold(s, D + 160);
+    this.end(D + 60);
+  },
+
+  // one card turns into the next
+  morph(a, b, prev) {
+    const D = 440;
+    const ca = this.card(a), cb = this.card(b);
+    const ba = ca.getBoundingClientRect(), bb = cb.getBoundingClientRect();
+    const mid = prev && (prev.card === ca || prev.card === cb);
+    const r0 = mid ? prev.rect : ba, l0 = mid ? prev.look : this.look(ca), l1 = this.look(cb);
+    const top = this.above(a, b) ? a : b, low = top === a ? b : a;
+    const bgA = this.backdrop(a), bgB = this.backdrop(b);
+    this.run.card = cb;
+    this.hold(a, D + 160);
+    this.inline(top, 'background', 'transparent');
+    if (bgA !== bgB) this.go(low, [{ backgroundColor: bgA }, { backgroundColor: bgB }], low === a ? { duration: D, exit: true, hold: D + 160 } : { duration: D });
+    this.bare(ca); this.bare(cb);
+    this.fly(this.slab(low, r0, l0), r0, l0, bb, l1, D);
+    this.go(ca, [{ clipPath: this.clip(r0, ba, l0.rad) }, { clipPath: this.clip(bb, ba, l1.rad) }], { duration: D, easing: this.E_SHEET, exit: true, hold: D + 160 });
+    this.go(cb, [{ clipPath: this.clip(r0, bb, l0.rad) }, { clipPath: this.clip(bb, bb, l1.rad) }], { duration: D, easing: this.E_SHEET });
+    this.kidsOut(ca, 130, { hold: D + 160 });
+    this.kidsIn(cb, 170);
+    this.end(D + 60);
+  },
+
+  fromMenu(m, b, prev) {
+    const card = this.card(b);
+    const org = this.pressed(m);
+    if (org) this.remember(b.id, org);
+    this.recede(m, org, 620);
+    if (org || (prev && prev.card === card)) return this.grow(b, card, org || card, prev, false);
+    // no button to grow from (a key, or code): it lands over the menu's own dimming
+    this.inline(b, 'background', 'transparent');
+    this.land(b, card, false);
+    this.end(460);
+  },
+  toMenu(a, m, prev) {
+    const card = this.card(a);
+    const to = this.home(a.id, m);
+    this.inline(a, 'background', 'transparent');
+    this.back(m, to);
+    if (to) return this.shrink(a, card, to, prev);
+    this.hold(a, 240);
+    this.dissolve(card, 240);
+    this.end(240);
+  },
+  // the menu steps back and softens while a card is up...
+  recede(m, org, D) {
+    this.hold(m, D);
+    for (const k of this.kids(m)) {
+      const f = this.baseFilter(k);
+      this.go(k, [
+        Object.assign({}, this.tf(0, 0, 1), this.blur(0, f)),
+        Object.assign({ opacity: 0 }, this.tf(0, 6, 0.94), this.blur(6, f)),
+      ], { duration: k === org ? 120 : 320, easing: this.E_OUT, exit: true, hold: D });
+    }
+  },
+  // ...and comes back forward, a line at a time, when it closes
+  back(m, skip) {
+    this.kids(m).forEach((k, i) => {
+      if (k === skip) return;
+      const f = this.baseFilter(k);
+      this.go(k, [
+        Object.assign({ opacity: 0 }, this.tf(0, 6, 0.94), this.blur(6, f)),
+        Object.assign({}, this.tf(0, 0, 1), this.blur(0, f)),
+      ], { duration: 420, delay: Math.min(i, 8) * 18, easing: this.E_OUT });
+    });
+  },
+
+  // a card that nobody asked for drops in from just above and settles
+  land(s, card, dim = true) {
+    const bg = this.backdrop(s);
+    if (dim && bg !== 'rgba(0, 0, 0, 0)') this.go(s, [{ backgroundColor: this.clear(bg) }, { backgroundColor: bg }], { duration: 320 });
+    this.go(card, [Object.assign(this.tf(0, -30, 0.94), this.blur(8)), Object.assign(this.tf(0, 0, 1), this.blur(0))],
+      { duration: 600, easing: this.E_LAND });
+    this.go(card, [{ opacity: 0 }, { opacity: 1 }], { duration: 240, easing: this.E_OUT });
+    this.kidsIn(card, 150);
+  },
+  dissolve(card, hold) {
+    this.go(card, [Object.assign({ opacity: 1 }, this.tf(0, 0, 1), this.blur(0)), Object.assign({ opacity: 0 }, this.tf(0, 10, 0.95), this.blur(7))],
+      { duration: 210, easing: this.E_OUT, exit: true, hold });
+  },
+  arrive(s) {
+    const card = this.card(s);
+    if (card) return this.land(s, card);
+    const bg = this.backdrop(s);
+    if (s.id === 'menu') {
+      if (bg !== 'rgba(0, 0, 0, 0)') this.go(s, [{ backgroundColor: this.clear(bg) }, { backgroundColor: bg }], { duration: 360 });
+      this.kids(s).forEach((k, i) => {
+        const f = this.baseFilter(k);
+        this.go(k, [
+          Object.assign({ opacity: 0 }, this.tf(0, 16, 0.97), this.blur(6, f)),
+          Object.assign({}, this.tf(0, 0, 1), this.blur(0, f)),
+        ], { duration: 520, delay: 60 + Math.min(i, 8) * 45, easing: this.E_OUT });
+      });
+      return;
+    }
+    this.go(s, [{ opacity: 0 }, { opacity: 1 }], { duration: 260 });
+  },
+  leave(s, toGame) {
+    const card = this.card(s);
+    if (s.id === 'loading') {
+      // the splash lifts and clears like a lid coming off
+      const a = this.go(s, [{ opacity: 1 }, { opacity: 0 }], { duration: 480, easing: this.E_OUT, exit: true, hold: 500 });
+      for (const k of s.children) this.go(k, [this.tf(0, 0, 1), this.tf(0, -8, 1.04)], { duration: 480, easing: this.E_OUT, exit: true, hold: 500 });
+      a.onfinish = () => { if (!this.vis(s)) for (const x of s.getAnimations({ subtree: true })) if (this.ours(x)) x.cancel(); };
+      return;
+    }
+    const D = toGame ? 440 : 240;
+    this.hold(s, D);
+    const bg = this.backdrop(s);
+    // the dimming clears alongside the fall, not ahead of it
+    if (bg !== 'rgba(0, 0, 0, 0)') this.go(s, [{ backgroundColor: bg }, { backgroundColor: this.clear(bg) }], { duration: D, exit: true, hold: D, easing: toGame ? 'ease-in-out' : this.E_OUT });
+    if (card && toGame) {
+      // dropped, like a block: it tips a little and falls out of the way
+      this.go(card, [Object.assign({ opacity: 1 }, this.tf(0, 0, 1, 0)), Object.assign({ opacity: 1, offset: 0.6 }), Object.assign({ opacity: 0 }, this.tf(0, 300, 0.96, 6))],
+        { duration: D, easing: this.E_DROP, exit: true, hold: D });
+    } else if (card) this.dissolve(card, D);
+    else if (toGame) {
+      // the menu comes apart top-first, each piece falling a beat after the last
+      this.kids(s).forEach((k, i) => {
+        this.go(k, [
+          Object.assign({}, this.tf(0, 0, 1, 0)),
+          Object.assign({ opacity: 0 }, this.tf(0, 70, 0.97, i % 2 ? 4 : -4)),
+        ], { duration: 300, delay: Math.min(i, 8) * 16, easing: this.E_DROP, exit: true, hold: D });
+      });
+    } else this.recede(s, null, D);
+  },
+
+  // the purchase card grows out of the item you tapped, over the collection
+  overIn(s, prev) {
+    const card = this.card(s);
+    const org = this.pressed(null, s);
+    if (org) { this.remember(s.id, org); return this.grow(s, card, org, prev, true); }
+    this.land(s, card);
+  },
+  overOut(s, prev) {
+    const card = this.card(s);
+    const to = this.home(s.id);
+    const bg = this.backdrop(s);
+    const D = to ? 360 : 220;
+    this.go(s, [{ backgroundColor: bg }, { backgroundColor: this.clear(bg) }], { duration: D, exit: true, hold: to ? D + 160 : D });
+    if (to) return this.shrink(s, card, to, prev);
+    this.hold(s, D);
+    this.dissolve(card, D);
+    this.end(D);
+  },
+
+  // the HUD slides in from the edges it lives on as a run opens
+  hudIn() {
+    if (this.reduced()) return;
+    const parts = [['next-piece', -14], ['hud-score-wrap', -14], ['hud-home', -14], ['vault', -14], ['btn-bank', 16]];
+    parts.forEach(([id, dy], i) => {
+      const el = $(id);
+      if (!el || el.offsetParent === null) return;
+      this.go(el, [Object.assign({ opacity: 0 }, this.tf(0, dy, 0.96)), Object.assign({}, this.tf(0, 0, 1))],
+        { duration: 520, delay: 140 + i * 45, easing: this.E_OUT });
+    });
+  },
+
+  // reduced motion: the same states, reached by fading and nothing else
+  fade(gone, shown) {
+    for (const s of gone) {
+      this.go(s, [{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: 'none' });
+    }
+    for (const s of shown) {
+      if (s.getAnimations) for (const x of s.getAnimations({ subtree: true })) if (this.ours(x)) x.cancel();
+      this.go(s, [{ opacity: 0 }, { opacity: 1 }], { duration: 200 });
     }
   },
 };
@@ -10762,6 +11367,7 @@ function boot() {
   Input.init();
   UI.syncToggles();
   applyMotionClass();
+  Motion.init();
 
   if (Streak.daysSince >= 1 && (save.coins > 0 || save.best > 0)) {
     const b = $('banner');
