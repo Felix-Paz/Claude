@@ -2035,10 +2035,6 @@ body.dev-collapsed #dev-title, body.dev-collapsed #dev-fps { display: none; }
 
         <h3>Changes</h3>
         <p>If this policy changes, the date at the top of this page changes with it.</p>
-
-        <h3>Contact</h3>
-        <p>Questions about this policy can be sent to
-        <b data-legal-contact></b>.</p>
       </section>
 
       <section id="lg-terms" hidden>
@@ -2655,7 +2651,6 @@ const FeedbackBus = {
    document that actually binds anybody. */
 const LEGAL = {
   updated: '19 September 2026',
-  contact: 'support@example.com',       // <- a real contact address
   law: 'your jurisdiction',             // <- e.g. 'England and Wales'
 };
 
@@ -10243,13 +10238,12 @@ const UI = {
     FeedbackBus.emit('offer', { id: item.id });
     trackEvent('offer_granted', { id: item.id });
   },
-  /* The one place the game admits it is a published product. LEGAL holds the
-     three things that have to be filled in before it ships anywhere — who is
-     publishing it, how to reach them, and under whose law the terms sit — so
-     they are stated once here rather than buried in three places in the copy. */
+  /* The one place the game admits it is a published product. LEGAL holds what
+     has to be filled in before it ships anywhere — when the documents last
+     changed, and under whose law the terms sit — so it is stated once here
+     rather than buried in the copy. Neither document has a contact section. */
   showLegal() {
     for (const el of document.querySelectorAll('[data-legal-date]')) el.textContent = LEGAL.updated;
-    for (const el of document.querySelectorAll('[data-legal-contact]')) el.textContent = LEGAL.contact;
     for (const el of document.querySelectorAll('[data-legal-law]')) el.textContent = LEGAL.law;
     $('legal-body').scrollTop = 0;
     this.show('legal');          // show() hides every other screen first

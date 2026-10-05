@@ -839,11 +839,10 @@ under COPPA and GDPR-K, and the rights a reader has under GDPR and CCPA. The
 terms cover the licence, acceptable use, virtual goods having no cash value, the
 absence of a warranty, limitation of liability, and termination.
 
-Three fields at the top of `LEGAL` in §5 are marked placeholders and must be
-filled before the build is submitted anywhere: `contact` (a real address a
-person reads), `law` (the governing jurisdiction), and `updated`. They are
-deliberately obvious rather than plausible-looking, so a build cannot ship with
-a fake contact address by accident.
+Neither document has a contact section: there is no address to write to
+anywhere in the game. Two fields at the top of `LEGAL` in §5 must be filled
+before the build is submitted anywhere: `law` (the governing jurisdiction, left
+as an obvious placeholder so it cannot ship looking finished) and `updated`.
 
 The legal screen dims the world exactly as Settings does, its title is set
 like every other card's, and a tap outside the card steps back to Settings, as
