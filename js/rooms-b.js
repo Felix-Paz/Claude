@@ -1,0 +1,400 @@
+/* =====================================================================
+   MUSEUM OF DESIGN · 05 Typography · 06 Motion · 07 Balance
+   ===================================================================== */
+(function () {
+  'use strict';
+  const { $, $$, clamp, lerp, damp, pointer, reduced } = P;
+
+  /* =========================================================
+     05 · TYPOGRAPHY
+     ========================================================= */
+  EXHIBITS.typography = [
+    {
+      title: 'Words That Act', icon: 'move', do: 'Watch them work',
+      note: 'Type can <em>do</em> what it says.',
+      html: () => `
+        <div class="acts">
+          <div class="act" data-a="bigger"><span class="act-w">BIGGER</span></div>
+          <div class="act" data-a="heavy"><span class="act-w">HEAVY</span></div>
+          <div class="act" data-a="wide"><span class="act-w">WIDE</span></div>
+          <div class="act" data-a="light"><span class="act-w">light</span></div>
+          <div class="act" data-a="space"><span class="act-w">SPACE</span></div>
+          <div class="act" data-a="fall"><span class="act-w">FALL</span></div>
+        </div>`,
+      init(el, c) {
+        if (reduced) return;
+        const w = n => $(`[data-a="${n}"] .act-w`, el);
+        const loop = (target, from, to, dur = 1.6, extra = {}) =>
+          gsap.fromTo(target, from, Object.assign({ duration: dur, ease: 'power3.inOut', repeat: -1, yoyo: true, repeatDelay: 0.5 }, to, extra));
+        const tweens = [
+          loop(w('bigger'), { scale: 0.45 }, { scale: 1.15 }),
+          loop(w('heavy'), { fontWeight: 200 }, { fontWeight: 900 }),
+          loop(w('wide'), { fontStretch: '75%' }, { fontStretch: '125%' }),
+          loop(w('light'), { fontWeight: 900, y: 26 }, { fontWeight: 200, y: -26 }),
+          loop(w('space'), { letterSpacing: '-0.06em' }, { letterSpacing: '0.4em' })
+        ];
+        const fc = P.splitChars(w('fall'));
+        const fall = gsap.timeline({ repeat: -1, repeatDelay: 0.6 })
+          .to(fc, { y: i => [110, 160, 90, 140][i % 4] + '%', rotate: i => [16, -24, 9, -14][i % 4], duration: 0.8, ease: 'power2.in', stagger: 0.1 })
+          .to(fc, { y: 0, rotate: 0, duration: 1, ease: 'elastic.out(1, 0.45)', stagger: 0.08 }, '+=0.5');
+        tweens.push(fall);
+        tweens.forEach(t => t.pause());
+        ScrollTrigger.create({ trigger: el, start: 'top bottom', end: 'bottom top', onToggle: s => tweens.forEach(t => (s.isActive ? t.play() : t.pause())) });
+      }
+    },
+    {
+      title: 'One Font', icon: 'slide', do: 'Turn the axes',
+      note: 'One file. <em>Every voice.</em>',
+      html: () => `
+        <div class="vf">
+          <div class="vf-stage"><span class="vf-word" contenteditable="true" spellcheck="false" aria-label="Editable sample word">Gestalt</span></div>
+          <div class="vf-side">
+            <div class="vf-presets">
+              <button type="button" class="chip" data-p="shout">Shout</button>
+              <button type="button" class="chip" data-p="whisper">Whisper</button>
+              <button type="button" class="chip" data-p="poster">Poster</button>
+            </div>
+            <label class="slider"><span class="slider-top mono"><span>Weight</span><output class="vf-ow">640</output></span><input type="range" data-k="w" min="200" max="900" step="1" value="640"></label>
+            <label class="slider"><span class="slider-top mono"><span>Width</span><output class="vf-owd">112</output></span><input type="range" data-k="wd" min="75" max="125" step="0.5" value="112"></label>
+            <p class="vf-tip mono">Click the word to retype it</p>
+          </div>
+        </div>`,
+      init(el, c) {
+        const word = $('.vf-word', el), stage = $('.vf-stage', el), inputs = $$('input', el);
+        const ow = $('.vf-ow', el), owd = $('.vf-owd', el);
+        const fills = inputs.map(P.rangeFill);
+        const s = { w: 640, wd: 112 };
+        const render = () => {
+          word.style.fontWeight = Math.round(s.w);
+          word.style.fontStretch = s.wd.toFixed(1) + '%';
+          word.style.fontSize = '';
+          const avail = stage.clientWidth * 0.9, ww = word.scrollWidth;
+          if (ww > avail) word.style.fontSize = (parseFloat(getComputedStyle(word).fontSize) * avail / ww) + 'px';
+          ow.textContent = Math.round(s.w); owd.textContent = s.wd.toFixed(0);
+          inputs.forEach((inp, i) => { if (document.activeElement !== inp) inp.value = s[inp.dataset.k]; fills[i](); });
+        };
+        inputs.forEach(inp => c.on(inp, 'input', () => { s[inp.dataset.k] = +inp.value; render(); }));
+        const PRE = { shout: { w: 900, wd: 125 }, whisper: { w: 200, wd: 80 }, poster: { w: 820, wd: 75 } };
+        $$('[data-p]', el).forEach(b => c.on(b, 'click', () => {
+          $$('[data-p]', el).forEach(x => x.classList.toggle('is-on', x === b));
+          gsap.to(s, Object.assign({ duration: reduced ? 0 : 1, ease: 'expo.inOut', onUpdate: render }, PRE[b.dataset.p]));
+        }));
+        c.on(word, 'keydown', e => { if (e.key === 'Enter') { e.preventDefault(); word.blur(); } });
+        c.on(word, 'input', () => { if (word.textContent.length > 14) word.textContent = word.textContent.slice(0, 14); render(); });
+        c.on(word, 'blur', () => { if (!word.textContent.trim()) { word.textContent = 'Gestalt'; render(); } });
+        render(); c.onResize(render);
+      }
+    },
+    {
+      title: 'Kerning', icon: 'slide', do: 'Slide to fix the gaps',
+      note: 'Good spacing <em>disappears.</em>',
+      html: () => `
+        <div class="kern">
+          <p class="kern-word" aria-label="AVATAR">AVATAR</p>
+          <label class="slider kern-slider"><span class="slider-top mono"><span>Kerning</span><output class="kern-out">Off</output></span>
+            <input type="range" class="kern-range" min="0" max="1" step="0.001" value="0" aria-label="Kerning"></label>
+        </div>`,
+      init(el, c) {
+        const word = $('.kern-word', el), range = $('.kern-range', el), out = $('.kern-out', el);
+        const chars = P.splitChars(word);
+        // un-kerned: every pair spaced like a typewriter, a few pairs badly off
+        const BAD = [0.16, 0.2, 0.18, 0.04, 0.2, 0];
+        P.rangeFill(range);
+        const render = () => {
+          const k = +range.value;
+          chars.forEach((ch, i) => { ch.style.marginRight = ((1 - k) * BAD[i]).toFixed(3) + 'em'; });
+          word.style.fontKerning = k > 0.5 ? 'normal' : 'none';
+          out.textContent = k < 0.05 ? 'Off' : k > 0.95 ? 'Kerned' : Math.round(k * 100) + '%';
+        };
+        c.on(range, 'input', render);
+        render();
+        if (!reduced) ScrollTrigger.create({ trigger: el, start: 'top 60%', once: true, onEnter: () => {
+          gsap.to(range, { value: 0.35, duration: 1.2, ease: 'power2.inOut', delay: 0.4, onUpdate: () => range.dispatchEvent(new Event('input')) });
+        } });
+      }
+    }
+  ];
+
+  /* =========================================================
+     06 · MOTION
+     ========================================================= */
+  EXHIBITS.motion = [
+    {
+      title: 'Photo Finish', icon: 'click', do: 'Start the race',
+      note: 'Same distance, same time — <em>different personality.</em>',
+      html: () => `
+        <div class="race">
+          <div class="race-lane" data-e="none"><span class="rl-name"><b>Linear</b><i>robotic</i></span><span class="rl-track"><i class="rl-ball"></i></span></div>
+          <div class="race-lane" data-e="expo.out"><span class="rl-name"><b>Ease out</b><i>confident</i></span><span class="rl-track"><i class="rl-ball"></i></span></div>
+          <div class="race-lane" data-e="power3.inOut"><span class="rl-name"><b>Ease in-out</b><i>graceful</i></span><span class="rl-track"><i class="rl-ball"></i></span></div>
+          <div class="race-lane" data-e="elastic.out(1,0.35)"><span class="rl-name"><b>Spring</b><i>delighted</i></span><span class="rl-track"><i class="rl-ball"></i></span></div>
+          <button class="btn btn-solid race-go" type="button"><span>Race again</span><svg><use href="#i-arrow"/></svg></button>
+        </div>`,
+      init(el, c) {
+        const lanes = $$('.race-lane', el).map(l => ({ ease: gsap.parseEase(l.dataset.e), ball: $('.rl-ball', l), track: $('.rl-track', l) }));
+        const p = { t: 0 };
+        const draw = () => lanes.forEach(L => gsap.set(L.ball, { x: L.ease(p.t) * (L.track.clientWidth - L.ball.offsetWidth) }));
+        let race = null;
+        const run = () => {
+          if (race) race.kill();
+          race = gsap.timeline({ repeat: -1, repeatDelay: 0.3 })
+            .fromTo(p, { t: 0 }, { t: 1, duration: 1.5, ease: 'none', onUpdate: draw })
+            .to({}, { duration: 1.2 })
+            .to(p, { t: 0, duration: 0.7, ease: 'power3.inOut', onUpdate: draw });
+        };
+        draw();
+        ScrollTrigger.create({ trigger: el, start: 'top 70%', end: 'bottom top', onEnter: () => (race ? race.play() : run()), onEnterBack: () => race && race.play(), onLeave: () => race && race.pause(), onLeaveBack: () => race && race.pause() });
+        c.on($('.race-go', el), 'click', run);
+        c.onResize(draw);
+      }
+    },
+    {
+      title: 'The Spring', icon: 'drag', do: 'Drag it, let go',
+      note: 'Physics makes things <em>feel alive.</em>',
+      html: () => `
+        <div class="spring">
+          <svg class="sp-band" aria-hidden="true"><path/></svg>
+          <span class="sp-anchor" aria-hidden="true"></span>
+          <span class="sp-ball" data-cursor="Drag" role="img" aria-label="A ball on a spring"></span>
+        </div>`,
+      init(el, c) {
+        const stage = $('.spring', el), ball = $('.sp-ball', el), band = $('.sp-band path', el), bsvg = $('.sp-band', el);
+        const K = 180, C = 8;
+        const b = { x: -150, y: -80, vx: 0, vy: 0, drag: false, ox: 0, oy: 0, lt: 0 };
+        const mid = () => ({ x: stage.clientWidth / 2, y: stage.clientHeight / 2 });
+        c.on(ball, 'pointerdown', e => {
+          e.preventDefault(); ball.setPointerCapture(e.pointerId);
+          const r = stage.getBoundingClientRect(), m = mid();
+          b.drag = true; b.ox = e.clientX - r.left - m.x - b.x; b.oy = e.clientY - r.top - m.y - b.y; b.lt = performance.now(); b.vx = b.vy = 0;
+        });
+        c.on(ball, 'pointermove', e => {
+          if (!b.drag) return;
+          const r = stage.getBoundingClientRect(), m = mid();
+          const nx = clamp(e.clientX - r.left - m.x - b.ox, -m.x + 44, m.x - 44), ny = clamp(e.clientY - r.top - m.y - b.oy, -m.y + 44, m.y - 44);
+          const now = performance.now(), dt = Math.max(8, now - b.lt) / 1000;
+          b.vx = lerp(b.vx, (nx - b.x) / dt, 0.5); b.vy = lerp(b.vy, (ny - b.y) / dt, 0.5);
+          b.x = nx; b.y = ny; b.lt = now;
+        });
+        const up = () => { b.drag = false; };
+        c.on(ball, 'pointerup', up); c.on(ball, 'pointercancel', up);
+        c.visible(stage, (t, dt) => {
+          if (!b.drag) for (let i = 0; i < 6; i++) { const h = dt / 6; b.vx += (-K * b.x - C * b.vx) * h; b.vy += (-K * b.y - C * b.vy) * h; b.x += b.vx * h; b.y += b.vy * h; }
+          const m = mid(), sp = Math.hypot(b.vx, b.vy), sq = clamp(sp / 4200, 0, 0.42);
+          gsap.set(ball, { x: m.x + b.x, y: m.y + b.y, rotate: Math.atan2(b.vy, b.vx) * 180 / Math.PI, scaleX: 1 + sq, scaleY: 1 - sq * 0.6 });
+          bsvg.setAttribute('viewBox', `0 0 ${stage.clientWidth} ${stage.clientHeight}`);
+          const d = Math.hypot(b.x, b.y);
+          band.setAttribute('d', `M${m.x},${m.y} Q${m.x + b.x / 2},${m.y + b.y / 2 + Math.min(60, d * 0.08)} ${m.x + b.x},${m.y + b.y}`);
+          band.setAttribute('stroke-width', clamp(9 - d / 55, 1.5, 9).toFixed(2));
+        });
+      }
+    },
+    {
+      title: 'Stagger', icon: 'click', do: 'Click anywhere',
+      note: 'Order turns movement <em>into choreography.</em>',
+      html: () => `<div class="stagger" data-cursor="Click"></div>`,
+      init(el, c) {
+        const box = $('.stagger', el);
+        const COLS = 18, ROWS = 8;
+        box.style.setProperty('--cols', COLS);
+        box.innerHTML = Array.from({ length: COLS * ROWS }, () => '<i></i>').join('');
+        const dots = $$('i', box);
+        const wave = (cx, cy) => {
+          if (reduced) return;
+          dots.forEach((d, i) => {
+            const x = i % COLS, y = Math.floor(i / COLS);
+            const dist = Math.hypot(x - cx, (y - cy) * 1.1);
+            gsap.timeline({ delay: dist * 0.045 })
+              .to(d, { scale: 1.9, backgroundColor: '#0C0C14', duration: 0.22, ease: 'power2.out', overwrite: 'auto' })
+              .to(d, { scale: 1, backgroundColor: '', duration: 0.9, ease: 'elastic.out(1, 0.4)' });
+          });
+        };
+        c.on(box, 'click', e => {
+          const r = box.getBoundingClientRect();
+          wave((e.clientX - r.left) / r.width * (COLS - 1), (e.clientY - r.top) / r.height * (ROWS - 1));
+        });
+        let idle = 0;
+        c.visible(box, (t, dt) => { idle += dt; if (idle > 3.4) { idle = 0; wave(Math.random() * (COLS - 1), Math.random() * (ROWS - 1)); } });
+        c.on(box, 'click', () => { idle = -2; });
+      }
+    }
+  ];
+
+  /* =========================================================
+     07 · BALANCE
+     ========================================================= */
+  EXHIBITS.balance = [
+    {
+      title: 'The Seesaw', icon: 'drag', do: 'Drag shapes onto the beam',
+      note: 'Visual weight × distance <em>from the centre.</em>',
+      html: () => `
+        <div class="saw">
+          <div class="saw-stage">
+            <div class="saw-beam"><span class="saw-bar"></span><span class="saw-ticks" aria-hidden="true"></span></div>
+            <span class="saw-pivot" aria-hidden="true"></span>
+            <div class="saw-tray">
+              <span class="saw-piece sp-circle" data-m="5" data-cursor="Drag" role="img" aria-label="Large circle, weight 5"></span>
+              <span class="saw-piece sp-square" data-m="3" data-cursor="Drag" role="img" aria-label="Dark square, weight 3"></span>
+              <span class="saw-piece sp-tri" data-m="1.6" data-cursor="Drag" role="img" aria-label="Triangle, weight 1.6"></span>
+              <span class="saw-piece sp-dot" data-m="0.8" data-cursor="Drag" role="img" aria-label="Small dot, weight 0.8"></span>
+            </div>
+            <p class="saw-status mono" aria-live="polite">Drop shapes on the beam</p>
+          </div>
+        </div>`,
+      init(el, c) {
+        const stage = $('.saw-stage', el), beam = $('.saw-beam', el), tray = $('.saw-tray', el), status = $('.saw-status', el);
+        const pieces = $$('.saw-piece', el);
+        let ang = 0, av = 0, toasted = false;
+        const on = new Map();
+        pieces.forEach(p => { p.tabIndex = 0; });
+        const torque = () => { let n = 0; on.forEach((x, p) => { n += +p.dataset.m * x; }); return n; };
+        const place = p => { const bw = beam.offsetWidth; p.style.left = (bw / 2 + on.get(p) * bw / 2 - p.offsetWidth / 2) + 'px'; };
+        function attach(p, x, from) {
+          on.set(p, clamp(x, -0.95, 0.95));
+          p.classList.add('on-beam'); beam.appendChild(p); p.style.top = '';
+          place(p);
+          if (from && !reduced) { const to = p.getBoundingClientRect(); gsap.fromTo(p, { x: from.left - to.left, y: from.top - to.top, rotate: -ang }, { x: 0, y: 0, rotate: 0, duration: 0.7, ease: 'bounce.out' }); }
+        }
+        function home(p, from) {
+          on.delete(p); p.classList.remove('on-beam');
+          p.style.left = p.style.top = p.style.position = '';
+          const after = pieces.slice(pieces.indexOf(p) + 1).find(q => q.parentElement === tray);
+          tray.insertBefore(p, after || null);
+          if (from && !reduced) { const to = p.getBoundingClientRect(); gsap.fromTo(p, { x: from.left - to.left, y: from.top - to.top }, { x: 0, y: 0, rotate: 0, duration: 0.8, ease: 'expo.out' }); }
+        }
+        pieces.forEach(p => {
+          let drag = null;
+          c.on(p, 'pointerdown', e => {
+            e.preventDefault();
+            const r = p.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+            on.delete(p); gsap.killTweensOf(p);
+            p.classList.remove('on-beam'); p.classList.add('is-drag');
+            stage.appendChild(p); gsap.set(p, { x: 0, y: 0, rotate: 0 });
+            // capture after re-parenting: moving a node in the DOM drops its pointer capture
+            try { p.setPointerCapture(e.pointerId); } catch (err) {}
+            p.style.position = 'absolute'; p.style.left = (r.left - sr.left) + 'px'; p.style.top = (r.top - sr.top) + 'px';
+            drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+          });
+          c.on(p, 'pointermove', e => {
+            if (!drag) return;
+            const sr = stage.getBoundingClientRect();
+            p.style.left = clamp(e.clientX - sr.left - drag.dx, -10, sr.width - p.offsetWidth + 10) + 'px';
+            p.style.top = clamp(e.clientY - sr.top - drag.dy, -10, sr.height - p.offsetHeight + 10) + 'px';
+          });
+          const drop = () => {
+            if (!drag) return;
+            drag = null; p.classList.remove('is-drag');
+            const r = p.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+            const bw = beam.offsetWidth, pivot = sr.left + beam.offsetLeft + bw / 2;
+            const x = (r.left + r.width / 2 - pivot) / (bw / 2) / Math.cos(ang * Math.PI / 180);
+            if (r.bottom < sr.top + sr.height * 0.78 && Math.abs(x) <= 1.05) attach(p, x, r); else home(p, r);
+          };
+          c.on(p, 'pointerup', drop); c.on(p, 'pointercancel', drop);
+          c.on(p, 'keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const r = p.getBoundingClientRect(); if (on.has(p)) home(p, r); else attach(p, pieces.indexOf(p) % 2 ? 0.6 : -0.6, r); p.focus({ preventScroll: true }); }
+            if (on.has(p) && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { e.preventDefault(); on.set(p, clamp(on.get(p) + (e.key === 'ArrowLeft' ? -0.05 : 0.05), -0.95, 0.95)); place(p); }
+          });
+        });
+        c.onResize(() => on.forEach((x, p) => place(p)));
+        let last = '';
+        c.visible(stage, (t, dt) => {
+          const n = torque();
+          av += ((clamp(n * 3.2, -14, 14) - ang) * 38 - av * 6.5) * dt;
+          ang += av * dt;
+          beam.style.setProperty('--a', ang.toFixed(3) + 'deg');
+          let L = 0, R = 0;
+          on.forEach(x => { if (x < 0) L++; else R++; });
+          const ok = L > 0 && R > 0 && Math.abs(n) < 0.12 && Math.abs(ang) < 0.8 && Math.abs(av) < 2;
+          const msg = !on.size ? 'Drop shapes on the beam' : ok ? 'Balanced.' : Math.abs(n) < 0.12 ? 'Use both sides' : n < 0 ? 'Heavier on the left' : 'Heavier on the right';
+          stage.classList.toggle('is-ok', ok);
+          if (msg !== last) {
+            last = msg; status.textContent = msg;
+            if (ok && !toasted) { toasted = true; P.toast('Balanced — a truce between unequal things', '#3A22FC'); }
+          }
+        });
+      }
+    },
+    {
+      title: 'Two Kinds of Calm', icon: 'click', do: 'Switch',
+      note: 'Asymmetry balances <em>by trade.</em>',
+      html: () => `
+        <div class="sym">
+          <div class="seg sym-seg" role="radiogroup" aria-label="Composition">
+            <button type="button" role="radio" aria-checked="true" data-s="sym">Symmetric</button>
+            <button type="button" role="radio" aria-checked="false" data-s="asym">Asymmetric</button>
+            <i class="seg-thumb" aria-hidden="true"></i>
+          </div>
+          <div class="sym-canvas">
+            <i class="sy sy-a"></i><i class="sy sy-b"></i><i class="sy sy-c"></i><i class="sy sy-d"></i>
+            <span class="sym-axis" aria-hidden="true"></span>
+            <p class="sym-read mono"><span class="sym-word">Stable</span> · <span class="sym-sub">predictable</span></p>
+          </div>
+        </div>`,
+      init(el, c) {
+        const A = $$('.sy', el), word = $('.sym-word', el), sub = $('.sym-sub', el), axis = $('.sym-axis', el);
+        // [left%, top%, size% of width]
+        const L = {
+          sym: [[30, 48, 22], [70, 48, 22], [50, 24, 5], [50, 76, 5]],
+          asym: [[36, 46, 30], [80, 30, 7], [86, 64, 4.5], [72, 74, 3]]
+        };
+        const go = (m, instant) => {
+          A.forEach((n, i) => { const [x, y, s] = L[m][i]; gsap.to(n, { left: x + '%', top: y + '%', width: s + '%', duration: instant || reduced ? 0 : 1.2, ease: 'expo.inOut', delay: instant ? 0 : i * 0.05 }); });
+          gsap.to(axis, { opacity: m === 'sym' ? 1 : 0, duration: 0.5 });
+          word.textContent = m === 'sym' ? 'Stable' : 'Balanced';
+          sub.textContent = m === 'sym' ? 'predictable' : 'alive';
+        };
+        A.forEach(n => gsap.set(n, { xPercent: -50, yPercent: -50 }));
+        go('sym', true);
+        P.seg($('.sym-seg', el), b => go(b.dataset.s));
+      }
+    },
+    {
+      title: 'The Thirds', icon: 'drag', do: 'Drag the sun',
+      note: 'Off-centre is <em>more interesting.</em>',
+      html: () => `
+        <div class="thirds">
+          <div class="th-scene">
+            <div class="th-sky"></div><div class="th-sea"></div>
+            <span class="th-sun" data-cursor="Drag" role="img" aria-label="The sun — drag it"></span>
+            <div class="th-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          </div>
+          <p class="th-read mono"><span class="th-state">Dead centre</span></p>
+        </div>`,
+      init(el, c) {
+        const scene = $('.th-scene', el), sun = $('.th-sun', el), grid = $('.th-grid', el), state = $('.th-state', el);
+        const pos = { x: 0.5, y: 0.5 };
+        const POINTS = [[1 / 3, 1 / 3], [2 / 3, 1 / 3], [1 / 3, 2 / 3], [2 / 3, 2 / 3]];
+        const set = () => { sun.style.left = pos.x * 100 + '%'; sun.style.top = pos.y * 100 + '%'; };
+        set();
+        let drag = false;
+        const read = () => {
+          const near = POINTS.find(p => Math.hypot(p[0] - pos.x, (p[1] - pos.y) * 0.62) < 0.05);
+          const centre = Math.hypot(pos.x - 0.5, pos.y - 0.5) < 0.06;
+          scene.classList.toggle('is-third', !!near);
+          state.textContent = near ? 'On a third — tension, interest' : centre ? 'Dead centre — stable, static' : 'Keep looking';
+          return near;
+        };
+        c.on(sun, 'pointerdown', e => { e.preventDefault(); drag = true; sun.setPointerCapture(e.pointerId); grid.classList.add('is-on'); });
+        c.on(sun, 'pointermove', e => {
+          if (!drag) return;
+          const r = scene.getBoundingClientRect();
+          pos.x = clamp((e.clientX - r.left) / r.width, 0.06, 0.94);
+          pos.y = clamp((e.clientY - r.top) / r.height, 0.08, 0.92);
+          set(); read();
+        });
+        const up = () => {
+          if (!drag) return;
+          drag = false; grid.classList.remove('is-on');
+          const near = read();
+          if (near) gsap.to(pos, { x: near[0], y: near[1], duration: 0.5, ease: 'back.out(2)', onUpdate: set });
+        };
+        c.on(sun, 'pointerup', up); c.on(sun, 'pointercancel', up);
+        c.on(sun, 'keydown', e => {
+          const k = 0.02, m = { ArrowLeft: [-k, 0], ArrowRight: [k, 0], ArrowUp: [0, -k], ArrowDown: [0, k] }[e.key];
+          if (m) { e.preventDefault(); pos.x = clamp(pos.x + m[0], 0.06, 0.94); pos.y = clamp(pos.y + m[1], 0.08, 0.92); set(); read(); }
+        });
+        sun.tabIndex = 0;
+        read();
+      }
+    }
+  ];
+})();

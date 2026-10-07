@@ -3,824 +3,135 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Principia — Seven Laws of Design, Performed</title>
-<meta name="description" content="A living field guide to visual design. Seven chapters — contrast, hierarchy, white space, color, typography, motion, balance — each one performs the law it describes.">
-<meta name="theme-color" content="#0C0C14">
-<meta property="og:title" content="Principia — Seven Laws of Design, Performed">
-<meta property="og:description" content="A living field guide to visual design. Every chapter does the thing it describes.">
-<meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230C0C14'/%3E%3Ccircle cx='26' cy='32' r='13' fill='%23D9FD3A'/%3E%3Crect x='30' y='19' width='18' height='26' rx='3' fill='%233A22FC' style='mix-blend-mode:screen'/%3E%3C/svg%3E">
+<title>Museum of Design</title>
+<meta name="description" content="A museum you visit in your browser. Seven rooms, seven principles of design — contrast, hierarchy, white space, color, typography, motion, balance — each one taught by doing it to you.">
+<meta name="theme-color" content="#F3F0E9">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230C0C14'/%3E%3Cpath d='M18 46V30a14 14 0 0 1 28 0v16' fill='none' stroke='%23F3F0E9' stroke-width='6'/%3E%3Ccircle cx='32' cy='38' r='5' fill='%23D9FD3A'/%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/MonaSans-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/InstrumentSerif-Italic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/sections.css">
+<link rel="stylesheet" href="css/museum.css">
+<link rel="stylesheet" href="css/rooms.css">
 <script>document.documentElement.classList.replace('no-js', 'js');</script>
 </head>
 <body class="is-loading">
 
-<!-- ================================================================
-     SVG SPRITE
-     ================================================================ -->
 <svg class="sprite" aria-hidden="true" focusable="false">
-  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 5.5 19.5 12 13 18.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"/></symbol>
-  <symbol id="i-arrow-d" viewBox="0 0 24 24"><path d="M12 4v15M5.5 13 12 19.5 18.5 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"/></symbol>
-  <symbol id="i-arrow-u" viewBox="0 0 24 24"><path d="M12 20V5M5.5 11 12 4.5 18.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"/></symbol>
-  <symbol id="i-arrow-ne" viewBox="0 0 24 24"><path d="M6 18 18 6M8 6h10v10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"/></symbol>
-  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 5H6a1 1 0 0 0-1 1v10" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
-  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></symbol>
-  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 5.5 19.5 12 13 18.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="square"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H5M11 5.5 4.5 12 11 18.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="square"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v15M5.5 13 12 19.5 18.5 13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="square"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="square"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M3.5 6.5 9 4l6 2.5L20.5 4v13.5L15 20l-6-2.5L3.5 20zM9 4v13.5M15 6.5V20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-arch" viewBox="0 0 24 24"><path d="M6 21V11a6 6 0 0 1 12 0v10" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <!-- instruction pictograms -->
+  <symbol id="p-drag" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3 9 6M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="p-hold" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></symbol>
+  <symbol id="p-scroll" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="p-click" viewBox="0 0 24 24"><path d="M9 3v3M3 9h3M4.8 4.8l2 2M13.2 4.8l-2 2M10 10l10 4.2-4.2 1.6-1.6 4.2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="p-move" viewBox="0 0 24 24"><path d="M5 4l13 6.5-5.6 1.7-1.7 5.6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="p-slide" viewBox="0 0 24 24"><path d="M3 12h18" stroke="currentColor" stroke-width="1.6"/><circle cx="14" cy="12" r="3.4" fill="currentColor"/></symbol>
 </svg>
 
-<!-- ================================================================
-     LOADER — the palette arrives before anything else
-     ================================================================ -->
+<!-- ================= LOADER ================= -->
 <div class="loader" id="loader" aria-hidden="true">
-  <div class="loader-top">
-    <span class="loader-brand serif"><i>Principia</i></span>
-    <span class="mono">Preparing seven laws</span>
-  </div>
+  <div class="loader-top"><span class="loader-brand">Museum of Design</span><span class="mono">Opening the doors</span></div>
   <div class="loader-chips">
-    <span style="--c:var(--volt)"><b>I</b></span>
-    <span style="--c:var(--ultra)"><b>II</b></span>
-    <span style="--c:var(--paper)"><b>III</b></span>
-    <span style="--c:var(--lilac)"><b>IV</b></span>
-    <span style="--c:var(--mint)"><b>V</b></span>
-    <span style="--c:var(--coral)"><b>VI</b></span>
-    <span style="--c:var(--apricot)"><b>VII</b></span>
+    <span style="--c:var(--volt)"><b>01</b></span>
+    <span style="--c:var(--ultra)"><b>02</b></span>
+    <span style="--c:var(--paper)"><b>03</b></span>
+    <span style="--c:var(--lilac)"><b>04</b></span>
+    <span style="--c:var(--mint)"><b>05</b></span>
+    <span style="--c:var(--coral)"><b>06</b></span>
+    <span style="--c:var(--apricot)"><b>07</b></span>
   </div>
-  <div class="loader-bottom">
-    <span class="mono loader-status">Loading typefaces</span>
-    <span class="loader-count"><span class="loader-num">000</span></span>
-  </div>
-</div>
-<div class="curtain" aria-hidden="true">
-  <i style="--c:var(--volt)"></i><i style="--c:var(--ultra)"></i><i style="--c:var(--paper)"></i><i style="--c:var(--lilac)"></i><i style="--c:var(--mint)"></i><i style="--c:var(--coral)"></i><i style="--c:var(--apricot)"></i>
+  <div class="loader-bottom"><span class="mono loader-status">Loading the collection</span><span class="loader-count"><span class="loader-num">000</span></span></div>
 </div>
 
-<!-- ================================================================
-     GLOBAL CHROME
-     ================================================================ -->
+<!-- ================= TICKET GATE ================= -->
+<div class="gate" id="gate" hidden>
+  <div class="gate-veil"></div>
+  <div class="gate-inner">
+    <p class="gate-hint mono">Your ticket, please</p>
+    <div class="ticket" role="button" tabindex="0" aria-label="Tear your ticket to enter the museum" data-cursor="Tear">
+      <div class="ticket-main">
+        <div class="ticket-strip" aria-hidden="true"><i style="--c:var(--volt)"></i><i style="--c:var(--ultra)"></i><i style="--c:#FFFFFF"></i><i style="--c:var(--lilac)"></i><i style="--c:var(--mint)"></i><i style="--c:var(--coral)"></i><i style="--c:var(--apricot)"></i></div>
+        <div class="ticket-head">
+          <span class="ticket-arch" aria-hidden="true"><svg><use href="#i-arch"/></svg></span>
+          <span class="mono">Admission</span>
+        </div>
+        <p class="ticket-name">Museum<br>of Design</p>
+        <dl class="ticket-meta mono">
+          <div><dt>Admit</dt><dd>One</dd></div>
+          <div><dt>Date</dt><dd class="t-date">—</dd></div>
+          <div><dt>Rooms</dt><dd>01 – 07 + ∞</dd></div>
+        </dl>
+      </div>
+      <div class="ticket-stub">
+        <span class="mono ticket-no">Nº <b class="t-num">000000</b></span>
+        <span class="ticket-code" aria-hidden="true"></span>
+        <span class="mono ticket-tear">Tear to enter</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CHROME ================= -->
 <div class="grain" aria-hidden="true"></div>
-
-<div class="cursor" aria-hidden="true">
-  <div class="cursor-ring"><span class="cursor-label"></span></div>
-  <div class="cursor-dot"></div>
+<div class="cursor" aria-hidden="true"><div class="cursor-ring"><span class="cursor-label"></span></div><div class="cursor-dot"></div></div>
+<div class="doors" aria-hidden="true">
+  <i class="door door-l"></i><i class="door door-r"></i>
+  <div class="doors-sign"><span class="doors-num"></span><span class="doors-name"></span></div>
 </div>
-
-<div class="grid-overlay" aria-hidden="true">
-  <div class="grid-cols"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-  <span class="grid-tag mono">12-col grid · gutter clamp(16px, 2vw, 32px) · press G</span>
-</div>
-
-<a class="skip" href="#manifesto">Skip to content</a>
+<div class="toast mono" role="status" aria-live="polite"></div>
+<a class="skip" href="#app">Skip to content</a>
 
 <header class="hdr">
-  <a class="hdr-brand" href="#top" data-scrollto aria-label="Principia — back to top">
-    <span class="hdr-mark" aria-hidden="true"><i></i><b></b></span>
-    <span class="hdr-word serif"><i>Principia</i></span>
+  <a class="hdr-brand" href="#/" aria-label="Museum of Design — lobby">
+    <span class="hdr-mark" aria-hidden="true"><svg><use href="#i-arch"/></svg></span>
+    <span class="hdr-word">Museum <i>of</i> Design</span>
   </a>
-  <div class="hdr-chapter mono" aria-live="polite">
-    <span class="hdr-chapter-label">Now reading</span>
-    <span class="hdr-chapter-roll"><span class="hdr-chapter-name">Prologue</span></span>
+  <div class="hdr-here" aria-live="polite">
+    <span class="hdr-here-k mono">You are here</span>
+    <span class="hdr-here-roll"><span class="hdr-here-name">Lobby</span></span>
   </div>
   <div class="hdr-right">
-    <span class="hdr-clock mono" aria-hidden="true"><b class="clock-time">00:00:00</b> <span class="clock-zone">Local</span></span>
-    <button class="hdr-menu" type="button" aria-expanded="false" aria-controls="menu" data-magnetic data-cursor="Open">
-      <span class="hdr-menu-text"><span>Index</span><span aria-hidden="true">Index</span></span>
-      <span class="hdr-menu-dots" aria-hidden="true"><i></i><i></i></span>
+    <button class="hdr-pass" type="button" aria-label="Your passport" data-cursor="Passport">
+      <span class="hdr-pass-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="mono hdr-pass-n">0/7</span>
+    </button>
+    <button class="hdr-map" type="button" aria-expanded="false" aria-controls="map">
+      <svg aria-hidden="true"><use href="#i-map"/></svg><span>Floor plan</span>
     </button>
   </div>
   <div class="hdr-progress" aria-hidden="true"><i></i></div>
 </header>
 
-<nav class="rail" aria-label="Chapters">
-  <ol>
-    <li><a href="#contrast"   data-scrollto data-rail="contrast"><span class="mono">I</span><em>Contrast</em></a></li>
-    <li><a href="#hierarchy"  data-scrollto data-rail="hierarchy"><span class="mono">II</span><em>Hierarchy</em></a></li>
-    <li><a href="#whitespace" data-scrollto data-rail="whitespace"><span class="mono">III</span><em>White Space</em></a></li>
-    <li><a href="#color"      data-scrollto data-rail="color"><span class="mono">IV</span><em>Color</em></a></li>
-    <li><a href="#typography" data-scrollto data-rail="typography"><span class="mono">V</span><em>Typography</em></a></li>
-    <li><a href="#motion"     data-scrollto data-rail="motion"><span class="mono">VI</span><em>Motion</em></a></li>
-    <li><a href="#balance"    data-scrollto data-rail="balance"><span class="mono">VII</span><em>Balance</em></a></li>
-  </ol>
-</nav>
-
-<!-- ================================================================
-     MENU
-     ================================================================ -->
-<div class="menu" id="menu" aria-hidden="true" inert>
-  <div class="menu-bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-  <div class="menu-inner">
-    <div class="menu-top">
-      <span class="mono">Index — seven laws, one page</span>
-      <button class="menu-close" type="button" data-magnetic data-cursor="Close" aria-label="Close index">
-        <svg><use href="#i-x"/></svg>
-      </button>
+<!-- ================= FLOOR PLAN ================= -->
+<div class="map" id="map" aria-hidden="true" inert>
+  <div class="map-inner">
+    <div class="map-top">
+      <div>
+        <p class="mono map-k">Floor plan · Level 1</p>
+        <h2 class="map-title">Where to?</h2>
+      </div>
+      <button class="map-close" type="button" aria-label="Close floor plan"><svg><use href="#i-x"/></svg></button>
     </div>
-    <ol class="menu-list">
-      <li><a href="#contrast"   data-scrollto style="--c:var(--volt)"><span class="mono">I</span><b>Contrast</b><i class="serif">Difference is information.</i></a></li>
-      <li><a href="#hierarchy"  data-scrollto style="--c:var(--ultra)"><span class="mono">II</span><b>Hierarchy</b><i class="serif">Somebody has to go first.</i></a></li>
-      <li><a href="#whitespace" data-scrollto style="--c:var(--paper)"><span class="mono">III</span><b>White Space</b><i class="serif">Silence is a material.</i></a></li>
-      <li><a href="#color"      data-scrollto style="--c:var(--lilac)"><span class="mono">IV</span><b>Color</b><i class="serif">It arrives before meaning.</i></a></li>
-      <li><a href="#typography" data-scrollto style="--c:var(--mint)"><span class="mono">V</span><b>Typography</b><i class="serif">Every typeface has a voice.</i></a></li>
-      <li><a href="#motion"     data-scrollto style="--c:var(--coral)"><span class="mono">VI</span><b>Motion</b><i class="serif">Easing is emotion.</i></a></li>
-      <li><a href="#balance"    data-scrollto style="--c:var(--apricot)"><span class="mono">VII</span><b>Balance</b><i class="serif">Felt long before it’s seen.</i></a></li>
-    </ol>
-    <div class="menu-foot mono">
-      <span>Esc to close</span>
-      <span>G — toggle the grid</span>
-      <span>Principia © 2026</span>
+    <div class="map-body">
+      <svg class="plan" viewBox="0 0 1000 640" role="img" aria-label="Floor plan of the museum"></svg>
+      <ol class="map-list"></ol>
     </div>
+    <p class="map-foot mono"><span>Esc to close</span><span class="map-legend"><i class="lg-stamp"></i>stamped <i class="lg-here"></i>you are here</span></p>
   </div>
 </div>
 
-<!-- cursor-following poster for the contents list -->
-<div class="poster-follow" aria-hidden="true">
-  <div class="poster-follow-inner">
-
-    <figure class="poster" data-poster="1" style="--pbg:#0C0C14">
-      <svg viewBox="0 0 300 400">
-        <defs>
-          <clipPath id="pc-l"><rect width="150" height="400"/></clipPath>
-          <clipPath id="pc-r"><rect x="150" width="150" height="400"/></clipPath>
-        </defs>
-        <rect width="300" height="400" fill="#0C0C14"/>
-        <rect x="150" width="150" height="400" fill="#D9FD3A"/>
-        <g class="pp-slide">
-          <circle cx="150" cy="190" r="86" fill="#D9FD3A" clip-path="url(#pc-l)"/>
-          <circle cx="150" cy="190" r="86" fill="#0C0C14" clip-path="url(#pc-r)"/>
-        </g>
-      </svg>
-      <figcaption class="mono"><span>Plate I</span><span>Contrast</span></figcaption>
-    </figure>
-
-    <figure class="poster" data-poster="2" style="--pbg:#3A22FC">
-      <svg viewBox="0 0 300 400">
-        <rect width="300" height="400" fill="#3A22FC"/>
-        <g fill="#F3F0E9" class="pp-rank">
-          <circle cx="112" cy="140" r="84"/>
-          <circle cx="222" cy="252" r="38"/>
-          <circle cx="262" cy="316" r="17"/>
-          <circle cx="278" cy="352" r="8"/>
-          <circle cx="286" cy="372" r="4"/>
-        </g>
-      </svg>
-      <figcaption class="mono"><span>Plate II</span><span>Hierarchy</span></figcaption>
-    </figure>
-
-    <figure class="poster" data-poster="3" style="--pbg:#FBFAF6">
-      <svg viewBox="0 0 300 400">
-        <rect width="300" height="400" fill="#FBFAF6"/>
-        <rect x="18.5" y="18.5" width="263" height="363" fill="none" stroke="#0C0C14" stroke-opacity=".14"/>
-        <circle class="pp-breath" cx="204" cy="268" r="5" fill="#0C0C14"/>
-      </svg>
-      <figcaption class="mono"><span>Plate III</span><span>White Space</span></figcaption>
-    </figure>
-
-    <figure class="poster" data-poster="4" style="--pbg:#CDBFFF">
-      <svg viewBox="0 0 300 400">
-        <rect width="300" height="400" fill="#CDBFFF"/>
-        <g style="mix-blend-mode:multiply" class="pp-orbit">
-          <circle cx="116" cy="168" r="80" fill="#3A22FC"/>
-          <circle cx="186" cy="168" r="80" fill="#FD5A32"/>
-          <circle cx="151" cy="232" r="80" fill="#8DEFC5"/>
-        </g>
-      </svg>
-      <figcaption class="mono"><span>Plate IV</span><span>Color</span></figcaption>
-    </figure>
-
-    <figure class="poster" data-poster="5" style="--pbg:#8DEFC5">
-      <svg viewBox="0 0 300 400">
-        <rect width="300" height="400" fill="#8DEFC5"/>
-        <text x="22" y="262" class="pp-A">A</text>
-        <text x="178" y="262" class="pp-a">a</text>
-        <line x1="20" x2="280" y1="262.5" y2="262.5" stroke="#0C0C14" stroke-opacity=".35"/>
-        <line x1="20" x2="280" y1="152.5" y2="152.5" stroke="#0C0C14" stroke-opacity=".2" stroke-dasharray="3 4"/>
-      </svg>
-      <figcaption class="mono"><span>Plate V</span><span>Typography</span></figcaption>
-    </figure>
-
-    <figure class="poster" data-poster="6" style="--pbg:#FD5A32">
-      <svg viewBox="0 0 300 400">
-        <rect width="300" height="400" fill="#FD5A32"/>
-        <path d="M40 330 C 120 330, 170 120, 262 92" fill="none" stroke="#0C0C14" stroke-opacity=".3" stroke-dasharray="2 5"/>
-        <g class="pp-trail" fill="none" stroke="#0C0C14" stroke-width="2">
-          <circle cx="40" cy="330" r="16"/>
-          <circle cx="108" cy="318" r="16"/>
-          <circle cx="156" cy="268" r="16"/>
-          <circle cx="192" cy="196" r="16"/>
-          <circle cx="222" cy="134" r="16"/>
-          <circle cx="245" cy="104" r="16"/>
-        </g>
-        <circle cx="262" cy="92" r="16" fill="#0C0C14"/>
-      </svg>
-      <figcaption class="mono"><span>Plate VI</span><span>Motion</span></figcaption>
-    </figure>
-
-    <figure class="poster" data-poster="7" style="--pbg:#FBC49F">
-      <svg viewBox="0 0 300 400">
-        <rect width="300" height="400" fill="#FBC49F"/>
-        <g class="pp-beam">
-          <rect x="26" y="276" width="248" height="5" fill="#0C0C14"/>
-          <circle cx="104" cy="230" r="46" fill="#FD5A32"/>
-          <rect x="226" y="246" width="30" height="30" fill="#0C0C14"/>
-        </g>
-        <path d="M150 281 L176 330 H124 Z" fill="#0C0C14"/>
-      </svg>
-      <figcaption class="mono"><span>Plate VII</span><span>Balance</span></figcaption>
-    </figure>
-
-  </div>
-</div>
-
-<div class="toast mono" role="status" aria-live="polite"></div>
-
-<!-- ================================================================
-     MAIN
-     ================================================================ -->
-<main id="main">
-
-  <!-- ============================ HERO ============================ -->
-  <section class="hero" id="top" data-theme="ink" data-chapter="Prologue">
-    <canvas class="hero-gl" aria-hidden="true"></canvas>
-
-    <div class="hero-top mono" data-hero-in>
-      <span>A field guide in seven laws</span>
-      <span class="hero-top-mid">Vol. I — Edition 2026</span>
-      <span>Scroll, hover, drag, hold</span>
-    </div>
-
-    <h1 class="hero-type" aria-label="Seven laws of design, performed.">
-      <span class="hl hl-1" data-gl-line aria-hidden="true">SEVEN LAWS<span class="probe"></span></span>
-      <span class="hl hl-2" data-gl-line aria-hidden="true">of design,<span class="probe"></span></span>
-      <span class="hl hl-3" data-gl-line aria-hidden="true">PERFORMED.<span class="probe"></span></span>
-    </h1>
-
-    <p class="hero-note" data-hero-in>
-      <span class="mono">(Fig. 0)</span>
-      A lens of liquid glass. Move it — it bends the words like water bends light.
-    </p>
-
-    <div class="hero-foot">
-      <p class="hero-sub" data-hero-in>A living manual of visual design. Every chapter <em>does</em> the thing it describes — so scroll slowly. The page is listening.</p>
-      <div class="hero-hud mono" data-hero-in aria-hidden="true">
-        <span>x <b class="hud-x">0.500</b></span>
-        <span>y <b class="hud-y">0.500</b></span>
-        <span>n <b>1.333</b></span>
-        <span>v <b class="hud-v">0.00</b></span>
-      </div>
-      <a class="hero-scroll mono" href="#manifesto" data-scrollto data-hero-in>
-        <span>Begin</span>
-        <span class="hero-scroll-line"><i></i></span>
-      </a>
-    </div>
-  </section>
-
-  <!-- ========================== MANIFESTO ========================= -->
-  <section class="manifesto" id="manifesto" data-theme="bone" data-chapter="Preface">
-    <div class="sec-meta mono"><span>(01)</span><span>Preface</span><span class="sec-meta-rule"></span><span>Read at your own pace</span></div>
-
-    <p class="mf-text" data-words>
-      Good design is <em>invisible</em> until it isn’t. It’s why you trusted a button
-      <span class="pill pill-btn" aria-hidden="true"><b>OK</b></span>,
-      skipped a paragraph
-      <span class="pill pill-lines" aria-hidden="true"><i></i><i></i><i></i></span>
-      and felt calm
-      <span class="pill pill-breath" aria-hidden="true"><i></i></span>
-      on a page you’ll never remember. Principia distils it into <em>seven laws</em> — and instead of explaining them, every chapter performs its law
-      <span class="pill pill-arrow" aria-hidden="true"><svg><use href="#i-arrow"/></svg></span>
-      on you.
-    </p>
-
-    <dl class="mf-stats">
-      <div><dt class="mono">Laws</dt><dd><span data-count="7" data-pad="2">00</span></dd></div>
-      <div><dt class="mono">Things to touch</dt><dd><span data-count="32" data-pad="2">00</span></dd></div>
-      <div><dt class="mono">Stock images</dt><dd><span data-count="0" data-pad="2">00</span></dd></div>
-      <div><dt class="mono">Lines of GLSL</dt><dd><span data-count="146" data-pad="3">000</span></dd></div>
-    </dl>
-  </section>
-
-  <!-- ============================ INDEX =========================== -->
-  <section class="index" id="index" data-theme="bone" data-chapter="Contents">
-    <div class="sec-meta mono"><span>(02)</span><span>Contents</span><span class="sec-meta-rule"></span><span>Hover to preview — click to jump</span></div>
-
-    <h2 class="idx-title" data-reveal-lines>The seven <em>laws</em></h2>
-
-    <ol class="idx-list">
-      <li><a class="idx-row" href="#contrast" data-scrollto data-law="1" style="--c:var(--volt);--cf:var(--ink)">
-        <span class="idx-num mono">I</span><span class="idx-name">Contrast</span><span class="idx-tag serif">Difference is information.</span><span class="idx-go"><svg><use href="#i-arrow"/></svg></span>
-      </a></li>
-      <li><a class="idx-row" href="#hierarchy" data-scrollto data-law="2" style="--c:var(--ultra);--cf:var(--bone)">
-        <span class="idx-num mono">II</span><span class="idx-name">Hierarchy</span><span class="idx-tag serif">Somebody has to go first.</span><span class="idx-go"><svg><use href="#i-arrow"/></svg></span>
-      </a></li>
-      <li><a class="idx-row" href="#whitespace" data-scrollto data-law="3" style="--c:var(--paper);--cf:var(--ink)">
-        <span class="idx-num mono">III</span><span class="idx-name">White Space</span><span class="idx-tag serif">Silence is a material.</span><span class="idx-go"><svg><use href="#i-arrow"/></svg></span>
-      </a></li>
-      <li><a class="idx-row" href="#color" data-scrollto data-law="4" style="--c:var(--lilac);--cf:var(--ink)">
-        <span class="idx-num mono">IV</span><span class="idx-name">Color</span><span class="idx-tag serif">It arrives before meaning.</span><span class="idx-go"><svg><use href="#i-arrow"/></svg></span>
-      </a></li>
-      <li><a class="idx-row" href="#typography" data-scrollto data-law="5" style="--c:var(--mint);--cf:var(--ink)">
-        <span class="idx-num mono">V</span><span class="idx-name">Typography</span><span class="idx-tag serif">Every typeface has a voice.</span><span class="idx-go"><svg><use href="#i-arrow"/></svg></span>
-      </a></li>
-      <li><a class="idx-row" href="#motion" data-scrollto data-law="6" style="--c:var(--coral);--cf:var(--ink)">
-        <span class="idx-num mono">VI</span><span class="idx-name">Motion</span><span class="idx-tag serif">Easing is emotion.</span><span class="idx-go"><svg><use href="#i-arrow"/></svg></span>
-      </a></li>
-      <li><a class="idx-row" href="#balance" data-scrollto data-law="7" style="--c:var(--apricot);--cf:var(--ink)">
-        <span class="idx-num mono">VII</span><span class="idx-name">Balance</span><span class="idx-tag serif">Felt long before it’s seen.</span><span class="idx-go"><svg><use href="#i-arrow"/></svg></span>
-      </a></li>
-    </ol>
-  </section>
-
-  <!-- ========================= I · CONTRAST ======================= -->
-  <section class="law law-contrast" id="contrast" data-theme="ink" data-chapter="I — Contrast">
-    <header class="law-head">
-      <div class="law-meta mono"><span>Law I</span><span class="law-meta-rule"></span><span>of VII</span></div>
-      <h2 class="law-title t-contrast" aria-label="Contrast"><span class="tc-fill" aria-hidden="true">Contrast</span><span class="tc-line" aria-hidden="true">Contrast</span></h2>
-      <div class="law-intro">
-        <p class="law-motto serif" data-reveal-lines>Difference is information.</p>
-        <p class="law-lesson" data-reveal>The eye skips over sameness. Make the important thing <em>different</em> — lighter, darker, bigger, warmer — and it gets noticed before it gets read.</p>
-      </div>
-    </header>
-
-    <div class="spot" data-cursor="Light" aria-label="Interactive: move your pointer to light up the text">
-      <div class="spot-layer spot-dim">
-        <p class="spot-text">QUIET IS<br>EASY TO<br>IGNORE.</p>
-        <span class="spot-note sn-1 mono">1.3 : 1 — a whisper</span>
-        <span class="spot-note sn-2 mono">Fails WCAG</span>
-        <span class="spot-note sn-3 mono">← move the light</span>
-      </div>
-      <div class="spot-layer spot-lit" aria-hidden="true">
-        <p class="spot-text">QUIET IS<br>EASY TO<br><mark>IGNORE.</mark></p>
-        <span class="spot-note sn-1 mono">17.1 : 1 — a shout</span>
-        <span class="spot-note sn-2 mono">Passes AAA <svg><use href="#i-check"/></svg></span>
-        <span class="spot-note sn-3 mono">Found it.</span>
-      </div>
-      <div class="spot-hint mono" aria-hidden="true">Hold to widen the beam</div>
-    </div>
-
-    <div class="lab cr-lab">
-      <div class="lab-head">
-        <span class="lab-kicker mono">Try it — 01</span>
-        <h3 class="lab-title">Find the ratio</h3>
-        <p class="lab-copy">Contrast is measurable. Drag the two lightness sliders and watch the ratio between text and background — 4.5 : 1 is the floor for body text, 7 : 1 is the gold standard.</p>
-      </div>
-      <div class="cr-body">
-        <div class="cr-preview">
-          <p class="cr-sample">Readable is a feature,<br><em>not a style.</em></p>
-          <span class="cr-chip mono cr-chip-fg">Text <b>#000000</b></span>
-          <span class="cr-chip mono cr-chip-bg">Ground <b>#000000</b></span>
-        </div>
-        <div class="cr-side">
-          <div class="cr-score">
-            <span class="cr-ratio"><b class="cr-ratio-num">0.00</b><span>: 1</span></span>
-            <div class="cr-badges">
-              <span class="cr-badge" data-min="3">AA Large</span>
-              <span class="cr-badge" data-min="4.5">AA</span>
-              <span class="cr-badge" data-min="7">AAA</span>
-            </div>
-          </div>
-          <label class="slider"><span class="slider-top mono"><span>Text lightness</span><output class="cr-out-fg">0.95</output></span><input type="range" class="cr-fg" min="0" max="1" step="0.005" value="0.95"></label>
-          <label class="slider"><span class="slider-top mono"><span>Ground lightness</span><output class="cr-out-bg">0.30</output></span><input type="range" class="cr-bg" min="0" max="1" step="0.005" value="0.3"></label>
-          <label class="slider"><span class="slider-top mono"><span>Hue</span><output class="cr-out-h">275°</output></span><input type="range" class="cr-h slider-hue" min="0" max="360" step="1" value="275"></label>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================== II · HIERARCHY ====================== -->
-  <section class="law law-hierarchy" id="hierarchy" data-theme="ultra" data-chapter="II — Hierarchy">
-    <header class="law-head">
-      <div class="law-meta mono"><span>Law II</span><span class="law-meta-rule"></span><span>of VII</span></div>
-      <h2 class="law-title t-hierarchy" aria-label="Hierarchy"><span aria-hidden="true">Hierarchy</span></h2>
-      <div class="law-intro">
-        <p class="law-motto serif" data-reveal-lines>Somebody has to go first.</p>
-        <p class="law-lesson" data-reveal>Every layout is a queue. Size, weight, color and position decide who speaks first — get the order right and nobody has to think about where to look.</p>
-      </div>
-    </header>
-
-    <div class="hier">
-      <div class="hier-pin">
-        <div class="hier-steps mono" aria-hidden="true">
-          <span class="hs" data-step="0"><b>00</b> Flat</span>
-          <span class="hs" data-step="1"><b>01</b> Size</span>
-          <span class="hs" data-step="2"><b>02</b> Weight</span>
-          <span class="hs" data-step="3"><b>03</b> Color</span>
-          <span class="hs" data-step="4"><b>04</b> Position</span>
-          <span class="hs-bar"><i></i></span>
-        </div>
-
-        <div class="hier-frame">
-          <div class="hier-stage" aria-label="A poster that organises itself as you scroll">
-            <!-- live elements (absolutely positioned & animated) -->
-            <span class="he he-kicker" data-he="kicker">Exhibition — Spring 2026</span>
-            <span class="he he-title" data-he="title"><span>The Shape</span><span>of Attention</span></span>
-            <span class="he he-deck" data-he="deck"><span>Forty years of posters that</span><span>made strangers stop walking.</span></span>
-            <span class="he he-body" data-he="body"><span>Two hundred works from the archive,</span><span>hung in the order your eye</span><span>would have chosen anyway.</span></span>
-            <span class="he he-date" data-he="date">12.03 — 30.06</span>
-            <span class="he he-venue" data-he="venue">Hall B, Level 2</span>
-            <span class="he he-price" data-he="price">Free entry</span>
-            <span class="he he-cta" data-he="cta">Book a ticket</span>
-            <span class="he he-art" data-he="art">
-              <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice"><rect width="200" height="200" fill="currentColor" opacity="0"/><circle cx="100" cy="100" r="62" class="ha-c"/><rect x="100" y="38" width="62" height="124" class="ha-r"/><circle cx="100" cy="100" r="18" class="ha-d"/></svg>
-            </span>
-            <svg class="hier-path" aria-hidden="true"><path/></svg>
-            <span class="hier-mark" data-mark="1">1</span>
-            <span class="hier-mark" data-mark="2">2</span>
-            <span class="hier-mark" data-mark="3">3</span>
-            <span class="hier-mark" data-mark="4">4</span>
-          </div>
-          <!-- measuring clone: same content, real flow layout, one class per state -->
-          <div class="hier-stage hier-measure" aria-hidden="true"></div>
-        </div>
-
-        <div class="hier-side">
-          <p class="hier-caption" aria-live="polite"><span class="mono hier-caption-k">00 — Flat</span><span class="hier-caption-t">Everything is the same size, so everything is equally unimportant.</span></p>
-          <button class="btn btn-ghost squint" type="button" data-cursor="Hold">
-            <span>Hold to squint</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================= III · WHITE SPACE ==================== -->
-  <section class="law law-space" id="whitespace" data-theme="paper" data-chapter="III — White Space">
-    <header class="law-head">
-      <div class="law-meta mono"><span>Law III</span><span class="law-meta-rule"></span><span>of VII</span></div>
-      <h2 class="law-title t-space" aria-label="White Space"><span aria-hidden="true">White</span><span aria-hidden="true">Space</span></h2>
-      <div class="law-intro">
-        <p class="law-motto serif" data-reveal-lines>Silence is a material.</p>
-        <p class="law-lesson" data-reveal>Space isn’t empty — it’s the frame that tells the eye where to rest. Crowd a thing and it shouts over everything else. Give it room and it finally gets heard.</p>
-      </div>
-    </header>
-
-    <div class="ws">
-      <div class="ws-pin">
-        <div class="ws-clutter" aria-hidden="true"></div>
-        <p class="ws-word serif"><i>Breathe.</i></p>
-        <p class="ws-count mono" aria-hidden="true"><b class="ws-count-n">36</b> things competing for you</p>
-      </div>
-    </div>
-
-    <div class="ws-void" aria-hidden="true">
-      <span class="ws-void-rule"></span>
-      <span class="mono ws-void-label">This emptiness is intentional — 80vh of it.</span>
-      <span class="ws-void-rule"></span>
-    </div>
-
-    <div class="lab ms-lab">
-      <div class="lab-head">
-        <span class="lab-kicker mono">Try it — 02</span>
-        <h3 class="lab-title">Leading &amp; measure</h3>
-        <p class="lab-copy">The space <em>inside</em> text matters as much as the space around it. Same words, same size — only the line height, line length and tracking change.</p>
-      </div>
-      <div class="ms-body">
-        <div class="seg ms-seg" role="radiogroup" aria-label="Paragraph spacing">
-          <button type="button" role="radio" aria-checked="true" data-ms="cramped">Cramped</button>
-          <button type="button" role="radio" aria-checked="false" data-ms="comfort">Comfortable</button>
-          <i class="seg-thumb" aria-hidden="true"></i>
-        </div>
-        <dl class="ms-metrics mono">
-          <div><dt>Leading</dt><dd class="ms-lh">1.02</dd></div>
-          <div><dt>Measure</dt><dd class="ms-ch">120ch</dd></div>
-          <div><dt>Tracking</dt><dd class="ms-ls">−0.02em</dd></div>
-        </dl>
-        <div class="ms-frame">
-          <p class="ms-para">White space is the most underrated material in design. It costs nothing, it never goes out of style, and it does the quiet work of grouping, separating and pacing — telling the reader what belongs together and when to pause. When a paragraph is cramped, the eye loses its place at the end of every line and has to hunt for the next one. Give the lines room to breathe and a comfortable length, around sixty characters, and reading stops feeling like work.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========================== IV · COLOR ======================== -->
-  <section class="law law-color" id="color" data-theme="lilac" data-chapter="IV — Color">
-    <header class="law-head">
-      <div class="law-meta mono"><span>Law IV</span><span class="law-meta-rule"></span><span>of VII</span></div>
-      <h2 class="law-title t-color" aria-label="Color"><span aria-hidden="true">Color</span></h2>
-      <div class="law-intro">
-        <p class="law-motto serif" data-reveal-lines>It arrives before meaning.</p>
-        <p class="law-lesson" data-reveal>Before a single word is read, color has already set the mood. Choose colors as a family, not as individuals — harmony is a relationship, measured in angles on a wheel.</p>
-      </div>
-    </header>
-
-    <div class="lab cl-lab">
-      <div class="lab-head">
-        <span class="lab-kicker mono">Try it — 03</span>
-        <h3 class="lab-title">Build a palette</h3>
-        <p class="lab-copy">Drag the handle around the wheel. The palette is computed in OKLCH — a color space built around human perception — so every shade keeps the same perceived lightness. This whole section repaints itself with your choice.</p>
-      </div>
-      <div class="cl-body">
-        <div class="cl-wheel-wrap">
-          <div class="cl-wheel" data-cursor="Drag">
-            <canvas class="cl-canvas" aria-hidden="true"></canvas>
-            <svg class="cl-links" aria-hidden="true"></svg>
-            <span class="cl-dot cl-dot-2" aria-hidden="true"></span>
-            <span class="cl-dot cl-dot-3" aria-hidden="true"></span>
-            <button class="cl-handle" type="button" role="slider" aria-label="Base hue" aria-valuemin="0" aria-valuemax="360" aria-valuenow="285"></button>
-            <div class="cl-center"><span class="mono">Hue</span><b class="cl-hue">285°</b></div>
-          </div>
-          <div class="seg cl-seg" role="radiogroup" aria-label="Harmony">
-            <button type="button" role="radio" aria-checked="false" data-h="analogous">Analogous</button>
-            <button type="button" role="radio" aria-checked="true" data-h="complementary">Complement</button>
-            <button type="button" role="radio" aria-checked="false" data-h="triadic">Triadic</button>
-            <button type="button" role="radio" aria-checked="false" data-h="split">Split</button>
-            <i class="seg-thumb" aria-hidden="true"></i>
-          </div>
-        </div>
-
-        <div class="cl-side">
-          <ul class="cl-swatches">
-            <li><button type="button" class="sw" data-sw="0" data-cursor="Copy"><i></i><span class="mono"><b>Dominant</b><em>#000000</em></span></button></li>
-            <li><button type="button" class="sw" data-sw="1" data-cursor="Copy"><i></i><span class="mono"><b>Secondary</b><em>#000000</em></span></button></li>
-            <li><button type="button" class="sw" data-sw="2" data-cursor="Copy"><i></i><span class="mono"><b>Accent</b><em>#000000</em></span></button></li>
-            <li><button type="button" class="sw" data-sw="3" data-cursor="Copy"><i></i><span class="mono"><b>Support</b><em>#000000</em></span></button></li>
-            <li><button type="button" class="sw" data-sw="4" data-cursor="Copy"><i></i><span class="mono"><b>Ink</b><em>#000000</em></span></button></li>
-          </ul>
-
-          <div class="cl-mock" aria-label="Sample interface using your palette">
-            <div class="clm-top">
-              <span class="clm-logo"></span>
-              <span class="clm-nav"><i></i><i></i><i></i></span>
-              <span class="clm-pill">Sign in</span>
-            </div>
-            <div class="clm-hero">
-              <div>
-                <span class="clm-tag mono">New season</span>
-                <p class="clm-h">Weekend<br>tickets, <em>sorted.</em></p>
-                <span class="clm-btn">Get started <svg><use href="#i-arrow"/></svg></span>
-              </div>
-              <div class="clm-chart" aria-hidden="true"><i style="--h:.42"></i><i style="--h:.7"></i><i style="--h:.55"></i><i style="--h:.92"></i><i style="--h:.64"></i></div>
-            </div>
-          </div>
-
-          <div class="cl-ratio" aria-label="The 60-30-10 rule">
-            <div class="cl-ratio-bar"><i></i><i></i><i></i></div>
-            <div class="cl-ratio-lbl mono"><span>60 — dominant</span><span>30 — secondary</span><span>10 — accent</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="cl-illusion" data-cursor="Hold">
-      <div class="ci-half ci-dark"><span class="ci-chip"></span></div>
-      <div class="ci-half ci-light"><span class="ci-chip"></span></div>
-      <div class="ci-bridge" aria-hidden="true"></div>
-      <p class="ci-cap"><span class="mono">Try it — 04</span> These two squares are the <em>same grey</em>. Hold anywhere here to prove it.</p>
-    </div>
-  </section>
-
-  <!-- ======================= V · TYPOGRAPHY ======================= -->
-  <section class="law law-type" id="typography" data-theme="mint" data-chapter="V — Typography">
-    <header class="law-head">
-      <div class="law-meta mono"><span>Law V</span><span class="law-meta-rule"></span><span>of VII</span></div>
-      <h2 class="law-title t-type" aria-label="Typography"><span aria-hidden="true">Typography</span></h2>
-      <div class="law-intro">
-        <p class="law-motto serif" data-reveal-lines>Every typeface has a voice.</p>
-        <p class="law-lesson" data-reveal>Type is how words get dressed for the occasion. Weight, width, size and spacing change what a sentence feels like long before anyone reads it. Move your pointer over the title — it’s one variable font, breathing.</p>
-      </div>
-    </header>
-
-    <div class="lab ty-lab">
-      <div class="lab-head">
-        <span class="lab-kicker mono">Try it — 05</span>
-        <h3 class="lab-title">One font, every voice</h3>
-        <p class="lab-copy">Mona Sans is a <em>variable</em> font: a single file with continuous axes for weight and width. Click the word to retype it, then turn the dials — or try a preset.</p>
-      </div>
-      <div class="ty-body">
-        <div class="ty-stage">
-          <span class="ty-word" contenteditable="true" spellcheck="false" data-cursor="Type" aria-label="Editable sample text">Gestalt</span>
-        </div>
-        <div class="ty-controls">
-          <div class="ty-presets" role="group" aria-label="Presets">
-            <button type="button" class="chip" data-preset="shout">Shout</button>
-            <button type="button" class="chip" data-preset="whisper">Whisper</button>
-            <button type="button" class="chip" data-preset="editorial">Editorial</button>
-            <button type="button" class="chip" data-preset="poster">Poster</button>
-          </div>
-          <label class="slider"><span class="slider-top mono"><span>Weight</span><output class="ty-o-w">640</output></span><input type="range" data-ty="w" min="200" max="900" step="1" value="640"></label>
-          <label class="slider"><span class="slider-top mono"><span>Width</span><output class="ty-o-wd">112</output></span><input type="range" data-ty="wd" min="75" max="125" step="0.5" value="112"></label>
-          <label class="slider"><span class="slider-top mono"><span>Size</span><output class="ty-o-s">11vw</output></span><input type="range" data-ty="s" min="4" max="16" step="0.1" value="11"></label>
-          <label class="slider"><span class="slider-top mono"><span>Tracking</span><output class="ty-o-t">−0.03em</output></span><input type="range" data-ty="t" min="-0.08" max="0.3" step="0.005" value="-0.03"></label>
-          <code class="ty-code mono">font-weight: 640; font-stretch: 112%;</code>
-        </div>
-      </div>
-    </div>
-
-    <div class="acts">
-      <div class="acts-pin">
-        <div class="acts-head">
-          <span class="lab-kicker mono">Exhibit — 06</span>
-          <h3 class="lab-title">Words that act</h3>
-          <p class="mono acts-sub">Type doesn’t just say a word. It can <em>do</em> it.</p>
-        </div>
-        <div class="acts-track">
-          <div class="act" data-act="bigger"><span class="act-w">BIGGER</span><span class="act-c mono">scale 0.4 → 1.5</span></div>
-          <div class="act" data-act="heavy"><span class="act-w">HEAVY</span><span class="act-c mono">wght 200 → 900</span></div>
-          <div class="act" data-act="wide"><span class="act-w">WIDE</span><span class="act-c mono">wdth 75 → 125</span></div>
-          <div class="act" data-act="space"><span class="act-w">SPACE</span><span class="act-c mono">tracking −0.05 → 0.5em</span></div>
-          <div class="act" data-act="light"><span class="act-w">light</span><span class="act-c mono">wght 900 → 200, y ↑</span></div>
-          <div class="act" data-act="fall"><span class="act-w">FALL</span><span class="act-c mono">stagger 0.06s, gravity</span></div>
-          <div class="act" data-act="italic"><span class="act-w"><span class="aw-sans">slant</span><span class="aw-serif serif"><i>slant</i></span></span><span class="act-c mono">grotesk → italic serif</span></div>
-          <div class="act" data-act="narrow"><span class="act-w">NARROW</span><span class="act-c mono">wdth 125 → 75</span></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="ty-system">
-      <div class="lab-head">
-        <span class="lab-kicker mono">Specimen — 07</span>
-        <h3 class="lab-title">The voices of this page</h3>
-      </div>
-      <div class="tys-grid">
-        <article class="tys-card" data-reveal>
-          <span class="tys-role mono">Display &amp; text</span>
-          <p class="tys-glyph tys-mona">Rg</p>
-          <h4>Mona Sans</h4>
-          <p class="mono tys-axes">wght 200–900 · wdth 75–125</p>
-          <p class="tys-note">A grotesk with a width axis, so headlines can stretch to a measure instead of shrinking to it.</p>
-        </article>
-        <article class="tys-card" data-reveal>
-          <span class="tys-role mono">Expression</span>
-          <p class="tys-glyph tys-serif serif"><i>Rg</i></p>
-          <h4>Instrument Serif</h4>
-          <p class="mono tys-axes">Italic · condensed display</p>
-          <p class="tys-note">The human voice in the room — used only for emphasis, so emphasis keeps meaning something.</p>
-        </article>
-        <article class="tys-card" data-reveal>
-          <span class="tys-role mono">Data &amp; labels</span>
-          <p class="tys-glyph tys-mono mono">Rg</p>
-          <h4>Geist Mono</h4>
-          <p class="mono tys-axes">wght 100–900 · tabular</p>
-          <p class="tys-note">Every number on this page is monospaced, so counters tick without wobbling.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========================== VI · MOTION ======================= -->
-  <section class="law law-motion" id="motion" data-theme="coral" data-chapter="VI — Motion">
-    <header class="law-head">
-      <div class="law-meta mono"><span>Law VI</span><span class="law-meta-rule"></span><span>of VII</span></div>
-      <h2 class="law-title t-motion" aria-label="Motion"><span aria-hidden="true">Motion</span></h2>
-      <div class="law-intro">
-        <p class="law-motto serif" data-reveal-lines>Easing is emotion.</p>
-        <p class="law-lesson" data-reveal>Nothing real starts or stops instantly. Easing gives movement weight and intent — the same distance in the same time can feel robotic, hesitant, confident or delighted. Poke the title.</p>
-      </div>
-    </header>
-
-    <div class="lab ez-lab">
-      <div class="lab-head">
-        <span class="lab-kicker mono">Try it — 08</span>
-        <h3 class="lab-title">Same trip, six personalities</h3>
-        <p class="lab-copy">Every ball travels the same distance in the same 1.4 seconds. Only the easing curve changes — and with it, the character.</p>
-      </div>
-      <div class="ez-lanes">
-        <div class="ez-lane" data-ease="none"><svg class="ez-curve" viewBox="0 0 60 60"><path/><circle r="3"/></svg><span class="ez-name"><b>Linear</b><i class="serif">robotic</i></span><span class="ez-track"><i class="ez-ball"></i></span><code class="mono">linear</code></div>
-        <div class="ez-lane" data-ease="power2.in"><svg class="ez-curve" viewBox="0 0 60 60"><path/><circle r="3"/></svg><span class="ez-name"><b>Ease in</b><i class="serif">hesitant</i></span><span class="ez-track"><i class="ez-ball"></i></span><code class="mono">power2.in</code></div>
-        <div class="ez-lane" data-ease="expo.out"><svg class="ez-curve" viewBox="0 0 60 60"><path/><circle r="3"/></svg><span class="ez-name"><b>Ease out</b><i class="serif">confident</i></span><span class="ez-track"><i class="ez-ball"></i></span><code class="mono">expo.out</code></div>
-        <div class="ez-lane" data-ease="power3.inOut"><svg class="ez-curve" viewBox="0 0 60 60"><path/><circle r="3"/></svg><span class="ez-name"><b>In-out</b><i class="serif">graceful</i></span><span class="ez-track"><i class="ez-ball"></i></span><code class="mono">power3.inOut</code></div>
-        <div class="ez-lane" data-ease="back.out(2.4)"><svg class="ez-curve" viewBox="0 0 60 60"><path/><circle r="3"/></svg><span class="ez-name"><b>Overshoot</b><i class="serif">playful</i></span><span class="ez-track"><i class="ez-ball"></i></span><code class="mono">back.out(2.4)</code></div>
-        <div class="ez-lane" data-ease="elastic.out(1,0.32)"><svg class="ez-curve" viewBox="0 0 60 60"><path/><circle r="3"/></svg><span class="ez-name"><b>Elastic</b><i class="serif">delighted</i></span><span class="ez-track"><i class="ez-ball"></i></span><code class="mono">elastic.out</code></div>
-      </div>
-      <button class="btn btn-solid ez-run" type="button" data-magnetic><span>Race again</span><svg><use href="#i-arrow"/></svg></button>
-    </div>
-
-    <div class="lab sp-lab">
-      <div class="lab-head">
-        <span class="lab-kicker mono">Try it — 09</span>
-        <h3 class="lab-title">Pull the spring</h3>
-        <p class="lab-copy">Grab the ball, drag it anywhere and let go. It’s simulated physics, not a canned animation — tension pulls it home, friction calms it down, and it squashes in the direction it travels.</p>
-      </div>
-      <div class="sp-body">
-        <div class="sp-stage">
-          <svg class="sp-band" aria-hidden="true"><path/></svg>
-          <span class="sp-anchor" aria-hidden="true"></span>
-          <span class="sp-ball" data-cursor="Drag" role="img" aria-label="A draggable ball on a spring"></span>
-          <span class="sp-read mono" aria-hidden="true">v <b class="sp-v">0</b> px/s</span>
-        </div>
-        <div class="sp-controls">
-          <label class="slider"><span class="slider-top mono"><span>Tension</span><output class="sp-o-k">180</output></span><input type="range" class="sp-k" min="40" max="420" step="1" value="180"></label>
-          <label class="slider"><span class="slider-top mono"><span>Friction</span><output class="sp-o-c">9</output></span><input type="range" class="sp-c" min="2" max="40" step="0.5" value="9"></label>
-          <p class="mono sp-hint">Low friction + high tension = jelly.<br>High friction = honey.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="marquee" aria-hidden="true">
-      <div class="marquee-track">
-        <span>Anticipation <i class="serif">&amp;</i> Follow-through <b>✦</b> Squash <i class="serif">&amp;</i> Stretch <b>✦</b> Overshoot <b>✦</b> Stagger <b>✦</b> Settle <b>✦</b>&nbsp;</span>
-      </div>
-      <div class="marquee-cap mono">Scroll faster — the type leans into it</div>
-    </div>
-  </section>
-
-  <!-- ========================= VII · BALANCE ====================== -->
-  <section class="law law-balance" id="balance" data-theme="apricot" data-chapter="VII — Balance">
-    <header class="law-head">
-      <div class="law-meta mono"><span>Law VII</span><span class="law-meta-rule"></span><span>of VII</span></div>
-      <h2 class="law-title t-balance" aria-label="Balance"><span class="tb-beam" aria-hidden="true">Balance</span></h2>
-      <div class="law-intro">
-        <p class="law-motto serif" data-reveal-lines>Felt long before it’s seen.</p>
-        <p class="law-lesson" data-reveal>Every shape carries visual weight: size, darkness and distance from the center all add to it. Balance isn’t symmetry — it’s a truce. A small dark square far out can hold up a big bright circle close in.</p>
-      </div>
-    </header>
-
-    <div class="lab bl-lab">
-      <div class="lab-head">
-        <span class="lab-kicker mono">Try it — 10</span>
-        <h3 class="lab-title">Level the beam</h3>
-        <p class="lab-copy">Drag the shapes onto the beam. Weight × distance from the pivot tips it one way or the other. Find a truce with at least one shape on each side.</p>
-      </div>
-      <div class="bl-body">
-        <div class="bl-stage">
-          <div class="bl-beam"><span class="bl-beam-bar"></span><span class="bl-ticks" aria-hidden="true"></span></div>
-          <span class="bl-pivot" aria-hidden="true"></span>
-          <div class="bl-tray">
-            <span class="bl-piece bp-circle"  data-m="5.0" data-cursor="Drag" role="img" aria-label="Large coral circle, weight 5"></span>
-            <span class="bl-piece bp-square"  data-m="3.0" data-cursor="Drag" role="img" aria-label="Dark square, weight 3"></span>
-            <span class="bl-piece bp-tri"     data-m="1.6" data-cursor="Drag" role="img" aria-label="Blue triangle, weight 1.6"></span>
-            <span class="bl-piece bp-dot"     data-m="0.8" data-cursor="Drag" role="img" aria-label="Small dot, weight 0.8"></span>
-          </div>
-          <div class="bl-status mono" aria-live="polite"><span class="bl-status-t">Drop shapes on the beam</span></div>
-        </div>
-        <div class="bl-side">
-          <dl class="bl-read mono">
-            <div><dt>Left</dt><dd class="bl-l">0.0</dd></div>
-            <div><dt>Right</dt><dd class="bl-r">0.0</dd></div>
-            <div><dt>Tilt</dt><dd class="bl-a">0.0°</dd></div>
-          </dl>
-          <div class="bl-meter" aria-hidden="true"><i></i></div>
-          <button class="btn btn-ghost bl-reset" type="button"><span>Reset the shapes</span></button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================ FINALE ========================== -->
-  <footer class="finale" id="fin" data-theme="ink" data-chapter="Fin.">
-    <div class="sec-meta mono"><span>(Fin.)</span><span>Seven laws, performed</span><span class="sec-meta-rule"></span><span>Thanks for staying</span></div>
-
-    <h2 class="fin-title" data-reveal-lines>Now go make something <em>worth staring at.</em></h2>
-
-    <ul class="fin-laws" aria-label="Revisit a law">
-      <li><a href="#contrast" data-scrollto>Contrast</a></li>
-      <li><a href="#hierarchy" data-scrollto>Hierarchy</a></li>
-      <li><a href="#whitespace" data-scrollto>White Space</a></li>
-      <li><a href="#color" data-scrollto>Color</a></li>
-      <li><a href="#typography" data-scrollto>Typography</a></li>
-      <li><a href="#motion" data-scrollto>Motion</a></li>
-      <li><a href="#balance" data-scrollto>Balance</a></li>
-    </ul>
-
-    <div class="fin-cta-row">
-      <a class="fin-cta" href="#top" data-scrollto data-magnetic data-cursor="Again">
-        <span class="fin-cta-in"><svg><use href="#i-arrow-u"/></svg><span>Read it<br>again</span></span>
-      </a>
-      <p class="fin-cta-note">The best way to learn the laws is to notice them everywhere. You won’t be able to stop now. <em>Sorry.</em></p>
-    </div>
-
-    <div class="colophon">
-      <div class="co-cell co-type">
-        <span class="mono co-k">Typefaces</span>
-        <p><b class="co-mona">Mona Sans</b> <span class="serif"><i>Instrument Serif</i></span> <span class="mono">Geist Mono</span></p>
-      </div>
-      <div class="co-cell co-palette">
-        <span class="mono co-k">Palette — three families, two temperatures</span>
-        <ul class="co-swatches">
-          <li><button type="button" data-copy="#0C0C14" data-cursor="Copy" style="--c:#0C0C14"><i></i><span class="mono">Ink<br>#0C0C14</span></button></li>
-          <li><button type="button" data-copy="#F3F0E9" data-cursor="Copy" style="--c:#F3F0E9"><i></i><span class="mono">Bone<br>#F3F0E9</span></button></li>
-          <li><button type="button" data-copy="#3A22FC" data-cursor="Copy" style="--c:#3A22FC"><i></i><span class="mono">Ultra<br>#3A22FC</span></button></li>
-          <li><button type="button" data-copy="#CDBFFF" data-cursor="Copy" style="--c:#CDBFFF"><i></i><span class="mono">Lilac<br>#CDBFFF</span></button></li>
-          <li><button type="button" data-copy="#FD5A32" data-cursor="Copy" style="--c:#FD5A32"><i></i><span class="mono">Flame<br>#FD5A32</span></button></li>
-          <li><button type="button" data-copy="#FBC49F" data-cursor="Copy" style="--c:#FBC49F"><i></i><span class="mono">Apricot<br>#FBC49F</span></button></li>
-          <li><button type="button" data-copy="#D9FD3A" data-cursor="Copy" style="--c:#D9FD3A"><i></i><span class="mono">Volt<br>#D9FD3A</span></button></li>
-          <li><button type="button" data-copy="#8DEFC5" data-cursor="Copy" style="--c:#8DEFC5"><i></i><span class="mono">Mint<br>#8DEFC5</span></button></li>
-        </ul>
-      </div>
-      <div class="co-cell co-built">
-        <span class="mono co-k">Built with</span>
-        <p>Semantic HTML, hand-written CSS, GSAP &amp; ScrollTrigger, Lenis, and raw WebGL. <em>No images</em> — every graphic on this page is code.</p>
-      </div>
-      <div class="co-cell co-keys">
-        <span class="mono co-k">Shortcuts</span>
-        <p class="mono"><kbd>G</kbd> grid <kbd>M</kbd> index <kbd>Esc</kbd> close</p>
-        <button class="btn btn-ghost co-grid" type="button"><span>Show the grid</span></button>
-      </div>
-      <div class="co-cell co-time">
-        <span class="mono co-k">Your time</span>
-        <p class="co-clock"><b class="clock-time">00:00:00</b></p>
-      </div>
-    </div>
-
-    <div class="fin-mark" aria-hidden="true"><canvas class="fin-gl"></canvas><span class="fin-mark-word" data-gl-line>Principia<span class="probe"></span></span></div>
-    <div class="fin-legal mono"><span>Principia © 2026</span><span>Seven laws of visual design, performed</span><a href="#top" data-scrollto>Back to top <svg><use href="#i-arrow-u"/></svg></a></div>
-  </footer>
-
-</main>
+<main id="app" tabindex="-1"></main>
 
 <noscript>
-  <style>.loader,.curtain,.cursor{display:none!important}body{overflow:auto!important}</style>
+  <div style="position:fixed;inset:0;display:grid;place-items:center;background:#F3F0E9;color:#0C0C14;font-family:system-ui;padding:2rem;text-align:center">
+    <p>The Museum of Design is an interactive exhibition.<br>It needs JavaScript to open its doors.</p>
+  </div>
 </noscript>
 
 <script src="vendor/gsap.min.js"></script>
@@ -828,10 +139,17 @@
 <script src="vendor/SplitText.min.js"></script>
 <script src="vendor/CustomEase.min.js"></script>
 <script src="vendor/lenis.min.js"></script>
+<script src="vendor/three.min.js"></script>
 <script src="js/core.js"></script>
-<script src="js/hero-gl.js"></script>
-<script src="js/chapters-a.js"></script>
-<script src="js/chapters-b.js"></script>
+<script src="js/glyphs.js"></script>
+<script src="js/stage3d.js"></script>
+<script src="js/sculptures.js"></script>
+<script src="js/guides.js"></script>
+<script src="js/museum.js"></script>
+<script src="js/lobby.js"></script>
+<script src="js/rooms-a.js"></script>
+<script src="js/rooms-b.js"></script>
+<script src="js/rotunda.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

@@ -1,38 +1,49 @@
-# Principia — seven laws of design, performed
+# Museum of Design
 
-A single-page, scroll-driven field guide to visual design. Every chapter **does the thing it describes**: the Contrast chapter is lit by a spotlight, the Hierarchy chapter reorganises a poster in front of you, the White Space chapter blows its own clutter off the screen, the Color chapter repaints the whole section from a palette you pick, and so on.
+A small museum on the web. You come in with a ticket, pick a room, and every room teaches one principle of design by doing it to you. At the end, one terrible poster is restored in front of you, one principle at a time.
 
-It began as a rebuild of the *Museum of Design* (PR #17): same idea — teach design by doing it — with a single art direction, one type system and one palette instead of seven competing ones.
+## The visit
 
-## The tour
+1. **Ticket.** Tear the stub to get in. The ticket flies into your passport in the header.
+2. **Lobby.** A turning centrepiece, then the permanent collection: seven rooms and a rotunda, each a card with its own sculpture. Start the tour or choose a room.
+3. **Rooms 01–07.** Every room has the same shape:
+   - **Entrance hall.** The room's name, a 3D sculpture you can turn, and a museum label.
+   - **Three exhibits.** Each exhibit has a title, one instruction, and one line of takeaway.
+   - **Exit.** Your passport gets stamped and a door leads to the next room.
+4. **Rotunda.**
+   - **The Grand Restoration.** An awful poster is fixed in seven passes as you scroll: contrast, hierarchy, white space, color, typography, motion, balance.
+   - **Passport Control.** Shows which rooms you've stamped.
+   - **The Gift Shop.** Seven postcards that download as printable field notes.
 
-| | Chapter | What you do |
+You can always see where you are: the header shows the room you're in and your passport stamps, and **Floor plan** opens a map with the suggested route.
+
+| Room | Sculpture | Exhibits |
 | --- | --- | --- |
-| — | **Hero** | Move a lens of liquid glass over the headline. It's a WebGL fragment shader: magnification, chromatic dispersion, fresnel rim, specular glint, squash & stretch with velocity, click ripples. Scroll and the type melts. |
-| — | **Preface** | A manifesto that reads itself in as you scroll, with tiny live graphics set inline in the sentence. |
-| — | **Contents** | Seven rows that flood with each law's color; a generative poster follows your cursor. |
-| I | **Contrast** | A spotlight that reveals a 1.3 : 1 whisper as a 17 : 1 shout (hold to widen it). A live WCAG ratio lab in OKLCH. |
-| II | **Hierarchy** | A pinned poster that starts flat and gains size → weight → color → position, then draws the eye's reading route. Hold to squint. |
-| III | **White Space** | 36 pieces of marketing junk explode outward to leave one word. Then 80vh of nothing. Then a leading & measure toggle. |
-| IV | **Color** | Drag around an OKLCH hue wheel; harmonies are computed per hue at the sRGB cusp so accents stay vivid. The section, title gradient, a sample UI and the 60·30·10 bar all repaint. Plus a simultaneous-contrast illusion. |
-| V | **Typography** | The title is one variable font breathing (weight + width per letter, swelling near the cursor). A variable-font lab with presets and live CSS. A horizontal gallery of words that act out their meaning. |
-| VI | **Motion** | Six balls, one distance, six easing curves. A draggable ball on a real spring (tension/friction, squash in the direction of travel). A marquee that leans with scroll velocity. |
-| VII | **Balance** | Drag shapes onto a beam; torque = visual weight × distance tilts it until you find the truce. |
-| — | **Fin.** | Proximity-weighted law names, a colophon, and the lens returns over the wordmark. |
+| 01 Contrast | *Eclipse*: two lacquer halves around a light | The Dark Room · The Dial · Find "Continue" |
+| 02 Hierarchy | *The Podium* | The Poster · Promote One · The Squint Test |
+| 03 White Space | *One Thing*: a tilting slab, one red sphere | The Clutter · One Per Wall · Leading |
+| 04 Color | *Spectrum*: twelve OKLCH hues in a wave | Temperature · The Wheel · Same Grey |
+| 05 Typography | *Ampersand*: extruded Instrument Serif | Words That Act · One Font · Kerning |
+| 06 Motion | *Newton's Cradle* (click it) | Photo Finish · The Spring · Stagger |
+| 07 Balance | *Mobile No. 3*, after Calder | The Seesaw · Two Kinds of Calm · The Thirds |
+| ∞ Rotunda | *Armillary* | The Grand Restoration · Passport Control · The Gift Shop |
 
-## Design system
+## How it's built
 
-- **Type** — Mona Sans (variable: `wght` 200–900, `wdth` 75–125) for display and text, Instrument Serif italic for expression, Geist Mono for data. Chapter titles are *fit to the measure with the width axis*: they keep one cap height and stretch or condense to fill the line.
-- **Palette** — three hue families in two temperatures, chosen in OKLCH: Ultra `#3A22FC` / Lilac `#CDBFFF`, Flame `#FD5A32` / Apricot `#FBC49F`, Volt `#D9FD3A` / Mint `#8DEFC5`, on Ink `#0C0C14`, Bone `#F3F0E9` and Paper `#FBFAF6`. Each chapter owns one; the page changes clothes as you scroll (registered `@property` colors, so the whole theme interpolates).
-- **Motion** — one house ease (`cubic-bezier(.16, 1, .3, 1)`), masked line reveals, springs for anything you touch.
+- **Router.** A hash-routed single page (`#/`, `#/room/<id>`, `#/rotunda`). Each view mounts into one context, and leaving the view tears all of it down: tweens, ScrollTriggers, listeners and 3D views. Between rooms, two gallery doors close in the next room's color.
+- **3D.** One transparent three.js canvas renders every sculpture on the page. Each sculpture is drawn into the rectangle of its DOM element using scissor and viewport. The lighting is a studio environment built with PMREM, and contact shadows are soft blobs. Glyphs are extruded from real font outlines. You can drag any sculpture to turn it, and each has its own motion: an eclipse opening, balls bouncing on a podium, a rolling sphere, a hue wave, a working Newton's cradle, a mobile, an armillary.
+- **Type.**
+  - **Mona Sans** (variable weight and width) for everything structural. Room names are fitted to the page with the width axis.
+  - **Instrument Serif** italic for the voice.
+  - **Geist Mono** for labels.
+- **Color.** Each room owns one color from a palette chosen in OKLCH:
+  - darks and lights: Ink `#0C0C14`, Bone `#F3F0E9`, Paper `#FBFAF6`
+  - accents: Ultra `#3A22FC`, Lilac `#CDBFFF`, Mint `#8DEFC5`, Coral `#FD5A32`, Apricot `#FBC49F`, Volt `#D9FD3A`, Brass `#E2B866`
 
-Press **G** anywhere to see the 12-column grid. **M** opens the index.
+  The whole page changes over to that color when you enter.
+- **Motion.** [GSAP](https://gsap.com) handles animation (ScrollTrigger, SplitText, CustomEase) and [Lenis](https://lenis.darkroom.engineering) provides smooth scrolling. Both are vendored in `vendor/` with three.js r159. Fonts are self-hosted (OFL). There are no images; every graphic is code.
 
-## Built with
-
-Semantic HTML, hand-written CSS, [GSAP](https://gsap.com) (ScrollTrigger, SplitText, CustomEase) and [Lenis](https://lenis.darkroom.engineering) vendored in `vendor/`, and raw WebGL. Fonts are self-hosted (OFL). No images: every graphic is code.
-
-Respects `prefers-reduced-motion` (no smooth scroll, no WebGL, no choreography — the content is simply there), keyboard accessible (segmented controls, sliders, the wheel handle and the balance pieces all work from the keyboard), responsive down to phones.
+Respects `prefers-reduced-motion`: there's no smooth scrolling or choreography, and the sculptures hold still. Controls work from the keyboard, the ticket tears with Enter and Esc closes the map. The layout is responsive down to phones. Your passport is kept in `localStorage`.
 
 ## Run it
 
