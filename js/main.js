@@ -67,12 +67,13 @@
     return tl;
   }
 
+  // each load is caught on its own, so one bad face can't cut the wait short for the others
   const fontsLoaded = Promise.all([
-    document.fonts.load('830 125% 100px "Mona Sans"'),
+    document.fonts.load('830 expanded 100px "Mona Sans"'),
     document.fonts.load('italic 400 100px "Instrument Serif"'),
     document.fonts.load('400 100px "Instrument Serif"'),
     document.fonts.load('500 12px "Geist Mono"')
-  ]).catch(() => {});
+  ].map(p => p.catch(() => {}))).then(() => document.fonts.ready);
   const timeout = new Promise(r => setTimeout(r, 4000));
 
   Promise.race([fontsLoaded, timeout]).then(() => {
