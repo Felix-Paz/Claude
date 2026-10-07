@@ -11,6 +11,7 @@
   EXHIBITS.typography = [
     {
       title: 'Words That Act', icon: 'move', do: 'Watch them work',
+      about: 'Each word is set to do what it says. Same alphabet, different behaviour — that’s typography doing the talking.',
       note: 'Type can <em>do</em> what it says.',
       html: () => `
         <div class="acts">
@@ -44,6 +45,7 @@
     },
     {
       title: 'One Font', icon: 'slide', do: 'Turn the axes',
+      about: 'Everything here comes from a single variable font file. Two sliders — weight and width — give you hundreds of styles in between. Click the word to type your own.',
       note: 'One file. <em>Every voice.</em>',
       html: () => `
         <div class="vf">
@@ -87,6 +89,7 @@
     },
     {
       title: 'Kerning', icon: 'slide', do: 'Slide to fix the gaps',
+      about: 'Kerning adjusts the space between particular pairs of letters: A and V lean away from each other, T hangs over A. Slide until the gaps look even — your eye will tell you when.',
       note: 'Good spacing <em>disappears.</em>',
       html: () => `
         <div class="kern">
@@ -121,6 +124,7 @@
   EXHIBITS.motion = [
     {
       title: 'Photo Finish', icon: 'click', do: 'Start the race',
+      about: 'Four balls travel the same distance in the same time. Only their <em>easing</em> differs — how speed changes along the way. Which one feels most like a real thing moving?',
       note: 'Same distance, same time — <em>different personality.</em>',
       html: () => `
         <div class="race">
@@ -150,6 +154,7 @@
     },
     {
       title: 'The Spring', icon: 'drag', do: 'Drag it, let go',
+      about: 'This ball is tied to its spot by an invisible spring. Throw it: tension pulls it home, friction calms it down, and it wobbles a little on arrival — like anything real.',
       note: 'Physics makes things <em>feel alive.</em>',
       html: () => `
         <div class="spring">
@@ -190,6 +195,7 @@
     },
     {
       title: 'Stagger', icon: 'click', do: 'Click anywhere',
+      about: 'When things move one after another instead of all at once, movement becomes choreography. Click the grid to send a ripple through it.',
       note: 'Order turns movement <em>into choreography.</em>',
       html: () => `<div class="stagger" data-cursor="Click"></div>`,
       init(el, c) {
@@ -225,6 +231,7 @@
   EXHIBITS.balance = [
     {
       title: 'The Seesaw', icon: 'drag', do: 'Drag shapes onto the beam',
+      about: 'Every shape weighs what it looks like it weighs. Its pull is weight × distance from the middle, so a small shape far out can balance a big one close in. Find the truce.',
       note: 'Visual weight × distance <em>from the centre.</em>',
       html: () => `
         <div class="saw">
@@ -315,6 +322,7 @@
     },
     {
       title: 'Two Kinds of Calm', icon: 'click', do: 'Switch',
+      about: 'Symmetry balances with mirror images: steady, formal, a little stiff. Asymmetry balances one big thing against several small ones: just as steady, but alive.',
       note: 'Asymmetry balances <em>by trade.</em>',
       html: () => `
         <div class="sym">
@@ -349,6 +357,7 @@
     },
     {
       title: 'The Thirds', icon: 'drag', do: 'Drag the sun',
+      about: 'Split a frame into thirds both ways. The lines and their four crossings are where the eye likes to rest — dead centre feels static. Drag the sun and feel the difference.',
       note: 'Off-centre is <em>more interesting.</em>',
       html: () => `
         <div class="thirds">
@@ -394,6 +403,84 @@
         });
         sun.tabIndex = 0;
         read();
+      }
+    },
+    {
+      title: 'The Golden Ratio', icon: 'slide', do: 'Slide until it clicks',
+      about: 'φ (phi) is about <em>1.618</em>. Cut a square off a golden rectangle and what’s left is another golden rectangle — the same shape, smaller, forever. Slide the proportion: at φ the dashed ghost fits the leftover exactly and the spiral closes.',
+      note: 'One proportion that <em>contains itself.</em>',
+      html: () => `
+        <div class="gold">
+          <div class="gold-lab">
+            <div class="gold-frame"><svg class="gold-svg" aria-label="A rectangle cut into squares, with a spiral"><g class="gold-sq"></g><path class="gold-ghost"/><path class="gold-spiral"/></svg><b class="gold-phi" aria-hidden="true">φ</b></div>
+            <label class="slider gold-slider"><span class="slider-top mono"><span>Width ÷ height</span><output class="gold-out">1.400</output></span>
+              <input type="range" class="gold-range" min="1.2" max="2.1" step="0.001" value="1.4" aria-label="Rectangle proportion"></label>
+            <p class="gold-read mono"><span class="gold-left">Leftover: 2.500</span><span class="gold-verdict">Different shape — keep sliding</span></p>
+          </div>
+          <div class="gold-side">
+            <div class="gold-3d" data-cursor="Drag to turn" aria-label="A golden rectangle in terrazzo with a brass spiral, as a 3D sculpture"></div>
+            <ul class="gold-uses">
+              <li><b>Layouts</b><span>A 1000 px page → columns of 618 + 382.</span></li>
+              <li><b>Type scales</b><span>16 → 26 → 42 → 68 px, each × 1.618.</span></li>
+              <li><b>Nature, sort of</b><span>Sunflowers and shells come close. Close is the point.</span></li>
+            </ul>
+          </div>
+        </div>`,
+      init(el, c) {
+        const PHI = (1 + Math.sqrt(5)) / 2;
+        const svg = $('.gold-svg', el), gsq = $('.gold-sq', el), ghost = $('.gold-ghost', el), spiral = $('.gold-spiral', el);
+        const range = $('.gold-range', el), out = $('.gold-out', el), left = $('.gold-left', el), verdict = $('.gold-verdict', el), lab = $('.gold-lab', el);
+        const COLS = ['#FD5A32', '#3A22FC', '#D9FD3A', '#8DEFC5', '#CDBFFF', '#FBC49F', '#0C0C14', '#F3F0E9', '#FD5A32', '#3A22FC'];
+        P.rangeFill(range);
+        let gold = false;
+        function draw(r) {
+          const H = 400, W = r * H;
+          svg.setAttribute('viewBox', `-4 -4 ${2.1 * H + 8} ${H + 8}`);
+          let x = 0, y = 0, w = W, h = H, sq = '', d = '';
+          let ghostD = '';
+          for (let k = 0; k < 10 && w > 1 && h > 1; k++) {
+            const dir = k % 4, s = Math.min(w, h);
+            let qx, qy;
+            if (dir === 0) { qx = x; qy = y; x += s; w -= s; }
+            else if (dir === 1) { qx = x; qy = y; y += s; h -= s; }
+            else if (dir === 2) { qx = x + w - s; qy = y; w -= s; }
+            else { qx = x; qy = y + h - s; h -= s; }
+            sq += `<rect x="${qx.toFixed(2)}" y="${qy.toFixed(2)}" width="${s.toFixed(2)}" height="${s.toFixed(2)}" fill="${COLS[k]}" fill-opacity="${k === 6 ? 0.85 : 0.82}"/>`;
+            const P0 = [[qx, qy + s], [qx, qy], [qx + s, qy], [qx + s, qy + s]][dir], P1 = [[qx + s, qy], [qx + s, qy + s], [qx, qy + s], [qx, qy]][dir];
+            d += (k ? ' L' : 'M') + `${P0[0].toFixed(2)},${P0[1].toFixed(2)} A${s.toFixed(2)},${s.toFixed(2)} 0 0 1 ${P1[0].toFixed(2)},${P1[1].toFixed(2)}`;
+            if (k === 0) {
+              // the whole rectangle, shrunk to the leftover's height, laid over it
+              const lw = w, lh = h, scale = Math.max(lw, lh) / W;
+              const gw = W * scale, gh = H * scale;
+              const gx = x, gy = y + (lh - (lw >= lh ? gh : gw)) * 0;
+              ghostD = lw >= lh ? `M${gx},${gy} h${gw} v${gh} h${-gw} Z` : `M${gx},${gy} h${gh} v${gw} h${-gh} Z`;
+            }
+          }
+          gsq.innerHTML = sq + `<rect x="0" y="0" width="${W}" height="${H}" fill="none" stroke="currentColor" stroke-width="3"/>`;
+          spiral.setAttribute('d', d);
+          ghost.setAttribute('d', ghostD);
+          const leftover = H / (W - H);
+          out.textContent = r.toFixed(3);
+          left.textContent = 'Leftover: ' + (leftover >= 1 ? leftover : 1 / leftover).toFixed(3);
+          const g = Math.abs(r - PHI) < 0.006;
+          verdict.textContent = g ? 'Same shape. Forever. ✦' : Math.abs(r - PHI) < 0.06 ? 'So close — the ghost almost fits' : 'Different shape — keep sliding';
+          if (g !== gold) {
+            gold = g;
+            lab.classList.toggle('is-gold', g);
+            if (g) { out.textContent = PHI.toFixed(3); if (!reduced) gsap.fromTo($('.gold-phi', el), { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.7, ease: 'back.out(2)' }); P.toast('φ = 1.6180339… found it', '#E2B866'); }
+          }
+        }
+        c.on(range, 'input', () => draw(+range.value));
+        c.on(range, 'change', () => { if (Math.abs(+range.value - PHI) < 0.03) { range.value = PHI; range.dispatchEvent(new Event('input')); } });
+        draw(+range.value);
+        // a quick demo sweep — stops the moment you take over
+        let demo = null;
+        const takeOver = () => { if (demo) { demo.kill(); demo = null; } };
+        c.on(range, 'pointerdown', takeOver); c.on(range, 'keydown', takeOver);
+        if (!reduced) ScrollTrigger.create({ trigger: el, start: 'top 65%', once: true, onEnter: () => {
+          demo = gsap.to(range, { value: 1.85, duration: 1.3, ease: 'sine.inOut', yoyo: true, repeat: 1, onUpdate: () => draw(+range.value), onComplete: () => { demo = null; } });
+        } });
+        c.sculpt($('.gold-3d', el), 'fibonacci');
       }
     }
   ];

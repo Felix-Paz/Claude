@@ -139,7 +139,7 @@ window.S3D = (function () {
       v.turn.rotation.y = target + s.angle * 0.25;
     } else v.turn.rotation.y = s.angle;
     // lean toward the pointer
-    const tx = v.hover ? v.px * 0.22 : 0, ty = v.hover ? v.py * 0.12 : 0;
+    const k = v.lean, tx = v.hover ? v.px * 0.22 * k : 0, ty = v.hover ? v.py * 0.12 * k : 0;
     v.tilt.rotation.x += (ty - v.tilt.rotation.x) * Math.min(1, dt * 4);
     v.tilt.rotation.z += (-tx * 0.3 - v.tilt.rotation.z) * Math.min(1, dt * 4);
     if (v.update) v.update(reduced ? 0 : t, reduced ? 0 : dt, v);
@@ -242,8 +242,38 @@ window.S3D = (function () {
       el, scene, camera, tilt, turn, key, rim,
       fit: { w: 3, h: 3, cy: 1, margin: 1.15, elev: 0.18 },
       spin: { angle: opts.angle || 0, vel: 0, auto: opts.auto ?? 0.18, drag: false, swing: opts.swing || 0, range: opts.range || 0.5, offset: opts.offset || 0 },
-      hover: false, px: 0, py: 0, visible: false, t0: performance.now() / 1000
+      hover: false, px: 0, py: 0, visible: false, t0: performance.now() / 1000,
+      lean: opts.lean ?? 1, moved: 0, _offs: []
     };
+    // listeners a builder attaches are released with the view
+    v.listen = (type, fn, target = el, o) => { target.addEventListener(type, fn, o); v._offs.push(() => target.removeEventListener(type, fn, o)); };
+    // pointer → objects under it (nearest first)
+    const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+    v.pick = (cx, cy, objects, deep = true) => {
+      const r = el.getBoundingClientRect();
+      ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(ndc, camera);
+      return ray.intersectObjects(objects, deep);
+    };
+    // world point → px inside the element
+    const pv = new THREE.Vector3();
+    v.project = (p3, out = {}) => {
+      pv.copy(p3).project(camera);
+      const r = el.getBoundingClientRect();
+      out.x = (pv.x + 1) / 2 * r.width; out.y = (1 - pv.y) / 2 * r.height; out.z = pv.z;
+      return out;
+    };
+    // real shadow maps for scenes that want them (architecture, mostly)
+    if (opts.shadows) {
+      if (!renderer.shadowMap.enabled) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
+      const sz = opts.shadows.size || 6;
+      key.castShadow = true;
+      key.position.set(4, 9, 6).multiplyScalar(sz / 6);
+      key.shadow.mapSize.set(opts.shadows.map || 2048, opts.shadows.map || 2048);
+      Object.assign(key.shadow.camera, { left: -sz, right: sz, top: sz, bottom: -sz, near: 0.5, far: sz * 5 });
+      key.shadow.camera.updateProjectionMatrix();
+      key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
+    }
     if (opts.plinth !== false) {
       const pr = opts.plinthR || 1.15, ph = opts.plinthH || 0.62;
       const p = plinth(pr, ph, opts.plinthColor);
@@ -265,6 +295,7 @@ window.S3D = (function () {
       v.px = ((e.clientX - r.left) / r.width - 0.5) * 2;
       v.py = ((e.clientY - r.top) / r.height - 0.5) * 2;
       if (v.spin.drag) {
+        v.moved = Math.max(v.moved, Math.hypot(e.clientX - v.downX, e.clientY - v.downY));
         const dx = e.clientX - v.spin.lx;
         v.spin.lx = e.clientX;
         v.spin.angle += dx * 0.012;
@@ -277,6 +308,7 @@ window.S3D = (function () {
     const onDown = e => {
       if (opts.drag === false) return;
       v.spin.drag = true; v.spin.lx = e.clientX; v.spin.lt = performance.now(); v.spin.vel = 0;
+      v.moved = 0; v.downX = e.clientX; v.downY = e.clientY;
       try { el.setPointerCapture(e.pointerId); } catch (err) {}
       if (opts.onPoke) opts.onPoke(v);
     };
@@ -291,6 +323,7 @@ window.S3D = (function () {
 
     v.dispose = () => {
       views.delete(v);
+      v._offs.splice(0).forEach(f => f());
       el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerenter', onEnter);
       el.removeEventListener('pointerleave', onLeave);

@@ -379,5 +379,5 @@ window.SCULPT = (function () {
     return viewRef;
   }
 
-  return { mount, names: Object.keys(builders) };
+  return { mount, builders, settings, names: Object.keys(builders), rod, sphere };
 })();

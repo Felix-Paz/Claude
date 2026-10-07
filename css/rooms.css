@@ -41,7 +41,11 @@
 
 /* ---------------- 02 · Hierarchy ---------------- */
 .hier { position: relative; }
-.hier-pin { position: relative; height: 100svh; min-height: 600px; padding: calc(var(--hdr-h) + 120px) var(--pad) var(--pad); display: grid; grid-template-rows: auto 1fr; row-gap: 18px; }
+.hier-pin { position: relative; height: 100svh; min-height: 600px; padding: calc(var(--hdr-h) + 190px) var(--pad) var(--pad); display: grid; grid-template-rows: auto 1fr auto; row-gap: 14px; }
+.hier-cap { display: flex; justify-content: center; align-items: baseline; gap: 14px; min-height: 1.6em; text-align: center; }
+.hier-cap-k { color: var(--muted); white-space: nowrap; }
+.hier-cap-t { font-family: var(--f-serif); font-style: italic; font-size: clamp(1.1rem, 1.5vw, 1.45rem); line-height: 1.15; }
+@media (max-width: 700px) { .hier-cap { flex-direction: column; gap: 2px; align-items: center; } }
 .hier-steps { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); padding-bottom: 10px; color: var(--muted); }
 .hs { transition: color 0.4s; }
 .hs.is-on { color: var(--fg); }
@@ -142,6 +146,7 @@
 .ws-count { position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); color: var(--muted); white-space: nowrap; }
 
 .wall { display: grid; justify-items: center; gap: 24px; width: 100%; }
+.wall-stage.is-3d { background: none; box-shadow: none; aspect-ratio: 16 / 8.4; border-radius: 0; }
 .wall-stage { position: relative; width: min(1100px, 100%); aspect-ratio: 16 / 8; border-radius: 6px; background: linear-gradient(180deg, #F4F2EC, #ECE9E1); box-shadow: inset 0 -30px 60px -40px rgb(12 12 20 / 0.12); }
 .frame { position: absolute; aspect-ratio: 1; padding: 0.6vw; background: #fff; box-shadow: 0 0 0 max(2px, 0.25vw) var(--ink), 0 14px 22px -10px rgb(12 12 20 / 0.35); }
 .frame svg { width: 100%; height: 100%; background: #FBFAF6; }
@@ -157,7 +162,7 @@
 .temp-pin { position: relative; height: 100svh; min-height: 600px; display: grid; place-items: center; overflow: clip; color: var(--fg); }
 .temp-words { position: relative; width: 100%; height: 30vw; }
 .temp-w { position: absolute; inset: 0; display: grid; place-items: center; font-size: 17vw; font-weight: 840; font-stretch: 125%; letter-spacing: -0.055em; line-height: 0.8; color: var(--f); }
-.color .ex--pin > .ex-head, .room-color .ex--pin > .ex-head { color: var(--ink); }
+
 
 .wheel-lab { display: grid; grid-template-columns: 1fr 1.2fr; gap: clamp(24px, 4vw, 64px); align-items: center; width: 100%; padding: clamp(20px, 3vw, 40px); border-radius: 26px; background: var(--wall, transparent); transition: background-color 0.5s; }
 .wl-wheel-wrap { display: grid; justify-items: center; gap: 22px; }
@@ -353,3 +358,27 @@
 .pz.s7 .pz-cta { left: 63%; top: 88.5%; transform: none; font-size: 2.3cqw; padding: 2.2cqw 3.4cqw; }
 .pz.s7 .pz-spine { opacity: 0.5; left: 93%; }
 .pz.is-final { box-shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 70px 120px -40px rgb(0 0 0 / 0.9), 0 0 160px 10px rgb(226 184 102 / 0.25); }
+
+/* ---------- 07 · The Golden Ratio ---------- */
+.gold { width: 100%; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 64px); align-items: center; }
+.gold-lab { display: grid; gap: 18px; }
+.gold-frame { position: relative; color: var(--ink); }
+.gold-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.gold-sq rect { transition: fill-opacity 0.4s; }
+.gold-spiral { fill: none; stroke: var(--ink); stroke-width: 4; stroke-linecap: round; transition: stroke 0.4s; }
+.gold-ghost { fill: none; stroke: var(--ink); stroke-width: 3; stroke-dasharray: 10 8; opacity: 0.8; transition: stroke 0.4s; }
+.gold-phi { position: absolute; right: 2%; top: 50%; transform: translateY(-50%); font-family: var(--f-serif); font-style: italic; font-weight: 400; font-size: clamp(5rem, 10vw, 10rem); line-height: 1; color: var(--brass); opacity: 0; pointer-events: none; text-shadow: 0 10px 40px rgb(226 184 102 / 0.5); }
+.gold-lab.is-gold .gold-phi { opacity: 1; }
+.gold-lab.is-gold .gold-spiral { stroke: #B8862E; stroke-width: 6; }
+.gold-lab.is-gold .gold-ghost { stroke: #B8862E; stroke-dasharray: none; }
+.gold-slider { width: min(560px, 100%); }
+.gold-read { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); }
+.gold-verdict { color: var(--fg); }
+.gold-lab.is-gold .gold-verdict { color: #9A6B1C; }
+.gold-side { display: grid; gap: 18px; }
+.gold-3d { position: relative; height: min(46vh, 420px); min-height: 280px; touch-action: pan-y; }
+.gold-uses { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.gold-uses li { display: grid; grid-template-columns: 110px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 0.95rem; }
+.gold-uses b { font-weight: 720; font-stretch: 110%; letter-spacing: -0.01em; }
+.gold-uses span { color: color-mix(in oklab, var(--fg) 75%, var(--bg)); }
+@media (max-width: 900px) { .gold { grid-template-columns: 1fr; } }

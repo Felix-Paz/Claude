@@ -28,38 +28,113 @@ window.EXHIBITS = {};
       <span class="label-m">${w[1]}</span>
       <em class="label-n">${w[2]}</em>
     </figure>`;
+  const strip = h => String(h).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+
+  /* ================= shared: the entrance hall ================= */
+  // wall text on the left, the room's sculpture in a lit niche on the right
+  window.HALL = {
+    html(d, list) {
+      const count = list.length;
+      return `
+        <section class="rm-hall">
+          <div class="rm-hall-top">
+            <span class="rm-sign"><b>${d.num}</b><span class="mono">${d.num === '∞' ? 'The last room' : 'Room ' + d.num + ' of 07'}</span></span>
+            <span class="mono rm-hall-k">${count} exhibits · about ${d.mins} minutes · please touch</span>
+          </div>
+          <div class="rm-wall">
+            <h1 class="rm-title"><span>${d.name.replace(/^The /, '')}</span></h1>
+            <p class="rm-thesis">${d.thesis}</p>
+            <p class="rm-intro">${d.intro}</p>
+            <div class="rm-list">
+              <p class="mono rm-list-k">In this room</p>
+              <ol>${list.map((e, i) => `
+                <li><button type="button" data-goto="${i + 1}"><span class="mono">${d.num}.${i + 1}</span><b>${e.title}</b><i>${e.do}</i><svg aria-hidden="true"><use href="#i-arrow"/></svg></button></li>`).join('')}
+              </ol>
+            </div>
+            <button class="btn btn-solid rm-enter" type="button"><span>Enter the room</span><svg><use href="#i-down"/></svg></button>
+          </div>
+          <div class="rm-niche">
+            <div class="rm-alcove"><div class="rm-sculpture" data-cursor="Drag to turn" aria-label="${d.work[0]}, a 3D sculpture you can turn"></div></div>
+            ${label(d.work)}
+          </div>
+        </section>`;
+    },
+    init(root, c, d) {
+      const title = $('.rm-title span', root);
+      const fitTitle = () => P.fit(title, { box: $('.rm-title', root), vw: 9, maxSize: Math.min(P.vw() * 0.125, 190) });
+      fitTitle(); c.onResize(fitTitle);
+      c.sculpt($('.rm-sculpture', root), d.sculpture);
+      $$('.rm-list [data-goto]', root).forEach(b => c.on(b, 'click', () => P.scrollToEl($('#ex-' + b.dataset.goto, root))));
+      c.on($('.rm-enter', root), 'click', () => P.scrollToEl($('#ex-1', root)));
+      if (!reduced) {
+        const tl = gsap.timeline({ delay: 0.1 });
+        tl.from(title, { yPercent: 40, opacity: 0, duration: 1.3, ease: 'museum' })
+          .from($$('.rm-hall-top, .rm-thesis, .rm-intro, .rm-list-k, .rm-list li, .rm-enter', root), { y: 18, opacity: 0, duration: 0.9, ease: 'museum', stagger: 0.05 }, 0.2)
+          .from($('.rm-alcove', root), { clipPath: 'inset(100% 0 0 0 round 999px 999px 0 0)', duration: 1.3, ease: 'museum' }, 0.1)
+          .from($('.rm-niche .label', root), { y: 16, opacity: 0, duration: 0.9, ease: 'museum' }, 0.6);
+      }
+    }
+  };
+
+  /* ================= shared: the audio guide ================= */
+  // every exhibit has a numbered stop, like a real museum audio guide
+  const voice = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  let speaking = null;
+  function listen(btn, text, c) {
+    if (!voice) { btn.hidden = true; return; }
+    const stop = () => { speechSynthesis.cancel(); if (speaking) speaking.classList.remove('is-on'); speaking = null; };
+    c.on(btn, 'click', () => {
+      if (speaking === btn) { stop(); return; }
+      stop();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.02; u.pitch = 1;
+      const en = speechSynthesis.getVoices().find(v => /en(-|_)GB/i.test(v.lang)) || speechSynthesis.getVoices().find(v => /^en/i.test(v.lang));
+      if (en) u.voice = en;
+      u.onend = u.onerror = () => { if (speaking === btn) { btn.classList.remove('is-on'); speaking = null; } };
+      speaking = btn; btn.classList.add('is-on');
+      speechSynthesis.speak(u);
+    });
+    c.own(() => { if (speaking) stop(); });
+  }
+  window.AUDIO = { listen, ok: voice };
+
+  // one exhibit: wall label (number, title, what to do, what's going on), the work, the takeaway
+  window.EXHIBIT_HTML = (d, e, i) => `
+        <section class="ex ${e.cls || ''}" id="ex-${i + 1}" data-ex="${i}">
+          <div class="ex-intro">
+            <header class="ex-head">
+              <span class="ex-no mono">${d.num}.${i + 1}</span>
+              <h2 class="ex-title" data-lines>${e.title}</h2>
+              <span class="ex-do mono"><svg aria-hidden="true"><use href="#p-${e.icon}"/></svg>${e.do}</span>
+            </header>
+            ${e.about ? `<div class="ex-about"><p>${e.about}</p><button type="button" class="ex-listen mono" aria-label="Audio guide: listen to ${strip(e.title)}"><svg aria-hidden="true"><use href="#i-audio"/></svg><span>Audio guide · stop ${d.num === '∞' ? '8' : d.num.replace(/^0/, '')}${i + 1}</span></button></div>` : ''}
+          </div>
+          <div class="ex-body">${e.html()}</div>
+          ${e.note ? `<p class="ex-note" data-reveal>${e.note}</p>` : ''}
+        </section>`;
+  window.EXHIBIT_INIT = (root, c, d, list) => {
+    // pinned exhibits keep their wall label on screen for the whole pin
+    $$('.ex--pin', root).forEach(sec => {
+      const pinEl = sec.querySelector('.ex-body [class$="-pin"]') || sec.querySelector('[class$="-pin"]');
+      const intro = $('.ex-intro', sec);
+      if (pinEl && intro) pinEl.prepend(intro);
+    });
+    list.forEach((e, i) => {
+      const sec = $(`#ex-${i + 1}`, root);
+      const btn = $('.ex-listen', sec);
+      if (btn) listen(btn, `${strip(e.title)}. ${strip(e.about)} ${e.note ? strip(e.note) : ''}`, c);
+    });
+  };
 
   /* ================= the room template ================= */
   M.define('room', {
     html(d) {
       const ex = EXHIBITS[d.id];
       const nx = M.next(d.id);
-      const exhibits = ex.map((e, i) => `
-        <section class="ex ${e.cls || ''}" id="ex-${i + 1}" data-ex="${i}">
-          <header class="ex-head">
-            <span class="ex-no mono">${d.num}.${i + 1}</span>
-            <h2 class="ex-title" data-lines>${e.title}</h2>
-            <span class="ex-do mono"><svg aria-hidden="true"><use href="#p-${e.icon}"/></svg>${e.do}</span>
-          </header>
-          <div class="ex-body">${e.html()}</div>
-          ${e.note ? `<p class="ex-note" data-reveal>${e.note}</p>` : ''}
-        </section>`).join('');
       return `
       <article class="room room-${d.id}">
-        <section class="rm-hall">
-          <div class="rm-hall-top">
-            <span class="rm-sign"><b>${d.num}</b><span class="mono">Room ${d.num} of 07</span></span>
-            <span class="mono rm-hall-k">${ex.length} exhibits · please touch</span>
-          </div>
-          <h1 class="rm-title"><span>${d.name}</span></h1>
-          <div class="rm-sculpture" data-cursor="Drag to turn" aria-label="${d.work[0]}, a 3D sculpture you can turn"></div>
-          <div class="rm-hall-foot">
-            <p class="rm-thesis">${d.thesis}</p>
-            ${label(d.work)}
-          </div>
-          <button class="rm-enter mono" type="button"><span>Enter</span><svg><use href="#i-down"/></svg></button>
-        </section>
-        ${exhibits}
+        ${HALL.html(d, ex)}
+        ${ex.map((e, i) => EXHIBIT_HTML(d, e, i)).join('')}
         <section class="rm-exit">
           <div class="exit-pass">
             <div class="exit-stamp" style="--c:${d.ink}">
@@ -85,25 +160,8 @@ window.EXHIBITS = {};
       </article>`;
     },
     init(root, c, d) {
-      const hall = $('.rm-hall', root);
-      const title = $('.rm-title span', root);
-      const fitTitle = () => P.fit(title, { box: $('.rm-title', root), vw: 17, maxSize: P.vw() * 0.24 });
-      fitTitle(); c.onResize(fitTitle);
-      // the sculpture
-      c.sculpt($('.rm-sculpture', root), d.sculpture);
-      // entrance choreography
-      if (!reduced) {
-        gsap.from(title, { yPercent: 30, opacity: 0, duration: 1.4, ease: 'museum', delay: 0.15 });
-        gsap.from($$('.rm-hall-top, .rm-hall-foot > *, .rm-enter', root), { y: 20, opacity: 0, duration: 1.1, ease: 'museum', stagger: 0.08, delay: 0.35 });
-        // the title drifts back as you walk in
-        gsap.to(title, { yPercent: -18, opacity: 0.25, ease: 'none', scrollTrigger: { trigger: hall, start: 'top top', end: 'bottom top', scrub: true } });
-      }
-      c.on($('.rm-enter', root), 'click', () => P.scrollToEl($('#ex-1', root)));
-      // pinned exhibits keep their wall label on screen for the whole pin
-      $$('.ex--pin', root).forEach(sec => {
-        const pinEl = sec.querySelector('.ex-body [class$="-pin"]');
-        if (pinEl) pinEl.prepend($('.ex-head', sec));
-      });
+      HALL.init(root, c, d);
+      EXHIBIT_INIT(root, c, d, EXHIBITS[d.id]);
       // exhibits
       EXHIBITS[d.id].forEach((e, i) => { if (e.init) e.init($(`#ex-${i + 1} .ex-body`, root), c, $(`#ex-${i + 1}`, root)); });
       // exit: stamp the passport when the visitor actually reaches it
@@ -133,6 +191,7 @@ window.EXHIBITS = {};
   EXHIBITS.contrast = [
     {
       title: 'The Dark Room', icon: 'move', do: 'Move the light', cls: 'ex--bleed',
+      about: 'This wall has something to say, but it’s whispering: the words are almost the same color as the wall. Your torch adds light — and light adds contrast. <em>Same words, suddenly readable.</em>',
       note: 'Without contrast, <em>nothing gets noticed.</em>',
       html: () => `
         <div class="spot" data-cursor="Light">
@@ -163,6 +222,7 @@ window.EXHIBITS = {};
     },
     {
       title: 'The Dial', icon: 'slide', do: 'Turn up the contrast',
+      about: 'Contrast can be measured. It’s a ratio between the lighter and the darker color: 1 : 1 is invisible, 21 : 1 is black on white. Body text on a screen needs at least <em>4.5 : 1</em> — slide past it and watch the badges light up.',
       note: '4.5 : 1 is the minimum <em>for reading.</em>',
       html: () => `
         <div class="dial">
@@ -205,6 +265,7 @@ window.EXHIBITS = {};
     },
     {
       title: 'Find “Continue”', icon: 'click', do: 'Find it, fast',
+      about: 'Two rounds, one button to find. In round one every button looks alike, so you have to read them all. In round two one of them is different — and your eye gets there <em>before you’ve read a word.</em>',
       note: 'Contrast is a shortcut <em>for the eye.</em>',
       html: () => `
         <div class="find">
@@ -269,6 +330,7 @@ window.EXHIBITS = {};
   EXHIBITS.hierarchy = [
     {
       title: 'The Poster', icon: 'scroll', do: 'Scroll slowly', cls: 'ex--pin',
+      about: 'A poster whose parts are all the same size, weight and color — so it reads like a shopping list. As you scroll it gets one tool at a time. The numbered dots show the order your eye now takes.',
       note: 'Size, weight, color, position: <em>four dials.</em>',
       html: () => `
         <div class="hier">
@@ -293,6 +355,7 @@ window.EXHIBITS = {};
               </div>
               <div class="hier-stage hier-measure" aria-hidden="true"></div>
             </div>
+            <p class="hier-cap" aria-live="polite"><span class="mono hier-cap-k">Step 0 · Flat</span><span class="hier-cap-t">Every line at the same volume. Where do you start? Exactly.</span></p>
           </div>
         </div>`,
       init(el, c, sec) {
@@ -302,7 +365,22 @@ window.EXHIBITS = {};
         const clones = $$('.he', measure), keys = live.map(n => n.dataset.he);
         const PROPS = ['fontSize', 'fontWeight', 'color', 'backgroundColor', 'letterSpacing', 'lineHeight', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'borderRadius'];
         const steps = $$('.hs', el), bar = $('.hs-bar i', el), pathEl = $('.hier-path path', stage), svg = $('.hier-path', stage), marks = $$('.hier-mark', stage);
-        let states = [], tl = null, st = null;
+        let states = [], tl = null, st = null, capAt = 0;
+        const CAPS = [
+          ['Flat', 'Every line at the same volume. Where do you start? Exactly.'],
+          ['Size', 'The title grows, the fine print shrinks. Now there’s a first thing.'],
+          ['Weight', 'Bold for what matters, light for what doesn’t.'],
+          ['Color', 'One accent leads the eye to the date and the button.'],
+          ['Position', 'Grouped, aligned, ordered. Follow the dots: that’s the route your eye just took.']
+        ];
+        const capK = $('.hier-cap-k', el), capT = $('.hier-cap-t', el);
+        function caption(k) {
+          if (k === capAt) return;
+          capAt = k;
+          capK.textContent = `Step ${k} · ${CAPS[k][0]}`;
+          capT.textContent = CAPS[k][1];
+          if (!reduced) gsap.fromTo([capK, capT], { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'museum', stagger: 0.04 });
+        }
         function size() {
           const fw = frame.clientWidth, fh = frame.clientHeight;
           const w = Math.min(fw, fh * 1.6);
@@ -362,6 +440,7 @@ window.EXHIBITS = {};
               bar.style.setProperty('--p', s.progress.toFixed(4));
               const k = clamp(Math.floor((s.progress * tl.duration() + 0.55) / 1.25), 0, 4);
               steps.forEach((x, i) => x.classList.toggle('is-on', i <= k));
+              caption(k);
             }
           });
           if (prog) st.scroll(st.start + (st.end - st.start) * prog);
@@ -373,6 +452,7 @@ window.EXHIBITS = {};
     },
     {
       title: 'Promote One', icon: 'click', do: 'Pick a winner',
+      about: 'Three equal plans, three equal shouts — so nobody chooses. Pick one to promote: it grows, takes the color, and the others <em>step back on their own.</em>',
       note: 'Importance is assigned, <em>not found.</em>',
       html: () => `
         <div class="promo">
@@ -392,6 +472,7 @@ window.EXHIBITS = {};
     },
     {
       title: 'The Squint Test', icon: 'hold', do: 'Hold to squint',
+      about: 'Designers squint at their work to blur the words away and see only shapes. Hold the button: if one clear first thing survives the blur, <em>the hierarchy works.</em>',
       note: 'If the order survives the blur, <em>it works.</em>',
       html: () => `
         <div class="squint">
@@ -416,6 +497,7 @@ window.EXHIBITS = {};
   EXHIBITS.whitespace = [
     {
       title: 'The Clutter', icon: 'scroll', do: 'Scroll to clear it', cls: 'ex--pin',
+      about: 'Thirty-two things competing for your attention. Scroll and they leave, nearest to the middle first, until one word is left with room to breathe.',
       note: 'Remove things <em>until it speaks.</em>',
       html: () => `
         <div class="ws">
@@ -470,12 +552,13 @@ window.EXHIBITS = {};
     },
     {
       title: 'One Per Wall', icon: 'click', do: 'Switch the wall',
+      about: 'The same twelve paintings, hung two ways. A salon hang crams them frame to frame; a modern gallery gives one work a whole wall, a bench and its own light. Same art — which one <em>looks more valuable?</em>',
       note: 'Space makes things look <em>expensive.</em>',
       html: () => `
         <div class="wall">
           <div class="seg wall-seg" role="radiogroup" aria-label="Wall">
-            <button type="button" role="radio" aria-checked="true" data-w="sale">Yard sale</button>
-            <button type="button" role="radio" aria-checked="false" data-w="gallery">Gallery</button>
+            <button type="button" role="radio" aria-checked="true" data-w="sale">Salon hang</button>
+            <button type="button" role="radio" aria-checked="false" data-w="gallery">One per wall</button>
             <i class="seg-thumb" aria-hidden="true"></i>
           </div>
           <div class="wall-stage"></div>
@@ -490,6 +573,9 @@ window.EXHIBITS = {};
           '<rect x="36" y="24" width="28" height="52" fill="#D9FD3A"/>', '<circle cx="50" cy="50" r="26" fill="none" stroke="#0C0C14" stroke-width="5"/>', '<rect x="28" y="28" width="44" height="44" rx="22" fill="#FD5A32"/>',
           '<path d="M30 30h40v40H30z" fill="none" stroke="#3A22FC" stroke-width="5"/>', '<circle cx="50" cy="50" r="10" fill="#0C0C14"/>'
         ];
+        // in 3D: a corner of a real gallery
+        const g3 = window.EX3D ? EX3D.gallery(stage, c, ART) : null;
+        if (g3) { stage.classList.add('is-3d'); stage.setAttribute('data-cursor', 'Move to look'); P.seg($('.wall-seg', el), b => g3.set(b.dataset.w)); return; }
         stage.innerHTML = ART.map((a, i) => `<figure class="frame ${i === 0 ? 'frame-hero' : ''}"><svg viewBox="0 0 100 100">${a}</svg></figure>`).join('');
         const frames = $$('.frame', stage);
         // yard-sale layout: salon hang, everything touching everything
@@ -506,6 +592,7 @@ window.EXHIBITS = {};
     },
     {
       title: 'Leading', icon: 'click', do: 'Give it air',
+      about: 'Leading (it rhymes with <em>wedding</em>) is the space between lines of text. Too little and the lines tangle; enough and your eye glides back to the start of the next line without effort.',
       note: 'Lines need <em>air</em> too.',
       html: () => `
         <div class="lead">
@@ -537,6 +624,7 @@ window.EXHIBITS = {};
   EXHIBITS.color = [
     {
       title: 'Temperature', icon: 'scroll', do: 'Scroll through the moods', cls: 'ex--pin ex--bleed',
+      about: 'Five words, five colors. Notice that each color already says its word before you’ve read it — warm ones feel hungry or urgent, cool ones calm or trustworthy.',
       note: 'Color sets the mood <em>before a word is read.</em>',
       html: () => `
         <div class="temp">
@@ -582,6 +670,7 @@ window.EXHIBITS = {};
     },
     {
       title: 'The Wheel', icon: 'drag', do: 'Drag the hue',
+      about: 'Colors in a fixed relationship on the wheel tend to look like they belong together. Drag the hue and pick a harmony; the swatches and the little app repaint to match.',
       note: 'Harmony is <em>a relationship.</em>',
       html: () => `
         <div class="wheel-lab">
@@ -689,6 +778,7 @@ window.EXHIBITS = {};
     },
     {
       title: 'Same Grey', icon: 'hold', do: 'Hold to reveal',
+      about: 'Both squares are exactly the same grey. Your eye judges a color by its neighbours, so the background changes what you see. Hold to take the neighbours away.',
       note: 'No color exists <em>alone.</em>',
       html: () => `
         <div class="illusion" tabindex="0" role="button" aria-label="Hold to reveal that both squares are the same grey" data-cursor="Hold">

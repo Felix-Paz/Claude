@@ -20,16 +20,18 @@
     document.fonts.load('500 12px "Geist Mono"')
   ].map(p => p.catch(() => {}))).then(() => document.fonts.ready);
 
+  // first visit of the session, arriving at the front door → ticket please
+  const gate = $('#gate');
+  let seen = false;
+  try { seen = sessionStorage.getItem('mod-ticket') === '1'; } catch (e) {}
+  const needTicket = !seen && location.hash.length <= 2;
+  if (needTicket) { gate.hidden = false; gsap.set(['#gate .gate-veil', '#gate .ticket', '#gate .gate-hint'], { opacity: 0 }); } else gate.remove();
+
   function ticket() {
-    const gate = $('#gate');
-    let seen = false;
-    try { seen = sessionStorage.getItem('mod-ticket') === '1'; } catch (e) {}
-    if (seen || location.hash.length > 2) { gate.remove(); return Promise.resolve(); }
-    gate.hidden = false;
+    if (!needTicket) return Promise.resolve();
     $('.t-date', gate).textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
     $('.t-num', gate).textContent = String(Math.floor(Math.random() * 899999) + 100000);
     const t = $('.ticket', gate), main = $('.ticket-main', gate), stub = $('.ticket-stub', gate);
-    gsap.set($('.gate-veil', gate), { opacity: 0 });
     gsap.timeline()
       .to($('.gate-veil', gate), { opacity: 1, duration: 0.6 })
       .fromTo(t, { y: 120, rotate: -10, opacity: 0 }, { y: 0, rotate: -4, opacity: 1, duration: 1.1, ease: 'back.out(1.4)' }, 0.1)
@@ -50,6 +52,8 @@
         try { sessionStorage.setItem('mod-ticket', '1'); } catch (e) {}
         const pass = $('.hdr-pass').getBoundingClientRect(), mr = main.getBoundingClientRect();
         const tl = gsap.timeline({ onComplete: () => { gate.remove(); resolve(); } });
+        // the lobby's lens wakes as the ticket leaves
+        tl.add(() => P.emit('entered'), reduced ? 0 : 0.6);
         tl.to(stub, { x: 80, y: 340, rotate: 38, opacity: 0, duration: reduced ? 0 : 0.95, ease: 'power2.in' }, 0)
           .to(t, { rotate: 0, duration: 0.25, ease: 'power2.out' }, 0)
           // the ticket flies into your pocket (the passport in the header)

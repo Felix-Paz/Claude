@@ -10,22 +10,38 @@ window.MUSEUM = (function () {
   /* ---------------- the collection ---------------- */
   const ROOMS = [
     { id: 'contrast', num: '01', name: 'Contrast', theme: 'ink', bg: '#0C0C14', ink: '#D9FD3A', sculpture: 'eclipse',
-      thesis: 'Difference is information.', work: ['Eclipse', 'Lacquer, velvet, light', 'Two halves. Neither works alone.'] },
+      thesis: 'Difference is information.', mins: 3,
+      intro: 'Your eye is a difference detector. It ignores what’s the same and jumps at what isn’t — light on dark, big next to small, the one red thing in a grey crowd. In here, you turn the difference up and down.',
+      work: ['Eclipse', 'Lacquer, velvet, light', 'Two halves. Neither works alone.'] },
     { id: 'hierarchy', num: '02', name: 'Hierarchy', theme: 'ultra', bg: '#3A22FC', ink: '#3A22FC', sculpture: 'podium',
-      thesis: 'Somebody has to go first.', work: ['The Podium', 'Clay, lacquer', 'Ranked by size, read in order.'] },
+      thesis: 'Somebody has to go first.', mins: 3,
+      intro: 'Every page is a queue: something gets read first, something last. Hierarchy decides the order — with size, weight, color and position — so the reader never has to.',
+      work: ['The Podium', 'Clay, lacquer', 'Ranked by size, read in order.'] },
     { id: 'whitespace', num: '03', name: 'White Space', theme: 'paper', bg: '#FBFAF6', ink: '#FFFFFF', sculpture: 'onething',
-      thesis: 'Emptiness is a material.', work: ['One Thing', 'Plaster, one red sphere', 'Plenty of room to roll.'] },
+      thesis: 'Emptiness is a material.', mins: 3,
+      intro: 'Empty space isn’t wasted space. It tells you where one thing ends and the next begins, and it’s the quickest way to make anything look expensive.',
+      work: ['One Thing', 'Plaster, one red sphere', 'Plenty of room to roll.'] },
     { id: 'color', num: '04', name: 'Color', theme: 'lilac', bg: '#CDBFFF', ink: '#CDBFFF', sculpture: 'spectrum',
-      thesis: 'Felt before it is read.', work: ['Spectrum', 'Twelve hues, one bubble', 'Every color, equally loud.'] },
+      thesis: 'Felt before it is read.', mins: 4,
+      intro: 'Color arrives before meaning. You feel warm or cold, calm or alarmed before you’ve read a word — so it had better be chosen on purpose.',
+      work: ['Spectrum', 'Twelve hues, one bubble', 'Every color, equally loud.'] },
     { id: 'typography', num: '05', name: 'Typography', theme: 'mint', bg: '#8DEFC5', ink: '#8DEFC5', sculpture: 'ampersand',
-      thesis: 'Letters have a voice.', work: ['Ampersand', 'Instrument Serif, extruded', 'A word that means “and also”.'] },
+      thesis: 'Letters have a voice.', mins: 3,
+      intro: 'Before you read a word, its letters have told you whether to trust it, laugh at it or hurry. Typography is the tone of voice text speaks in.',
+      work: ['Ampersand', 'Instrument Serif, extruded', 'A word that means “and also”.'] },
     { id: 'motion', num: '06', name: 'Motion', theme: 'coral', bg: '#FD5A32', ink: '#FD5A32', sculpture: 'cradle',
-      thesis: 'Nothing alive moves in a straight line.', work: ['Newton’s Cradle', 'Chrome, string, momentum', 'Click it. Energy passes along.'] },
+      thesis: 'Nothing alive moves in a straight line.', mins: 3,
+      intro: 'Nothing real starts or stops instantly. Good motion borrows from physics — it speeds up, slows down, overshoots a little — so it feels alive instead of mechanical.',
+      work: ['Newton’s Cradle', 'Chrome, string, momentum', 'Click it. Energy passes along.'] },
     { id: 'balance', num: '07', name: 'Balance', theme: 'apricot', bg: '#FBC49F', ink: '#FBC49F', sculpture: 'mobile',
-      thesis: 'Felt, never seen.', work: ['Mobile No. 3', 'Steel wire, after Calder', 'Four weights, one truce.'] }
+      thesis: 'Felt, never seen.', mins: 5,
+      intro: 'Every shape has visual weight: big, dark and bright things weigh more. Balance is arranging that weight so a page feels steady — even when it isn’t symmetrical.',
+      work: ['Mobile No. 3', 'Steel wire, after Calder', 'Four weights, one truce.'] }
   ];
   const ROTUNDA = { id: 'rotunda', num: '∞', name: 'The Rotunda', theme: 'dusk', bg: '#15110C', ink: '#E2B866', sculpture: 'armillary',
-    thesis: 'Everything you learned, at once.', work: ['Armillary', 'Brass, light', 'Seven rings, one centre.'] };
+    thesis: 'Everything you learned, at once.', mins: 4,
+    intro: 'The last room puts it all together: one truly awful poster gets restored, one principle at a time. Then passport control, and — naturally — the gift shop.',
+    work: ['Armillary', 'Brass, light', 'Seven rings, one centre.'] };
   const LOBBY = { id: 'lobby', num: '', name: 'Lobby', theme: 'bone', bg: '#F3F0E9' };
   const ALL = ROOMS.concat([ROTUNDA]);
   const get = id => (id === 'lobby' ? LOBBY : ALL.find(r => r.id === id));
