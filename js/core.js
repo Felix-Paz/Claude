@@ -17,7 +17,6 @@ window.P = (function () {
   const damp = (a, b, k, dt) => lerp(a, b, 1 - Math.exp(-k * dt));
   const pad = (n, l = 2) => String(Math.round(n)).padStart(l, '0');
   const vw = () => document.documentElement.clientWidth || innerWidth;
-  const html = (s) => { const t = document.createElement('template'); t.innerHTML = s.trim(); return t.content.firstElementChild; };
 
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -53,7 +52,6 @@ window.P = (function () {
   }
   const stopScroll = () => { lenis ? lenis.stop() : (root.style.overflow = 'hidden'); };
   const startScroll = () => { lenis ? lenis.start() : (root.style.overflow = ''); };
-  const velocity = () => (lenis ? lenis.velocity : 0);
 
   /* ---------------- toast ---------------- */
   let toastTl = null;
@@ -309,9 +307,9 @@ window.P = (function () {
   const emit = (n, d) => { (bus[n] || []).forEach(f => f(d)); };
 
   return {
-    $, $$, clamp, lerp, damp, pad, vw, html, reduced, fine, pointer, root, body,
-    initScroll, scrollTop, scrollToEl, stopScroll, startScroll, velocity, get lenis() { return lenis; },
-    toast, copy, splitChars, naturalWidth, fit, color, tone, ctx, reveals,
+    $, $$, clamp, lerp, damp, vw, reduced, fine, pointer, root, body,
+    initScroll, scrollTop, scrollToEl, stopScroll, startScroll, get lenis() { return lenis; },
+    toast, copy, splitChars, fit, color, tone, ctx, reveals,
     initCursor, magnetic, seg, rangeFill, runLoader, on, emit
   };
 })();

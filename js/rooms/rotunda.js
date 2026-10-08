@@ -224,9 +224,9 @@
     html(d) {
       return `
       <article class="room rotunda">
-        ${HALL.html(d, LIST)}
-        ${LIST.map((e, i) => EXHIBIT_HTML(d, e, i)).join('')}
-        <section class="rt-exit">
+        ${ROOM.hall.html(d, LIST)}
+        ${LIST.map((e, i) => ROOM.exhibit.html(d, e, i)).join('')}
+        <section class="rt-exit" id="exit">
           <p class="exit-k mono">Exit</p>
           <h2 class="exit-line" data-lines>Design isn’t decoration. <em>It’s decisions — and now they’re yours.</em></h2>
           <div class="rt-exit-actions">
@@ -234,11 +234,13 @@
             <button class="btn btn-ghost rt-again" type="button"><span>Visit again with a fresh passport</span></button>
           </div>
         </section>
+        ${ROOM.rail.html(d, LIST, 'Exit')}
       </article>`;
     },
     init(root, c, d) {
-      HALL.init(root, c, d);
-      EXHIBIT_INIT(root, c, d, LIST);
+      ROOM.hall.init(root, c, d);
+      ROOM.exhibit.init(root, c, d, LIST);
+      ROOM.rail.init(root, c);
 
       /* ---- the restoration ---- */
       const sec = $('.resto', root), pin = $('.resto-pin', root), word = $('.resto-word', root), wordSpan = $('.resto-word span', root);

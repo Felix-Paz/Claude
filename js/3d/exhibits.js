@@ -1,10 +1,14 @@
 /* =====================================================================
    MUSEUM OF DESIGN · 3D exhibits
-   · GALLERY — a corner of a real gallery: twelve paintings that hang
-     salon-style, then one per wall (White Space · One Per Wall)
-   · FIBONACCI — the golden rectangle as a terrazzo slab of Fibonacci
-     tiles with a brass spiral inlay and a ball rolling home
-     (Balance · The Golden Ratio)
+   · gallery   — a corner of a real gallery: twelve paintings that hang
+                 salon-style, then one per wall (03 · One Per Wall)
+   · race      — a photo-finish track: four easings, one distance
+                 (06 · Photo Finish)
+   · coil      — a ball on a chrome spring; the page owns the physics
+                 (06 · The Spring)
+   · fibonacci — the golden rectangle as a terrazzo slab of Fibonacci
+                 tiles with a brass spiral and a ball rolling home
+                 (07 · The Golden Ratio; registered as a sculpture)
    ===================================================================== */
 window.EX3D = (function () {
   'use strict';
@@ -245,7 +249,7 @@ window.EX3D = (function () {
     const Mt = S3D.mat;
     const state = { t: 0 };
     const v = S3D.view(el, (turn, vv) => {
-      const N = lanes.length, LW = 0.62, X0 = -2.35, X1 = 2.75;
+      const N = lanes.length, LW = 0.62, X0 = -2.0, X1 = 2.75;
       const W = N * LW;
       const track = new THREE.Mesh(S3D.roundedBox(7.6, 0.14, W + 0.5, 0.05), Mt.clay(0x1B1A22, 0.85));
       track.position.set(0.25, -0.07, 0);
@@ -275,8 +279,8 @@ window.EX3D = (function () {
       // painted lane names and the runners
       const runners = lanes.map((L, i) => {
         const z = -W / 2 + LW * (i + 0.5);
-        const paint = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.31), new THREE.MeshBasicMaterial({ map: laneTexture(L.name, L.sub, '#F3F0E9'), transparent: true, depthWrite: false, opacity: 0.95 }));
-        paint.rotation.x = -Math.PI / 2; paint.position.set(-3.0 + 0.18, 0.004, z + 0.02);
+        const paint = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.3), new THREE.MeshBasicMaterial({ map: laneTexture(L.name, L.sub, '#F3F0E9'), transparent: true, depthWrite: false, opacity: 0.95 }));
+        paint.rotation.x = -Math.PI / 2; paint.position.set(-2.88, 0.004, z + 0.02);
         turn.add(paint);
         const r = 0.17;
         const ball = new THREE.Mesh(new THREE.SphereGeometry(r, 48, 32), L.mat === 'chrome' ? Mt.chrome(0xffffff, 0.05) : Mt.gloss(L.color, 0.12));

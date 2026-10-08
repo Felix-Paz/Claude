@@ -47,6 +47,17 @@
           </div>
         </section>
 
+        <section class="lb-info" aria-labelledby="info-title">
+          <h2 class="lb-info-k" id="info-title"><i aria-hidden="true">i</i><span class="mono">Visitor information</span></h2>
+          <ul class="lb-info-list">
+            <li><svg aria-hidden="true"><use href="#i-arch"/></svg><b>One route</b><span>Rooms 01 → 07, then the Rotunda. Every exit is the next room’s door.</span></li>
+            <li><svg aria-hidden="true"><use href="#p-click"/></svg><b>Please touch</b><span>Each exhibit tells you what to do: drag, hold, scroll or click.</span></li>
+            <li><svg aria-hidden="true"><use href="#i-audio"/></svg><b>Audio guide</b><span>Every exhibit has a numbered stop. Press it to hear the story.</span></li>
+            <li><svg aria-hidden="true"><use href="#i-stamp"/></svg><b>Passport</b><span>Reach a room’s exit and it stamps your passport (top right).</span></li>
+            <li><svg aria-hidden="true"><use href="#i-map"/></svg><b>Floor plan</b><span>Lost? It shows the building and where you are.</span></li>
+          </ul>
+        </section>
+
         <section class="lb-building" id="building">
           <header class="lb-sec-head">
             <p class="mono">The building · Scale 1 : 200</p>
@@ -87,8 +98,8 @@
 
       /* ---- Exhibit 0: the lens ---- */
       let lens = null, alive = true;
-      if (!reduced && P.HeroGL) {
-        try { lens = P.HeroGL.create(hero); } catch (e) { console.warn('[museum] lens unavailable', e); lens = null; }
+      if (!reduced && window.LENS) {
+        try { lens = LENS.create(hero); } catch (e) { console.warn('[museum] lens unavailable', e); lens = null; }
       }
       const items = $$('.lb-hero-top, .lb-hero-label, .lb-hero-foot > *', root);
       function open() {
@@ -120,6 +131,7 @@
       c.on($('.lb-choose', root), 'click', () => P.scrollToEl($('#building', root)));
       c.own(P.magnetic($('.lb-start', root)));
       if (!reduced) {
+        gsap.from($$('.lb-info-k, .lb-info-list li', root), { y: 24, opacity: 0, duration: 1, ease: 'museum', stagger: 0.06, scrollTrigger: { trigger: $('.lb-info', root), start: 'top 85%', once: true } });
         gsap.from($('.bld', root), { y: 80, opacity: 0, duration: 1.3, ease: 'museum', scrollTrigger: { trigger: $('.bld', root), start: 'top 88%', once: true } });
         gsap.from($$('.hall', root), { y: 60, opacity: 0, duration: 1.1, ease: 'museum', stagger: 0.07, scrollTrigger: { trigger: $('.halls', root), start: 'top 85%', once: true } });
       }

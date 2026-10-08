@@ -7,7 +7,7 @@
    specular glint, squash & stretch with velocity, click ripples, an
    intro dissolve and a scroll melt.
    ===================================================================== */
-P.HeroGL = (function () {
+window.LENS = (function () {
   'use strict';
   const { $, $$, clamp, lerp, pointer, reduced, fine } = P;
 

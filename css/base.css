@@ -20,7 +20,9 @@
   --volt: #D9FD3A; --mint: #8DEFC5; --brass: #E2B866; --dusk: #15110C;
 
   --bg: var(--bone); --fg: var(--ink); --accent: var(--ultra); --accent-fg: var(--bone);
-  --muted: color-mix(in oklab, var(--fg) 55%, var(--bg));
+  /* muted text keeps ≥ 4.5 : 1 on every room's wall (it's a museum about contrast) */
+  --mute-k: 62%;
+  --muted: color-mix(in oklab, var(--fg) var(--mute-k), var(--bg));
   --line: color-mix(in oklab, var(--fg) 14%, transparent);
   --line-2: color-mix(in oklab, var(--fg) 28%, transparent);
   --wash: color-mix(in oklab, var(--fg) 5%, transparent);
@@ -47,12 +49,12 @@
 /* each room is a world */
 :root[data-theme="bone"]    { --bg: var(--bone);    --fg: var(--ink);  --accent: var(--ultra); --accent-fg: var(--bone); }
 :root[data-theme="ink"]     { --bg: var(--ink);     --fg: var(--bone); --accent: var(--volt);  --accent-fg: var(--ink); }
-:root[data-theme="ultra"]   { --bg: var(--ultra);   --fg: var(--bone); --accent: var(--volt);  --accent-fg: var(--ink); }
+:root[data-theme="ultra"]   { --bg: var(--ultra);   --fg: var(--bone); --accent: var(--volt);  --accent-fg: var(--ink); --mute-k: 80%; }
 :root[data-theme="paper"]   { --bg: var(--paper);   --fg: var(--ink);  --accent: var(--coral); --accent-fg: var(--ink); }
-:root[data-theme="lilac"]   { --bg: var(--lilac);   --fg: var(--ink);  --accent: var(--ultra); --accent-fg: var(--bone); }
+:root[data-theme="lilac"]   { --bg: var(--lilac);   --fg: var(--ink);  --accent: var(--ultra); --accent-fg: var(--bone); --mute-k: 70%; }
 :root[data-theme="mint"]    { --bg: var(--mint);    --fg: var(--ink);  --accent: var(--ultra); --accent-fg: var(--bone); }
-:root[data-theme="coral"]   { --bg: var(--coral);   --fg: var(--ink);  --accent: var(--ink);   --accent-fg: var(--bone); }
-:root[data-theme="apricot"] { --bg: var(--apricot); --fg: var(--ink);  --accent: var(--coral); --accent-fg: var(--ink); }
+:root[data-theme="coral"]   { --bg: var(--coral);   --fg: var(--ink);  --accent: var(--ink);   --accent-fg: var(--bone); --mute-k: 82%; }
+:root[data-theme="apricot"] { --bg: var(--apricot); --fg: var(--ink);  --accent: var(--coral); --accent-fg: var(--ink); --mute-k: 70%; }
 :root[data-theme="dusk"]    { --bg: var(--dusk);    --fg: #F3E9D6;     --accent: var(--brass); --accent-fg: var(--ink); }
 /* local theme scopes (cards, doors) */
 [data-theme="ink"]     { --tbg: var(--ink);     --tfg: var(--bone); }
