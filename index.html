@@ -120,7 +120,10 @@
       <button class="map-close" type="button" aria-label="Close floor plan"><svg><use href="#i-x"/></svg></button>
     </div>
     <div class="map-body">
-      <svg class="plan" viewBox="0 0 1000 640" role="img" aria-label="Floor plan of the museum"></svg>
+      <div class="plan-wrap">
+        <div class="plan3d" data-cursor="Explore" aria-hidden="true"></div>
+        <svg class="plan" viewBox="0 0 1000 640" role="img" aria-label="Floor plan of the museum"></svg>
+      </div>
       <ol class="map-list"></ol>
     </div>
     <p class="map-foot mono"><span>Esc to close</span><span class="map-legend"><i class="lg-stamp"></i>stamped <i class="lg-here"></i>you are here</span></p>

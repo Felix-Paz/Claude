@@ -9,6 +9,7 @@ window.S3D = (function () {
   'use strict';
 
   const views = new Set();
+  let solo = null; // when set, only this view is drawn (e.g. the floor-plan overlay)
   let renderer = null, canvas = null, env = null, ok = false;
   let W = 0, H = 0, dpr = 1;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -87,6 +88,7 @@ window.S3D = (function () {
     renderer.setScissorTest(true);
     const t = now / 1000;
     views.forEach(v => {
+      if (solo && v !== solo) { v.visible = false; return; }
       const r = v.el.getBoundingClientRect();
       if (r.bottom < -40 || r.top > H + 40 || r.right < 0 || r.left > W || r.width < 2 || r.height < 2) { v.visible = false; return; }
       v.visible = true;
@@ -338,5 +340,5 @@ window.S3D = (function () {
     return v;
   }
 
-  return { init, view, mat, roundedBox, plinth, shadow, glyph, get ok() { return ok; }, get count() { return views.size; } };
+  return { init, view, mat, solo(v) { solo = v || null; }, roundedBox, plinth, shadow, glyph, get ok() { return ok; }, get count() { return views.size; } };
 })();

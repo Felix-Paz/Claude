@@ -234,7 +234,30 @@ window.MUSEUM = (function () {
     here.setAttribute('transform', `translate(${x} ${y})`);
   }
   const map = $('#map'), mapBtn = $('.hdr-map');
-  let mapOpen = false, mapTl = null;
+  let mapOpen = false, mapTl = null, mapCtx = null;
+  // the floor plan, in 3D: the same architect's model as the lobby, pinned where you stand
+  function mapModel() {
+    if (!window.BUILDING || !window.THREE || !S3D.init() || mapCtx || !mapOpen) return;
+    const el = $('.plan3d', map);
+    const tip = document.createElement('div');
+    tip.className = 'bld-tip'; tip.hidden = true;
+    tip.innerHTML = '<span class="mono bld-tip-k"></span><b></b><i></i><span class="mono bld-tip-go"></span>';
+    el.after(tip);
+    mapCtx = P.ctx();
+    const v = BUILDING.mount(el, tip, mapCtx, { here: current || 'lobby', onPick: id => (id === current ? closeMap() : go(id)) });
+    if (!v) { mapCtx.destroy(); mapCtx = null; return; }
+    S3D.solo(v);
+    map.classList.add('is-3d');
+    P.body.classList.add('map-3d');
+    if (!reduced) gsap.fromTo(el, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, ease: 'museum' });
+  }
+  function dropModel() {
+    if (!mapCtx) return;
+    mapCtx.destroy(); mapCtx = null;
+    S3D.solo(null);
+    map.classList.remove('is-3d');
+    P.body.classList.remove('map-3d');
+  }
   function openMap() {
     if (mapOpen) return;
     mapOpen = true;
@@ -246,7 +269,8 @@ window.MUSEUM = (function () {
     if (mapTl) mapTl.kill();
     mapTl = gsap.timeline()
       .fromTo(map, { clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)', duration: reduced ? 0 : 0.75, ease: 'door' })
-      .fromTo($$('.map-top, .plan, .map-list li, .map-foot', map), { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'museum', stagger: 0.03 }, 0.25);
+      .fromTo($$('.map-top, .plan, .map-list li, .map-foot', map), { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'museum', stagger: 0.03 }, 0.25)
+      .add(mapModel, reduced ? 0 : 0.6);
     setTimeout(() => $('.map-close').focus({ preventScroll: true }), 300);
   }
   function closeMap(instant) {
@@ -256,6 +280,7 @@ window.MUSEUM = (function () {
     map.setAttribute('aria-hidden', 'true'); map.setAttribute('inert', '');
     P.startScroll();
     if (mapTl) mapTl.kill();
+    dropModel();
     const done = () => map.classList.remove('is-open');
     if (instant || reduced) { done(); return; }
     mapTl = gsap.timeline({ onComplete: done }).to(map, { clipPath: 'inset(100% 0 0% 0)', duration: 0.6, ease: 'door' });

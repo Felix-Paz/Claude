@@ -215,7 +215,14 @@ h1 em, h2 em, h3 em, p em, .serif { font-family: var(--f-serif); font-style: ita
 .map-close svg { width: 18px; height: 18px; }
 .map-close:hover { transform: rotate(90deg); }
 .map-body { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(220px, 1fr); gap: clamp(20px, 4vw, 60px); align-items: center; }
+.plan-wrap { position: relative; }
 .plan { width: 100%; height: auto; max-height: 68vh; overflow: visible; }
+.plan3d { position: absolute; inset: -6% -4%; display: none; touch-action: pan-y; }
+.plan3d.is-over { cursor: pointer; }
+.map.is-3d .plan3d { display: block; }
+.map.is-3d .plan { visibility: hidden; }
+/* while the 3D floor plan is open, the 3D layer sits above the overlay (it only paints the model) */
+.map-3d .stage3d { z-index: 660; }
 .plan .pl-floor { fill: #ECE8DE; stroke: var(--ink); stroke-width: 6; }
 .plan .pl-room rect, .plan .pl-room circle { fill: var(--bone); stroke: var(--ink); stroke-width: 3; transition: fill 0.4s; }
 .plan .pl-room:hover rect, .plan .pl-room:hover circle { fill: color-mix(in oklab, var(--c) 45%, var(--bone)); }

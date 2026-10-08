@@ -211,13 +211,15 @@ window.BUILDING = (function () {
     const pinTip = new T.Mesh(new T.ConeGeometry(0.05, 0.16, 32), M.gloss(0xFD5A32, 0.15));
     pinTip.rotation.x = Math.PI; pinTip.position.y = -0.1;
     pin.add(pinHead, pinTip);
-    pin.position.set(rooms.lobby.cx + 0.62, 0.62, rooms.lobby.cz);
+    const hereR = rooms[opts.here] || rooms.lobby;
+    const pinX = hereR.cx + (hereR.id === 'lobby' ? 0.62 : hereR.id === 'rotunda' ? 0.55 : 0.5), pinZ = hereR.cz + (hereR.id === 'balance' ? 0.9 : 0);
+    pin.position.set(pinX, 0.62, pinZ);
     pin.traverse(o => { if (o.isMesh) o.castShadow = true; });
     model.add(pin);
     const ringMat = new T.MeshBasicMaterial({ color: 0xFD5A32, transparent: true, opacity: 0.5, depthWrite: false });
     const pulse = new T.Mesh(new T.RingGeometry(0.08, 0.1, 48), ringMat);
     pulse.rotation.x = -Math.PI / 2;
-    pulse.position.set(pin.position.x, FLOOR_T + 0.004, pin.position.z);
+    pulse.position.set(pinX, FLOOR_T + 0.004, pinZ);
     model.add(pulse);
 
     // flags in the rooms you've stamped
@@ -298,7 +300,7 @@ window.BUILDING = (function () {
         });
         dome.position.y = WALL_H + 0.55 + Math.sin(t * 0.8) * 0.06 + rooms.rotunda.lift * 0.25;
         dome.rotation.y = t * 0.1;
-        pin.position.y = 0.6 + Math.sin(t * 2.2) * 0.05;
+        pin.position.y = 0.6 + Math.sin(t * 2.2) * 0.05 + hereR.lift * 0.14;
         pin.rotation.y = t * 1.2;
         const k = (t * 0.7) % 1;
         pulse.scale.setScalar(1 + k * 3.2);
@@ -332,13 +334,14 @@ window.BUILDING = (function () {
       el.classList.toggle('is-over', !!id);
       if (!id) { tip.hidden = true; return; }
       const d = id === 'lobby' ? null : MUSEUM.get(id);
+      const here = id === (opts.here || 'lobby');
       tip.hidden = false;
       tip.dataset.id = id;
       tip.style.setProperty('--c', d ? d.ink : '#FD5A32');
-      tip.querySelector('.bld-tip-k').textContent = id === 'lobby' ? 'You are here' : id === 'rotunda' ? 'Room ∞' : 'Room ' + d.num;
+      tip.querySelector('.bld-tip-k').textContent = (here ? 'You are here · ' : '') + (id === 'lobby' ? 'Entrance' : id === 'rotunda' ? 'Room ∞' : 'Room ' + d.num);
       tip.querySelector('b').textContent = id === 'lobby' ? 'The Lobby' : d.name;
       tip.querySelector('i').textContent = id === 'lobby' ? 'Tickets, a lens, this model.' : d.thesis;
-      tip.querySelector('.bld-tip-go').textContent = id === 'lobby' ? '' : touch ? 'Tap again to enter' : (MUSEUM.passport.has(id) ? 'Visited · click to go back' : 'Click to enter');
+      tip.querySelector('.bld-tip-go').textContent = here ? '' : touch ? 'Tap again to go' : (MUSEUM.passport.has(id) ? 'Visited · click to go back' : 'Click to go');
     }
     // the card follows its room as the model turns
     c.tick(() => {
@@ -358,11 +361,11 @@ window.BUILDING = (function () {
       if (v.moved > 6) return;
       const id = hitAt(e.clientX, e.clientY);
       if (!id) { armed = null; show(null); return; }
-      if (id === 'lobby') { show(id); return; }
       if (e.pointerType === 'touch' && armed !== id) { armed = id; show(id); return; }
-      MUSEUM.go(id);
+      pick(id);
     });
-    c.on(tip, 'click', () => { const id = tip.dataset.id; if (id && id !== 'lobby') MUSEUM.go(id); });
+    const pick = id => { if (opts.onPick) opts.onPick(id); else if (id !== (opts.here || 'lobby')) MUSEUM.go(id); };
+    c.on(tip, 'click', () => { const id = tip.dataset.id; if (id) pick(id); });
     return v;
   }
 
