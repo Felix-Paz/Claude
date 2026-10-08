@@ -9,8 +9,8 @@
   EXHIBITS.typography = [
     {
       title: 'Words That Act', icon: 'move', do: 'Watch them work',
-      about: 'Each word is set to do what it says. Same alphabet, different behaviour — that’s typography doing the talking.',
-      note: 'Type can <em>do</em> what it says.',
+      about: 'Each word is set to do what it says.',
+      note: 'Weight, width, size and spacing all change how a word sounds.',
       html: () => `
         <div class="acts">
           <div class="act" data-a="bigger"><span class="act-w">BIGGER</span></div>
@@ -43,8 +43,8 @@
     },
     {
       title: 'One Font', icon: 'slide', do: 'Turn the axes',
-      about: 'Everything here comes from a single variable font file. Two sliders — weight and width — give you hundreds of styles in between. Click the word to type your own.',
-      note: 'One file. <em>Every voice.</em>',
+      about: 'One variable font file and two sliders, weight and width. Click the word to type your own.',
+      note: 'A variable font keeps every weight and width in one file.',
       html: () => `
         <div class="vf">
           <div class="vf-stage"><span class="vf-word" contenteditable="true" spellcheck="false" aria-label="Editable sample word">Gestalt</span></div>
@@ -87,8 +87,8 @@
     },
     {
       title: 'Kerning', icon: 'slide', do: 'Slide to fix the gaps',
-      about: 'Kerning adjusts the space between particular pairs of letters: A and V lean away from each other, T hangs over A. Typed with equal spacing they look full of holes — the coral bars show the extra space. Slide until the word looks evenly spaced.',
-      note: 'Good spacing <em>disappears.</em>',
+      about: 'Some letter pairs need help: A and V lean apart, T hangs over A. The red bars mark the gaps. Slide until it looks even.',
+      note: 'Check the gaps around A, V, T, W and Y in every headline.',
       html: () => `
         <div class="kern">
           <div class="kern-stage">

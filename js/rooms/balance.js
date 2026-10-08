@@ -9,8 +9,8 @@
   EXHIBITS.balance = [
     {
       title: 'The Seesaw', icon: 'drag', do: 'Drag shapes onto the beam',
-      about: 'Every shape weighs what it looks like it weighs. Its pull is weight × distance from the middle, so a small shape far out can balance a big one close in. Find the truce.',
-      note: 'Visual weight × distance <em>from the centre.</em>',
+      about: 'A shape’s pull is its weight times its distance from the middle. Drag shapes onto the beam until it sits level.',
+      note: 'Weight times distance, same as on a playground.',
       html: () => `
         <div class="saw">
           <div class="saw-stage">
@@ -93,15 +93,15 @@
           stage.classList.toggle('is-ok', ok);
           if (msg !== last) {
             last = msg; status.textContent = msg;
-            if (ok && !toasted) { toasted = true; P.toast('Balanced — a truce between unequal things', '#3A22FC'); }
+            if (ok && !toasted) { toasted = true; P.toast('Level. Nicely balanced.', '#1D3ECF'); }
           }
         });
       }
     },
     {
       title: 'Two Kinds of Calm', icon: 'click', do: 'Switch the hang',
-      about: 'Symmetry balances with mirror images: steady, formal, a little stiff. Asymmetry trades one big light shape for a few small dark ones — dark weighs more. The beam underneath does the maths: level means balanced.',
-      note: 'Asymmetry balances <em>by trade.</em>',
+      about: 'Symmetry balances by mirroring. Asymmetry balances one big light shape against a few small dark ones. The beam shows which hang is level.',
+      note: 'Symmetry is the safe option. Asymmetry needs a counterweight.',
       html: () => `
         <div class="sym">
           <div class="seg sym-seg" role="radiogroup" aria-label="Composition">
@@ -148,13 +148,13 @@
     },
     {
       title: 'The Thirds', icon: 'drag', do: 'Drag the sun',
-      about: 'Split a frame into thirds both ways. The lines and their four crossings are where the eye likes to rest — dead centre feels static. Drag the sun and feel the difference.',
-      note: 'Off-centre is <em>more interesting.</em>',
+      about: 'Split the frame into thirds both ways. Things on the lines or crossings look more interesting than things in the middle. Drag the sun.',
+      note: 'Put the subject on a third, not in the middle.',
       html: () => `
         <div class="thirds">
           <div class="th-scene">
             <div class="th-sky"></div><div class="th-sea"></div>
-            <span class="th-sun" data-cursor="Drag" role="img" aria-label="The sun — drag it"></span>
+            <span class="th-sun" data-cursor="Drag" role="img" aria-label="The sun, drag it"></span>
             <div class="th-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           </div>
           <p class="th-read mono"><span class="th-state">Dead centre</span></p>
@@ -170,7 +170,7 @@
           const near = POINTS.find(p => Math.hypot(p[0] - pos.x, (p[1] - pos.y) * 0.62) < 0.05);
           const centre = Math.hypot(pos.x - 0.5, pos.y - 0.5) < 0.06;
           scene.classList.toggle('is-third', !!near);
-          state.textContent = near ? 'On a third — tension, interest' : centre ? 'Dead centre — stable, static' : 'Keep looking';
+          state.textContent = near ? 'On a third: more interesting' : centre ? 'Dead centre: steady but dull' : 'Keep looking';
           return near;
         };
         c.on(sun, 'pointerdown', e => { e.preventDefault(); drag = true; sun.setPointerCapture(e.pointerId); grid.classList.add('is-on'); });
@@ -198,22 +198,22 @@
     },
     {
       title: 'The Golden Ratio', icon: 'slide', do: 'Slide until it clicks',
-      about: 'φ (phi) is about <em>1.618</em>. Cut a square off a golden rectangle and what’s left is another golden rectangle — the same shape, smaller, forever. Slide the proportion: at φ the dashed ghost fits the leftover exactly and the spiral closes.',
-      note: 'One proportion that <em>contains itself.</em>',
+      about: 'φ is about 1.618. Cut a square off a golden rectangle and the piece that’s left is golden too. Slide until the dashed outline fits.',
+      note: 'Handy for splitting a page roughly 62 / 38.',
       html: () => `
         <div class="gold">
           <div class="gold-lab">
             <div class="gold-frame"><svg class="gold-svg" aria-label="A rectangle cut into squares, with a spiral"><g class="gold-sq"></g><path class="gold-ghost"/><path class="gold-spiral"/></svg><b class="gold-phi" aria-hidden="true">φ</b></div>
             <label class="slider gold-slider"><span class="slider-top mono"><span>Width ÷ height</span><output class="gold-out">1.400</output></span>
               <input type="range" class="gold-range" min="1.2" max="2.1" step="0.001" value="1.4" aria-label="Rectangle proportion"></label>
-            <p class="gold-read mono"><span class="gold-left">Leftover: 2.500</span><span class="gold-verdict">Different shape — keep sliding</span></p>
+            <p class="gold-read mono"><span class="gold-left">Leftover: 2.500</span><span class="gold-verdict">Different shape, keep sliding</span></p>
           </div>
           <div class="gold-side">
             <div class="gold-3d" data-cursor="Drag to turn" aria-label="A golden rectangle in terrazzo with a brass spiral, as a 3D sculpture"></div>
             <ul class="gold-uses">
               <li><b>Layouts</b><span>A 1000 px page → columns of 618 + 382.</span></li>
               <li><b>Type scales</b><span>16 → 26 → 42 → 68 px, each × 1.618.</span></li>
-              <li><b>Nature, sort of</b><span>Sunflowers and shells come close. Close is the point.</span></li>
+              <li><b>Nature, roughly</b><span>Sunflower seeds and some shells come close, though rarely exactly.</span></li>
             </ul>
           </div>
         </div>`,
@@ -221,7 +221,7 @@
         const PHI = (1 + Math.sqrt(5)) / 2;
         const svg = $('.gold-svg', el), gsq = $('.gold-sq', el), ghost = $('.gold-ghost', el), spiral = $('.gold-spiral', el);
         const range = $('.gold-range', el), out = $('.gold-out', el), left = $('.gold-left', el), verdict = $('.gold-verdict', el), lab = $('.gold-lab', el);
-        const COLS = ['#FD5A32', '#3A22FC', '#D9FD3A', '#8DEFC5', '#CDBFFF', '#FBC49F', '#0C0C14', '#F3F0E9', '#FD5A32', '#3A22FC'];
+        const COLS = ['#E8461E', '#1D3ECF', '#FFD21F', '#BFD3C2', '#EBC6B8', '#E4D2B0', '#121110', '#EEEAE2', '#E8461E', '#1D3ECF'];
         P.rangeFill(range);
         let gold = false;
         function draw(r) {
@@ -254,11 +254,11 @@
           out.textContent = r.toFixed(3);
           left.textContent = 'Leftover: ' + (leftover >= 1 ? leftover : 1 / leftover).toFixed(3);
           const g = Math.abs(r - PHI) < 0.006;
-          verdict.textContent = g ? 'Same shape. Forever. ✦' : Math.abs(r - PHI) < 0.06 ? 'So close — the ghost almost fits' : 'Different shape — keep sliding';
+          verdict.textContent = g ? 'Golden: the leftover is the same shape' : Math.abs(r - PHI) < 0.06 ? 'Close, the outline almost fits' : 'Different shape, keep sliding';
           if (g !== gold) {
             gold = g;
             lab.classList.toggle('is-gold', g);
-            if (g) { out.textContent = PHI.toFixed(3); if (!reduced) gsap.fromTo($('.gold-phi', el), { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.7, ease: 'back.out(2)' }); P.toast('φ = 1.6180339… found it', '#E2B866'); }
+            if (g) { out.textContent = PHI.toFixed(3); if (!reduced) gsap.fromTo($('.gold-phi', el), { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.7, ease: 'back.out(2)' }); P.toast('φ = 1.6180339… found it', '#D2A85F'); }
           }
         }
         c.on(range, 'input', () => draw(+range.value));

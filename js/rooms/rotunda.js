@@ -1,5 +1,5 @@
 /* =====================================================================
-   MUSEUM OF DESIGN · Room ∞ — the Rotunda
+   MUSEUM OF DESIGN · Room ∞, the Rotunda
    The Grand Restoration (one awful poster, seven principles, one at a
    time) · passport control · the gift shop (a 3D postcard spinner) ·
    the exit
@@ -10,15 +10,15 @@
   const M = MUSEUM;
 
   const STEPS = [
-    { word: 'As found', wash: '#1B150D', light: false, cap: 'Everything shouts, nothing leads, nothing lines up.' },
-    { word: 'Contrast', wash: '#050507', light: false, id: 'contrast', fix: 'Ink returned to ink', cap: 'The neon goes. Dark ink on a pale sheet: now you can read it.' },
-    { word: 'Hierarchy', wash: '#3A22FC', light: false, id: 'hierarchy', fix: 'The title remembers it’s the title', cap: 'The title gets big, the details get small. There’s a first thing.' },
-    { word: 'White Space', wash: '#FBFAF6', light: true, id: 'whitespace', fix: 'The clutter is escorted out', cap: 'Stickers, bursts and borders leave. The rest gets room.' },
-    { word: 'Color', wash: '#CDBFFF', light: true, id: 'color', fix: 'One palette, one accent', cap: 'Eight colors become one accent: a coral sun.' },
-    { word: 'Typography', wash: '#8DEFC5', light: true, id: 'typography', fix: 'Eight fonts become two', cap: 'One sans to speak, one serif to sing. The words calm down too.' },
-    { word: 'Motion', wash: '#FD5A32', light: true, id: 'motion', fix: 'Given a pulse', cap: 'Parts arrive in order, and the sun breathes.' },
-    { word: 'Balance', wash: '#FBC49F', light: true, id: 'balance', fix: 'Finally hung straight', cap: 'Straightened, aligned to a grid, weighted against the sun.' },
-    { word: '', wash: '#15110C', light: false, cap: 'Same words. Same event. Seven decisions.' }
+    { word: 'As found', wash: '#1B150D', light: false, cap: 'Everything is loud and nothing lines up.' },
+    { word: 'Contrast', wash: '#050507', light: false, id: 'contrast', fix: 'Dark ink on pale paper', cap: 'The neon goes. Dark ink on a pale sheet, and now you can read it.' },
+    { word: 'Hierarchy', wash: '#1D3ECF', light: false, id: 'hierarchy', fix: 'A clear title', cap: 'The title gets big and the details get small.' },
+    { word: 'White Space', wash: '#F8F6F1', light: true, id: 'whitespace', fix: 'The clutter goes', cap: 'The stickers, bursts and borders go. Everything else gets room.' },
+    { word: 'Color', wash: '#EBC6B8', light: true, id: 'color', fix: 'One palette, one accent', cap: 'Eight colors become one: a red sun.' },
+    { word: 'Typography', wash: '#BFD3C2', light: true, id: 'typography', fix: 'Two fonts instead of eight', cap: 'One sans and one serif instead of eight fonts. The exclamation marks go too.' },
+    { word: 'Motion', wash: '#E8461E', light: true, id: 'motion', fix: 'Parts arrive in order', cap: 'Parts arrive one after another and the sun drifts.' },
+    { word: 'Balance', wash: '#E4D2B0', light: true, id: 'balance', fix: 'Hung straight', cap: 'Hung straight, lined up on a grid, balanced against the sun.' },
+    { word: '', wash: '#15110C', light: false, cap: 'Same event, same information, seven changes.' }
   ];
   const COPY = [
     ['.pz-kick', '!!EXCLUSIVE EVENT!!', 'One night only'],
@@ -32,7 +32,7 @@
   const LIST = [
     {
       title: 'The Grand Restoration', icon: 'scroll', do: 'Scroll to restore', cls: 'ex--pin ex--bleed resto',
-      about: 'One truly terrible poster. As you scroll, each room you visited fixes one thing — in order — and only that thing. Watch the checklist on the right.',
+      about: 'A really bad poster. Scroll and each room fixes one thing, in order. The list on the right keeps track.',
       html: () => `
             <div class="resto-pin">
               <p class="resto-word" aria-hidden="true"><span>As found</span></p>
@@ -55,12 +55,12 @@
                 ${STEPS.slice(1, 8).map((s, i) => `<li data-step="${i + 1}"><span class="mono">0${i + 1}</span><b>${s.word}</b><i>${s.fix}</i></li>`).join('')}
               </ol>
               <p class="resto-cap"><span class="mono resto-cap-k">As found</span><span class="resto-cap-t">${STEPS[0].cap}</span></p>
-              <p class="resto-verdict" aria-hidden="true">Wow.</p>
+              <p class="resto-verdict" aria-hidden="true">Much better.</p>
             </div>`
     },
     {
       title: 'Passport Control', icon: 'click', do: 'Missing one? Tap it', cls: 'rt-pass',
-      about: 'Every room you finished stamped your passport on the way out. An empty circle means a room still waiting for you — tap it to go back.',
+      about: 'Every room you finished stamped your passport. Tap an empty circle to go back to that room.',
       html: () => `
             <div class="passport">
               <div class="pp-page pp-id">
@@ -77,8 +77,8 @@
     },
     {
       title: 'The Gift Shop', icon: 'drag', do: 'Spin it, take a card', cls: 'rt-shop',
-      about: 'Every museum ends in a gift shop; this one is free. Spin the rack and pick a postcard — each one is a printable, one-page field guide to its room.',
-      note: 'Exit through the gift shop. <em>No receipt needed.</em>',
+      about: 'This gift shop is free. Spin the rack and take a postcard: each one is a printable guide to its room.',
+      note: 'Exit through the gift shop. No receipt needed.',
       html: () => `
             <div class="shop">
               <div class="shop-rack" data-cursor="Spin · click a card" aria-hidden="true"></div>
@@ -94,14 +94,14 @@
     const c = document.createElement('canvas');
     c.width = w; c.height = h;
     const g = c.getContext('2d');
-    const light = !['ink', 'ultra'].includes(r.theme);
-    const fg = light ? '#0C0C14' : '#F3F0E9';
+    const light = !['ink', 'klein', 'bottle', 'dusk'].includes(r.theme);
+    const fg = light ? '#121110' : '#EEEAE2';
     g.fillStyle = r.bg; g.fillRect(0, 0, w, h);
-    if (r.theme === 'paper') { g.strokeStyle = 'rgba(12,12,20,0.12)'; g.lineWidth = 4; g.strokeRect(2, 2, w - 4, h - 4); }
+    if (r.theme === 'paper') { g.strokeStyle = 'rgba(18,17,16,0.12)'; g.lineWidth = 4; g.strokeRect(2, 2, w - 4, h - 4); }
     // a big quiet motif per room
     g.save();
     g.globalAlpha = light ? 0.14 : 0.22;
-    g.fillStyle = r.id === 'contrast' ? '#D9FD3A' : fg;
+    g.fillStyle = r.id === 'contrast' ? '#FFD21F' : fg;
     g.beginPath(); g.arc(w * 0.66, h * 0.44, w * 0.42, 0, Math.PI * 2); g.fill();
     g.restore();
     g.fillStyle = fg;
@@ -129,11 +129,11 @@
     c.width = w; c.height = h;
     const g = c.getContext('2d');
     g.fillStyle = '#F6F2E9'; g.fillRect(0, 0, w, h);
-    g.strokeStyle = 'rgba(12,12,20,0.25)'; g.lineWidth = 2;
+    g.strokeStyle = 'rgba(18,17,16,0.25)'; g.lineWidth = 2;
     g.beginPath(); g.moveTo(w / 2, 60); g.lineTo(w / 2, h - 60); g.stroke();
     for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(w / 2 + 24, 380 + i * 64); g.lineTo(w - 36, 380 + i * 64); g.stroke(); }
     g.strokeRect(w - 128, 48, 84, 104);
-    g.fillStyle = 'rgba(12,12,20,0.55)';
+    g.fillStyle = 'rgba(18,17,16,0.55)';
     g.font = '500 18px "Geist Mono"';
     g.fillText('POST CARD', 40, 80);
     const t = new THREE.CanvasTexture(c);
@@ -150,7 +150,7 @@
       const brass = Mt.brass(0.26);
       const pole = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, 2.9, 24), brass);
       pole.position.y = 1.45;
-      const foot = new T.Mesh(new T.CylinderGeometry(0.62, 0.7, 0.07, 64), Mt.gloss(0x0C0C14, 0.3));
+      const foot = new T.Mesh(new T.CylinderGeometry(0.62, 0.7, 0.07, 64), Mt.gloss(0x121110, 0.3));
       foot.position.y = 0.035;
       const cap = new T.Mesh(new T.SphereGeometry(0.075, 24, 16), brass);
       cap.position.y = 2.93;
@@ -159,7 +159,7 @@
       // the band wraps all the way round: three repeats, at the band's true aspect
       const sc = document.createElement('canvas'); sc.width = 2048; sc.height = 96;
       const sg = sc.getContext('2d');
-      sg.fillStyle = '#E2B866'; sg.fillRect(0, 0, 2048, 96);
+      sg.fillStyle = '#D2A85F'; sg.fillRect(0, 0, 2048, 96);
       sg.fillStyle = '#15110C'; sg.font = '800 46px "Mona Sans"'; sg.textAlign = 'center'; sg.textBaseline = 'middle';
       for (let k = 0; k < 3; k++) sg.fillText('POSTCARDS · FREE', 2048 * (k + 0.5) / 3, 52);
       const st = new T.CanvasTexture(sc);
@@ -228,7 +228,7 @@
         ${LIST.map((e, i) => ROOM.exhibit.html(d, e, i)).join('')}
         <section class="rt-exit" id="exit">
           <p class="exit-k mono">Exit</p>
-          <h2 class="exit-line" data-lines>Design isn’t decoration. <em>It’s decisions — and now they’re yours.</em></h2>
+          <h2 class="exit-line" data-lines>That’s the whole museum. Thanks for coming.</h2>
           <div class="rt-exit-actions">
             <a class="btn btn-solid" href="#/"><svg><use href="#i-back"/></svg><span>Back to the lobby</span></a>
             <button class="btn btn-ghost rt-again" type="button"><span>Visit again with a fresh passport</span></button>
@@ -248,7 +248,7 @@
       const capK = $('.resto-cap-k', root), capT = $('.resto-cap-t', root);
       let step = -1, fixed = false, inside = false;
       const hdr = $('.hdr');
-      const toneHdr = () => { const S = STEPS[Math.max(0, step)]; P.tone(hdr, inside ? S.wash : null, S.light ? '#0C0C14' : '#F3F0E9'); };
+      const toneHdr = () => { const S = STEPS[Math.max(0, step)]; P.tone(hdr, inside ? S.wash : null, S.light ? '#121110' : '#EEEAE2'); };
       c.own(() => P.tone(hdr, null));
       const fitWord = () => { if (wordSpan.textContent) P.fit(wordSpan, { box: word, vw: 16, maxSize: P.vw() * 0.2, min: 75, max: 125 }); };
       function show(s) {
@@ -286,7 +286,7 @@
       /* ---- passport control ---- */
       $('.pp-date', root).textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
       const n = M.passport.count();
-      $('.pp-count', root).textContent = n === 7 ? 'All seven — completionist' : n + ' of 7';
+      $('.pp-count', root).textContent = n === 7 ? '7 of 7, all stamped' : n + ' of 7';
       const stamped = $$('.pp-slot.is-stamped .pp-stamp', root);
       if (!reduced && stamped.length) gsap.from(stamped, { scale: 2, rotate: -20, opacity: 0, duration: 0.45, ease: 'power4.in', stagger: 0.12, scrollTrigger: { trigger: $('.passport', root), start: 'top 70%', once: true } });
 
@@ -295,7 +295,7 @@
         GUIDES.download(id);
         const b = $(`.shop-btn[data-room="${id}"]`, root);
         if (b) b.classList.add('is-taken');
-        P.toast('Postcard taken — ' + M.get(id).name + ' field notes saved', M.get(id).ink);
+        P.toast('Postcard taken: ' + M.get(id).name + ' field notes saved', M.get(id).ink);
       };
       rack($('.shop-rack', root), c, take);
       $$('.shop-btn', root).forEach(b => c.on(b, 'click', () => take(b.dataset.room)));

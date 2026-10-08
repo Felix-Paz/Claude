@@ -9,8 +9,8 @@
 window.SCULPT = (function () {
   'use strict';
   const T = THREE, S = S3D, M = S3D.mat;
-  const INK = 0x0C0C14, BONE = 0xF3F0E9, WHITE = 0xFFFFFF, ULTRA = 0x3A22FC, LILAC = 0xCDBFFF,
-    CORAL = 0xFD5A32, APRICOT = 0xFBC49F, VOLT = 0xD9FD3A, MINT = 0x8DEFC5;
+  // painted accents are the museum's own wall paints; everything else is stone, metal or wood
+  const INK = 0x121110, WHITE = 0xFFFFFF, KLEIN = 0x1D3ECF, VERMILION = 0xE8461E, SIGNAL = 0xFFD21F;
 
   const mesh = (g, m) => { const o = new T.Mesh(g, m); return o; };
   const sphere = (r, seg = 64) => new T.SphereGeometry(r, seg, Math.round(seg * 0.75));
@@ -23,26 +23,26 @@ window.SCULPT = (function () {
     return o;
   }
 
-  /* -------- Lobby · Composition No. 7 — a balanced stack of the whole palette -------- */
+  /* -------- Lobby · Composition No. 7 — travertine, brass, granite, oak, one red pea -------- */
   function composition(turn, v) {
-    const base = mesh(S.roundedBox(1.05, 0.95, 1.05, 0.14), M.clay(ULTRA, 0.48));
+    const base = mesh(S.roundedBox(1.05, 0.95, 1.05, 0.03), M.travertine());
     base.position.y = 0.475;
-    const ball = mesh(sphere(0.42), M.gloss(CORAL));
+    const ball = mesh(sphere(0.42), M.brass(0.18));
     ball.position.y = 0.95 + 0.42;
     const top = new T.Group();
     top.position.y = 0.95 + 0.84;
-    const disc = mesh(new T.CylinderGeometry(0.86, 0.86, 0.05, 96), M.gloss(INK, 0.22));
+    const disc = mesh(new T.CylinderGeometry(0.86, 0.86, 0.05, 96), M.granite());
     disc.position.y = 0.025;
-    const pea = mesh(sphere(0.12, 40), M.gloss(VOLT, 0.12));
+    const pea = mesh(sphere(0.12, 40), M.paint(VERMILION, 0.3));
     pea.position.set(0.66, 0.05 + 0.12, 0);
     top.add(disc, pea);
-    // a mint hoop leaning on the base
-    const hoop = mesh(new T.TorusGeometry(0.46, 0.07, 32, 120), M.gloss(MINT, 0.2));
+    // a steel hoop standing beside the base
+    const hoop = mesh(new T.TorusGeometry(0.46, 0.05, 32, 120), M.steel(0.32));
     hoop.position.set(-0.98, 0.53, 0.5);
     hoop.rotation.set(0, 0.95, 0);
-    const cube = mesh(S.roundedBox(0.42, 0.42, 0.42, 0.09), M.glass(LILAC, 0.5));
+    const cube = mesh(S.roundedBox(0.42, 0.42, 0.42, 0.02), M.glass(0xffffff, 0.3));
     cube.position.set(-1.0, 2.05, 0.1);
-    const cone = mesh(new T.ConeGeometry(0.24, 0.56, 64), M.clay(APRICOT, 0.5));
+    const cone = mesh(new T.ConeGeometry(0.24, 0.56, 64), M.oak());
     cone.position.set(0.86, 0.28, 0.5);
     turn.add(base, ball, top, hoop, cube, cone);
     const sh = S.shadow(0.9, 0.9, 0.38); turn.add(sh);
@@ -65,13 +65,13 @@ window.SCULPT = (function () {
     g.rotation.z = 0.32;
     const R = 0.82;
     const topG = new T.Group(), botG = new T.Group();
-    const white = M.gloss(BONE, 0.1), black = M.gloss(0x111118, 0.16);
+    const white = M.marble(), black = M.granite();
     const top = mesh(new T.SphereGeometry(R, 96, 48, 0, Math.PI * 2, 0, Math.PI / 2), white);
     const topCap = mesh(new T.CircleGeometry(R, 96), white); topCap.rotation.x = Math.PI / 2;
     const bot = mesh(new T.SphereGeometry(R, 96, 48, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), black);
     const botCap = mesh(new T.CircleGeometry(R, 96), black); botCap.rotation.x = -Math.PI / 2;
     topG.add(top, topCap); botG.add(bot, botCap);
-    const core = mesh(new T.CylinderGeometry(R * 0.97, R * 0.97, 0.01, 96), M.glow(VOLT, 3));
+    const core = mesh(new T.CylinderGeometry(R * 0.97, R * 0.97, 0.01, 96), M.glow(0xFFE3A8, 2.6));
     g.add(topG, botG, core);
     const moonPivot = new T.Group();
     moonPivot.position.y = 1.32;
@@ -100,23 +100,23 @@ window.SCULPT = (function () {
   /* -------- II · Hierarchy — The Podium: ranked, numbered, obvious -------- */
   function podium(turn, v) {
     const spec = [
-      { x: 0, h: 0.95, n: 'd1', r: 0.36, c: VOLT },
-      { x: -0.82, h: 0.62, n: 'd2', r: 0.25, c: LILAC },
-      { x: 0.82, h: 0.4, n: 'd3', r: 0.17, c: CORAL }
+      { x: 0, h: 0.95, n: 'd1', r: 0.36, m: M.brass(0.16) },
+      { x: -0.82, h: 0.62, n: 'd2', r: 0.25, m: M.steel(0.14) },
+      { x: 0.82, h: 0.4, n: 'd3', r: 0.17, m: M.copper(0.2) }
     ];
     const balls = [];
     spec.forEach((s, i) => {
-      const block = mesh(S.roundedBox(0.78, s.h, 0.78, 0.07), M.clay(BONE, 0.62));
+      const block = mesh(S.roundedBox(0.78, s.h, 0.78, 0.02), M.travertine());
       block.position.set(s.x, s.h / 2, 0);
       const num = S.glyph(s.n, 0.16, 0.012);
       if (num) {
-        const nm = mesh(num, M.gloss(INK, 0.25));
+        const nm = mesh(num, M.granite());
         const k = Math.min(0.44, s.h * 0.52);
         nm.scale.setScalar(k);
         nm.position.set(s.x, s.h * 0.5, 0.39 + 0.014);
         turn.add(nm);
       }
-      const b = mesh(sphere(s.r), M.gloss(s.c, 0.12));
+      const b = mesh(sphere(s.r), s.m);
       b.position.set(s.x, s.h + s.r, 0);
       const sh = S.shadow(s.r * 1.4, s.r * 1.4, 0.35);
       sh.position.set(s.x, s.h + 0.004, 0);
@@ -146,7 +146,7 @@ window.SCULPT = (function () {
     slabG.position.y = 0.95;
     const slab = mesh(S.roundedBox(2.6, 0.06, 1.7, 0.028), M.clay(0xD9D4C9, 0.75));
     slabG.add(slab);
-    const ball = mesh(sphere(0.1, 48), M.gloss(CORAL, 0.1));
+    const ball = mesh(sphere(0.1, 48), M.paint(VERMILION, 0.25));
     ball.position.y = 0.03 + 0.1;
     slabG.add(ball);
     const ballSh = S.shadow(0.16, 0.16, 0.45);
@@ -176,9 +176,10 @@ window.SCULPT = (function () {
   function spectrum(turn, v) {
     const ring = new T.Group();
     const caps = [];
+    // twelve artists' pigments, in wheel order, as matte painted sticks
+    const PIGMENTS = [0xC23B28, 0xC8642C, 0xC9963E, 0xE0B530, 0x8E8B3A, 0x4E7A45, 0x2C6A5B, 0x3D7DA2, 0x2B4897, 0x58498A, 0x8C3D69, 0xA6303D];
     for (let i = 0; i < 12; i++) {
-      const hex = P.color.oklch(0.74, 0.17, i * 30 + 10).hex;
-      const c = mesh(new T.CapsuleGeometry(0.11, 0.62, 10, 28), M.gloss(new T.Color(hex), 0.2));
+      const c = mesh(new T.CylinderGeometry(0.1, 0.1, 0.78, 40), M.paint(PIGMENTS[i], 0.62));
       const a = (i / 12) * Math.PI * 2;
       c.position.set(Math.cos(a) * 0.98, 0.5, Math.sin(a) * 0.98);
       ring.add(c);
@@ -187,7 +188,7 @@ window.SCULPT = (function () {
       ring.add(sh);
       caps.push(c);
     }
-    const bubble = mesh(sphere(0.52, 96), M.glass(WHITE, 0.34));
+    const bubble = mesh(sphere(0.52, 96), M.glass(0xffffff, 0.2));
     bubble.position.y = 1.08;
     turn.add(ring, bubble);
     v.fit = { w: 2.9, h: 1.85, cy: 0.8 };
@@ -208,14 +209,14 @@ window.SCULPT = (function () {
     g.position.y = 1.08;
     const geo = S.glyph('amp', 0.2, 0.016);
     if (geo) {
-      const amp = mesh(geo, [M.gloss(INK, 0.14), M.clay(ULTRA, 0.4)]);
+      const amp = mesh(geo, [M.granite(), M.brass(0.3)]);
       amp.scale.setScalar(2.35);
       g.add(amp);
     }
     const ag = S.glyph('a_mona', 0.22, 0.02);
     let small = null;
     if (ag) {
-      small = mesh(ag, [M.gloss(CORAL, 0.18), M.clay(0xC9431F, 0.5)]);
+      small = mesh(ag, [M.paint(VERMILION, 0.3), M.paint(0xB8361A, 0.5)]);
       small.scale.setScalar(0.42);
       small.position.set(0.66, 0.17, 0.5);
       small.rotation.y = -0.45;
@@ -234,7 +235,7 @@ window.SCULPT = (function () {
 
   /* -------- VI · Motion — Newton's Cradle: energy, passed along -------- */
   function cradle(turn, v) {
-    const chrome = M.chrome(0xffffff, 0.05), dark = M.gloss(INK, 0.25);
+    const chrome = M.chrome(0xffffff, 0.05), dark = M.granite();
     const base = mesh(S.roundedBox(2.2, 0.12, 0.95, 0.05), dark);
     base.position.y = 0.06;
     turn.add(base);
@@ -251,7 +252,7 @@ window.SCULPT = (function () {
       });
     });
     const L = 1.05, r = 0.105, pivots = [];
-    const string = new T.MeshStandardMaterial({ color: 0x222230, roughness: 0.5 });
+    const string = new T.MeshStandardMaterial({ color: 0x24221F, roughness: 0.5 });
     for (let i = 0; i < 5; i++) {
       const p = new T.Group();
       p.position.set((i - 2) * r * 2.02, topY, 0);
@@ -278,10 +279,10 @@ window.SCULPT = (function () {
 
   /* -------- VII · Balance — Mobile No. 3: a truce in the air (after Calder) -------- */
   function mobile(turn, v) {
-    const wire = M.gloss(INK, 0.3);
+    const wire = M.paint(INK, 0.35);
     const disc = (r, c) => {
       const g = new T.Group();
-      const d = mesh(new T.CylinderGeometry(r, r, 0.035, 72), M.clay(c, 0.4));
+      const d = mesh(new T.CylinderGeometry(r, r, 0.035, 72), M.paint(c, 0.4));
       d.rotation.x = Math.PI / 2;
       d.position.y = -r;
       g.add(d);
@@ -301,9 +302,9 @@ window.SCULPT = (function () {
       });
       return g;
     }
-    const a3 = arm(1.0, 0.45, disc(0.19, ULTRA), disc(0.14, INK), 0.26, 0.3);
+    const a3 = arm(1.0, 0.45, disc(0.19, KLEIN), disc(0.14, INK), 0.26, 0.3);
     const a2 = arm(1.45, 0.58, disc(0.27, WHITE), a3, 0.34, 0.24);
-    const a1 = arm(2.3, 0.4, disc(0.43, CORAL), a2, 0.3, 0.3);
+    const a1 = arm(2.3, 0.4, disc(0.43, VERMILION), a2, 0.3, 0.3);
     const hang = new T.Group();
     hang.position.y = 2.72;
     hang.add(rod(new T.Vector3(0, 0.0, 0), new T.Vector3(0, 0.9, 0), 0.006, wire));
@@ -334,8 +335,8 @@ window.SCULPT = (function () {
     outer.add(mesh(new T.TorusGeometry(0.88, 0.028, 20, 180), brass));
     mid.add(mesh(new T.TorusGeometry(0.72, 0.026, 20, 160), brass));
     inner.add(mesh(new T.TorusGeometry(0.56, 0.024, 20, 140), brass));
-    const core = mesh(sphere(0.2, 48), M.glow(VOLT, 1.6));
-    const halo = mesh(sphere(0.3, 48), M.glass(VOLT, 0.18));
+    const core = mesh(sphere(0.2, 48), M.glow(0xFFE3A8, 1.5));
+    const halo = mesh(sphere(0.3, 48), M.glass(0xffffff, 0.12));
     inner.add(core, halo);
     mid.add(inner); outer.add(mid); g.add(outer);
     [0, 1, 2, 3].forEach(i => { const b = mesh(sphere(0.045, 20), brass); const a = i * Math.PI / 2; b.position.set(Math.cos(a) * 0.88, Math.sin(a) * 0.88, 0); outer.add(b); });

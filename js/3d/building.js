@@ -37,7 +37,7 @@ window.BUILDING = (function () {
   ];
 
   const WALL_H = 0.55, WALL_T = 0.06, FLOOR_T = 0.04;
-  const LIGHT_FLOORS = new Set(['paper', 'lilac', 'mint', 'coral', 'apricot', 'bone']);
+  const LIGHT_FLOORS = new Set(['paper', 'plaster', 'vermilion', 'sand', 'bone']);
 
   function labelTexture(text, fg, w = 256, h = 128, font = '800 92px "Mona Sans"') {
     const c = document.createElement('canvas');
@@ -121,7 +121,7 @@ window.BUILDING = (function () {
       // the room number, printed on the floor
       if (data.num) {
         const lightFloor = LIGHT_FLOORS.has(data.theme);
-        const tx = labelTexture(data.num, lightFloor ? 'rgba(12,12,20,0.82)' : 'rgba(243,240,233,0.9)');
+        const tx = labelTexture(data.num, lightFloor ? 'rgba(18,17,16,0.82)' : 'rgba(238,234,226,0.9)');
         const lab = new T.Mesh(new T.PlaneGeometry(0.62, 0.31), new T.MeshBasicMaterial({ map: tx, transparent: true, depthWrite: false }));
         lab.rotation.x = -Math.PI / 2;
         lab.position.set(x0 + 0.5, FLOOR_T + 0.003, z0 + 0.3);
@@ -207,8 +207,8 @@ window.BUILDING = (function () {
 
     // you are here: a pin over the lobby
     const pin = new T.Group();
-    const pinHead = new T.Mesh(new T.SphereGeometry(0.075, 32, 16), M.gloss(0xFD5A32, 0.15));
-    const pinTip = new T.Mesh(new T.ConeGeometry(0.05, 0.16, 32), M.gloss(0xFD5A32, 0.15));
+    const pinHead = new T.Mesh(new T.SphereGeometry(0.075, 32, 16), M.gloss(0xE8461E, 0.15));
+    const pinTip = new T.Mesh(new T.ConeGeometry(0.05, 0.16, 32), M.gloss(0xE8461E, 0.15));
     pinTip.rotation.x = Math.PI; pinTip.position.y = -0.1;
     pin.add(pinHead, pinTip);
     const hereR = rooms[opts.here] || rooms.lobby;
@@ -216,7 +216,7 @@ window.BUILDING = (function () {
     pin.position.set(pinX, 0.62, pinZ);
     pin.traverse(o => { if (o.isMesh) o.castShadow = true; });
     model.add(pin);
-    const ringMat = new T.MeshBasicMaterial({ color: 0xFD5A32, transparent: true, opacity: 0.5, depthWrite: false });
+    const ringMat = new T.MeshBasicMaterial({ color: 0xE8461E, transparent: true, opacity: 0.5, depthWrite: false });
     const pulse = new T.Mesh(new T.RingGeometry(0.08, 0.1, 48), ringMat);
     pulse.rotation.x = -Math.PI / 2;
     pulse.position.set(pinX, FLOOR_T + 0.004, pinZ);
@@ -232,7 +232,7 @@ window.BUILDING = (function () {
       const pole = new T.Mesh(new T.CylinderGeometry(0.008, 0.008, 0.5, 8), M.brass(0.3));
       pole.position.y = 0.25;
       const shape = new T.Shape(); shape.moveTo(0, 0); shape.lineTo(0.2, -0.06); shape.lineTo(0, -0.12); shape.lineTo(0, 0);
-      const cloth = new T.Mesh(new T.ShapeGeometry(shape), new T.MeshStandardMaterial({ color: new T.Color(d.ink === '#FFFFFF' ? '#FD5A32' : d.ink), side: T.DoubleSide, roughness: 0.6 }));
+      const cloth = new T.Mesh(new T.ShapeGeometry(shape), new T.MeshStandardMaterial({ color: new T.Color(d.ink === '#FFFFFF' ? '#E8461E' : d.ink), side: T.DoubleSide, roughness: 0.6 }));
       cloth.position.y = 0.5;
       f.add(pole, cloth);
       f.position.set(wx(px) + 0.2, FLOOR_T, wz(py) + 0.55);
@@ -251,7 +251,8 @@ window.BUILDING = (function () {
       const dur = Math.hypot(b.x - a.x, b.z - a.z) / 0.42;
       legs.push({ a, b, dur }); total += dur;
     }
-    const COLORS = [0xFD5A32, 0x3A22FC, 0x0C0C14, 0xD9FD3A, 0x8DEFC5, 0xCDBFFF, 0xFBC49F, 0xFFFFFF, 0xE2B866];
+    // visitors dress like visitors: mostly neutrals, the odd bright coat
+    const COLORS = [0x2B2A28, 0x8A7F70, 0xE8461E, 0x3C4F6B, 0xD9CBB4, 0x121110, 0xF1EDE5, 0x51624F, 0x1D3ECF];
     const people = [];
     const bodyG = new T.CapsuleGeometry(0.046, 0.1, 4, 10), headG = new T.SphereGeometry(0.04, 16, 10);
     const skin = M.clay(0xE9D7C3, 0.6);
@@ -337,7 +338,7 @@ window.BUILDING = (function () {
       const here = id === (opts.here || 'lobby');
       tip.hidden = false;
       tip.dataset.id = id;
-      tip.style.setProperty('--c', d ? d.ink : '#FD5A32');
+      tip.style.setProperty('--c', d ? d.ink : '#E8461E');
       tip.querySelector('.bld-tip-k').textContent = (here ? 'You are here · ' : '') + (id === 'lobby' ? 'Entrance' : id === 'rotunda' ? 'Room ∞' : 'Room ' + d.num);
       tip.querySelector('b').textContent = id === 'lobby' ? 'The Lobby' : d.name;
       tip.querySelector('i').textContent = id === 'lobby' ? 'Tickets, a lens, this model.' : d.thesis;

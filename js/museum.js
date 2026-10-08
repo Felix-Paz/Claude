@@ -9,47 +9,47 @@ window.MUSEUM = (function () {
 
   /* ---------------- the collection ---------------- */
   const ROOMS = [
-    { id: 'contrast', num: '01', name: 'Contrast', theme: 'ink', bg: '#0C0C14', ink: '#D9FD3A', sculpture: 'eclipse',
-      thesis: 'Difference is information.', mins: 3,
-      intro: 'Your eye is a difference detector. It ignores what’s the same and jumps at what isn’t — light on dark, big next to small, the one red thing in a grey crowd. In here, you turn the difference up and down.',
-      closing: 'The eye goes to <em>the difference.</em>',
-      work: ['Eclipse', 'Lacquer, velvet, light', 'Two halves. Neither works alone.'] },
-    { id: 'hierarchy', num: '02', name: 'Hierarchy', theme: 'ultra', bg: '#3A22FC', ink: '#3A22FC', sculpture: 'podium',
-      thesis: 'Somebody has to go first.', mins: 3,
-      intro: 'Every page is a queue: something gets read first, something last. Hierarchy decides the order — with size, weight, color and position — so the reader never has to.',
-      closing: 'If everything is important, <em>nothing is.</em>',
-      work: ['The Podium', 'Clay, lacquer', 'Ranked by size, read in order.'] },
-    { id: 'whitespace', num: '03', name: 'White Space', theme: 'paper', bg: '#FBFAF6', ink: '#FFFFFF', sculpture: 'onething',
-      thesis: 'Emptiness is a material.', mins: 3,
-      intro: 'Empty space isn’t wasted space. It tells you where one thing ends and the next begins, and it’s the quickest way to make anything look expensive.',
-      closing: 'Whatever you leave empty <em>speaks loudest.</em>',
-      work: ['One Thing', 'Plaster, one red sphere', 'Plenty of room to roll.'] },
-    { id: 'color', num: '04', name: 'Color', theme: 'lilac', bg: '#CDBFFF', ink: '#CDBFFF', sculpture: 'spectrum',
-      thesis: 'Felt before it is read.', mins: 4,
-      intro: 'Color arrives before meaning. You feel warm or cold, calm or alarmed before you’ve read a word — so it had better be chosen on purpose.',
-      closing: 'Seen first. <em>Remembered last.</em>',
-      work: ['Spectrum', 'Twelve hues, one bubble', 'Every color, equally loud.'] },
-    { id: 'typography', num: '05', name: 'Typography', theme: 'mint', bg: '#8DEFC5', ink: '#8DEFC5', sculpture: 'ampersand',
-      thesis: 'Letters have a voice.', mins: 3,
-      intro: 'Before you read a word, its letters have told you whether to trust it, laugh at it or hurry. Typography is the tone of voice text speaks in.',
-      closing: 'Typography is what language <em>looks like.</em>',
-      work: ['Ampersand', 'Instrument Serif, extruded', 'A word that means “and also”.'] },
-    { id: 'motion', num: '06', name: 'Motion', theme: 'coral', bg: '#FD5A32', ink: '#FD5A32', sculpture: 'cradle',
-      thesis: 'Nothing alive moves in a straight line.', mins: 3,
-      intro: 'Nothing real starts or stops instantly. Good motion borrows from physics — it speeds up, slows down, overshoots a little — so it feels alive instead of mechanical.',
-      closing: 'Good motion is felt, <em>not noticed.</em>',
-      work: ['Newton’s Cradle', 'Chrome, string, momentum', 'Click it. Energy passes along.'] },
-    { id: 'balance', num: '07', name: 'Balance', theme: 'apricot', bg: '#FBC49F', ink: '#FBC49F', sculpture: 'mobile',
-      thesis: 'Felt, never seen.', mins: 5,
-      intro: 'Every shape has visual weight: big, dark and bright things weigh more. Balance is arranging that weight so a page feels steady — even when it isn’t symmetrical.',
-      closing: 'Nothing in here was crooked. <em>You checked.</em>',
-      work: ['Mobile No. 3', 'Steel wire, after Calder', 'Four weights, one truce.'] }
+    { id: 'contrast', num: '01', name: 'Contrast', theme: 'ink', bg: '#121110', ink: '#FFD21F', sculpture: 'eclipse',
+      thesis: 'How things get noticed.', mins: 3,
+      intro: 'The eye skips over things that look alike and stops at the one that’s different. In this room you control how different.',
+      closing: 'Body text: 4.5&#8239;:&#8239;1 or more.',
+      work: ['Eclipse', 'Marble, granite, lamp', 'A marble half and a granite half, with a lamp between them.'] },
+    { id: 'hierarchy', num: '02', name: 'Hierarchy', theme: 'klein', bg: '#1D3ECF', ink: '#1D3ECF', sculpture: 'podium',
+      thesis: 'What gets read first.', mins: 3,
+      intro: 'Every page is read in some order. Hierarchy is how you choose that order, with size, weight, color and position.',
+      closing: 'Make one thing the biggest. Only one.',
+      work: ['The Podium', 'Travertine, granite, brass', 'First, second and third, by height.'] },
+    { id: 'whitespace', num: '03', name: 'White Space', theme: 'paper', bg: '#F8F6F1', ink: '#FFFFFF', sculpture: 'onething',
+      thesis: 'The space between things.', mins: 3,
+      intro: 'Empty space separates things and groups them. It’s also the cheapest way to make something look expensive.',
+      closing: 'When in doubt, double the margin.',
+      work: ['One Thing', 'Plaster slab, one red ball', 'A tilting slab with plenty of room.'] },
+    { id: 'color', num: '04', name: 'Color', theme: 'plaster', bg: '#EBC6B8', ink: '#EBC6B8', sculpture: 'spectrum',
+      thesis: 'What color does before you read.', mins: 4,
+      intro: 'People react to a color before they read the words on it. So it’s worth picking on purpose.',
+      closing: 'One loud color per page is plenty.',
+      work: ['Spectrum', 'Pigment on wood, glass', 'Twelve pigments in a ring around a glass ball.'] },
+    { id: 'typography', num: '05', name: 'Typography', theme: 'bottle', bg: '#163D30', ink: '#2F7A5A', sculpture: 'ampersand',
+      thesis: 'How letters sound.', mins: 3,
+      intro: 'The same sentence reads differently in a different typeface. Here you get to set a few yourself.',
+      closing: 'Two typefaces are usually enough. One is often better.',
+      work: ['Ampersand', 'Granite, brass', 'Instrument Serif Italic, cut from stone.'] },
+    { id: 'motion', num: '06', name: 'Motion', theme: 'vermilion', bg: '#E8461E', ink: '#E8461E', sculpture: 'cradle',
+      thesis: 'How things move.', mins: 3,
+      intro: 'Real objects speed up and slow down. Motion on a screen looks right when it does the same.',
+      closing: 'Ease out on the way in. Ease in on the way out.',
+      work: ['Newton’s Cradle', 'Chrome, granite, string', 'Click it and the energy passes along.'] },
+    { id: 'balance', num: '07', name: 'Balance', theme: 'sand', bg: '#E4D2B0', ink: '#E4D2B0', sculpture: 'mobile',
+      thesis: 'Where the weight sits.', mins: 5,
+      intro: 'Big, dark and bright shapes look heavier. Balance means placing them so the page doesn’t seem to tip.',
+      closing: 'Off-centre is fine. Just add a counterweight.',
+      work: ['Mobile No. 3', 'Painted steel, after Calder', 'Four weights on wire, hanging level.'] }
   ];
-  const ROTUNDA = { id: 'rotunda', num: '∞', name: 'The Rotunda', theme: 'dusk', bg: '#15110C', ink: '#E2B866', sculpture: 'armillary',
-    thesis: 'Everything you learned, at once.', mins: 4,
-    intro: 'The last room puts it all together: one truly awful poster gets restored, one principle at a time. Then passport control, and — naturally — the gift shop.',
-    work: ['Armillary', 'Brass, light', 'Seven rings, one centre.'] };
-  const LOBBY = { id: 'lobby', num: '', name: 'Lobby', theme: 'bone', bg: '#F3F0E9' };
+  const ROTUNDA = { id: 'rotunda', num: '∞', name: 'The Rotunda', theme: 'dusk', bg: '#15110C', ink: '#D2A85F', sculpture: 'armillary',
+    thesis: 'All seven rooms at once.', mins: 4,
+    intro: 'The last room. A bad poster gets fixed with everything from rooms 01 to 07. Then passport control and a gift shop.',
+    work: ['Armillary', 'Brass, lamp', 'Seven rings around one light.'] };
+  const LOBBY = { id: 'lobby', num: '', name: 'Lobby', theme: 'bone', bg: '#EEEAE2' };
   const ALL = ROOMS.concat([ROTUNDA]);
   const get = id => (id === 'lobby' ? LOBBY : ALL.find(r => r.id === id));
   const next = id => { const i = ROOMS.findIndex(r => r.id === id); return i < 0 ? null : (ROOMS[i + 1] || ROTUNDA); };
@@ -112,7 +112,7 @@ window.MUSEUM = (function () {
     P.reveals(app, c);
     setHere(data);
     current = id;
-    document.title = id === 'lobby' ? 'Museum of Design' : `${data.num !== '∞' ? 'Room ' + data.num + ' · ' : ''}${data.name} — Museum of Design`;
+    document.title = id === 'lobby' ? 'Museum of Design' : `${data.num !== '∞' ? 'Room ' + data.num + ' · ' : ''}${data.name} · Museum of Design`;
     requestAnimationFrame(() => ScrollTrigger.refresh());
     paintMap();
   }
@@ -210,7 +210,7 @@ window.MUSEUM = (function () {
         <text class="pl-num" x="${ROT.cx}" y="${ROT.cy - 6}" text-anchor="middle">∞</text>
         <text class="pl-name" x="${ROT.cx}" y="${ROT.cy + 26}" text-anchor="middle">Rotunda</text>
       </a>
-      <a href="#/" class="pl-room pl-lobby" data-id="lobby" style="--c:#F3F0E9">
+      <a href="#/" class="pl-room pl-lobby" data-id="lobby" style="--c:#EEEAE2">
         <rect x="${LOB[0]}" y="${LOB[1]}" width="${LOB[2]}" height="${LOB[3]}"/>
         <text class="pl-name" x="${LOB[0] + LOB[2] / 2}" y="${LOB[1] + 34}" text-anchor="middle">Lobby</text>
       </a>
@@ -221,7 +221,7 @@ window.MUSEUM = (function () {
     const list = $('.map-list');
     list.innerHTML = ['lobby'].concat(ALL.map(r => r.id)).map(id => {
       const r = get(id);
-      return `<li><a href="${href(id)}" data-id="${id}" style="--c:${r.ink || '#F3F0E9'}"><span class="mono">${id === 'lobby' ? '—' : r.num}</span><b>${r.name}</b><i class="ml-stamp" aria-label="stamped"><svg><use href="#i-check"/></svg></i></a></li>`;
+      return `<li><a href="${href(id)}" data-id="${id}" style="--c:${r.ink || '#EEEAE2'}"><span class="mono">${id === 'lobby' ? '—' : r.num}</span><b>${r.name}</b><i class="ml-stamp" aria-label="stamped"><svg><use href="#i-check"/></svg></i></a></li>`;
     }).join('');
   }
   function paintMap() {

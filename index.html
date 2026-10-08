@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Museum of Design</title>
-<meta name="description" content="A museum you visit in your browser. Seven rooms, seven principles of design — contrast, hierarchy, white space, color, typography, motion, balance — each one taught by doing it to you.">
-<meta name="theme-color" content="#F3F0E9">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230C0C14'/%3E%3Cpath d='M18 46V30a14 14 0 0 1 28 0v16' fill='none' stroke='%23F3F0E9' stroke-width='6'/%3E%3Ccircle cx='32' cy='38' r='5' fill='%23D9FD3A'/%3E%3C/svg%3E">
+<meta name="description" content="A museum you visit in your browser. Seven rooms on seven principles of design: contrast, hierarchy, white space, color, typography, motion and balance. You try each one yourself.">
+<meta name="theme-color" content="#EEEAE2">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23121110'/%3E%3Cpath d='M18 46V30a14 14 0 0 1 28 0v16' fill='none' stroke='%23EEEAE2' stroke-width='6'/%3E%3Ccircle cx='32' cy='38' r='5' fill='%23E8461E'/%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/MonaSans-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/InstrumentSerif-Italic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin>
@@ -42,13 +42,13 @@
 <div class="loader" id="loader" aria-hidden="true">
   <div class="loader-top"><span class="loader-brand">Museum of Design</span><span class="mono">Opening the doors</span></div>
   <div class="loader-chips">
-    <span style="--c:var(--volt)"><b>01</b></span>
-    <span style="--c:var(--ultra)"><b>02</b></span>
+    <span style="--c:var(--signal)"><b>01</b></span>
+    <span style="--c:var(--klein)"><b>02</b></span>
     <span style="--c:var(--paper)"><b>03</b></span>
-    <span style="--c:var(--lilac)"><b>04</b></span>
-    <span style="--c:var(--mint)"><b>05</b></span>
-    <span style="--c:var(--coral)"><b>06</b></span>
-    <span style="--c:var(--apricot)"><b>07</b></span>
+    <span style="--c:var(--plaster)"><b>04</b></span>
+    <span style="--c:var(--sage)"><b>05</b></span>
+    <span style="--c:var(--vermilion)"><b>06</b></span>
+    <span style="--c:var(--sand)"><b>07</b></span>
   </div>
   <div class="loader-bottom"><span class="mono loader-status">Loading the collection</span><span class="loader-count"><span class="loader-num">000</span></span></div>
 </div>
@@ -60,7 +60,7 @@
     <p class="gate-hint mono">Your ticket, please</p>
     <div class="ticket" role="button" tabindex="0" aria-label="Tear your ticket to enter the museum" data-cursor="Tear">
       <div class="ticket-main">
-        <div class="ticket-strip" aria-hidden="true"><i style="--c:var(--volt)"></i><i style="--c:var(--ultra)"></i><i style="--c:#FFFFFF"></i><i style="--c:var(--lilac)"></i><i style="--c:var(--mint)"></i><i style="--c:var(--coral)"></i><i style="--c:var(--apricot)"></i></div>
+        <div class="ticket-strip" aria-hidden="true"><i style="--c:var(--signal)"></i><i style="--c:var(--klein)"></i><i style="--c:#FFFFFF"></i><i style="--c:var(--plaster)"></i><i style="--c:var(--sage)"></i><i style="--c:var(--vermilion)"></i><i style="--c:var(--sand)"></i></div>
         <div class="ticket-head">
           <span class="ticket-arch" aria-hidden="true"><svg><use href="#i-arch"/></svg></span>
           <span class="mono">Admission</span>
@@ -68,7 +68,7 @@
         <p class="ticket-name">Museum<br>of Design</p>
         <dl class="ticket-meta mono">
           <div><dt>Admit</dt><dd>One</dd></div>
-          <div><dt>Date</dt><dd class="t-date">—</dd></div>
+          <div><dt>Date</dt><dd class="t-date">–</dd></div>
           <div><dt>Rooms</dt><dd>01 – 07 + ∞</dd></div>
         </dl>
       </div>
@@ -92,7 +92,7 @@
 <a class="skip" href="#app">Skip to content</a>
 
 <header class="hdr">
-  <a class="hdr-brand" href="#/" aria-label="Museum of Design — lobby">
+  <a class="hdr-brand" href="#/" aria-label="Museum of Design, lobby">
     <span class="hdr-mark" aria-hidden="true"><svg><use href="#i-arch"/></svg></span>
     <span class="hdr-word">Museum <i>of</i> Design</span>
   </a>
@@ -136,7 +136,7 @@
 <main id="app" tabindex="-1"></main>
 
 <noscript>
-  <div style="position:fixed;inset:0;display:grid;place-items:center;background:#F3F0E9;color:#0C0C14;font-family:system-ui;padding:2rem;text-align:center">
+  <div style="position:fixed;inset:0;display:grid;place-items:center;background:#EEEAE2;color:#121110;font-family:system-ui;padding:2rem;text-align:center">
     <p>The Museum of Design is an interactive exhibition.<br>It needs JavaScript to open its doors.</p>
   </div>
 </noscript>

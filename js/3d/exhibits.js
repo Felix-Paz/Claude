@@ -13,7 +13,7 @@
 window.EX3D = (function () {
   'use strict';
   const T = () => THREE;
-  const svgTex = (markup, size = 512, bg = '#FBFAF6') => {
+  const svgTex = (markup, size = 512, bg = '#F8F6F1') => {
     const THREE = T();
     const c = document.createElement('canvas');
     c.width = c.height = size;
@@ -55,7 +55,7 @@ window.EX3D = (function () {
       room.add(wall, floor, skirting);
 
       // twelve works: canvas, mat and frame
-      const FR = [Mt.gloss(0x0C0C14, 0.4), Mt.brass(0.32), Mt.clay(0x8A5A34, 0.6), Mt.clay(0xFFFFFF, 0.7)];
+      const FR = [Mt.gloss(0x121110, 0.4), Mt.brass(0.32), Mt.clay(0x8A5A34, 0.6), Mt.clay(0xFFFFFF, 0.7)];
       const works = art.map((a, i) => {
         const g = new THREE.Group();
         const tex = svgTex(a);
@@ -81,7 +81,7 @@ window.EX3D = (function () {
       const bench = new THREE.Group();
       const seat = new THREE.Mesh(S3D.roundedBox(1.7, 0.09, 0.46, 0.03), Mt.clay(0x6B4A2E, 0.55));
       seat.position.y = 0.44;
-      [-0.68, 0.68].forEach(x => { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.4, 0.4), Mt.gloss(0x0C0C14, 0.35)); leg.position.set(x, 0.2, 0); bench.add(leg); });
+      [-0.68, 0.68].forEach(x => { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.4, 0.4), Mt.gloss(0x121110, 0.35)); leg.position.set(x, 0.2, 0); bench.add(leg); });
       bench.add(seat);
       bench.position.set(0, 0, 2.3);
       bench.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
@@ -100,7 +100,7 @@ window.EX3D = (function () {
       rope.traverse(o => { if (o.isMesh) o.castShadow = true; });
       const label = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.2), new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.9 }));
       label.position.set(1.05, 1.25, 0.012);
-      for (let i = 0; i < 3; i++) { const ln = new THREE.Mesh(new THREE.PlaneGeometry(i ? 0.18 : 0.24, 0.014), new THREE.MeshBasicMaterial({ color: i ? 0x9A958B : 0x0C0C14 })); ln.position.set(1.02 - (i ? 0.03 : 0), 1.3 - i * 0.04, 0.014); extras.add(ln); }
+      for (let i = 0; i < 3; i++) { const ln = new THREE.Mesh(new THREE.PlaneGeometry(i ? 0.18 : 0.24, 0.014), new THREE.MeshBasicMaterial({ color: i ? 0x9A958B : 0x121110 })); ln.position.set(1.02 - (i ? 0.03 : 0), 1.3 - i * 0.04, 0.014); extras.add(ln); }
       extras.add(bench, rope, label);
       // spotlight: a soft cone and a pool of light
       const cone = new THREE.Mesh(new THREE.ConeGeometry(0.8, 3.2, 48, 1, true), new THREE.MeshBasicMaterial({ color: 0xFFF3DA, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
@@ -165,7 +165,11 @@ window.EX3D = (function () {
   /* ---------------- Fibonacci: the golden rectangle in terrazzo ---------------- */
   function fibonacci(turn, v) {
     const THREE = T(), Mt = S3D.mat;
-    const COLORS = [0xFD5A32, 0x3A22FC, 0xD9FD3A, 0x8DEFC5, 0xCDBFFF, 0xFBC49F, 0x0C0C14, 0xF3F0E9];
+    // a floor of real stones: terracotta, bianco, verde, travertine, nero, oak, two terrazzi
+    const STONES = [
+      () => Mt.terrazzo('#C2532F', '#E9D8C4,#7A2A16,#F2E9DC'), () => Mt.marble(), () => Mt.terrazzo('#2C4A3C', '#E8E2D4,#9DB4A5,#121110'),
+      () => Mt.travertine(), () => Mt.granite(), () => Mt.oak(), () => Mt.terrazzo('#ECE6DA', '#C2532F,#1D3ECF,#121110,#C9A15A')
+    ];
     // cut a 21 × 13 rectangle into Fibonacci squares, spiralling in
     let x = 0, y = 0, w = 21, h = 13;
     const sq = [];
@@ -185,7 +189,7 @@ window.EX3D = (function () {
     const spiral = [];
     sq.forEach(([qx, qy, s, d], i) => {
       const gap = 0.012;
-      const tile = new THREE.Mesh(S3D.roundedBox(s * U - gap, H, s * U - gap, Math.min(0.04, s * U * 0.12)), Mt.clay(COLORS[i % COLORS.length], i === 6 ? 0.4 : 0.55));
+      const tile = new THREE.Mesh(S3D.roundedBox(s * U - gap, H, s * U - gap, Math.min(0.04, s * U * 0.12)), STONES[i % STONES.length]());
       tile.position.set((qx + s / 2) * U, H / 2, (qy + s / 2) * U);
       slab.add(tile);
       // quarter arc per square (same corners as the 2D construction)
@@ -237,7 +241,7 @@ window.EX3D = (function () {
     const c = document.createElement('canvas');
     c.width = 32; c.height = 256;
     const g = c.getContext('2d');
-    for (let y = 0; y < 16; y++) for (let x = 0; x < 2; x++) { g.fillStyle = (x + y) % 2 ? '#0C0C14' : '#F3F0E9'; g.fillRect(x * 16, y * 16, 16, 16); }
+    for (let y = 0; y < 16; y++) for (let x = 0; x < 2; x++) { g.fillStyle = (x + y) % 2 ? '#121110' : '#EEEAE2'; g.fillRect(x * 16, y * 16, 16, 16); }
     const tx = new THREE.CanvasTexture(c);
     tx.magFilter = THREE.NearestFilter;
     if ('colorSpace' in tx) tx.colorSpace = THREE.SRGBColorSpace;
@@ -251,14 +255,14 @@ window.EX3D = (function () {
     const v = S3D.view(el, (turn, vv) => {
       const N = lanes.length, LW = 0.62, X0 = -2.0, X1 = 2.75;
       const W = N * LW;
-      const track = new THREE.Mesh(S3D.roundedBox(7.6, 0.14, W + 0.5, 0.05), Mt.clay(0x1B1A22, 0.85));
+      const track = new THREE.Mesh(S3D.roundedBox(7.6, 0.14, W + 0.5, 0.05), Mt.clay(0x1E1D1B, 0.85));
       track.position.set(0.25, -0.07, 0);
       track.receiveShadow = true;
       turn.add(track);
-      const line = (x0, x1, z, w = 0.025) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, w), new THREE.MeshBasicMaterial({ color: 0xF3F0E9, transparent: true, opacity: 0.55 })); m.rotation.x = -Math.PI / 2; m.position.set((x0 + x1) / 2, 0.002, z); turn.add(m); };
+      const line = (x0, x1, z, w = 0.025) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, w), new THREE.MeshBasicMaterial({ color: 0xEEEAE2, transparent: true, opacity: 0.55 })); m.rotation.x = -Math.PI / 2; m.position.set((x0 + x1) / 2, 0.002, z); turn.add(m); };
       for (let i = 0; i <= N; i++) line(-3.4, 3.95, -W / 2 + i * LW);
       // start line and a chequered finish
-      const start = new THREE.Mesh(new THREE.PlaneGeometry(0.05, W), new THREE.MeshBasicMaterial({ color: 0xF3F0E9 }));
+      const start = new THREE.Mesh(new THREE.PlaneGeometry(0.05, W), new THREE.MeshBasicMaterial({ color: 0xEEEAE2 }));
       start.rotation.x = -Math.PI / 2; start.position.set(X0 - 0.2, 0.003, 0); turn.add(start);
       const fin = new THREE.Mesh(new THREE.PlaneGeometry(0.2, W), new THREE.MeshBasicMaterial({ map: checker() }));
       fin.rotation.x = -Math.PI / 2; fin.position.set(X1 + 0.2, 0.003, 0); turn.add(fin);
@@ -267,9 +271,9 @@ window.EX3D = (function () {
       [-1, 1].forEach(sd => { const post = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.25, 16), brass); post.position.set(X1 + 0.2, 0.62, sd * (W / 2 + 0.12)); post.castShadow = true; turn.add(post); });
       const beam = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, W + 0.3), brass); beam.position.set(X1 + 0.2, 1.24, 0); turn.add(beam);
       const cam = new THREE.Group();
-      const body = new THREE.Mesh(S3D.roundedBox(0.22, 0.16, 0.18, 0.03), Mt.gloss(0x0C0C14, 0.3));
-      const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.1, 24), Mt.gloss(0x0C0C14, 0.2)); lens.rotation.z = Math.PI / 2; lens.position.x = -0.15;
-      const glass = new THREE.Mesh(new THREE.CircleGeometry(0.05, 24), new THREE.MeshStandardMaterial({ color: 0x3A22FC, emissive: 0x3A22FC, emissiveIntensity: 0.4, roughness: 0.1 })); glass.rotation.y = -Math.PI / 2; glass.position.x = -0.201;
+      const body = new THREE.Mesh(S3D.roundedBox(0.22, 0.16, 0.18, 0.03), Mt.gloss(0x121110, 0.3));
+      const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.1, 24), Mt.gloss(0x121110, 0.2)); lens.rotation.z = Math.PI / 2; lens.position.x = -0.15;
+      const glass = new THREE.Mesh(new THREE.CircleGeometry(0.05, 24), new THREE.MeshStandardMaterial({ color: 0x1D3ECF, emissive: 0x1D3ECF, emissiveIntensity: 0.4, roughness: 0.1 })); glass.rotation.y = -Math.PI / 2; glass.position.x = -0.201;
       const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.04, 16, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0 }));
       bulb.position.set(0, 0.11, 0);
       cam.add(body, lens, glass, bulb);
@@ -279,11 +283,11 @@ window.EX3D = (function () {
       // painted lane names and the runners
       const runners = lanes.map((L, i) => {
         const z = -W / 2 + LW * (i + 0.5);
-        const paint = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.3), new THREE.MeshBasicMaterial({ map: laneTexture(L.name, L.sub, '#F3F0E9'), transparent: true, depthWrite: false, opacity: 0.95 }));
+        const paint = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.3), new THREE.MeshBasicMaterial({ map: laneTexture(L.name, L.sub, '#EEEAE2'), transparent: true, depthWrite: false, opacity: 0.95 }));
         paint.rotation.x = -Math.PI / 2; paint.position.set(-2.88, 0.004, z + 0.02);
         turn.add(paint);
         const r = 0.17;
-        const ball = new THREE.Mesh(new THREE.SphereGeometry(r, 48, 32), L.mat === 'chrome' ? Mt.chrome(0xffffff, 0.05) : Mt.gloss(L.color, 0.12));
+        const ball = new THREE.Mesh(new THREE.SphereGeometry(r, 48, 32), L.mat === 'chrome' ? Mt.chrome(0xffffff, 0.05) : Mt.paint(L.color, 0.28));
         ball.castShadow = true;
         ball.position.set(X0, r, z);
         const sh = S3D.shadow(r * 1.5, r * 1.2, 0.5); sh.position.set(X0, 0.006, z);
@@ -336,7 +340,7 @@ window.EX3D = (function () {
       const hook = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.02, 12, 32), Mt.brass(0.25));
       hook.position.y = -0.1;
       mount.add(plate, hook);
-      const ball = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 48), Mt.gloss(0x0C0C14, 0.12));
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 48), Mt.gloss(0x121110, 0.12));
       const ring = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.022, 12, 32), Mt.chrome(0xffffff, 0.1));
       turn.add(springG, mount, ball, ring);
       vv.fit = { w: 0.1, h: HW, cy: 0, margin: 1, elev: 1e-4 };

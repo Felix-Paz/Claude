@@ -148,14 +148,70 @@ window.S3D = (function () {
   }
 
   /* ---------------- helpers shared by sculptures ---------------- */
+  /* honest materials: what a museum's sculptures are actually made of */
+  // procedural stone: a fine grain plus veins (marble) or chips (terrazzo), drawn once and cached
+  const texCache = {};
+  function stone(kind, base, vein) {
+    const key = kind + base + vein;
+    if (texCache[key]) return texCache[key];
+    const c = document.createElement('canvas');
+    c.width = c.height = 512;
+    const g = c.getContext('2d');
+    g.fillStyle = base; g.fillRect(0, 0, 512, 512);
+    let seed = 11;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    // grain
+    for (let i = 0; i < 9000; i++) { g.fillStyle = `rgba(0,0,0,${(rnd() * 0.05).toFixed(3)})`; g.fillRect(rnd() * 512, rnd() * 512, 1.4, 1.4); }
+    if (kind === 'marble') {
+      g.strokeStyle = vein; g.lineCap = 'round';
+      for (let v = 0; v < 7; v++) {
+        let x = rnd() * 512, y = 0, a = 0.9 + rnd() * 0.6;
+        g.lineWidth = 0.6 + rnd() * 1.8; g.globalAlpha = 0.18 + rnd() * 0.3;
+        g.beginPath(); g.moveTo(x, y);
+        while (y < 512) { a += (rnd() - 0.5) * 0.5; x += Math.cos(a) * 9; y += Math.abs(Math.sin(a)) * 9 + 2; g.lineTo(x, y); }
+        g.stroke();
+      }
+      g.globalAlpha = 1;
+    } else if (kind === 'travertine') {
+      g.fillStyle = vein;
+      for (let i = 0; i < 140; i++) { g.globalAlpha = 0.25 + rnd() * 0.3; g.fillRect(rnd() * 512, rnd() * 512, 6 + rnd() * 26, 1 + rnd() * 2); }
+      g.globalAlpha = 1;
+    } else if (kind === 'terrazzo') {
+      const chips = vein.split(',');
+      for (let i = 0; i < 420; i++) {
+        g.fillStyle = chips[i % chips.length]; g.globalAlpha = 0.85;
+        const x = rnd() * 512, y = rnd() * 512, r = 2 + rnd() * 6;
+        g.beginPath();
+        for (let k = 0; k < 6; k++) { const t = (k / 6) * Math.PI * 2, rr = r * (0.6 + rnd() * 0.6); k ? g.lineTo(x + Math.cos(t) * rr, y + Math.sin(t) * rr) : g.moveTo(x + rr, y); }
+        g.closePath(); g.fill();
+      }
+      g.globalAlpha = 1;
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    if ('colorSpace' in t) t.colorSpace = THREE.SRGBColorSpace;
+    texCache[key] = t;
+    return t;
+  }
   const mat = {
     clay: (c, r = 0.55) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: 0, envMapIntensity: 0.9 }),
     gloss: (c, r = 0.16) => new THREE.MeshPhysicalMaterial({ color: c, roughness: r, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1 }),
+    // painted steel, Calder-style: satin, not candy
+    paint: (c, r = 0.42) => new THREE.MeshPhysicalMaterial({ color: c, roughness: r, metalness: 0.05, clearcoat: 0.35, clearcoatRoughness: 0.4, envMapIntensity: 0.9 }),
     chrome: (c = 0xffffff, r = 0.06) => new THREE.MeshStandardMaterial({ color: c, metalness: 1, roughness: r, envMapIntensity: 1.25 }),
-    brass: (r = 0.24) => new THREE.MeshStandardMaterial({ color: 0xE2B866, metalness: 1, roughness: r, envMapIntensity: 1.2 }),
+    brass: (r = 0.24) => new THREE.MeshStandardMaterial({ color: 0xC9A15A, metalness: 1, roughness: r, envMapIntensity: 1.2 }),
+    copper: (r = 0.28) => new THREE.MeshStandardMaterial({ color: 0xB9734A, metalness: 1, roughness: r, envMapIntensity: 1.15 }),
+    steel: (r = 0.3) => new THREE.MeshStandardMaterial({ color: 0xC9CBCD, metalness: 1, roughness: r, envMapIntensity: 1.1 }),
+    marble: (r = 0.22) => new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: stone('marble', '#EEECE6', '#8C8A86'), roughness: r, clearcoat: 0.6, clearcoatRoughness: 0.2, envMapIntensity: 0.95 }),
+    granite: (r = 0.28) => new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: stone('marble', '#181716', '#3A3835'), roughness: r, clearcoat: 0.8, clearcoatRoughness: 0.12, envMapIntensity: 1 }),
+    travertine: (r = 0.78) => new THREE.MeshStandardMaterial({ color: 0xffffff, map: stone('travertine', '#E2D6C2', '#BBA98C'), roughness: r, envMapIntensity: 0.85 }),
+    terrazzo: (base, chips, r = 0.5) => new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: stone('terrazzo', base, chips), roughness: r, clearcoat: 0.4, clearcoatRoughness: 0.3, envMapIntensity: 0.9 }),
+    oak: (r = 0.62) => new THREE.MeshStandardMaterial({ color: 0xffffff, map: stone('travertine', '#B48A58', '#8E6A3F'), roughness: r, envMapIntensity: 0.8 }),
     velvet: (c, sheen = 0x666677) => new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.92, sheen: 1, sheenRoughness: 0.35, sheenColor: new THREE.Color(sheen), envMapIntensity: 0.6 }),
-    glow: (c, i = 1.4) => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: i, roughness: 0.4 }),
-    glass: (c = 0xffffff, o = 0.28) => new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.04, metalness: 0, transparent: true, opacity: o, clearcoat: 1, clearcoatRoughness: 0.02, iridescence: 1, iridescenceIOR: 1.35, iridescenceThicknessRange: [180, 620], envMapIntensity: 1.6, depthWrite: false })
+    // a warm lamp, not a neon
+    glow: (c = 0xFFE3A8, i = 1.4) => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: i, roughness: 0.4 }),
+    // clear glass: no rainbow film
+    glass: (c = 0xffffff, o = 0.22) => new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.05, metalness: 0, transparent: true, opacity: o, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.5, depthWrite: false })
   };
 
   // a box with properly rounded edges (extruded rounded rect with a round bevel)
@@ -189,9 +245,9 @@ window.S3D = (function () {
       c.width = c.height = 128;
       const g = c.getContext('2d');
       const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-      grd.addColorStop(0, 'rgba(10,10,20,1)');
-      grd.addColorStop(0.45, 'rgba(10,10,20,0.45)');
-      grd.addColorStop(1, 'rgba(10,10,20,0)');
+      grd.addColorStop(0, 'rgba(16,15,14,1)');
+      grd.addColorStop(0.45, 'rgba(16,15,14,0.45)');
+      grd.addColorStop(1, 'rgba(16,15,14,0)');
       g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
       shadowTex = new THREE.CanvasTexture(c);
     }
@@ -237,7 +293,7 @@ window.S3D = (function () {
     const key = new THREE.DirectionalLight(0xffffff, opts.key ?? 1.6);
     key.position.set(3, 6, 5);
     scene.add(key);
-    const rim = new THREE.DirectionalLight(opts.rim || 0xCDBFFF, opts.rimI ?? 1.1);
+    const rim = new THREE.DirectionalLight(opts.rim || 0xEBC6B8, opts.rimI ?? 1.1);
     rim.position.set(-5, 3, -4);
     scene.add(rim);
     const v = {

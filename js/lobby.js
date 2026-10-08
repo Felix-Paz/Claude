@@ -35,11 +35,11 @@
           <figure class="label lb-hero-label">
             <span class="label-k mono">Exhibit 0 · Lobby</span>
             <b class="label-t">The Lens<span>, 2026</span></b>
-            <span class="label-m">Liquid glass, light, your hand</span>
+            <span class="label-m">Liquid glass, WebGL</span>
             <em class="label-n">Move it over the letters. Click for a ripple.</em>
           </figure>
           <div class="lb-hero-foot">
-            <p class="lb-lede">Seven principles of design, one per room.<br><em>Each one is done to you first — then explained.</em></p>
+            <p class="lb-lede">Seven principles of design, one room each. You try every one before anyone explains it.</p>
             <div class="lb-actions">
               <a class="btn btn-solid lb-start" href="#/room/contrast" data-magnetic><span>${n ? 'Continue the tour' : 'Start the tour'}</span><svg><use href="#i-arrow"/></svg></a>
               <button class="btn btn-ghost lb-choose" type="button"><span>See the building</span><svg><use href="#i-down"/></svg></button>
@@ -52,7 +52,7 @@
           <ul class="lb-info-list">
             <li><svg aria-hidden="true"><use href="#i-arch"/></svg><b>One route</b><span>Rooms 01 → 07, then the Rotunda. Every exit is the next room’s door.</span></li>
             <li><svg aria-hidden="true"><use href="#p-click"/></svg><b>Please touch</b><span>Each exhibit tells you what to do: drag, hold, scroll or click.</span></li>
-            <li><svg aria-hidden="true"><use href="#i-audio"/></svg><b>Audio guide</b><span>Every exhibit has a numbered stop. Press it to hear the story.</span></li>
+            <li><svg aria-hidden="true"><use href="#i-audio"/></svg><b>Audio guide</b><span>Every exhibit has a numbered stop. Press it to hear the wall text read aloud.</span></li>
             <li><svg aria-hidden="true"><use href="#i-stamp"/></svg><b>Passport</b><span>Reach a room’s exit and it stamps your passport (top right).</span></li>
             <li><svg aria-hidden="true"><use href="#i-map"/></svg><b>Floor plan</b><span>Lost? It shows the building and where you are.</span></li>
           </ul>
@@ -61,8 +61,8 @@
         <section class="lb-building" id="building">
           <header class="lb-sec-head">
             <p class="mono">The building · Scale 1 : 200</p>
-            <h2 data-lines>Seven rooms around <em>a rotunda.</em></h2>
-            <p class="lb-sec-sub">A model of the museum you're standing in. Drag to turn it, hover a room to peek inside, click to walk through the door.</p>
+            <h2 data-lines>Seven rooms around a rotunda.</h2>
+            <p class="lb-sec-sub">A model of the museum you’re standing in. Drag to turn it, hover a room to look inside, click to go in.</p>
           </header>
           <div class="bld">
             <div class="bld-stage" data-cursor="Explore" aria-label="A 3D model of the museum. Rooms are also listed below."></div>
@@ -79,8 +79,8 @@
         <section class="lb-halls" id="halls">
           <header class="lb-sec-head">
             <p class="mono">The permanent collection</p>
-            <h2 data-lines>Every room, <em>at a glance.</em></h2>
-            <p class="lb-sec-sub">Visit in order or wander. Each room stamps your passport; the Rotunda puts everything together.</p>
+            <h2 data-lines>Every room in the building.</h2>
+            <p class="lb-sec-sub">Go in order or skip around. Each room stamps your passport on the way out.</p>
           </header>
           <ol class="halls">${M.ROOMS.map(card).join('')}${card(M.ROTUNDA)}</ol>
         </section>
@@ -88,7 +88,7 @@
         <footer class="lb-colophon mono">
           <span>Museum of Design · 2026</span>
           <span>Mona Sans · Instrument Serif · Geist Mono</span>
-          <span>Built by hand — HTML, CSS, GSAP, three.js, GLSL</span>
+          <span>Made with HTML, CSS, GSAP, three.js and GLSL</span>
         </footer>
       </div>`;
     },
@@ -116,7 +116,7 @@
       c.onResize(() => { if (lens) lens.resize(); });
       // the header goes dark while it sits over the lens
       let dark = null;
-      const tone = on => { if (on === dark) return; dark = on; P.tone(hdr, on ? '#0C0C14' : null, '#F3F0E9'); };
+      const tone = on => { if (on === dark) return; dark = on; P.tone(hdr, on ? '#121110' : null, '#EEEAE2'); };
       c.tick(() => tone(hero.getBoundingClientRect().bottom > 68));
       tone(true);
       c.own(() => P.tone(hdr, null));

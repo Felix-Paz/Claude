@@ -9,8 +9,8 @@
   EXHIBITS.whitespace = [
     {
       title: 'The Clutter', icon: 'scroll', do: 'Scroll to clear it', cls: 'ex--pin',
-      about: 'Thirty-two things competing for your attention. Scroll and they leave, nearest to the middle first, until one word is left with room to breathe.',
-      note: 'Remove things <em>until it speaks.</em>',
+      about: 'Thirty-two things fighting for attention. Scroll and they leave one by one until a single word is left.',
+      note: 'Take things away until the important one is easy to find.',
       html: () => `
         <div class="ws">
           <div class="ws-pin">
@@ -24,7 +24,7 @@
         let seed = 7;
         const rnd = () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
         const pick = a => a[Math.floor(rnd() * a.length)];
-        const SW = [['#FD5A32', '#0C0C14'], ['#D9FD3A', '#0C0C14'], ['#3A22FC', '#F3F0E9'], ['#0C0C14', '#F3F0E9'], ['#8DEFC5', '#0C0C14'], ['#CDBFFF', '#0C0C14'], ['#FBC49F', '#0C0C14']];
+        const SW = [['#E8461E', '#121110'], ['#FFD21F', '#121110'], ['#1D3ECF', '#EEEAE2'], ['#121110', '#EEEAE2'], ['#BFD3C2', '#121110'], ['#EBC6B8', '#121110'], ['#E4D2B0', '#121110']];
         const TXT = { badge: ['Sale', 'New!', '−50%', 'Hot', 'Free shipping', 'Limited', 'Best seller', 'Act now', 'Trending', 'Only 2 left', '#1', 'Deal', 'VIP', 'Bonus', 'Last chance'], tag: ['Cookies?', 'Subscribe', 'Pop-up', 'Ad', 'Sponsored', 'Chat with us'], burst: ['Sale', 'Wow', 'New'], btn: ['Click here', 'Buy now', 'Sign up'] };
         const plan = [].concat(Array(12).fill('badge'), Array(6).fill('tag'), Array(3).fill('burst'), Array(3).fill('btn'), Array(5).fill('dot'), Array(3).fill('sq'));
         const items = plan.map((type, i) => {
@@ -32,14 +32,13 @@
           const [bg, fg] = pick(SW);
           n.className = 'jk jk-' + type;
           const ring = i % 3, a = rnd() * Math.PI * 2, rr = [0.13, 0.28, 0.42][ring] + rnd() * 0.07;
-          const x = 50 + Math.cos(a) * rr * 100, y = 60 + Math.sin(a) * rr * 70;
-          // keep the wall label (top of the frame) clear of the junk
-          n.style.setProperty('--x', clamp(x, 6, 94) + '%'); n.style.setProperty('--y', clamp(y, 27, 92) + '%');
+          const x = 50 + Math.cos(a) * rr * 100, y = 50 + Math.sin(a) * rr * 90;
+          n.style.setProperty('--x', clamp(x, 6, 94) + '%'); n.style.setProperty('--y', clamp(y, 6, 90) + '%');
           n.style.setProperty('--r', ((rnd() - 0.5) * 34).toFixed(1) + 'deg');
           n.style.fontSize = `clamp(10px, ${(0.8 + rnd() * 0.7).toFixed(2)}vw, 22px)`;
           if (TXT[type]) { n.textContent = pick(TXT[type]); n.style.background = bg; n.style.color = fg; }
           else { n.style.setProperty('--s', (2 + rnd() * 3.5).toFixed(1) + 'em'); n.style.background = bg; }
-          n.dataset.dx = x - 50; n.dataset.dy = y - 60;
+          n.dataset.dx = x - 50; n.dataset.dy = y - 50;
           clutter.appendChild(n);
           return n;
         });
@@ -57,15 +56,15 @@
           scrub: reduced ? true : 0.6, animation: tl,
           onUpdate: s => {
             const left = Math.max(1, Math.round(total * (1 - clamp(s.progress * 1.15, 0, 1))));
-            count.textContent = left <= 1 ? 'One thing. Finally.' : left + ' things want your attention';
+            count.textContent = left <= 1 ? 'One thing left' : left + ' things want your attention';
           }
         });
       }
     },
     {
       title: 'One Per Wall', icon: 'click', do: 'Switch the wall',
-      about: 'The same twelve paintings, hung two ways. A salon hang crams them frame to frame; a modern gallery gives one work a whole wall, a bench and its own light. Same art — which one <em>looks more valuable?</em>',
-      note: 'Space makes things look <em>expensive.</em>',
+      about: 'Twelve paintings hung two ways: frame to frame, or one per wall with its own light. Which ones look more valuable?',
+      note: 'Galleries give expensive things a whole wall each.',
       html: () => `
         <div class="wall">
           <div class="seg wall-seg" role="radiogroup" aria-label="Wall">
@@ -79,11 +78,11 @@
         const stage = $('.wall-stage', el);
         // twelve small works; the first one is the masterpiece
         const ART = [
-          '<circle cx="50" cy="50" r="24" fill="#FD5A32"/>',
-          '<rect x="30" y="30" width="40" height="40" fill="#3A22FC"/>', '<path d="M50 24 76 72H24z" fill="#0C0C14"/>', '<circle cx="50" cy="50" r="20" fill="#8DEFC5"/>',
-          '<rect x="26" y="40" width="48" height="20" fill="#FBC49F"/>', '<circle cx="40" cy="44" r="14" fill="#CDBFFF"/><circle cx="60" cy="58" r="14" fill="#3A22FC"/>', '<path d="M24 70 50 30 76 70" fill="none" stroke="#FD5A32" stroke-width="6"/>',
-          '<rect x="36" y="24" width="28" height="52" fill="#D9FD3A"/>', '<circle cx="50" cy="50" r="26" fill="none" stroke="#0C0C14" stroke-width="5"/>', '<rect x="28" y="28" width="44" height="44" rx="22" fill="#FD5A32"/>',
-          '<path d="M30 30h40v40H30z" fill="none" stroke="#3A22FC" stroke-width="5"/>', '<circle cx="50" cy="50" r="10" fill="#0C0C14"/>'
+          '<circle cx="50" cy="50" r="24" fill="#E8461E"/>',
+          '<rect x="30" y="30" width="40" height="40" fill="#1D3ECF"/>', '<path d="M50 24 76 72H24z" fill="#121110"/>', '<circle cx="50" cy="50" r="20" fill="#BFD3C2"/>',
+          '<rect x="26" y="40" width="48" height="20" fill="#E4D2B0"/>', '<circle cx="40" cy="44" r="14" fill="#EBC6B8"/><circle cx="60" cy="58" r="14" fill="#1D3ECF"/>', '<path d="M24 70 50 30 76 70" fill="none" stroke="#E8461E" stroke-width="6"/>',
+          '<rect x="36" y="24" width="28" height="52" fill="#FFD21F"/>', '<circle cx="50" cy="50" r="26" fill="none" stroke="#121110" stroke-width="5"/>', '<rect x="28" y="28" width="44" height="44" rx="22" fill="#E8461E"/>',
+          '<path d="M30 30h40v40H30z" fill="none" stroke="#1D3ECF" stroke-width="5"/>', '<circle cx="50" cy="50" r="10" fill="#121110"/>'
         ];
         // in 3D: a corner of a real gallery
         const g3 = window.EX3D ? EX3D.gallery(stage, c, ART) : null;
@@ -104,8 +103,8 @@
     },
     {
       title: 'Leading', icon: 'click', do: 'Try all three',
-      about: 'Leading (it rhymes with <em>wedding</em>) is the space between lines; the measure is how long each line runs. Cramped, the eye loses its place at every line break. Too airy, the lines drift apart and stop being a paragraph. Readers settle somewhere in between: about 45–75 characters a line.',
-      note: 'Lines need <em>air</em> — not a vacuum.',
+      about: 'Leading (it rhymes with wedding) is the space between lines. The measure is how long each line runs. Try all three settings.',
+      note: 'For body text: line height around 1.5, lines around 65 characters.',
       html: () => `
         <div class="lead">
           <div class="seg lead-seg" role="radiogroup" aria-label="Spacing">

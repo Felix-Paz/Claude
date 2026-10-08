@@ -9,17 +9,17 @@
   EXHIBITS.color = [
     {
       title: 'Temperature', icon: 'scroll', do: 'Scroll through the moods', cls: 'ex--pin ex--bleed',
-      about: 'Five words, five colors. Notice that each color already says its word before you’ve read it — warm ones feel hungry or urgent, cool ones calm or trustworthy.',
-      note: 'Color sets the mood <em>before a word is read.</em>',
+      about: 'Five words on five colors. Each color says its word before you’ve read it.',
+      note: 'Pick the mood first, then the color.',
       html: () => `
         <div class="temp">
           <div class="temp-pin">
             <div class="temp-words">
-              <p class="temp-w" style="--c:#FF7A1A;--f:#2A0F00">HUNGRY</p>
-              <p class="temp-w" style="--c:#1F6BFF;--f:#EAF1FF">TRUSTED</p>
-              <p class="temp-w" style="--c:#3FCF8E;--f:#04261A">CALM</p>
-              <p class="temp-w" style="--c:#FF2E4D;--f:#FFF0F2">URGENT</p>
-              <p class="temp-w" style="--c:#9B5CFF;--f:#F5EEFF">ROYAL</p>
+              <p class="temp-w" style="--c:#E0601F;--f:#1E0D04">HUNGRY</p>
+              <p class="temp-w" style="--c:#1D3ECF;--f:#EEEAE2">TRUSTED</p>
+              <p class="temp-w" style="--c:#9DB8A4;--f:#14261B">CALM</p>
+              <p class="temp-w" style="--c:#D4211F;--f:#FFF4EE">URGENT</p>
+              <p class="temp-w" style="--c:#3E1A3F;--f:#D2A85F">ROYAL</p>
             </div>
           </div>
         </div>`,
@@ -55,16 +55,16 @@
     },
     {
       title: 'The Wheel', icon: 'drag', do: 'Drag the hue',
-      about: 'Colors in a fixed relationship on the wheel tend to look like they belong together. Drag the hue and pick a harmony; the swatches and the little app repaint to match.',
-      note: 'Harmony is <em>a relationship.</em>',
+      about: 'Colors at fixed angles on the wheel tend to work together. Turn the hue and choose a harmony.',
+      note: 'Start from one hue and find the others by their angle.',
       html: () => `
         <div class="wheel-lab">
           <div class="wl-wheel-wrap">
             <div class="wl-wheel" data-cursor="Drag">
               <canvas class="wl-canvas" aria-hidden="true"></canvas>
               <span class="wl-dot" aria-hidden="true"></span><span class="wl-dot" aria-hidden="true"></span>
-              <button class="wl-handle" type="button" role="slider" aria-label="Base hue" aria-valuemin="0" aria-valuemax="360" aria-valuenow="285"></button>
-              <div class="wl-center"><b class="wl-hue">285°</b></div>
+              <button class="wl-handle" type="button" role="slider" aria-label="Base hue" aria-valuemin="0" aria-valuemax="360" aria-valuenow="25"></button>
+              <div class="wl-center"><b class="wl-hue">25°</b></div>
             </div>
             <div class="seg wl-seg" role="radiogroup" aria-label="Harmony">
               <button type="button" role="radio" aria-checked="true" data-h="complementary">Complement</button>
@@ -77,7 +77,7 @@
             <div class="wl-mock">
               <div class="wm-top"><i class="wm-logo"></i><i class="wm-nav"></i><span class="wm-pill">Sign in</span></div>
               <p class="wm-tag mono">New season</p>
-              <p class="wm-h">Weekend tickets, <em>sorted.</em></p>
+              <p class="wm-h">Weekend tickets, sorted.</p>
               <span class="wm-btn">Get started <svg><use href="#i-arrow"/></svg></span>
               <div class="wm-bars"><i style="--h:.45"></i><i style="--h:.72"></i><i style="--h:.56"></i><i style="--h:.95"></i><i style="--h:.62"></i></div>
             </div>
@@ -89,7 +89,7 @@
         const handle = $('.wl-handle', el), dots = $$('.wl-dot', el), hueLbl = $('.wl-hue', el);
         const mock = $('.wl-mock', el), sw = $('.wl-swatches', el), sec = el.closest('.ex');
         const HARM = { complementary: [180, 180], analogous: [32, -32], triadic: [120, 240] };
-        const st = { hue: 285, shown: 285, mode: 'complementary' };
+        const st = { hue: 25, shown: 25, mode: 'complementary' };
         const cusp = {};
         const cuspL = h => { const k = Math.round(h); if (cusp[k]) return cusp[k]; let best = { L: 0.6, C: 0 }; for (let L = 0.4; L <= 0.96; L += 0.02) { const x = color.oklch(L, 0.4, k); if (x.C > best.C) best = { L, C: x.C }; } return (cusp[k] = best); };
         function draw() {
@@ -101,7 +101,7 @@
             ctx2.arc(cc, cc, R, (a - 0.6) * Math.PI / 180, (a + 1.2) * Math.PI / 180);
             ctx2.arc(cc, cc, r, (a + 1.2) * Math.PI / 180, (a - 0.6) * Math.PI / 180, true);
             ctx2.closePath();
-            ctx2.fillStyle = color.oklch(0.76, 0.15, a).hex;
+            ctx2.fillStyle = color.oklch(0.74, 0.13, a).hex;
             ctx2.fill();
           }
         }
@@ -110,8 +110,8 @@
           const h1 = (h0 + off[0]) % 360, h2 = (h0 + off[1] + 360) % 360;
           const c1 = cuspL(h1), c2 = cuspL(h2), c0 = cuspL(h0);
           const pal = [
-            color.oklch(0.95, 0.035, h0), color.oklch(clamp(lerp(c1.L, 0.86, 0.55), 0.72, 0.9), 0.13, h1),
-            color.oklch(clamp(c2.L, 0.5, 0.92), c2.C * 0.92, h2), color.oklch(clamp(lerp(c0.L, 0.7, 0.5), 0.55, 0.8), 0.15, h0), color.oklch(0.2, 0.04, h0)
+            color.oklch(0.95, 0.025, h0), color.oklch(clamp(lerp(c1.L, 0.84, 0.55), 0.72, 0.88), 0.08, h1),
+            color.oklch(clamp(c2.L, 0.5, 0.74), Math.min(c2.C * 0.85, 0.15), h2), color.oklch(clamp(lerp(c0.L, 0.66, 0.5), 0.55, 0.76), 0.11, h0), color.oklch(0.21, 0.025, h0)
           ];
           const accFg = color.contrast(pal[2].rgb, pal[4].rgb) > color.contrast(pal[2].rgb, pal[0].rgb) ? pal[4].hex : pal[0].hex;
           ['--m1', '--m2', '--m3', '--m4', '--m5'].forEach((k, i) => mock.style.setProperty(k, pal[i].hex));
@@ -157,14 +157,14 @@
         c.onResize(() => { draw(); paint(); });
         if (!reduced) ScrollTrigger.create({ trigger: wheel, start: 'top 70%', once: true, onEnter: () => {
           const o = { h: st.shown - 150 }; st.shown = o.h;
-          gsap.to(o, { h: 285, duration: 2, ease: 'expo.out', onUpdate: () => { st.shown = o.h; paint(); } });
+          gsap.to(o, { h: 25, duration: 2, ease: 'expo.out', onUpdate: () => { st.shown = o.h; paint(); } });
         } });
       }
     },
     {
       title: 'Same Grey', icon: 'hold', do: 'Hold to reveal',
-      about: 'Both squares are exactly the same grey. Your eye judges a color by its neighbours, so the background changes what you see. Hold to take the neighbours away.',
-      note: 'No color exists <em>alone.</em>',
+      about: 'Both squares are the same grey. The backgrounds make them look different. Hold to take the backgrounds away.',
+      note: 'Check a color on its real background, never on its own.',
       html: () => `
         <div class="illusion" tabindex="0" role="button" aria-label="Hold to reveal that both squares are the same grey" data-cursor="Hold">
           <div class="il-half il-dark"><span class="il-chip"></span></div>

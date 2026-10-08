@@ -1,9 +1,9 @@
 /* =====================================================================
-   MUSEUM OF DESIGN · Exhibit 0 — the lens
+   MUSEUM OF DESIGN · Exhibit 0, the lens
    A drop of liquid glass over the museum's name. The headline is
    typeset by the browser (layout, kerning and the accessible text stay
    real), traced glyph-by-glyph into a texture, and refracted in a
-   fragment shader: magnification, chromatic dispersion, fresnel rim,
+   fragment shader: magnification, a trace of dispersion, fresnel rim,
    specular glint, squash & stretch with velocity, click ripples, an
    intro dissolve and a scroll melt.
    ===================================================================== */
@@ -28,15 +28,12 @@ uniform float uR;        // lens radius (device px)
 uniform float uIntro;    // 0 → 1 text dissolve-in
 uniform float uScroll;   // 0 → 1 hero leaving the viewport
 uniform vec4  uRip[4];   // ripples: x, y, age (s), amplitude
-uniform float uAmb;      // aurora amount
+uniform float uAmb;      // gallery light amount
 uniform float uVig;      // vignette amount
 uniform float uGrain;    // film grain amount
 
-const vec3 INK   = vec3(0.047, 0.047, 0.078);
-const vec3 ULTRA = vec3(0.227, 0.133, 0.988);
-const vec3 LILAC = vec3(0.804, 0.749, 1.000);
-const vec3 CORAL = vec3(0.992, 0.353, 0.196);
-const vec3 VOLT  = vec3(0.851, 0.992, 0.227);
+const vec3 INK  = vec3(0.071, 0.067, 0.063);   // the wall: warm black paint
+const vec3 WARM = vec3(1.0, 0.955, 0.89);      // gallery light
 
 float hash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -56,22 +53,11 @@ float fbm(vec2 p) {
   return v;
 }
 
-// slow aurora of the palette, pooled at the edges of an ink room
-vec3 aurora(vec2 px) {
-  if (uAmb <= 0.0) return INK;
-  float aspect = uRes.x / uRes.y;
-  vec2 uv = px / uRes.y;
-  float t = uTime * 0.035;
-  vec2 q = vec2(fbm(uv * 1.25 + vec2(t, -t)), fbm(uv * 1.25 + vec2(4.2 - t, 1.7 + t)));
-  float n = fbm(uv * 1.1 + q * 1.7 + t);
-  float g1 = smoothstep(1.15, 0.0, length((uv - vec2(aspect * 0.86, 1.02)) * vec2(0.85, 1.25)) + (n - 0.5) * 0.7);
-  float g2 = smoothstep(0.8, 0.0, length((uv - vec2(aspect * 0.12, 1.12)) * vec2(0.75, 1.5)) + (q.x - 0.5) * 0.6);
-  float g3 = smoothstep(0.95, 0.0, length((uv - vec2(aspect * 0.5, -0.2)) * vec2(0.55, 1.7)) + (q.y - 0.5) * 0.7);
-  vec3 col = INK;
-  col = mix(col, ULTRA * 0.78, g1 * 0.62 * uAmb);
-  col = mix(col, CORAL * 0.72, g2 * 0.34 * uAmb);
-  col = mix(col, LILAC * 0.32, g3 * 0.22 * uAmb);
-  return col;
+// a dark gallery wall with one overhead light washing down it — no colour, no blobs
+vec3 wall(vec2 px) {
+  vec2 uv = px / uRes;
+  float wash = smoothstep(1.05, 0.0, length((uv - vec2(0.5, -0.12)) * vec2(0.9, 1.25)));
+  return INK + WARM * wash * 0.055 * uAmb;
 }
 
 // where a pixel samples the type from: ripples, intro smear, scroll melt
@@ -112,7 +98,7 @@ vec3 scene(vec2 px) {
     m = smoothstep(n - 0.06, n + 0.06, uIntro * 1.3 - 0.15 + (px.x / uRes.x) * 0.0);
   }
   m *= 1.0 - smoothstep(0.55, 1.0, uScroll);
-  return mix(aurora(px), tx.rgb, tx.a * m);
+  return mix(wall(px), tx.rgb, tx.a * m);
 }
 
 void main() {
@@ -136,7 +122,7 @@ void main() {
   float sh = smoothstep(1.4, 0.92, length((d - vec2(0.0, 0.22 * uR)) / max(uR, 1.0)));
   col *= 1.0 - sh * 0.32 * step(1.0, uR);
   float caustic = smoothstep(1.3, 1.0, length((d + vec2(0.0, -0.32 * uR)) / max(uR, 1.0))) * (1.0 - smoothstep(0.95, 1.0, r));
-  col += LILAC * caustic * 0.05;
+  col += WARM * caustic * 0.04;
 
   if (r < 1.0 && uR > 1.0) {
     float h = sqrt(1.0 - r * r);                               // dome height
@@ -145,12 +131,12 @@ void main() {
     vec2 base = uLens + d * mag;
     float bend = pow(r, 5.0) * uR * 0.42;                      // rim bends hardest
     vec2 s0 = base - nd * bend;
-    float disp = (0.6 + 5.0 * pow(r, 3.0)) * uDpr;             // dispersion, strongest at the rim
+    float disp = (0.2 + 1.1 * pow(r, 3.0)) * uDpr;             // a trace of dispersion at the rim, like real glass
     vec3 c;
     c.r = scene(s0 + nd * disp).r;
     c.g = scene(s0).g;
     c.b = scene(s0 - nd * disp * 1.15).b;
-    c *= vec3(0.97, 0.99, 1.05) * 1.07;
+    c *= 1.06;
 
     vec3 N = normalize(vec3(nd * r * 1.35, h));
     vec3 L = normalize(vec3(-0.5, -0.7, 0.62));
@@ -159,8 +145,8 @@ void main() {
     float spec2 = pow(max(dot(N, normalize(vec3(0.55, 0.6, 0.5) + vec3(0.0, 0.0, 1.0))), 0.0), 40.0);
     float fres = pow(1.0 - h, 3.2);
     c += vec3(1.0) * spec * 0.95;
-    c += VOLT * spec2 * 0.12;
-    c += mix(LILAC, vec3(1.0), 0.45) * fres * 0.42;
+    c += WARM * spec2 * 0.1;
+    c += WARM * fres * 0.34;
     float rim = smoothstep(0.93, 0.985, r) * (1.0 - smoothstep(0.985, 1.0, r));
     c += rim * 0.18;
     float edge = 1.0 - smoothstep(1.0 - 1.6 * uDpr / R, 1.0, r);
@@ -283,7 +269,7 @@ void main() {
           const kw = stretchKeyword(cs.fontStretch);
           tctx.font = `${cs.fontStyle} ${cs.fontWeight} ${kw} ${cs.fontSize} ${cs.fontFamily}`;
           if ('fontStretch' in tctx) { try { tctx.fontStretch = kw; } catch (e) {} }
-          tctx.fillStyle = cs.getPropertyValue('--gl').trim() || '#F3F0E9';
+          tctx.fillStyle = cs.getPropertyValue('--gl').trim() || '#EEEAE2';
           const ls = parseFloat(cs.letterSpacing) || 0;
           const txt = node.textContent;
           for (let i = 0; i < txt.length; i++) {

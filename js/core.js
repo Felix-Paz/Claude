@@ -59,7 +59,7 @@ window.P = (function () {
     const el = $('.toast');
     el.innerHTML = '<i></i><span></span>';
     el.lastChild.textContent = text;
-    el.style.setProperty('--c', color || 'var(--volt)');
+    el.style.setProperty('--c', color || 'var(--signal)');
     if (!el._ready) { gsap.set(el, { xPercent: -50, yPercent: 220 }); el._ready = true; }
     if (toastTl) toastTl.kill();
     toastTl = gsap.timeline().to(el, { yPercent: 0, duration: 0.6, ease: 'museum' }).to(el, { yPercent: 220, duration: 0.5, ease: 'power3.in' }, '+=1.8');

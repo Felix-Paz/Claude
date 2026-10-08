@@ -28,11 +28,11 @@ A small museum on the web. You come in with a ticket, pick a room on a 3D model 
 
 | Room | Sculpture | Exhibits |
 | --- | --- | --- |
-| 01 Contrast | *Eclipse*: two lacquer halves around a light | The Dark Room · The Dial · Find "Continue" |
+| 01 Contrast | *Eclipse*: a granite disc in front of a marble one, lit from behind | The Dark Room · The Dial · Find "Continue" |
 | 02 Hierarchy | *The Podium* | The Poster (self-organising, captioned) · Promote One · The Squint Test |
-| 03 White Space | *One Thing*: a tilting slab, one red sphere | The Clutter · One Per Wall (a 3D gallery: salon hang → one spotlit work) · Leading (a page with its measure and line boxes drawn) |
-| 04 Color | *Spectrum*: twelve OKLCH hues | Temperature · The Wheel · Same Grey |
-| 05 Typography | *Ampersand*: extruded Instrument Serif | Words That Act · One Font · Kerning (the holes, measured) |
+| 03 White Space | *One Thing*: a tilting plaster slab, one red ball | The Clutter · One Per Wall (a 3D gallery: salon hang → one spotlit work) · Leading (a page with its measure and line boxes drawn) |
+| 04 Color | *Spectrum*: twelve lacquered hues around a glass ball | Temperature · The Wheel · Same Grey |
+| 05 Typography | *Ampersand*: Instrument Serif Italic in granite and brass | Words That Act · One Font · Kerning (the holes, measured) |
 | 06 Motion | *Newton's Cradle* (click it) | Photo Finish (a 3D race track) · The Spring (a real coil) · Stagger (all at once vs one after another) |
 | 07 Balance | *Mobile No. 3*, after Calder | The Seesaw · Two Kinds of Calm · The Thirds · The Golden Ratio (with a Fibonacci terrazzo sculpture) |
 | ∞ Rotunda | *Armillary* | The Grand Restoration · Passport Control · The Gift Shop |
@@ -72,14 +72,16 @@ js/
   - **Lighting.** A PMREM studio environment, contact shadows, and real shadow maps for the architecture.
   - **Interaction.** Raycast picking finds what's under the pointer, and labels follow 3D points as the model turns.
   - **Pieces.** The building, the gallery, the race track, the spring, the postcard rack and the Fibonacci slab are all built from primitives, extruded font outlines and canvas textures.
-- **The Lens.** A GLSL fragment shader over a texture traced from the real DOM typesetting. It does magnification, chromatic dispersion, fresnel rim, specular glint, squash and stretch with velocity, ripples, and a melt as you scroll away.
+- **The Lens.** A GLSL fragment shader over a texture traced from the real DOM typesetting. It does magnification, a trace of dispersion, fresnel rim, specular glint, squash and stretch with velocity, ripples, and a melt as you scroll away.
 - **Type.**
   - **Mona Sans** (variable weight and width) for everything structural. Room names are fitted with the width axis.
   - **Instrument Serif** italic for the voice.
   - **Geist Mono** for labels.
-- **Color.** Each room owns one color from a palette chosen in OKLCH:
-  - darks and lights: Ink `#0C0C14`, Bone `#F3F0E9`, Paper `#FBFAF6`
-  - accents: Ultra `#3A22FC`, Lilac `#CDBFFF`, Mint `#8DEFC5`, Coral `#FD5A32`, Apricot `#FBC49F`, Volt `#D9FD3A`, Brass `#E2B866`
+- **Color.** Each room is painted one wall color, the way real galleries are:
+  - neutrals: Ink `#121110`, Bone `#EEEAE2`, Paper `#F8F6F1`
+  - walls: Klein blue `#1D3ECF`, Plaster pink `#EBC6B8`, Bottle green `#163D30`, Vermilion `#E8461E`, Sand `#E4D2B0`, Dusk `#15110C`
+  - signals: Signal yellow `#FFD21F`, Brass `#D2A85F`
+- **Materials.** The sculptures are made of things a museum would actually show: marble, granite, travertine, terrazzo, oak, brass, steel and lacquer, all generated as canvas textures. No glows, gradients or glass blur in the interface; controls are square-cornered, like printed wall labels.
 - **Audio guide.** Uses the browser's speech synthesis. The button hides when it isn't available.
 - **Libraries.**
   - [GSAP](https://gsap.com) (ScrollTrigger, SplitText, CustomEase), [Lenis](https://lenis.darkroom.engineering) and three.js r159, vendored in `vendor/`.

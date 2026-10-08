@@ -9,8 +9,8 @@
   EXHIBITS.motion = [
     {
       title: 'Photo Finish', icon: 'click', do: 'Start the race',
-      about: 'Four balls travel the same distance in the same time. Only their <em>easing</em> differs — how speed changes along the way. Which one feels most like a real thing moving?',
-      note: 'Same distance, same time — <em>different personality.</em>',
+      about: 'Four balls, same distance, same time. Only the easing is different: how the speed changes along the way. Which one looks real?',
+      note: 'Ease out for things that arrive. Linear is for progress bars.',
       html: () => `
         <div class="race">
           <div class="race-lane" data-e="none"><span class="rl-name"><b>Linear</b><i>robotic</i></span><span class="rl-track"><i class="rl-ball"></i></span></div>
@@ -22,7 +22,7 @@
         </div>`,
       init(el, c) {
         const lanes = $$('.race-lane', el).map(l => ({ ease: gsap.parseEase(l.dataset.e), ball: $('.rl-ball', l), track: $('.rl-track', l), name: $('b', l).textContent, sub: $('i', l).textContent }));
-        const COLS = [0xF3F0E9, 0xD9FD3A, 0xCDBFFF, 0x8DEFC5];
+        const COLS = [0xF3EFE6, 0xFFD21F, 0xE8461E, 0x5B7FFF];
         // the track wants width: phones keep the flat lanes
         const r3 = window.EX3D && P.vw() > 760 ? EX3D.race($('.race-3d', el), c, lanes.map((L, i) => ({ name: L.name, sub: L.sub, ease: L.ease, color: COLS[i] }))) : null;
         if (r3) el.querySelector('.race').classList.add('is-3d');
@@ -47,8 +47,8 @@
     },
     {
       title: 'The Spring', icon: 'drag', do: 'Drag it, let go',
-      about: 'This ball hangs on a spring. Pull it and throw it: tension drags it home, friction calms it down, and it overshoots a little on arrival — like anything real. That overshoot is what “spring” easing borrows.',
-      note: 'Physics makes things <em>feel alive.</em>',
+      about: 'A ball on a spring. Pull it and let go: it swings home, overshoots a little and settles.',
+      note: 'One small overshoot is what makes a spring feel physical.',
       html: () => `
         <div class="spring">
           <svg class="sp-band" aria-hidden="true"><path/></svg>
@@ -90,8 +90,8 @@
     },
     {
       title: 'Stagger', icon: 'click', do: 'Switch, then click',
-      about: 'Same dots, same move. <em>All at once</em> feels like a glitch; <em>one after another</em> — each starting a few milliseconds after its neighbour — feels like a ripple. Switch between them and click the grid.',
-      note: 'Order turns movement <em>into choreography.</em>',
+      about: 'The same dots doing the same move, either all at once or one after another. Switch, then click the grid.',
+      note: 'Start each item 20 to 60 ms after the one before.',
       html: () => `
         <div class="stag">
           <div class="seg stag-seg" role="radiogroup" aria-label="Timing">
@@ -115,7 +115,7 @@
             const x = i % COLS, y = Math.floor(i / COLS);
             const dist = Math.hypot(x - cx, (y - cy) * 1.1);
             gsap.timeline({ delay: dist * step })
-              .to(d, { scale: 1.9, backgroundColor: '#0C0C14', duration: 0.22, ease: 'power2.out', overwrite: 'auto' })
+              .to(d, { scale: 1.9, backgroundColor: '#121110', duration: 0.22, ease: 'power2.out', overwrite: 'auto' })
               .to(d, { scale: 1, backgroundColor: '', duration: 0.9, ease: 'elastic.out(1, 0.4)' });
           });
         };

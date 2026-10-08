@@ -110,7 +110,13 @@ window.ROOM = (function () {
       $$('.ex--pin', root).forEach(sec => {
         const pinEl = sec.querySelector('.ex-body [class$="-pin"]') || sec.querySelector('[class$="-pin"]');
         const intro = $('.ex-intro', sec);
-        if (pinEl && intro) pinEl.prepend(intro);
+        if (!pinEl || !intro) return;
+        pinEl.prepend(intro);
+        // the pinned content starts below the wall text, however tall it wraps
+        const measure = () => pinEl.style.setProperty('--intro-h', intro.offsetHeight + 'px');
+        measure();
+        c.onResize(measure);
+        if (document.fonts) document.fonts.ready.then(measure);
       });
       list.forEach((e, i) => {
         const sec = $(`#ex-${i + 1}`, root);
@@ -168,10 +174,10 @@ window.ROOM = (function () {
               <span class="mono exit-stamp-date"></span>
             </div>
           </div>
-          <p class="exit-k mono">End of Room ${d.num}</p>
+          <p class="exit-k mono">End of Room ${d.num} · Rule of thumb</p>
           <h2 class="exit-line" data-lines>${d.closing}</h2>
           <a class="exit-door" href="${M.href(nx.id)}" data-cursor="Enter">
-            <span class="exit-door-art" aria-hidden="true"></span>
+            <span class="exit-door-art" style="--next:${nx.bg}" aria-hidden="true"></span>
             <span class="exit-door-meta">
               <span class="mono">Next · ${nx.id === 'rotunda' ? 'Room ∞' : 'Room ' + nx.num}</span>
               <b>${nx.name}</b>

@@ -4,13 +4,13 @@
    ===================================================================== */
 (function () {
   'use strict';
-  const { $, $$, damp, pointer, reduced, color } = P;
+  const { $, $$, damp, reduced, color } = P;
 
   EXHIBITS.contrast = [
     {
       title: 'The Dark Room', icon: 'move', do: 'Move the light', cls: 'ex--bleed',
-      about: 'This wall has something to say, but it’s whispering: the words are almost the same color as the wall. Your torch adds light — and light adds contrast. <em>Same words, suddenly readable.</em>',
-      note: 'Without contrast, <em>nothing gets noticed.</em>',
+      about: 'The words on this wall are almost the same color as the wall. Shine the torch on them to add contrast.',
+      note: 'Grey on grey is how small print hides.',
       html: () => `
         <div class="spot" data-cursor="Light">
           <div class="spot-layer spot-dim"><p class="spot-text">QUIET IS<br>EASY TO<br>IGNORE.</p></div>
@@ -19,19 +19,21 @@
         </div>`,
       init(el, c) {
         const spot = $('.spot', el), lit = $('.spot-lit', spot);
-        let x = 0, y = 0, r = 0, inside = false, held = false, last = 0;
+        // the torch follows the pointer; on a phone it goes where you tap and stays a while
+        let x = 0, y = 0, r = 0, px = 0, py = 0, inside = false, held = false, last = 0;
+        const aim = e => { px = e.clientX; py = e.clientY; last = performance.now(); };
         c.on(spot, 'pointerenter', () => { inside = true; });
-        c.on(spot, 'pointerleave', () => { inside = false; held = false; });
-        c.on(spot, 'pointermove', () => { last = performance.now(); });
-        c.on(spot, 'pointerdown', () => { held = true; });
+        c.on(spot, 'pointerleave', e => { if (e.pointerType === 'mouse') { inside = false; held = false; } });
+        c.on(spot, 'pointermove', aim);
+        c.on(spot, 'pointerdown', e => { inside = true; held = true; aim(e); });
         c.on(window, 'pointerup', () => { held = false; });
         c.visible(spot, (t, dt) => {
           const b = spot.getBoundingClientRect(), live = inside && performance.now() - last < 3000;
-          const tx = live ? pointer.x - b.left : b.width * (0.5 + 0.3 * Math.sin(t * 0.5));
-          const ty = live ? pointer.y - b.top : b.height * (0.5 + 0.18 * Math.sin(t * 0.77 + 1));
+          const tx = live ? px - b.left : b.width * (0.5 + 0.3 * Math.sin(t * 0.5));
+          const ty = live ? py - b.top : b.height * (0.5 + 0.18 * Math.sin(t * 0.77 + 1));
           const m = Math.min(b.width, b.height);
           x = damp(x || tx, tx, 10, dt); y = damp(y || ty, ty, 10, dt);
-          r = damp(r, m * (held ? 0.7 : live ? 0.3 : 0.24), 6, dt);
+          r = damp(r, m * (held ? 0.62 : live ? 0.26 : 0.07), 6, dt);
           lit.style.setProperty('--x', x.toFixed(1) + 'px');
           lit.style.setProperty('--y', y.toFixed(1) + 'px');
           lit.style.setProperty('--r', r.toFixed(1) + 'px');
@@ -40,8 +42,8 @@
     },
     {
       title: 'The Dial', icon: 'slide', do: 'Turn up the contrast',
-      about: 'Contrast can be measured. It’s a ratio between the lighter and the darker color: 1&#8239;:&#8239;1 is invisible, 21&#8239;:&#8239;1 is black on white. Body text on a screen needs at least <em>4.5&#8239;:&#8239;1</em> — slide past it and watch the badges light up.',
-      note: '4.5&#8239;:&#8239;1 is the minimum <em>for reading.</em>',
+      about: 'Contrast is measured as a ratio, from 1&#8239;:&#8239;1 (invisible) to 21&#8239;:&#8239;1 (black on white). Body text needs at least 4.5&#8239;:&#8239;1.',
+      note: '4.5&#8239;:&#8239;1 for body text, 3&#8239;:&#8239;1 for big headings.',
       html: () => `
         <div class="dial">
           <div class="dial-view"><p class="dial-word">Read me.</p></div>
@@ -55,7 +57,7 @@
       init(el, c) {
         const range = $('.dial-range', el), view = $('.dial-view', el), num = $('.dial-num', el), out = $('.dial-out', el);
         const badges = $$('.dial-badges span', el);
-        const bg = color.oklch(0.22, 0.03, 280);
+        const bg = color.oklch(0.22, 0.006, 70);
         view.style.background = bg.hex;
         P.rangeFill(range);
         let shown = 1, target = 1;
@@ -66,7 +68,7 @@
           num.textContent = shown.toFixed(2);
         });
         const update = () => {
-          const fg = color.oklch(+range.value, 0.03, 280);
+          const fg = color.oklch(+range.value, 0.006, 70);
           view.style.color = fg.hex;
           const ratio = color.contrast(fg.rgb, bg.rgb);
           target = ratio;
@@ -83,8 +85,8 @@
     },
     {
       title: 'Find “Continue”', icon: 'click', do: 'Find it, fast',
-      about: 'Two rounds, one button to find. In round one every button looks alike, so you have to read them all. In round two one of them is different — and your eye gets there <em>before you’ve read a word.</em>',
-      note: 'Contrast is a shortcut <em>for the eye.</em>',
+      about: 'Find the Continue button, twice. In the first round every button looks the same. In the second, one of them doesn’t.',
+      note: 'Make the button you want clicked look different from the rest.',
       html: () => `
         <div class="find">
           <div class="find-bar mono">
@@ -93,8 +95,8 @@
           </div>
           <div class="find-grid"></div>
           <div class="find-result" hidden>
-            <p class="find-res-line"><span class="mono">Round 1</span><b class="r1">—</b></p>
-            <p class="find-res-line"><span class="mono">Round 2</span><b class="r2">—</b></p>
+            <p class="find-res-line"><span class="mono">Round 1</span><b class="r1">–</b></p>
+            <p class="find-res-line"><span class="mono">Round 2</span><b class="r2">–</b></p>
             <p class="find-verdict"></p>
             <button class="btn btn-ghost find-again" type="button"><span>Play again</span></button>
           </div>
@@ -133,7 +135,7 @@
           $('.r1', result).textContent = times[0].toFixed(1) + 's';
           $('.r2', result).textContent = times[1].toFixed(1) + 's';
           const k = times[0] / Math.max(0.1, times[1]);
-          $('.find-verdict', result).innerHTML = k > 1.2 ? `<b>${k.toFixed(1)}×</b> faster with contrast.` : 'Fast either way — but only one of them was luck.';
+          $('.find-verdict', result).innerHTML = k > 1.2 ? `<b>${k.toFixed(1)}×</b> faster with contrast.` : 'Fast both times. The first one was probably luck.';
           if (!reduced) gsap.from(result.children, { y: 16, opacity: 0, duration: 0.7, ease: 'museum', stagger: 0.08 });
         }
         c.on($('.find-again', el), 'click', () => { r = 1; times = []; grid.hidden = false; result.hidden = true; $('.find-bar', el).hidden = false; deal(); });

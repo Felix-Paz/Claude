@@ -9,8 +9,8 @@
   EXHIBITS.hierarchy = [
     {
       title: 'The Poster', icon: 'scroll', do: 'Scroll slowly', cls: 'ex--pin',
-      about: 'A poster whose parts are all the same size, weight and color — so it reads like a shopping list. As you scroll it gets one tool at a time. The numbered dots show the order your eye now takes.',
-      note: 'Size, weight, color, position: <em>four dials.</em>',
+      about: 'Every line starts at the same size, weight and color. Scroll to fix it one tool at a time. The dots show the order you read it in.',
+      note: 'Four tools: size, weight, color and position.',
       html: () => `
         <div class="hier">
           <div class="hier-pin">
@@ -20,11 +20,11 @@
             </div>
             <div class="hier-frame">
               <div class="hier-stage" aria-label="A poster that organises itself as you scroll">
-                <span class="he he-kicker" data-he="kicker">Exhibition — Spring 2026</span>
+                <span class="he he-kicker" data-he="kicker">Exhibition · Spring 2026</span>
                 <span class="he he-title" data-he="title"><span>The Shape</span><span>of Attention</span></span>
                 <span class="he he-deck" data-he="deck"><span>Forty years of posters that</span><span>made strangers stop walking.</span></span>
                 <span class="he he-body" data-he="body"><span>Two hundred works from the archive,</span><span>hung in the order your eye</span><span>would have chosen anyway.</span></span>
-                <span class="he he-date" data-he="date">12.03 — 30.06</span>
+                <span class="he he-date" data-he="date">12.03 – 30.06</span>
                 <span class="he he-venue" data-he="venue">Hall B, Level 2</span>
                 <span class="he he-price" data-he="price">Free entry</span>
                 <span class="he he-cta" data-he="cta">Book a ticket</span>
@@ -34,7 +34,7 @@
               </div>
               <div class="hier-stage hier-measure" aria-hidden="true"></div>
             </div>
-            <p class="hier-cap" aria-live="polite"><span class="mono hier-cap-k">Step 0 · Flat</span><span class="hier-cap-t">Every line at the same volume. Where do you start? Exactly.</span></p>
+            <p class="hier-cap" aria-live="polite"><span class="mono hier-cap-k">Step 0 · Flat</span><span class="hier-cap-t">Every line at the same size, so there’s no obvious place to start.</span></p>
           </div>
         </div>`,
       init(el, c, sec) {
@@ -46,11 +46,11 @@
         const steps = $$('.hs', el), bar = $('.hs-bar i', el), pathEl = $('.hier-path path', stage), svg = $('.hier-path', stage), marks = $$('.hier-mark', stage);
         let states = [], tl = null, st = null, capAt = 0;
         const CAPS = [
-          ['Flat', 'Every line at the same volume. Where do you start? Exactly.'],
-          ['Size', 'The title grows, the fine print shrinks. Now there’s a first thing.'],
+          ['Flat', 'Every line at the same size, so there’s no obvious place to start.'],
+          ['Size', 'The title gets bigger and the fine print smaller. Now something comes first.'],
           ['Weight', 'Bold for what matters, light for what doesn’t.'],
           ['Color', 'One accent leads the eye to the date and the button.'],
-          ['Position', 'Grouped, aligned, ordered. Follow the dots: that’s the route your eye just took.']
+          ['Position', 'Related lines are grouped and aligned. The dots show the order you read it in.']
         ];
         const capK = $('.hier-cap-k', el), capT = $('.hier-cap-t', el);
         function caption(k) {
@@ -131,8 +131,8 @@
     },
     {
       title: 'Promote One', icon: 'click', do: 'Pick a winner',
-      about: 'Three equal plans, three equal shouts — so nobody chooses. Pick one to promote: it grows, takes the color, and the others <em>step back on their own.</em>',
-      note: 'Importance is assigned, <em>not found.</em>',
+      about: 'Three plans that look equal, so nobody can choose. Promote one and watch what happens to the other two.',
+      note: 'Pick the one you’d recommend, then make it look recommended.',
       html: () => `
         <div class="promo">
           <button type="button" class="promo-card is-top" data-i="0"><span class="mono">Plan</span><b>Studio</b><i>For small teams</i><em>€12</em></button>
@@ -151,12 +151,12 @@
     },
     {
       title: 'The Squint Test', icon: 'hold', do: 'Hold to squint',
-      about: 'Designers squint at their work to blur the words away and see only shapes. Hold the button: if one clear first thing survives the blur, <em>the hierarchy works.</em>',
-      note: 'If the order survives the blur, <em>it works.</em>',
+      about: 'Designers squint to blur the words and see only the shapes. Hold the button. If one thing still stands out, the layout works.',
+      note: 'Squint at your own work before anyone else sees it.',
       html: () => `
         <div class="squint">
-          <figure class="sq-card sq-flat"><span>Exhibition — Spring 2026</span><span>The Shape of Attention</span><span>Forty years of posters that made strangers stop walking.</span><span>12.03 — 30.06 · Hall B</span><span>Book a ticket</span><figcaption class="mono">Before</figcaption></figure>
-          <figure class="sq-card sq-good"><span class="sq-k">Exhibition — Spring 2026</span><span class="sq-t">The Shape of Attention</span><span class="sq-d">Forty years of posters that made strangers stop walking.</span><span class="sq-m">12.03 — 30.06 · Hall B</span><span class="sq-b">Book a ticket</span><figcaption class="mono">After</figcaption></figure>
+          <figure class="sq-card sq-flat"><span>Exhibition · Spring 2026</span><span>The Shape of Attention</span><span>Forty years of posters that made strangers stop walking.</span><span>12.03 – 30.06 · Hall B</span><span>Book a ticket</span><figcaption class="mono">Before</figcaption></figure>
+          <figure class="sq-card sq-good"><span class="sq-k">Exhibition · Spring 2026</span><span class="sq-t">The Shape of Attention</span><span class="sq-d">Forty years of posters that made strangers stop walking.</span><span class="sq-m">12.03 – 30.06 · Hall B</span><span class="sq-b">Book a ticket</span><figcaption class="mono">After</figcaption></figure>
           <button type="button" class="sq-btn" data-cursor="Hold"><span class="sq-ring"></span><span class="mono">Hold</span></button>
         </div>`,
       init(el, c) {
