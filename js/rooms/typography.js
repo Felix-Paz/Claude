@@ -87,11 +87,14 @@
     },
     {
       title: 'Kerning', icon: 'slide', do: 'Slide to fix the gaps',
-      about: 'Kerning adjusts the space between particular pairs of letters: A and V lean away from each other, T hangs over A. Slide until the gaps look even — your eye will tell you when.',
+      about: 'Kerning adjusts the space between particular pairs of letters: A and V lean away from each other, T hangs over A. Typed with equal spacing they look full of holes — the coral bars show the extra space. Slide until the word looks evenly spaced.',
       note: 'Good spacing <em>disappears.</em>',
       html: () => `
         <div class="kern">
-          <p class="kern-word" aria-label="AVATAR">AVATAR</p>
+          <div class="kern-stage">
+            <p class="kern-word" aria-label="AVATAR">AVATAR</p>
+            <div class="kern-gaps" aria-hidden="true"></div>
+          </div>
           <label class="slider kern-slider"><span class="slider-top mono"><span>Kerning</span><output class="kern-out">Off</output></span>
             <input type="range" class="kern-range" min="0" max="1" step="0.001" value="0" aria-label="Kerning"></label>
         </div>`,
@@ -100,13 +103,27 @@
         const chars = P.splitChars(word);
         // un-kerned: every pair spaced like a typewriter, a few pairs badly off
         const BAD = [0.16, 0.2, 0.18, 0.04, 0.2, 0];
+        // the extra space in each pair, drawn as a bar under the gap
+        const gaps = $('.kern-gaps', el);
+        gaps.innerHTML = chars.slice(0, -1).map((ch, i) => `<i data-pair="${ch.textContent}${chars[i + 1].textContent}"></i>`).join('');
+        const bars = $$('i', gaps);
         P.rangeFill(range);
         const render = () => {
           const k = +range.value;
           chars.forEach((ch, i) => { ch.style.marginRight = ((1 - k) * BAD[i]).toFixed(3) + 'em'; });
           word.style.fontKerning = k > 0.5 ? 'normal' : 'none';
-          out.textContent = k < 0.05 ? 'Off' : k > 0.95 ? 'Kerned' : Math.round(k * 100) + '%';
+          const wr = word.getBoundingClientRect(), fs = parseFloat(getComputedStyle(word).fontSize);
+          bars.forEach((b, i) => {
+            const r = chars[i].getBoundingClientRect();
+            const w = (1 - k) * BAD[i] * fs;
+            b.style.left = (r.right - wr.left) + 'px';
+            b.style.width = Math.max(0, w) + 'px';
+            b.classList.toggle('is-off', w < 2);
+          });
+          const off = BAD.reduce((a, v) => a + v, 0) * (1 - k);
+          out.textContent = k > 0.97 ? 'Even ✓' : 'Uneven gaps · ' + Math.round(off / 0.78 * 100) + '%';
         };
+        c.onResize(render);
         c.on(range, 'input', render);
         render();
         if (!reduced) ScrollTrigger.create({ trigger: el, start: 'top 60%', once: true, onEnter: () => {

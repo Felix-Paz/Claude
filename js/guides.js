@@ -93,7 +93,7 @@ window.GUIDES = (function () {
         ['Use the thirds', 'Subjects on the intersections, horizons on the lines. Dead center is stable; stable is static.'],
         ['Emptiness weighs', 'A large empty area needs mass across from it. White space sits on the scale too.'],
         ['Squint for heaviness', 'Blur your eyes: which side sinks? Move something small farther out, or something big closer in.'],
-        ['Fewer alignment lines', 'Every new edge you align to is a new thing to keep level. Two or three strong lines beat ten weak ones.'],
+        ['Borrow the golden ratio', 'About 1 : 1.618. Split a page 62 / 38, or grow a type scale by × 1.618. It isn’t magic — it’s a proportion that contains itself, so parts echo the whole.'],
         ['Trust optical over math', 'Perfect mathematical centering often looks low. Nudge up. The eye keeps its own books.'],
         ['"Off" usually means unbalanced', 'When a layout feels wrong and you can’t say why, check the scales before the colors.']
       ]

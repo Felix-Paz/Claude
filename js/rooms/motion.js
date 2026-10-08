@@ -89,13 +89,23 @@
       }
     },
     {
-      title: 'Stagger', icon: 'click', do: 'Click anywhere',
-      about: 'When things move one after another instead of all at once, movement becomes choreography. Click the grid to send a ripple through it.',
+      title: 'Stagger', icon: 'click', do: 'Switch, then click',
+      about: 'Same dots, same move. <em>All at once</em> feels like a glitch; <em>one after another</em> — each starting a few milliseconds after its neighbour — feels like a ripple. Switch between them and click the grid.',
       note: 'Order turns movement <em>into choreography.</em>',
-      html: () => `<div class="stagger" data-cursor="Click"></div>`,
+      html: () => `
+        <div class="stag">
+          <div class="seg stag-seg" role="radiogroup" aria-label="Timing">
+            <button type="button" role="radio" aria-checked="false" data-s="0">All at once</button>
+            <button type="button" role="radio" aria-checked="true" data-s="1">One after another</button>
+            <i class="seg-thumb" aria-hidden="true"></i>
+          </div>
+          <div class="stagger" data-cursor="Click"></div>
+          <p class="stag-read mono"><span>Delay between neighbours</span><b class="stag-ms">45 ms</b></p>
+        </div>`,
       init(el, c) {
-        const box = $('.stagger', el);
+        const box = $('.stagger', el), ms = $('.stag-ms', el);
         const COLS = 18, ROWS = 8;
+        let step = 0.045;
         box.style.setProperty('--cols', COLS);
         box.innerHTML = Array.from({ length: COLS * ROWS }, () => '<i></i>').join('');
         const dots = $$('i', box);
@@ -104,18 +114,20 @@
           dots.forEach((d, i) => {
             const x = i % COLS, y = Math.floor(i / COLS);
             const dist = Math.hypot(x - cx, (y - cy) * 1.1);
-            gsap.timeline({ delay: dist * 0.045 })
+            gsap.timeline({ delay: dist * step })
               .to(d, { scale: 1.9, backgroundColor: '#0C0C14', duration: 0.22, ease: 'power2.out', overwrite: 'auto' })
               .to(d, { scale: 1, backgroundColor: '', duration: 0.9, ease: 'elastic.out(1, 0.4)' });
           });
         };
+        const centre = () => wave((COLS - 1) / 2, (ROWS - 1) / 2);
+        P.seg($('.stag-seg', el), b => { step = +b.dataset.s ? 0.045 : 0; ms.textContent = step ? '45 ms' : '0 ms'; idle = -1.5; centre(); });
         c.on(box, 'click', e => {
           const r = box.getBoundingClientRect();
           wave((e.clientX - r.left) / r.width * (COLS - 1), (e.clientY - r.top) / r.height * (ROWS - 1));
+          idle = -2;
         });
         let idle = 0;
         c.visible(box, (t, dt) => { idle += dt; if (idle > 3.4) { idle = 0; wave(Math.random() * (COLS - 1), Math.random() * (ROWS - 1)); } });
-        c.on(box, 'click', () => { idle = -2; });
       }
     }
   ];

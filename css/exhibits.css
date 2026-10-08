@@ -251,6 +251,11 @@
 .kern { display: grid; justify-items: center; gap: clamp(30px, 5vw, 60px); width: 100%; }
 .kern-word { font-size: clamp(3.4rem, 12vw, 12.5rem); font-weight: 820; font-stretch: 112%; letter-spacing: 0; line-height: 0.9; white-space: nowrap; }
 .kern-word .ch { display: inline-block; }
+.kern-stage { position: relative; }
+.kern-gaps { position: absolute; left: 0; right: 0; top: 100%; height: 0; }
+.kern-gaps i { position: absolute; top: 14px; height: 8px; border-radius: 2px; background: var(--coral); transition: opacity 0.3s; }
+.kern-gaps i::after { content: attr(data-pair); position: absolute; left: 50%; top: 14px; transform: translateX(-50%); font: 600 10px var(--f-mono); letter-spacing: 0.06em; color: color-mix(in oklab, var(--fg) 80%, var(--bg)); }
+.kern-gaps i.is-off { opacity: 0; }
 .kern-slider { width: min(520px, 100%); }
 
 /* ---------------- 06 · Motion ---------------- */
@@ -280,6 +285,9 @@
 .sp-anchor { position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; border: 2px solid var(--ink); background: var(--bone); }
 .sp-ball { position: absolute; left: 0; top: 0; width: 88px; height: 88px; margin: -44px 0 0 -44px; border-radius: 50%; background: var(--ink); box-shadow: inset -10px -14px 0 rgb(255 255 255 / 0.07); touch-action: none; will-change: transform; }
 
+.stag { display: grid; justify-items: center; gap: 20px; width: 100%; }
+.stag-read { display: flex; gap: 12px; color: var(--muted); }
+.stag-read b { color: var(--fg); font-weight: 600; }
 .stagger { width: min(1100px, 100%); display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: clamp(8px, 1.6vw, 22px); padding: clamp(20px, 3vw, 40px); border-radius: var(--radius); box-shadow: inset 0 0 0 1px var(--line-2); }
 .stagger i { aspect-ratio: 1; border-radius: 50%; background: color-mix(in oklab, var(--ink) 30%, transparent); }
 

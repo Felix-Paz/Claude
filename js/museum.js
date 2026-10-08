@@ -78,6 +78,7 @@ window.MUSEUM = (function () {
       d.style.setProperty('--c', r.ink);
     });
     $('.hdr-pass-n').textContent = passport.count() + '/7';
+    $('.hdr-pass').setAttribute('aria-label', `Your passport: ${passport.count()} of 7 rooms stamped`);
     paintMap();
   }
 
