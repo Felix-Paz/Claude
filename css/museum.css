@@ -95,6 +95,7 @@
 .gl-on .hero-type .hl, .gl-on .hero-type .hl i { color: transparent; }
 .lb-hero-label { position: absolute; right: var(--pad); top: calc(var(--hdr-h) + 70px); z-index: 2; width: min(250px, 19vw); background: rgb(243 240 233 / 0.06); box-shadow: none; border: 1px solid var(--line); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: var(--bone); }
 .lb-hero-label .label-m { color: rgb(243 240 233 / 0.72); }
+.lb-hero:not(.gl-on) .lb-hero-label { display: none; }
 .lb-hero-foot { position: absolute; left: var(--pad); right: var(--pad); bottom: calc(var(--pad) * 0.7); z-index: 2; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
 .lb-lede { font-size: clamp(1.1rem, 1.5vw, 1.5rem); line-height: 1.22; font-weight: 520; letter-spacing: -0.015em; max-width: 30ch; }
 .lb-lede em { font-size: 1.12em; color: var(--lilac); }

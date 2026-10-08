@@ -210,5 +210,165 @@ window.EX3D = (function () {
   }
   if (window.SCULPT) { SCULPT.builders.fibonacci = fibonacci; SCULPT.settings.fibonacci = { plinthR: 1.75, plinthH: 0.35, auto: 0.16 }; }
 
-  return { gallery, fibonacci };
+  /* ---------------- the race track (Motion · Photo Finish) ---------------- */
+  function laneTexture(name, sub, fg) {
+    const THREE = T();
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 160;
+    const g = c.getContext('2d');
+    g.fillStyle = fg;
+    g.font = '820 72px "Mona Sans"';
+    g.textBaseline = 'alphabetic';
+    g.fillText(name.toUpperCase(), 8, 82);
+    g.globalAlpha = 0.8;
+    g.font = 'italic 58px "Instrument Serif"';
+    g.fillText(sub, 10, 146);
+    const tx = new THREE.CanvasTexture(c);
+    tx.anisotropy = 8;
+    if ('colorSpace' in tx) tx.colorSpace = THREE.SRGBColorSpace;
+    return tx;
+  }
+  function checker() {
+    const THREE = T();
+    const c = document.createElement('canvas');
+    c.width = 32; c.height = 256;
+    const g = c.getContext('2d');
+    for (let y = 0; y < 16; y++) for (let x = 0; x < 2; x++) { g.fillStyle = (x + y) % 2 ? '#0C0C14' : '#F3F0E9'; g.fillRect(x * 16, y * 16, 16, 16); }
+    const tx = new THREE.CanvasTexture(c);
+    tx.magFilter = THREE.NearestFilter;
+    if ('colorSpace' in tx) tx.colorSpace = THREE.SRGBColorSpace;
+    return tx;
+  }
+  function race(el, c, lanes) {
+    const THREE = T();
+    if (!window.THREE || !S3D.init()) return null;
+    const Mt = S3D.mat;
+    const state = { t: 0 };
+    const v = S3D.view(el, (turn, vv) => {
+      const N = lanes.length, LW = 0.62, X0 = -2.35, X1 = 2.75;
+      const W = N * LW;
+      const track = new THREE.Mesh(S3D.roundedBox(7.6, 0.14, W + 0.5, 0.05), Mt.clay(0x1B1A22, 0.85));
+      track.position.set(0.25, -0.07, 0);
+      track.receiveShadow = true;
+      turn.add(track);
+      const line = (x0, x1, z, w = 0.025) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, w), new THREE.MeshBasicMaterial({ color: 0xF3F0E9, transparent: true, opacity: 0.55 })); m.rotation.x = -Math.PI / 2; m.position.set((x0 + x1) / 2, 0.002, z); turn.add(m); };
+      for (let i = 0; i <= N; i++) line(-3.4, 3.95, -W / 2 + i * LW);
+      // start line and a chequered finish
+      const start = new THREE.Mesh(new THREE.PlaneGeometry(0.05, W), new THREE.MeshBasicMaterial({ color: 0xF3F0E9 }));
+      start.rotation.x = -Math.PI / 2; start.position.set(X0 - 0.2, 0.003, 0); turn.add(start);
+      const fin = new THREE.Mesh(new THREE.PlaneGeometry(0.2, W), new THREE.MeshBasicMaterial({ map: checker() }));
+      fin.rotation.x = -Math.PI / 2; fin.position.set(X1 + 0.2, 0.003, 0); turn.add(fin);
+      // the finish gantry: two brass posts and a beam with the photo-finish camera
+      const brass = Mt.brass(0.28);
+      [-1, 1].forEach(sd => { const post = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.25, 16), brass); post.position.set(X1 + 0.2, 0.62, sd * (W / 2 + 0.12)); post.castShadow = true; turn.add(post); });
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, W + 0.3), brass); beam.position.set(X1 + 0.2, 1.24, 0); turn.add(beam);
+      const cam = new THREE.Group();
+      const body = new THREE.Mesh(S3D.roundedBox(0.22, 0.16, 0.18, 0.03), Mt.gloss(0x0C0C14, 0.3));
+      const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.1, 24), Mt.gloss(0x0C0C14, 0.2)); lens.rotation.z = Math.PI / 2; lens.position.x = -0.15;
+      const glass = new THREE.Mesh(new THREE.CircleGeometry(0.05, 24), new THREE.MeshStandardMaterial({ color: 0x3A22FC, emissive: 0x3A22FC, emissiveIntensity: 0.4, roughness: 0.1 })); glass.rotation.y = -Math.PI / 2; glass.position.x = -0.201;
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.04, 16, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0 }));
+      bulb.position.set(0, 0.11, 0);
+      cam.add(body, lens, glass, bulb);
+      cam.position.set(X1 + 0.2, 1.36, 0);
+      cam.rotation.z = -0.25;
+      turn.add(cam);
+      // painted lane names and the runners
+      const runners = lanes.map((L, i) => {
+        const z = -W / 2 + LW * (i + 0.5);
+        const paint = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.31), new THREE.MeshBasicMaterial({ map: laneTexture(L.name, L.sub, '#F3F0E9'), transparent: true, depthWrite: false, opacity: 0.95 }));
+        paint.rotation.x = -Math.PI / 2; paint.position.set(-3.0 + 0.18, 0.004, z + 0.02);
+        turn.add(paint);
+        const r = 0.17;
+        const ball = new THREE.Mesh(new THREE.SphereGeometry(r, 48, 32), L.mat === 'chrome' ? Mt.chrome(0xffffff, 0.05) : Mt.gloss(L.color, 0.12));
+        ball.castShadow = true;
+        ball.position.set(X0, r, z);
+        const sh = S3D.shadow(r * 1.5, r * 1.2, 0.5); sh.position.set(X0, 0.006, z);
+        turn.add(ball, sh);
+        return { ball, sh, ease: L.ease, r, z };
+      });
+      vv.fit = { w: 7.9, h: 2.7, cy: 0.18, elev: 0.58, margin: 1.0 };
+      let flash = 0;
+      vv.flash = () => { flash = 1; };
+      return (t, dt) => {
+        runners.forEach(o => {
+          const k = o.ease(state.t);
+          const x = X0 + (X1 - X0) * k;
+          o.ball.position.x = x;
+          o.ball.rotation.z = -(x - X0) / o.r;
+          o.sh.position.x = x;
+        });
+        flash = Math.max(0, flash - dt * 2.4);
+        bulb.material.emissiveIntensity = flash * 6;
+        vv.key.intensity = 1.5 + flash * 2.2;
+      };
+    }, { plinth: false, auto: 0, swing: 0.3, range: 0.06, drag: false, lean: 0.5, shadows: { size: 5, map: 1536 }, fov: 24, key: 1.5, rimI: 0.6 });
+    if (!v) return null;
+    c.own(() => v.dispose());
+    return { state, flash: () => v.flash && v.flash() };
+  }
+
+  /* ---------------- a ball on a coil spring (Motion · The Spring) ---------------- */
+  // the physics stays in the page (px from the stage centre); this only draws it
+  function coil(el, c, b) {
+    const THREE = T();
+    if (!window.THREE || !S3D.init()) return null;
+    const Mt = S3D.mat;
+    const HW = 5.36;
+    const v = S3D.view(el, (turn, vv) => {
+      // a unit-length helix hanging down from the origin
+      const TURNS = 16, R = 0.16;
+      class Helix extends THREE.Curve {
+        getPoint(u, out = new THREE.Vector3()) {
+          const a = u * TURNS * Math.PI * 2;
+          const taper = Math.min(1, u * 14, (1 - u) * 14);
+          return out.set(Math.cos(a) * R * taper, -u, Math.sin(a) * R * taper);
+        }
+      }
+      const springG = new THREE.Group();
+      const wire = new THREE.Mesh(new THREE.TubeGeometry(new Helix(), 900, 0.022, 8), Mt.chrome(0xffffff, 0.12));
+      springG.add(wire);
+      const mount = new THREE.Group();
+      const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.38, 0.08, 48), Mt.brass(0.25));
+      const hook = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.02, 12, 32), Mt.brass(0.25));
+      hook.position.y = -0.1;
+      mount.add(plate, hook);
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 48), Mt.gloss(0x0C0C14, 0.12));
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.022, 12, 32), Mt.chrome(0xffffff, 0.1));
+      turn.add(springG, mount, ball, ring);
+      vv.fit = { w: 0.1, h: HW, cy: 0, margin: 1, elev: 1e-4 };
+      const A = new THREE.Vector3(), B = new THREE.Vector3(), D = new THREE.Vector3(), DOWN = new THREE.Vector3(0, -1, 0);
+      const toWorld = (px, py, out) => {
+        const r = el.getBoundingClientRect();
+        const k = HW / r.height;
+        return out.set((px - r.width / 2) * k, -(py - r.height / 2) * k, 0);
+      };
+      return () => {
+        const r = el.getBoundingClientRect();
+        const k = HW / r.height;
+        toWorld(r.width / 2, 22, A);
+        toWorld(r.width / 2 + b.x, r.height / 2 + b.y, B);
+        mount.position.copy(A);
+        const rad = 44 * k;
+        // the spring runs from the hook to the top of the ball
+        D.subVectors(B, A);
+        const len = Math.max(0.05, D.length() - rad - 0.1);
+        D.normalize();
+        springG.position.copy(A).addScaledVector(D, 0.1);
+        springG.quaternion.setFromUnitVectors(DOWN, D);
+        springG.scale.set(1, len, 1);
+        ring.position.copy(B).addScaledVector(D, -rad - 0.02);
+        ring.quaternion.copy(springG.quaternion);
+        ring.rotateX(Math.PI / 2);
+        const sp = Math.hypot(b.vx, b.vy), sq = Math.min(0.42, sp / 4200);
+        ball.position.copy(B);
+        ball.rotation.set(0, 0, Math.atan2(-b.vy, b.vx));
+        ball.scale.set(rad * (1 + sq), rad * (1 - sq * 0.6), rad * (1 - sq * 0.6));
+      };
+    }, { plinth: false, auto: 0, drag: false, lean: 0, fov: 30, key: 1.7, rimI: 1.0 });
+    if (!v) return null;
+    c.own(() => v.dispose());
+    return v;
+  }
+
+  return { gallery, fibonacci, race, coil };
 })();

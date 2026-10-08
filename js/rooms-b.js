@@ -132,18 +132,26 @@
           <div class="race-lane" data-e="expo.out"><span class="rl-name"><b>Ease out</b><i>confident</i></span><span class="rl-track"><i class="rl-ball"></i></span></div>
           <div class="race-lane" data-e="power3.inOut"><span class="rl-name"><b>Ease in-out</b><i>graceful</i></span><span class="rl-track"><i class="rl-ball"></i></span></div>
           <div class="race-lane" data-e="elastic.out(1,0.35)"><span class="rl-name"><b>Spring</b><i>delighted</i></span><span class="rl-track"><i class="rl-ball"></i></span></div>
-          <button class="btn btn-solid race-go" type="button"><span>Race again</span><svg><use href="#i-arrow"/></svg></button>
+          <div class="race-3d" aria-hidden="true"><i class="race-flash"></i></div>
+          <div class="race-foot"><button class="btn btn-solid race-go" type="button"><span>Race again</span><svg><use href="#i-arrow"/></svg></button><p class="race-cap mono">Same start · same finish · same 1.5 seconds</p></div>
         </div>`,
       init(el, c) {
-        const lanes = $$('.race-lane', el).map(l => ({ ease: gsap.parseEase(l.dataset.e), ball: $('.rl-ball', l), track: $('.rl-track', l) }));
-        const p = { t: 0 };
-        const draw = () => lanes.forEach(L => gsap.set(L.ball, { x: L.ease(p.t) * (L.track.clientWidth - L.ball.offsetWidth) }));
+        const lanes = $$('.race-lane', el).map(l => ({ ease: gsap.parseEase(l.dataset.e), ball: $('.rl-ball', l), track: $('.rl-track', l), name: $('b', l).textContent, sub: $('i', l).textContent }));
+        const COLS = [0xF3F0E9, 0xD9FD3A, 0xCDBFFF, 0x8DEFC5];
+        // the track wants width: phones keep the flat lanes
+        const r3 = window.EX3D && P.vw() > 760 ? EX3D.race($('.race-3d', el), c, lanes.map((L, i) => ({ name: L.name, sub: L.sub, ease: L.ease, color: COLS[i] }))) : null;
+        if (r3) el.querySelector('.race').classList.add('is-3d');
+        const p = r3 ? r3.state : { t: 0 };
+        const flashEl = $('.race-flash', el);
+        const snap = () => { if (r3) r3.flash(); if (!reduced) gsap.fromTo(flashEl, { opacity: 0.45 }, { opacity: 0, duration: 0.6, ease: 'power2.out' }); };
+        const draw = () => { if (!r3) lanes.forEach(L => gsap.set(L.ball, { x: L.ease(p.t) * (L.track.clientWidth - L.ball.offsetWidth) })); };
         let race = null;
         const run = () => {
           if (race) race.kill();
           race = gsap.timeline({ repeat: -1, repeatDelay: 0.3 })
             .fromTo(p, { t: 0 }, { t: 1, duration: 1.5, ease: 'none', onUpdate: draw })
-            .to({}, { duration: 1.2 })
+            .add(snap)
+            .to({}, { duration: 1.4 })
             .to(p, { t: 0, duration: 0.7, ease: 'power3.inOut', onUpdate: draw });
         };
         draw();
@@ -154,7 +162,7 @@
     },
     {
       title: 'The Spring', icon: 'drag', do: 'Drag it, let go',
-      about: 'This ball is tied to its spot by an invisible spring. Throw it: tension pulls it home, friction calms it down, and it wobbles a little on arrival — like anything real.',
+      about: 'This ball hangs on a spring. Pull it and throw it: tension drags it home, friction calms it down, and it overshoots a little on arrival — like anything real. That overshoot is what “spring” easing borrows.',
       note: 'Physics makes things <em>feel alive.</em>',
       html: () => `
         <div class="spring">
@@ -165,7 +173,9 @@
       init(el, c) {
         const stage = $('.spring', el), ball = $('.sp-ball', el), band = $('.sp-band path', el), bsvg = $('.sp-band', el);
         const K = 180, C = 8;
-        const b = { x: -150, y: -80, vx: 0, vy: 0, drag: false, ox: 0, oy: 0, lt: 0 };
+        const b = { x: reduced ? 0 : -150, y: reduced ? 0 : -80, vx: 0, vy: 0, drag: false, ox: 0, oy: 0, lt: 0 };
+        // in 3D: a real coil spring from a brass ceiling mount (the DOM ball stays as the handle)
+        if (window.EX3D && EX3D.coil(stage, c, b)) stage.classList.add('is-3d');
         const mid = () => ({ x: stage.clientWidth / 2, y: stage.clientHeight / 2 });
         c.on(ball, 'pointerdown', e => {
           e.preventDefault(); ball.setPointerCapture(e.pointerId);
@@ -321,34 +331,47 @@
       }
     },
     {
-      title: 'Two Kinds of Calm', icon: 'click', do: 'Switch',
-      about: 'Symmetry balances with mirror images: steady, formal, a little stiff. Asymmetry balances one big thing against several small ones: just as steady, but alive.',
+      title: 'Two Kinds of Calm', icon: 'click', do: 'Switch the hang',
+      about: 'Symmetry balances with mirror images: steady, formal, a little stiff. Asymmetry trades one big light shape for a few small dark ones — dark weighs more. The beam underneath does the maths: level means balanced.',
       note: 'Asymmetry balances <em>by trade.</em>',
       html: () => `
         <div class="sym">
           <div class="seg sym-seg" role="radiogroup" aria-label="Composition">
             <button type="button" role="radio" aria-checked="true" data-s="sym">Symmetric</button>
             <button type="button" role="radio" aria-checked="false" data-s="asym">Asymmetric</button>
+            <button type="button" role="radio" aria-checked="false" data-s="lop">Lopsided</button>
             <i class="seg-thumb" aria-hidden="true"></i>
           </div>
           <div class="sym-canvas">
             <i class="sy sy-a"></i><i class="sy sy-b"></i><i class="sy sy-c"></i><i class="sy sy-d"></i>
             <span class="sym-axis" aria-hidden="true"></span>
+            <div class="sym-beam" aria-hidden="true"><i class="sym-bar"></i><i class="sym-pivot"></i></div>
             <p class="sym-read mono"><span class="sym-word">Stable</span> · <span class="sym-sub">predictable</span></p>
           </div>
         </div>`,
       init(el, c) {
-        const A = $$('.sy', el), word = $('.sym-word', el), sub = $('.sym-sub', el), axis = $('.sym-axis', el);
-        // [left%, top%, size% of width]
+        const A = $$('.sy', el), word = $('.sym-word', el), sub = $('.sym-sub', el), axis = $('.sym-axis', el), bar = $('.sym-bar', el), canvas = $('.sym-canvas', el);
+        // [left%, top%, size% of width]; ink shapes weigh 2.2× their area
+        const DARK = [1, 1, 2.2, 2.2];
         const L = {
-          sym: [[30, 48, 22], [70, 48, 22], [50, 24, 5], [50, 76, 5]],
-          asym: [[36, 46, 30], [80, 30, 7], [86, 64, 4.5], [72, 74, 3]]
+          sym: [[30, 46, 22], [70, 46, 22], [50, 22, 5], [50, 70, 5]],
+          asym: [[40, 44, 30], [72, 64, 4], [82, 28, 9], [89, 56, 6]],
+          lop: [[30, 42, 30], [16, 74, 6], [45, 70, 9], [22, 20, 6]]
+        };
+        const TXT = { sym: ['Stable', 'predictable'], asym: ['Balanced', 'alive'], lop: ['Uneasy', 'it wants to tip'] };
+        const tilt = m => {
+          let mom = 0, tot = 0;
+          L[m].forEach(([x, , s], i) => { const w = s * s * DARK[i]; mom += (x - 50) * w; tot += w; });
+          return clamp((mom / tot) * 0.9, -9, 9);
         };
         const go = (m, instant) => {
-          A.forEach((n, i) => { const [x, y, s] = L[m][i]; gsap.to(n, { left: x + '%', top: y + '%', width: s + '%', duration: instant || reduced ? 0 : 1.2, ease: 'expo.inOut', delay: instant ? 0 : i * 0.05 }); });
+          const d = instant || reduced ? 0 : 1.2;
+          A.forEach((n, i) => { const [x, y, s] = L[m][i]; gsap.to(n, { left: x + '%', top: y + '%', width: s + '%', duration: d, ease: 'expo.inOut', delay: instant ? 0 : i * 0.05 }); });
           gsap.to(axis, { opacity: m === 'sym' ? 1 : 0, duration: 0.5 });
-          word.textContent = m === 'sym' ? 'Stable' : 'Balanced';
-          sub.textContent = m === 'sym' ? 'predictable' : 'alive';
+          gsap.to(bar, { rotate: tilt(m), duration: instant || reduced ? 0 : 1.6, ease: 'elastic.out(1, 0.45)', delay: instant ? 0 : 0.6 });
+          canvas.classList.toggle('is-off', m === 'lop');
+          word.textContent = TXT[m][0];
+          sub.textContent = TXT[m][1];
         };
         A.forEach(n => gsap.set(n, { xPercent: -50, yPercent: -50 }));
         go('sym', true);

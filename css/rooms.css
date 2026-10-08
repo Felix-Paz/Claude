@@ -240,9 +240,17 @@
 .rl-track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--line-2); }
 .rl-track::after { content: ''; position: absolute; right: 0; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; border: 1.5px solid var(--fg); }
 .rl-ball { position: absolute; left: 0; top: 50%; width: 40px; height: 40px; margin-top: -20px; border-radius: 50%; background: var(--ink); will-change: transform; }
-.race-go { justify-self: start; margin-top: 26px; }
+.race-go { justify-self: start; }
+.race-foot { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; margin-top: 26px; }
+.race-cap { color: var(--muted); }
+.race-3d { display: none; position: relative; height: min(56vh, 520px); min-height: 300px; }
+.race-flash { position: absolute; inset: 0; z-index: 50; background: #fff; opacity: 0; pointer-events: none; border-radius: 12px; }
+.race.is-3d .race-lane { display: none; }
+.race.is-3d .race-3d { display: block; }
 
 .spring { position: relative; width: min(1100px, 100%); height: clamp(360px, 58vh, 600px); border-radius: var(--radius); background: radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--fg) 26%, transparent) 1px, transparent 1.5px) 0 0 / 24px 24px; box-shadow: inset 0 0 0 1px var(--line-2); overflow: clip; touch-action: none; }
+.spring.is-3d .sp-band, .spring.is-3d .sp-anchor { display: none; }
+.spring.is-3d .sp-ball { opacity: 0; }
 .sp-band { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .sp-band path { fill: none; stroke: var(--ink); stroke-linecap: round; }
 .sp-anchor { position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; border: 2px solid var(--ink); background: var(--bone); }
@@ -275,7 +283,11 @@
 .sy { position: absolute; aspect-ratio: 1; border-radius: 50%; }
 .sy-a { background: var(--coral); } .sy-b { background: var(--coral); } .sy-c { background: var(--ink); } .sy-d { background: var(--ink); }
 .sym-axis { position: absolute; left: 50%; top: 8%; bottom: 8%; width: 0; border-left: 1.5px dashed rgb(12 12 20 / 0.25); }
-.sym-read { position: absolute; left: 20px; bottom: 16px; color: rgb(12 12 20 / 0.6); }
+.sym-read { position: absolute; left: 20px; top: 16px; color: rgb(12 12 20 / 0.6); }
+.sym-beam { position: absolute; left: 14%; right: 14%; bottom: 7%; height: 26px; }
+.sym-bar { position: absolute; left: 0; right: 0; top: 0; height: 5px; border-radius: 3px; background: var(--ink); transform-origin: 50% 50%; }
+.sym-pivot { position: absolute; left: 50%; top: 5px; width: 22px; height: 18px; transform: translateX(-50%); background: var(--ink); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.sym-canvas.is-off .sym-word { color: var(--coral); }
 .sym-word { color: var(--ink); font-weight: 600; }
 
 .thirds { display: grid; justify-items: center; gap: 18px; width: 100%; }
